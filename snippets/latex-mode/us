@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: us
+# key: us
+# --
+$1^{$2}

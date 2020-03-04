@@ -1,0 +1,203 @@
+;;; init-company.el --- -*- lexical-binding: t -*-
+;;
+;; Filename: init-company.el
+;; Description: Initialize Company
+;; Author: Mingde (Matthew) Zeng
+;; Copyright (C) 2019 Mingde (Matthew) Zeng
+;; Created: Fri Mar 15 10:02:00 2019 (-0400)
+;; Version: 2.0.0
+;; Last-Updated: Thu Feb 20 11:17:43 2020 (+0800)
+;;           By: theFool32
+;; URL: https://github.com/MatthewZMD/.emacs.d
+;; Keywords: M-EMACS .emacs.d company company-tabnine
+;; Compatibility: emacs-version >= 26.1
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Commentary:
+;;
+;; This initializes company
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or (at
+;; your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Code:
+
+(eval-when-compile
+  (require 'init-const))
+
+;;;###autoload
+(defvar +company-backend-alist
+  '((text-mode company-tabnine company-yasnippet company-ispell company-dabbrev)
+    (prog-mode company-capf company-yasnippet)
+    (conf-mode company-capf company-dabbrev-code company-yasnippet))
+  "An alist matching modes to company backends. The backends for any mode is
+built from this.")
+
+;;;###autodef
+(defun set-company-backend! (modes &rest backends)
+  "Prepends BACKENDS (in order) to `company-backends' in MODES.
+
+MODES should be one symbol or a list of them, representing major or minor modes.
+This will overwrite backends for MODES on consecutive uses.
+
+If the car of BACKENDS is nil, unset the backends for MODES.
+
+Examples:
+
+  (set-company-backend! 'js2-mode
+    'company-tide 'company-yasnippet)
+
+  (set-company-backend! 'sh-mode
+    '(company-shell :with company-yasnippet))
+
+  (set-company-backend! '(c-mode c++-mode)
+    '(:separate company-irony-c-headers company-irony))
+
+  (set-company-backend! 'sh-mode nil)  ; unsets backends for sh-mode"
+  (declare (indent defun))
+  (dolist (mode (doom-enlist modes))
+    (if (null (car backends))
+        (setq +company-backend-alist
+              (delq (assq mode +company-backend-alist)
+                    +company-backend-alist))
+      (setf (alist-get mode +company-backend-alist)
+            backends))))
+
+
+;;
+;;; Library
+
+(defun +company--backends ()
+  (let (backends)
+    (let ((mode major-mode)
+          (modes (list major-mode)))
+      (while (setq mode (get mode 'derived-mode-parent))
+        (push mode modes))
+      (dolist (mode modes)
+        (dolist (backend (append (cdr (assq mode +company-backend-alist))
+                                 (default-value 'company-backends)))
+          (push backend backends)))
+      (delete-dups
+       (append (cl-loop for (mode . backends) in +company-backend-alist
+                        if (or (eq major-mode mode)  ; major modes
+                               (and (boundp mode)
+                                    (symbol-value mode))) ; minor modes
+                        append backends)
+               (nreverse backends))))))
+
+
+;;
+;;; Hooks
+
+;;;###autoload
+(defun +company-init-backends-h ()
+  "Set `company-backends' for the current buffer."
+  (if (not company-mode)
+      (remove-hook 'change-major-mode-after-body-hook #'+company-init-backends-h 'local)
+    (unless (eq major-mode 'fundamental-mode)
+      (setq-local company-backends (+company--backends)))
+    (add-hook 'change-major-mode-after-body-hook #'+company-init-backends-h nil 'local)))
+
+(put '+company-init-backends-h 'permanent-local-hook t)
+
+
+;; ComPac
+(use-package company
+  :diminish company-mode
+  :hook ((prog-mode LaTeX-mode) . company-mode)
+  :init
+  (company-tng-configure-default)
+  (add-hook 'company-mode-hook #'+company-init-backends-h)
+  (set-company-backend! 'text-mode 'company-tabnine 'company-yasnippet 'company-ispell 'company-dabbrev)
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-tooltip-align-annotations t)
+  (company-begin-commands '(self-insert-command))
+  (company-require-match 'never)
+  ;; Don't use company in the following modes
+  (company-global-modes '(not shell-mode eaf-mode))
+  ;; Trigger completion immediately.
+  (company-idle-delay 0.1)
+  ;; Number the candidates (use M-1, M-2 etc to select completions).
+  (company-show-numbers t)
+  ;; (company-tooltip-minimum-width 80)
+  (company-quickelp-delay nil)
+  (company-dabbrev-downcase nil)
+  (company-dabbrev-ignore-case t)
+  (company-frontends '(
+                       company-tng-frontend
+                       company-pseudo-tooltip-unless-just-one-frontend
+                       company-preview-frontend
+                       company-echo-metadata-frontend))
+  :config
+  (setq company-backends '(company-tabnine company-files company-dabbrev))
+  ;; (unless *clangd* (delete 'company-clang company-backends))
+  (global-company-mode 1)
+  )
+;; -ComPac
+
+;; CompanyLSPPac
+(use-package company-lsp
+  :defer t
+  :custom (company-lsp-cache-candidates 'auto))
+;; -CompanyLSPPac
+
+;; CompanyTabNinePac
+(use-package company-tabnine
+  :defer 1
+  :custom
+  (company-tabnine-max-num-results 9)
+  :hook
+  (lsp-after-open . (lambda ()
+                      (setq company-tabnine-max-num-results 3)
+                      (add-to-list 'company-transformers 'company//sort-by-tabnine t)
+                      ;; (add-to-list 'company-backends '(company-lsp :with company-tabnine :separate))
+                      (setq company-backends '((company-lsp :with company-tabnine :separate) company-files company-dabbrev))
+                      ))
+  (kill-emacs . company-tabnine-kill-process)
+  :config
+  ;; Enable TabNine on default
+  (add-to-list 'company-backends #'company-tabnine)
+
+  ;; Integrate company-tabnine with lsp-mode
+  (defun company//sort-by-tabnine (candidates)
+    (if (or (functionp company-backend)
+            (not (and (listp company-backend) (memq 'company-tabnine company-backend))))
+        candidates
+      (let ((candidates-table (make-hash-table :test #'equal))
+            candidates-lsp
+            candidates-tabnine)
+        (dolist (candidate candidates)
+          (if (eq (get-text-property 0 'company-backend candidate)
+                  'company-tabnine)
+              (unless (gethash candidate candidates-table)
+                (push candidate candidates-tabnine))
+            (push candidate candidates-lsp)
+            (puthash candidate t candidates-table)))
+        (setq candidates-lsp (nreverse candidates-lsp))
+        (setq candidates-tabnine (nreverse candidates-tabnine))
+        (nconc (seq-take candidates-lsp 2)
+               (seq-take candidates-tabnine 2)
+               (seq-drop candidates-lsp 2)
+               (seq-drop candidates-tabnine 2)
+               )))))
+;; -CompanyTabNinePac
+
+(provide 'init-company)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; init-company.el ends here

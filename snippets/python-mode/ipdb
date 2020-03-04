@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name:ipdb
+# key: ipdb
+# --
+__import__("ipdb").set_trace()
