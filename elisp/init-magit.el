@@ -127,14 +127,16 @@
                       (insert (cdr (cdr x)))
                       (insert " "))))
 
-(use-package magit-todos)
+(use-package magit-todos
+  :after magit)
 
 (require 'init-evil)
 (use-package evil-magit
-  :if (executable-find "git"))
+  :after (evil magit))
 
 ;; Walk through git revisions of a file
 (use-package git-timemachine
+  :after magit
   :custom-face
   (git-timemachine-minibuffer-author-face ((t (:inherit success))))
   (git-timemachine-minibuffer-detail-face ((t (:inherit warning))))

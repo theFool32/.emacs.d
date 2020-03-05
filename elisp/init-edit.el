@@ -39,11 +39,6 @@
 (eval-when-compile
   (require 'init-global-config))
 
-;; IEditPac
-(use-package iedit
-  :diminish)
-;; -IEditPac
-
 ;; DeleteBlockPac
 (use-package delete-block
   :load-path (lambda () (expand-file-name "site-elisp/delete-block" user-emacs-directory))

@@ -207,10 +207,8 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
 
 
 (use-package reftex
+  :after tex
   :hook (LaTeX-mode . reftex-mode)
-  ;; :bind
-  ;; (:map reftex-mode-map
-  ;;       ".;" 'reftex-toc)
   :custom
   (reftex-cite-format
    '((?a . "\\autocite[]{%l}")
@@ -226,19 +224,10 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   :config
   ;; set up completion for citations and references
   (set-company-backend! 'reftex-mode 'company-reftex-labels 'company-reftex-citations)
-  ;; (add-hook 'reftex-mode-hook (lambda() (setq company-backends '(company-reftex-labels company-reftex-citations))))
-  ;; Get ReTeX working with biblatex
-  ;; http://tex.stackexchange.com/questions/31966/setting-up-reftex-with-biblatex-citation-commands/31992#31992
-  ;; (add-hook! 'reftex-toc-mode-hook
-  ;;            (reftex-toc-rescan)
-  ;;            (map! :map 'local
-  ;;                  :e "j"   #'next-line
-  ;;                  :e "k"   #'previous-line
-  ;;                  :e "q"   #'kill-buffer-and-window
-  ;;                  :e "ESC" #'kill-buffer-and-window))
   )
 
 (use-package bibtex
+  :after (org tex)
   :custom
   (bibtex-dialect 'biblatex)
   (bibtex-align-at-equal-sign t)
@@ -294,89 +283,49 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
        (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer"))))
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
   (add-hook 'TeX-mode-hook (lambda() (setq ispell-parser 'tex
-                                      fill-nobreak-predicate (cons #'texmathp fill-nobreak-predicate))))
+                                           fill-nobreak-predicate (cons #'texmathp fill-nobreak-predicate))))
   ;; Enable word wrapping
   (add-hook 'TeX-mode-hook #'visual-line-mode)
   ;; Fold TeX macros
   (add-hook 'TeX-mode-hook #'TeX-fold-mode)
   ;; Enable rainbow mode after applying styles to the buffer
   (add-hook 'TeX-update-style-hook #'rainbow-delimiters-mode)
-  ;; display output of latex commands in popup
-  ;; (with-eval-after-load smartparens-latex
-  ;;   (let ((modes '(tex-mode plain-tex-mode latex-mode LaTeX-mode)))
-  ;;     ;; All these excess pairs dramatically slow down typing in latex buffers,
-  ;;     ;; so we remove them. Let snippets do their job.
-  ;;     (dolist (open '("\\left(" "\\left[" "\\left\\{" "\\left|"
-  ;;                     "\\bigl(" "\\biggl(" "\\Bigl(" "\\Biggl(" "\\bigl["
-  ;;                     "\\biggl[" "\\Bigl[" "\\Biggl[" "\\bigl\\{" "\\biggl\\{"
-  ;;                     "\\Bigl\\{" "\\Biggl\\{"
-  ;;                     "\\lfloor" "\\lceil" "\\langle"
-  ;;                     "\\lVert" "\\lvert" "`"))
-  ;;       (sp-local-pair modes open nil :actions :rem))
-  ;;     ;; And tweak these so that users can decide whether they want use latex
-  ;;     ;; quotes or not, via `+latex-enable-plain-double-quotes'
-  ;;     (sp-local-pair modes "``" nil :unless '(:add sp-in-math-p))))
 
   (when +latex--company-backends
     (set-company-backend! 'latex-mode +latex--company-backends))
-  ;; (add-hook 'LaTeX-mode-hook (lambda() (setq company-backends +latex--company-backends))))
 
   ;; Provide proper indentation for LaTeX "itemize","enumerate", and
   ;; "description" environments. See
   ;; http://emacs.stackexchange.com/questions/3083/how-to-indent-items-in-latex-auctex-itemize-environments
   (dolist (env '("itemize" "enumerate" "description"))
     (add-to-list 'LaTeX-indent-environment-list `(,env +latex/LaTeX-indent-item)))
-
-  ;; Fix #1849: allow fill-paragraph in itemize/enumerate
-  ;; (defadvice! +latex--re-indent-itemize-and-enumerate-a (orig-fn &rest args)
-  ;;   :around #'LaTeX-fill-region-as-para-do
-  ;;   (let ((LaTeX-indent-environment-list
-  ;;          (append LaTeX-indent-environment-list
-  ;;                  '(("itemize"   +latex/LaTeX-indent-item)
-  ;;                    ("enumerate" +latex/LaTeX-indent-item)))))
-  ;;     (apply orig-fn args)))
-  ;; (defadvice! +latex--dont-indent-itemize-and-enumerate-a (orig-fn &rest args)
-  ;;   :around #'LaTeX-fill-region-as-paragraph
-  ;;   (let ((LaTeX-indent-environment-list LaTeX-indent-environment-list))
-  ;;     (delq! "itemize" LaTeX-indent-environment-list 'assoc)
-  ;;     (delq! "enumerate" LaTeX-indent-environment-list 'assoc)
-  ;;     (apply orig-fn args)))
   )
 
-;; (use-package auctex-latexmk
-;;   :after latex
-;;   :custom
-;;   ;; Pass the -pdf flag when TeX-PDF-mode is active
-;;   (auctex-latexmk-inherit-TeX-PDF-mode t)
-;;   :init
-;;   ;; Set LatexMk as the default
-;;   ;; (add-hook LaTeX-mode-hook (lambda() (setq TeX-command-default "LatexMk")))
-;;   :config
-;;   ;; Add latexmk as a TeX target
-;;   (auctex-latexmk-setup))
-
 (use-package cdlatex
-  :ensure t
+  :after tex
   :hook (LaTeX-mode . cdlatex-mode)
   :config
   ;; Disabling keys that have overlapping functionality with other parts of Doom
   )
 (use-package adaptive-wrap
-  :ensure t
+  :after tex
   :hook (LaTeX-mode . adaptive-wrap-prefix-mode)
   :init (setq-default adaptive-wrap-extra-indent 0))
 (use-package company-auctex
-  :defer t
+  :after (company tex)
   :init
   (add-to-list '+latex--company-backends #'company-auctex-environments nil #'eq)
   (add-to-list '+latex--company-backends #'company-auctex-macros nil #'eq)
   )
-(use-package company-reftex)
+(use-package company-reftex
+  :after (company tex))
 (use-package company-math
+  :after (company tex)
   :defer t
   :init
   (add-to-list '+latex--company-backends #'+latex-symbols-company-backend nil #'eq))
-(use-package ivy-bibtex)
+(use-package ivy-bibtex
+  :ensure nil)
 ;; -AUCTeXPac
 
 ;; OrgLatexPac

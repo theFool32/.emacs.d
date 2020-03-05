@@ -5,19 +5,7 @@
 (eval-when-compile
   (require 'init-const))
 
-
-;; Set these defaults before `evil'; use `defvar' so they can be changed prior
-;; to loading.
-;; (defvar evil-want-C-u-scroll t)  ; moved the universal arg to <leader> u
-;; (defvar evil-want-C-u-delete t)
-;; (defvar evil-want-C-w-scroll t)
-;; (defvar evil-want-C-w-delete t)
-;; (defvar evil-want-Y-yank-to-eol t)
-;; (defvar evil-want-abbrev-expand-on-insert-exit nil)
-
-
 (use-package evil
-  :ensure t
   :hook (after-init . evil-mode)
   :demand t
   :init
@@ -65,7 +53,6 @@
 
 
 (use-package evil-easymotion
-  :ensure t
   :commands evilem-create evilem-default-keybindings
   :config
   ;; Use evil-search backend, instead of isearch
@@ -81,7 +68,6 @@
 
 
 (use-package evil-embrace
-  :ensure t
   :commands embrace-add-pair embrace-add-pair-regexp
   :hook (LaTeX-mode . embrace-LaTeX-mode-hook)
   :hook (org-mode . embrace-org-mode-hook)
@@ -126,7 +112,6 @@
 
 
 (use-package evil-escape
-  :ensure t
   :hook (after-init . evil-escape-mode)
   :commands evil-escape
   :init
@@ -143,7 +128,6 @@
 
 
 (use-package evil-nerd-commenter
-  :ensure t
   :commands (evilnc-comment-operator
              evilnc-inner-comment
              evilnc-outer-commenter))
@@ -152,7 +136,6 @@
 ;; for search
 ;; key: f
 (use-package evil-snipe
-  :ensure t
   :commands (evil-snipe-mode
              evil-snipe-override-mode
              evil-snipe-local-mode
@@ -168,7 +151,6 @@
 
 
 (use-package evil-surround
-  :ensure t
   :commands (global-evil-surround-mode
              evil-surround-edit
              evil-Surround-edit
@@ -178,7 +160,6 @@
 
 ;; for visualization like substitute
 (use-package evil-traces
-  :ensure t
   :after evil-ex
   :config
   (evil-traces-mode))
@@ -186,7 +167,6 @@
 
 ;; Allows you to use the selection for * and #
 (use-package evil-visualstar
-  :ensure t
   :commands (evil-visualstar/begin-search
              evil-visualstar/begin-search-forward
              evil-visualstar/begin-search-backward)
@@ -198,7 +178,6 @@
 
 (use-package evil-collection
   :after evil
-  :ensure t
   :init
   (setq evil-want-keybinding 'nil)
   :preface
@@ -207,13 +186,10 @@
   (evil-collection-init))
 
 ;; indent textobj
-(use-package evil-indent-plus
-  :ensure t)
+(use-package evil-indent-plus)
 ;; in/decrease number
-(use-package evil-numbers
-  :ensure t)
+;; (use-package evil-numbers)
 
 (require 'evil/+commands)
-(require 'evil/+everywhere)
 
 (provide 'init-evil)

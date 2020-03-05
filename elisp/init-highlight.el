@@ -289,7 +289,6 @@ FACE defaults to inheriting from default and highlight."
 
 ;; Pulse current line
 (use-package pulse
-  :ensure t
   :custom-face
   (pulse-highlight-start-face ((t (:inherit region))))
   (pulse-highlight-face ((t (:inherit region))))

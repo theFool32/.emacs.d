@@ -39,7 +39,6 @@
 
 ;; IBufferPac
 (use-package ibuffer
-  :ensure t
   :init
   (use-package ibuffer-vc
     :commands (ibuffer-vc-set-filter-groups-by-vc-root)

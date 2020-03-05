@@ -53,6 +53,7 @@
   ;; (dashboard-startup-banner (expand-file-name "images/emacs.png" user-emacs-directory))
   (dashboard-items '((recents  . 7)
                      (agenda . 5)))
+  ;; (dashboard-items '((agenda . 5)))
   (initial-buffer-choice (lambda () (get-buffer dashboard-buffer-name)))
   (dashboard-set-heading-icons t)
   (dashboard-set-navigator t)

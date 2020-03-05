@@ -41,21 +41,9 @@
   (require 'init-flycheck)
   (require 'init-const))
 
-;; PythonConfig
-;; (use-package python-mode
-;;   :ensure nil
-;;   :after flycheck
-;;   :mode "\\.py\\'"
-;;   :custom
-;;   (python-indent-offset 4)
-;;   (flycheck-python-pycompile-executable "python3")
-;;   (python-shell-interpreter "python3"))
-;; -PythonConfig
-
-
-
 (use-package python
   :ensure nil
+  :mode "\\.py\\'"
   :hook (inferior-python-mode . (lambda ()
                                   (process-query-on-exit-flag
                                    (get-process "Python"))))
@@ -67,8 +55,6 @@
   (setq python-shell-interpreter "python3")
   (with-eval-after-load 'exec-path-from-shell
     (exec-path-from-shell-copy-env "PYTHONPATH"))
-  ;; Live Coding in Python
-  ;; (use-package live-py-mode)
 
   (use-package py-isort
     :defer t

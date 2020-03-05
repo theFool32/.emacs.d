@@ -39,7 +39,6 @@
 
 ;; FormatAllPac
 (use-package format-all
-  :ensure t
   :diminish
   :hook ((prog-mode) . format-all-mode)
   ;; :config

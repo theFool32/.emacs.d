@@ -51,7 +51,6 @@
 
 
 (use-package exec-path-from-shell
-  :defer t
   :init
   (setq exec-path-from-shell-check-startup-files nil
         exec-path-from-shell-variables '("PATH" "MANPATH" "https_proxy")

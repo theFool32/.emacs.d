@@ -113,6 +113,12 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 
 ;; Package Management
 (require 'init-package)
+;; (use-package benchmark-init
+;;   :init
+;;   (benchmark-init/activate)
+;;   :hook
+;;   (after-init . benchmark-init/deactivate))
+
 
 ;; Global Functionalities
 (require 'init-func)
@@ -156,9 +162,6 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 
 ;; Miscellaneous
 (require 'init-org)
-(require 'init-tramp)
-(require 'init-pdf)
-(require 'init-pyim)
 (require 'init-evil)
 (require 'init-bindings)
 

@@ -41,10 +41,10 @@
 (require 'org/+funcs)
 
 ;; OrgPac
-;; (defvar org-self-dir "~/org-notes/")
-(defvar org-self-dir "~/Dropbox/org-notes")
+(defvar org-self-dir "~/org-notes/")
+;; (defvar org-self-dir "~/Dropbox/org-notes")
 (use-package org
-  :ensure t
+  :ensure nil
   :hook (org-mode . org-indent-mode)
   :custom
   (org-log-done 'time)
@@ -111,7 +111,7 @@
       (cl-letf (((symbol-function #'org-read-date)
                  #'(lambda (&optional a b c d default-time f g)
                      (let ((default-time (or default-time
-                                            org-default-time)))
+                                             org-default-time)))
                        (apply old-time a b c d f default-time g)
                        ))))
         (apply func arg time))))
@@ -158,30 +158,32 @@
             #'+org-init-agenda-h
             #'+org-init-capture-defaults-h
             )
+  ;; TocOrgPac
+  (use-package toc-org
+    :after org
+    :hook (org-mode . toc-org-enable)
+    :config (setq toc-org-hrefify-default "gh")
+    )
+  ;; -TocOrgPac
+
+  (use-package evil-org
+    :after (evil org)
+    :hook (org-mode . evil-org-mode)
+    :init
+    (defvar evil-org-retain-visual-state-on-shift t)
+    (defvar evil-org-special-o/O '(table-row))
+    (defvar evil-org-use-additional-insert t)
+    :config
+    (evil-org-set-key-theme)
+    (add-hook 'org-tab-first-hook :append
+              ;; Only fold the current tree, rather than recursively
+              #'+org-cycle-only-current-subtree-h
+              ;; Clear babel results if point is inside a src block
+              #'+org-clear-babel-results-h)
+    )
   )
 ;; -OrgPac
 
-;; TocOrgPac
-(use-package toc-org
-  :hook (org-mode . toc-org-enable)
-  :config (setq toc-org-hrefify-default "gh")
-  )
-;; -TocOrgPac
-
-(use-package evil-org
-  :hook (org-mode . evil-org-mode)
-  :init
-  (defvar evil-org-retain-visual-state-on-shift t)
-  (defvar evil-org-special-o/O '(table-row))
-  (defvar evil-org-use-additional-insert t)
-  :config
-  (evil-org-set-key-theme)
-  (add-hook 'org-tab-first-hook :append
-            ;; Only fold the current tree, rather than recursively
-            #'+org-cycle-only-current-subtree-h
-            ;; Clear babel results if point is inside a src block
-            #'+org-clear-babel-results-h)
-  )
 ;; (use-package org-bullets
 ;;   :hook (org-mode . org-bullets-mode))
 

@@ -39,7 +39,6 @@
 
 ;; UndoTreePac
 (use-package undo-tree
-  :defer t
   :diminish undo-tree-mode
   :init (global-undo-tree-mode)
   :custom
