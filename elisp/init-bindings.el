@@ -4,8 +4,8 @@
 ;; evil mode
 (setq evil-want-keybinding nil)
 (evil-define-key 'normal 'global
-  "j" 'evil-next-visual-line
-  "k" 'evil-previous-visual-line
+  ;; "j" 'evil-next-visual-line
+  ;; "k" 'evil-previous-visual-line
   ",w" 'evil-avy-goto-word-0
   "/" 'swiper
   ",/" 'evilnc-comment-or-uncomment-lines
