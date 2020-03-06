@@ -42,8 +42,8 @@
   (require 'init-const))
 
 (use-package python
-  :ensure nil
-  :mode "\\.py\\'"
+  :defer t
+  :mode ("\\.py\\'" . python-mode)
   :hook (inferior-python-mode . (lambda ()
                                   (process-query-on-exit-flag
                                    (get-process "Python"))))

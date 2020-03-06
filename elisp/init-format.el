@@ -41,8 +41,6 @@
 (use-package format-all
   :diminish
   :hook ((prog-mode) . format-all-mode)
-  ;; :config
-  ;; (format-all-mode t)
   )
 ;; -FormatAllPac
 

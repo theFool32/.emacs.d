@@ -1,4 +1,37 @@
-;; org 截图
+;;; org/+screenshot.el --- -*- lexical-binding: t -*-
+;;
+;; Filename: +screenshot.el
+;; Description: screenshot for org-mode
+;; Author: theFool32
+;; Maintainer:
+;; Copyright (C) 2019 theFool32
+;; Created: Fri Mar  6 19:52:14 2020 (+0800)
+;; Last-Updated:
+;;           By:
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Commentary:
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or (at
+;; your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Code:
 ;; https://pengpengxp.github.io/archive/before-2018-11-10/2017-02-23-org-mode-screenshot-management.html
 (defcustom peng-org-screenshot-dir-name  "img"
   "default image directory name for org screenshot"
@@ -47,11 +80,11 @@
 (defun peng-delete-org-screenshot-image-file-and-link ()
   (interactive)
   (let* ((link-list (org-element-map (org-element-parse-buffer) 'link
-                      (lambda (link)
-                        (when (string= (org-element-property :type link) "file")
-                          (list (org-element-property :path link)
-                                (org-element-property :begin link)
-                                (org-element-property :end link))))))
+                                     (lambda (link)
+                                       (when (string= (org-element-property :type link) "file")
+                                         (list (org-element-property :path link)
+                                               (org-element-property :begin link)
+                                               (org-element-property :end link))))))
          (img-dir peng-org-screenshot-dir-name)
          (temp-name (concat "./" img-dir "/"
                             (ivy-read "please selete a image name you want to delete"
@@ -65,3 +98,5 @@
 ;;; capture ends
 
 (provide 'org/+screenshot)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; +screenshot.el ends here

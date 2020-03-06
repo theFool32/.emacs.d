@@ -44,16 +44,16 @@
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory)
       package-archives
       '(
-	;; ("gnu"   . "https://elpa.gnu.org/packages/")
+	    ;; ("gnu"   . "https://elpa.gnu.org/packages/")
         ;; ("melpa" . "https://melpa.org/packages/")
         ("cselpa" . "https://elpa.thecybershadow.net/packages/")
         ("melpa-cn" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
         ("gnu-cn"   . "http://mirrors.cloud.tencent.com/elpa/gnu/")
 
-	;("gnu" . "https://mirrors.ustc.edu.cn/elpa/gnu/")
-	;("melpa" . "https://mirrors.ustc.edu.cn/elpa/melpa/")
-	;("melpa-stable" . "https://mirrors.ustc.edu.cn/elpa/melpa-stable/")
-	("org" . "https://mirrors.ustc.edu.cn/elpa/org/")
+                                        ;("gnu" . "https://mirrors.ustc.edu.cn/elpa/gnu/")
+                                        ;("melpa" . "https://mirrors.ustc.edu.cn/elpa/melpa/")
+                                        ;("melpa-stable" . "https://mirrors.ustc.edu.cn/elpa/melpa-stable/")
+	    ("org" . "https://mirrors.ustc.edu.cn/elpa/org/")
         ))
 ;; -MelpaPackages
 

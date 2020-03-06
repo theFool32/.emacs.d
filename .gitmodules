@@ -1,6 +1,6 @@
-[submodule "site-elisp/color-rg"]
-    path = site-elisp/color-rg
-    url = https://github.com/manateelazycat/color-rg.git
 [submodule "site-elisp/delete-block"]
     path = site-elisp/delete-block
     url = https://github.com/manateelazycat/delete-block.git
+[submodule "site-elisp/header2"]
+	path = site-elisp/header2
+	url = https://github.com/emacsmirror/header2

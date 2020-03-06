@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Feb 20 11:35:47 2020 (+0800)
+;; Last-Updated: Fri Mar  6 20:37:45 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -113,11 +113,11 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 
 ;; Package Management
 (require 'init-package)
-;; (use-package benchmark-init
-;;   :init
-;;   (benchmark-init/activate)
-;;   :hook
-;;   (after-init . benchmark-init/deactivate))
+(use-package benchmark-init
+  :init
+  (benchmark-init/activate)
+  :hook
+  (after-init . benchmark-init/deactivate))
 
 
 ;; Global Functionalities
@@ -133,6 +133,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-shell)
 (require 'init-dired)
 (require 'init-buffer)
+(require 'init-header)
 
 ;; User Interface Enhancements
 (require 'init-ui-config)
@@ -166,7 +167,6 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-bindings)
 
 (require 'init-restart-emacs)
-
 
 (provide 'init)
 

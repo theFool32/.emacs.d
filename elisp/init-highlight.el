@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 4
+;;     Update #: 6
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -108,13 +108,6 @@ FACE defaults to inheriting from default and highlight."
   :diminish
   :functions (turn-off-symbol-overlay turn-on-symbol-overlay)
   :custom-face (symbol-overlay-default-face ((t (:inherit (region bold)))))
-  :bind (("M-i" . symbol-overlay-put)
-         ("M-n" . symbol-overlay-jump-next)
-         ("M-p" . symbol-overlay-jump-prev)
-         ("M-N" . symbol-overlay-switch-forward)
-         ("M-P" . symbol-overlay-switch-backward)
-         ("M-C" . symbol-overlay-remove-all)
-         ([M-f3] . symbol-overlay-remove-all))
   :hook ((prog-mode . symbol-overlay-mode)
          (iedit-mode . turn-off-symbol-overlay)
          (iedit-mode-end . turn-on-symbol-overlay))
@@ -145,60 +138,64 @@ FACE defaults to inheriting from default and highlight."
   (advice-add #'deactivate-mark :after #'turn-on-symbol-overlay))
 
 ;; Highlight indentions
-(when (display-graphic-p)
-  (use-package highlight-indent-guides
-    :diminish
-    :functions (ivy-cleanup-string
-                my-ivy-cleanup-indentation)
-    :commands highlight-indent-guides--highlighter-default
-    :functions my-indent-guides-for-all-but-first-column
-    ;; :hook (prog-mode . highlight-indent-guides-mode)
-    :init (setq highlight-indent-guides-method 'character
-                highlight-indent-guides-responsive 'top)
-    :config
-    ;; Don't display indentations while editing with `company'
-    (with-eval-after-load 'company
-      (add-hook 'company-completion-started-hook
-                (lambda (&rest _)
-                  "Trun off indentation highlighting."
-                  (when highlight-indent-guides-mode
-                    (highlight-indent-guides-mode -1))))
-      (add-hook 'company-after-completion-hook
-                (lambda (&rest _)
-                  "Trun on indentation highlighting."
-                  (when (and (derived-mode-p 'prog-mode)
-                             (not highlight-indent-guides-mode))
-                    (highlight-indent-guides-mode 1)))))
+(use-package highlight-indent-guides
+  :if *sys/gui*
+  :diminish
+  :hook ((prog-mode web-mode nxml-mode) . highlight-indent-guides-mode)
+  :custom
+  (highlight-indent-guides-method 'character)
+  (highlight-indent-guides-responsive 'top)
+  (highlight-indent-guides-delay 0)
+  (highlight-indent-guides-auto-character-face-perc 7)
+  :functions (ivy-cleanup-string
+              my-ivy-cleanup-indentation)
+  :commands highlight-indent-guides--highlighter-default
+  :functions my-indent-guides-for-all-but-first-column
+  ;; :hook (prog-mode . highlight-indent-guides-mode)
+  :init (setq highlight-indent-guides-method 'character
+              highlight-indent-guides-responsive 'top)
+  :config
+  ;; Don't display indentations while editing with `company'
+  (with-eval-after-load 'company
+    (add-hook 'company-completion-started-hook
+              (lambda (&rest _)
+		        "Trun off indentation highlighting."
+		        (when highlight-indent-guides-mode
+                  (highlight-indent-guides-mode -1))))
+    (add-hook 'company-after-completion-hook
+              (lambda (&rest _)
+		        "Trun on indentation highlighting."
+		        (when (and (derived-mode-p 'prog-mode)
+                           (not highlight-indent-guides-mode))
+                  (highlight-indent-guides-mode 1)))))
 
-    ;; Don't display first level of indentation
-    (defun my-indent-guides-for-all-but-first-column (level responsive display)
-      (unless (< level 1)
-        (highlight-indent-guides--highlighter-default level responsive display)))
-    (setq highlight-indent-guides-highlighter-function
-          #'my-indent-guides-for-all-but-first-column)
+  ;; Don't display first level of indentation
+  (defun my-indent-guides-for-all-but-first-column (level responsive display)
+    (unless (< level 1)
+      (highlight-indent-guides--highlighter-default level responsive display)))
+  (setq highlight-indent-guides-highlighter-function
+	    #'my-indent-guides-for-all-but-first-column)
 
-    ;; Don't display indentations in `swiper'
-    ;; https://github.com/DarthFennec/highlight-indent-guides/issues/40
-    (with-eval-after-load 'ivy
-      (defun my-ivy-cleanup-indentation (str)
-        "Clean up indentation highlighting in ivy minibuffer."
-        (let ((pos 0)
-              (next 0)
-              (limit (length str))
-              (prop 'highlight-indent-guides-prop))
-          (while (and pos next)
-            (setq next (text-property-not-all pos limit prop nil str))
-            (when next
-              (setq pos (text-property-any next limit prop nil str))
-              (ignore-errors
-                (remove-text-properties next pos '(display nil face nil) str))))))
-      (advice-add #'ivy-cleanup-string :after #'my-ivy-cleanup-indentation))))
+  ;; Don't display indentations in `swiper'
+  ;; https://github.com/DarthFennec/highlight-indent-guides/issues/40
+  (with-eval-after-load 'ivy
+    (defun my-ivy-cleanup-indentation (str)
+      "Clean up indentation highlighting in ivy minibuffer."
+      (let ((pos 0)
+            (next 0)
+            (limit (length str))
+            (prop 'highlight-indent-guides-prop))
+	    (while (and pos next)
+          (setq next (text-property-not-all pos limit prop nil str))
+          (when next
+            (setq pos (text-property-any next limit prop nil str))
+            (ignore-errors
+              (remove-text-properties next pos '(display nil face nil) str))))))
+    (advice-add #'ivy-cleanup-string :after #'my-ivy-cleanup-indentation)))
 
 ;; Colorize color names in buffers
 (use-package rainbow-mode
   :diminish
-  :bind (:map help-mode-map
-              ("w" . rainbow-mode))
   :hook ((html-mode php-mode) . rainbow-mode)
   :config
   ;; HACK: Use overlay instead of text properties to override `hl-line' faces.
@@ -223,11 +220,6 @@ FACE defaults to inheriting from default and highlight."
 
 ;; Highlight TODO and similar keywords in comments and strings
 (use-package hl-todo
-  :bind (:map hl-todo-mode-map
-              ([C-f3] . hl-todo-occur)
-              ("C-c t p" . hl-todo-previous)
-              ("C-c t n" . hl-todo-next)
-              ("C-c t o" . hl-todo-occur))
   :hook (after-init . global-hl-todo-mode)
   :config
   (dolist (keyword '("BUG" "DEFECT" "ISSUE"))
@@ -241,8 +233,6 @@ FACE defaults to inheriting from default and highlight."
   (diff-hl-change ((t (:foreground ,(face-background 'highlight) :background nil))))
   (diff-hl-insert ((t (:background nil))))
   (diff-hl-delete ((t (:background nil))))
-  :bind (:map diff-hl-command-map
-              ("SPC" . diff-hl-mark-hunk))
   :hook ((after-init . global-diff-hl-mode)
          (dired-mode . diff-hl-dired-mode))
   :init (setq diff-hl-draw-borders nil)

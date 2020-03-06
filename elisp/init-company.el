@@ -4,10 +4,10 @@
 ;; Description: Initialize Company
 ;; Author: Mingde (Matthew) Zeng
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
-;; Created: Fri Mar 15 10:02:00 2019 (-0400)
+;; Created: Thu Feb  6 16:25:12 2020 (-0500)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Feb 20 11:17:43 2020 (+0800)
-;;           By: theFool32
+;; Last-Updated:
+;;           By:
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d company company-tabnine
 ;; Compatibility: emacs-version >= 26.1
@@ -153,12 +153,14 @@ Examples:
 ;; CompanyLSPPac
 (use-package company-lsp
   :defer t
+  :after company
   :custom (company-lsp-cache-candidates 'auto))
 ;; -CompanyLSPPac
 
 ;; CompanyTabNinePac
 (use-package company-tabnine
   :defer 1
+  :after company
   :custom
   (company-tabnine-max-num-results 9)
   :hook

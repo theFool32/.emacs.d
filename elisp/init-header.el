@@ -1,22 +1,24 @@
-;;; init-pdf.el --- -*- lexical-binding: t -*-
+;;; init-header.el ---
 ;;
-;; Filename: init-pdf.el
-;; Description: Initialize pdf-tools
-;; Author: Mingde (Matthew) Zeng
-;; Copyright (C) 2019 Mingde (Matthew) Zeng
-;; Created: Tue Jun  4 00:26:09 2019 (-0400)
-;; Version: 1.0.0
-;; Last-Updated: Tue Jan 14 00:12:52 2020 (-0500)
-;;           By: Mingde (Matthew) Zeng
-;; URL: https://github.com/MatthewZMD/.emacs.d
-;; Keywords: M-EMACS .emacs.d pdf-tools
-;; Compatibility: emacs-version >= 26.1
+;; Filename: init-header.el
+;; Description: auto-updat file header
+;; Author: theFool32
+;; Maintainer:
+;; Copyright (C) 2019 theFool32
+;; Created: Fri Mar  6 19:52:14 2020 (+0800)
+;; Version:
+;; Package-Requires: ()
+;; Last-Updated:
+;;           By:
+;; URL:
+;; Doc URL:
+;; Keywords:
+;; Compatibility:
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
 ;;
-;; This initializes pdf-tools
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -37,24 +39,17 @@
 ;;
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-const))
-
-;; PDFToolsPac
-(use-package pdf-tools-install
-  :ensure pdf-tools
-  :if (and *sys/gui* (not *sys/win32*))
-  :mode "\\.pdf\\'"
-  :commands (pdf-loader-install)
+(use-package header2
+  :load-path (lambda () (expand-file-name "site-elisp/header2" user-emacs-directory))
   :custom
-  (TeX-view-program-selection '((output-pdf "pdf-tools")))
-  (TeX-view-program-list '(("pdf-tools" "TeX-pdf-tools-sync-view")))
-  :hook
-  (pdf-view-mode . (lambda () (display-line-numbers-mode -1)))
+  (header-copyright-notice (concat "Copyright (C) 2019 " (user-full-name) "\n"))
+  :hook (emacs-lisp-mode . auto-make-header)
   :config
-  (pdf-loader-install))
-;; -PDFToolsPac
+  (add-to-list 'write-file-functions 'auto-update-file-header)
+  (autoload 'auto-make-header "header2")
+  (autoload 'auto-update-file-header "header2"))
 
-(provide 'init-pdf)
+(provide 'init-header)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-pdf.el ends here
+;;; init-header.el ends here

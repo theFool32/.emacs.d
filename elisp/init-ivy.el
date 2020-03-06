@@ -492,10 +492,12 @@ This is for use in `ivy-re-builders-alist'."
 ;; Enable it before`ivy-rich-mode' for better performance
 (use-package all-the-icons-ivy-rich
   :if (icons-displayable-p)
+  :after ivy
   :init (all-the-icons-ivy-rich-mode 1))
 
 ;; More friendly display transformer for Ivy
 (use-package ivy-rich
+  :after ivy
   :hook (;; Must load after `counsel-projectile'
          (counsel-projectile-mode . ivy-rich-mode)
          (ivy-rich-mode . (lambda ()
@@ -507,7 +509,7 @@ This is for use in `ivy-re-builders-alist'."
   (setq ivy-rich-parse-remote-buffer nil))
 
 (use-package ivy-posframe
-  :after (ivy)
+  :after ivy
   :config
   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
   :hook

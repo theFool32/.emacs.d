@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:08:22 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Feb 19 16:28:16 2020 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Fri Mar  6 20:42:57 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d flycheck
 ;; Compatibility: emacs-version >= 26.1

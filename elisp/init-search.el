@@ -41,15 +41,6 @@
   (require 'init-global-config)
   (require 'init-const))
 
-
-;; ColorRGPac
-;; (use-package color-rg
-;;   :load-path (lambda () (expand-file-name "site-elisp/color-rg" user-emacs-directory))
-;;   :if *rg*
-;;   :bind ("C-M-s" . color-rg-search-input))
-;; -ColorRGPac
-
-
 (use-package exec-path-from-shell
   :init
   (setq exec-path-from-shell-check-startup-files nil
@@ -70,30 +61,6 @@
         (youdao-dictionary-search-at-point-posframe)
       (youdao-dictionary-search-at-point))))
 
-
-;; SnailsPac
-;; (use-package snails
-;;   :load-path (lambda () (expand-file-name "site-elisp/snails/" user-emacs-directory))
-;;   :if *sys/gui*
-;;   :custom-face
-;;   (snails-content-buffer-face ((t (:background "#111" :height 110))))
-;;   (snails-input-buffer-face ((t (:background "#222" :foreground "gold" :height 110))))
-;;   (snails-header-line-face ((t (:inherit font-lock-function-name-face :underline t :height 1.1))))
-;;   :init
-;;   (use-package exec-path-from-shell :if (featurep 'cocoa) :defer t)
-;;   :config
-;;   ;; Functions for specific backends
-;;   (defun snails-current-project ()
-;;     (interactive)
-;;     (snails '(snails-backend-projectile snails-backend-rg snails-backend-fd)))
-;;   (defun snails-active-recent-buffers ()
-;;     (interactive)
-;;     (snails '(snails-backend-buffer snails-backend-recentf)))
-;;   (defun snails-everywhere ()
-;;     (interactive)
-;;     (snails '(snails-backend-everything snails-backend-mdfind)))
-;;   )
-;; -SnailsPac
 
 (provide 'init-search)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

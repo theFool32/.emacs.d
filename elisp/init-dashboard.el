@@ -41,19 +41,12 @@
 (use-package dashboard
   :demand
   :diminish (dashboard-mode page-break-lines-mode)
-                                        ;:bind
-                                        ;(("C-z d" . open-dashboard)
-                                        ; :map dashboard-mode-map
-                                        ; (("n" . dashboard-next-line)
-                                        ;  ("p" . dashboard-previous-line)
-                                        ;  ("N" . dashboard-next-section)
-                                        ;  ("F" . dashboard-previous-section)))
   :custom
   (dashboard-banner-logo-title "Close the world. Open the nExt.")
   ;; (dashboard-startup-banner (expand-file-name "images/emacs.png" user-emacs-directory))
-  (dashboard-items '((recents  . 7)
-                     (agenda . 5)))
-  ;; (dashboard-items '((agenda . 5)))
+  ;; (dashboard-items '((recents  . 7)
+  ;;                    (agenda . 5)))
+  (dashboard-items '((recents . 7)))
   (initial-buffer-choice (lambda () (get-buffer dashboard-buffer-name)))
   (dashboard-set-heading-icons t)
   (dashboard-set-navigator t)

@@ -69,12 +69,12 @@
   (doom-modeline-mode))
 ;; -DoomModeline
 
-(use-package hide-mode-line
-  :hook (((completion-list-mode completion-in-region-mode) . hide-mode-line-mode)))
+;; (use-package hide-mode-line
+;;   :hook (((completion-list-mode completion-in-region-mode) . hide-mode-line-mode)))
 
 ;; A minor-mode menu for mode-line
-(use-package minions
-  :hook (doom-modeline-mode . minions-mode))
+;; (use-package minions
+;;   :hook (doom-modeline-mode . minions-mode))
 
 
 (provide 'init-theme)

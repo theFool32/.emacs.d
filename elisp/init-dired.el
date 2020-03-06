@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:37:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Dec 25 02:33:09 2019 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Fri Mar  6 19:58:33 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dired auto-save
 ;; Compatibility: emacs-version >= 26.1
@@ -40,9 +40,6 @@
 ;; DiredPackage
 (use-package dired
   :ensure nil
-  :bind
-  (("C-x C-j" . dired-jump)
-   ("C-x j" . dired-jump-other-window))
   :custom
   ;; Always delete and copy recursively
   (dired-recursive-deletes 'always)

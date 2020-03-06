@@ -324,8 +324,6 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   :defer t
   :init
   (add-to-list '+latex--company-backends #'+latex-symbols-company-backend nil #'eq))
-(use-package ivy-bibtex
-  :ensure nil)
 ;; -AUCTeXPac
 
 ;; OrgLatexPac

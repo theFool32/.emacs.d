@@ -107,10 +107,6 @@
         (memoize f)))
     (message "Reset all-the-icons"))
 
-  (add-to-list 'all-the-icons-icon-alist
-               '("\\.go$" all-the-icons-fileicon "go" :face all-the-icons-blue))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(go-mode all-the-icons-fileicon "go" :face all-the-icons-blue))
   (add-to-list 'all-the-icons-mode-icon-alist
                '(xwidget-webkit-mode all-the-icons-faicon "chrome" :v-adjust -0.1 :face all-the-icons-blue))
   (add-to-list 'all-the-icons-mode-icon-alist
@@ -129,20 +125,6 @@
                '(diff-mode all-the-icons-octicon "git-compare" :v-adjust 0.0 :face all-the-icons-lred))
   (add-to-list 'all-the-icons-mode-icon-alist
                '(flycheck-error-list-mode all-the-icons-octicon "checklist" :height 1.1 :v-adjust 0.0 :face all-the-icons-lred))
-  (add-to-list 'all-the-icons-icon-alist
-               '("\\.rss$" all-the-icons-octicon "rss" :height 1.1 :v-adjust 0.0 :face all-the-icons-lorange))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(elfeed-search-mode all-the-icons-faicon "rss-square" :v-adjust -0.1 :face all-the-icons-orange))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(elfeed-show-mode all-the-icons-octicon "rss" :height 1.1 :v-adjust 0.0 :face all-the-icons-lorange))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(newsticker-mode all-the-icons-faicon "rss-square" :v-adjust -0.1 :face all-the-icons-orange))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(newsticker-treeview-mode all-the-icons-faicon "rss-square" :v-adjust -0.1 :face all-the-icons-orange))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(newsticker-treeview-list-mode all-the-icons-octicon "rss" :height 1.1 :v-adjust 0.0 :face all-the-icons-orange))
-  (add-to-list 'all-the-icons-mode-icon-alist
-               '(newsticker-treeview-item-mode all-the-icons-octicon "rss" :height 1.1 :v-adjust 0.0 :face all-the-icons-lorange))
   (add-to-list 'all-the-icons-icon-alist
                '("\\.[bB][iI][nN]$" all-the-icons-octicon "file-binary" :v-adjust 0.0 :face all-the-icons-yellow))
   (add-to-list 'all-the-icons-icon-alist

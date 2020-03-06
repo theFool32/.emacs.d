@@ -42,16 +42,12 @@
 
 ;; ProjPac
 (use-package projectile
-  ;:bind
-  ;("C-c p" . projectile-command-map)
-  ;("C-z p" . projectile-add-known-project)
   :custom
   (projectile-completion-system 'ivy)
   :config
   (projectile-mode 1)
   (when (and *sys/win32* *tr*)
-    (setq projectile-indexing-method 'alien))
-  (add-to-list 'projectile-globally-ignored-directories "node_modules"))
+    (setq projectile-indexing-method 'alien)))
 ;; -ProjPac
 
 (provide 'init-projectile)

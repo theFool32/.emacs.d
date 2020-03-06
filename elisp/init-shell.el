@@ -44,18 +44,17 @@
 (use-package shell-here
   :bind ("M-~" . shell-here)
   :config
-  (setq shell-command-switch "-ic")
   (when *sys/linux*
     (setq explicit-shell-file-name "/usr/bin/zsh"))
   )
-  ;; -ShellHerePac
+;; -ShellHerePac
 
-  ;; TermKeysPac
-  (use-package term-keys
-    :if (not *sys/gui*)
-    :config (term-keys-mode t))
-  ;; -TermKeysPac
+;; TermKeysPac
+(use-package term-keys
+  :if (not *sys/gui*)
+  :config (term-keys-mode t))
+;; -TermKeysPac
 
-  (provide 'init-shell)
+(provide 'init-shell)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-shell.el ends here

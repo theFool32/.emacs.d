@@ -41,8 +41,8 @@
 (require 'org/+funcs)
 
 ;; OrgPac
-(defvar org-self-dir "~/org-notes/")
-;; (defvar org-self-dir "~/Dropbox/org-notes")
+;; (defvar org-self-dir "~/org-notes/")
+(defvar org-self-dir "~/Dropbox/org-notes")
 (use-package org
   :ensure nil
   :hook (org-mode . org-indent-mode)
@@ -174,8 +174,12 @@
     (defvar evil-org-special-o/O '(table-row))
     (defvar evil-org-use-additional-insert t)
     :config
-    (evil-org-set-key-theme)
-    (add-hook 'org-tab-first-hook :append
+    (add-hook 'evil-org-mode-hook
+              (lambda ()
+                (evil-org-set-key-theme)))
+    (require 'evil-org-agenda)
+    (evil-org-agenda-set-keys)
+    (add-hook 'org-tab-first-hook
               ;; Only fold the current tree, rather than recursively
               #'+org-cycle-only-current-subtree-h
               ;; Clear babel results if point is inside a src block
