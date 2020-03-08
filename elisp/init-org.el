@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Mar  8 15:27:45 2020 (+0800)
+;; Last-Updated: Sun Mar  8 15:36:16 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -45,7 +45,6 @@
 (defvar org-self-dir "~/Dropbox/org-notes")
 (use-package org
   :ensure nil
-  :quelpa (org-mode :fetcher github :repo "emacs-straight/org-mode")
   :hook (org-mode . org-indent-mode)
   :custom
   (org-log-done 'time)
