@@ -1,6 +1,0 @@
-[submodule "site-elisp/delete-block"]
-    path = site-elisp/delete-block
-    url = https://github.com/manateelazycat/delete-block.git
-[submodule "site-elisp/header2"]
-	path = site-elisp/header2
-	url = https://github.com/emacsmirror/header2

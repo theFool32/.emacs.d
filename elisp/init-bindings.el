@@ -1,5 +1,8 @@
 ;;; init-bindings.el --- -*- lexical-binding: t -*-
+;;; Commentary:
 ;;; Code:
+;; TODO: use same method to set key bindings.
+
 (eval-when-compile
   (require 'init-const))
 
@@ -16,6 +19,13 @@
     :non-normal-prefix "C-,"
     )
   )
+
+;; Force *message* buffer into evil-normal-state to use <spc>
+;; HACK: donot know why `evil-emacs-state`
+(with-current-buffer "*Messages*"
+  (evil-emacs-state))
+(add-hook 'messages-buffer-mode-hook #'(lambda ()
+                                         (evil-emacs-state)))
 
 ;; evil mode
 (setq evil-want-keybinding nil)

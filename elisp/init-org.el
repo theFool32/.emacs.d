@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Dec 24 14:05:45 2019 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Sun Mar  8 15:27:45 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
 ;; Compatibility: emacs-version >= 26.1
@@ -45,6 +45,7 @@
 (defvar org-self-dir "~/Dropbox/org-notes")
 (use-package org
   :ensure nil
+  :quelpa (org-mode :fetcher github :repo "emacs-straight/org-mode")
   :hook (org-mode . org-indent-mode)
   :custom
   (org-log-done 'time)
@@ -64,7 +65,14 @@
   (unless (version< org-version "9.2")
     (require 'org-tempo))
 
-  ;; org 截图
+  ;; binding
+  (evil-set-initial-state 'org-agenda-mode 'motion)
+  (evil-define-key 'normal org-mode-map
+    "o" #'+org/insert-item-below
+    "O" #'+org/insert-item-above
+    )
+
+  ;; org screenshot for macos
   (require 'org/+screenshot)
 
   (defvar +org-capture-todo-file (concat org-self-dir "todo.org"))
@@ -129,29 +137,6 @@
   ;;       org-ref-pdf-directory "~/Dropbox/org-notes/reference/pdf/"
   ;;       )
 
-
-  (defun org-export-turn-on-syntax-highlight ()
-    "Setup variables to turn on syntax highlighting when calling `org-latex-export-to-pdf'."
-    (interactive)
-    (setq org-latex-listings 'minted
-          org-latex-packages-alist '(("" "minted"))
-          org-latex-pdf-process
-          '("pdflatex -shelnl-escape -interaction nonstopmode -output-directory %o %f"
-            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f")))
-
-  (defun org-export-as-pdf-and-open ()
-    "Run `org-latex-export-to-pdf', delete the tex file and open pdf in a new buffer."
-    (interactive)
-    (save-buffer)
-    (let* ((pdf-path (org-latex-export-to-pdf))
-           (pdf-name (file-name-nondirectory pdf-path)))
-      (if (try-completion pdf-name (mapcar #'buffer-name (buffer-list)))
-          (progn
-            (kill-matching-buffers (concat "^" pdf-name) t t)
-            (find-file-other-window pdf-name))
-        (find-file-other-window pdf-name))
-      (delete-file (concat (substring pdf-path 0 (string-match "[^\.]*\/?$" pdf-path)) "tex"))))
-
   (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
   (add-hook 'org-load-hook
             #'+org-init-appearance-h
@@ -166,25 +151,27 @@
     )
   ;; -TocOrgPac
 
-  (use-package evil-org
-    :after (evil org)
-    :hook (org-mode . evil-org-mode)
-    :init
-    (defvar evil-org-retain-visual-state-on-shift t)
-    (defvar evil-org-special-o/O '(table-row))
-    (defvar evil-org-use-additional-insert t)
-    :config
-    (add-hook 'evil-org-mode-hook
-              (lambda ()
-                (evil-org-set-key-theme)))
-    (require 'evil-org-agenda)
-    (evil-org-agenda-set-keys)
-    (add-hook 'org-tab-first-hook
-              ;; Only fold the current tree, rather than recursively
-              #'+org-cycle-only-current-subtree-h
-              ;; Clear babel results if point is inside a src block
-              #'+org-clear-babel-results-h)
-    )
+  ;; not work for saving
+  ;; (use-package evil-org
+  ;;   :after (evil org)
+  ;;   :hook (org-mode . evil-org-mode)
+  ;;   :quelpa (evil-org-mode :fetcher github :repo "hlissner/evil-org-mode")
+  ;;   :init
+  ;;   (defvar evil-org-retain-visual-state-on-shift t)
+  ;;   (defvar evil-org-special-o/O '(table-row))
+  ;;   (defvar evil-org-use-additional-insert t)
+  ;;   :config
+  ;;   (add-hook 'evil-org-mode-hook
+  ;;             (lambda ()
+  ;;               (evil-org-set-key-theme)))
+  ;;   (require 'evil-org-agenda)
+  ;;   (evil-org-agenda-set-keys)
+  ;;   (add-hook 'org-tab-first-hook
+  ;;             ;; Only fold the current tree, rather than recursively
+  ;;             #'+org-cycle-only-current-subtree-h
+  ;;             ;; Clear babel results if point is inside a src block
+  ;;             #'+org-clear-babel-results-h)
+  ;;   )
   )
 ;; -OrgPac
 

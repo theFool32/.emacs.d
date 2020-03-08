@@ -40,7 +40,8 @@
 ;;; Code:
 
 (use-package header2
-  :load-path (lambda () (expand-file-name "site-elisp/header2" user-emacs-directory))
+  ;; :load-path (lambda () (expand-file-name "site-elisp/header2" user-emacs-directory))
+  :quelpa (header2 :fetcher github :repo "emacsmirror/header2")
   :custom
   (header-copyright-notice (concat "Copyright (C) 2019 " (user-full-name) "\n"))
   :hook (emacs-lisp-mode . auto-make-header)

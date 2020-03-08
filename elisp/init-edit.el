@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 28 13:25:24 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Mar  6 19:53:06 2020 (+0800)
+;; Last-Updated: Sun Mar  8 11:34:07 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d iedit
@@ -40,9 +40,10 @@
   (require 'init-global-config))
 
 ;; DeleteBlockPac
-(use-package delete-block
-  :load-path (lambda () (expand-file-name "site-elisp/delete-block" user-emacs-directory))
-  )
+;; (use-package delete-block
+;;   ;; :load-path (lambda () (expand-file-name "site-elisp/delete-block" user-emacs-directory))
+;;   :quelpa (delete-block :fetcher github :repo "manateelazycat/delete-block")
+;;   )
 ;; -DeleteBlockPac
 
 ;; Used for fold

@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:53:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Jan  1 10:31:21 2020 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Sun Mar  8 11:30:53 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d packages use-package
 ;; Compatibility: emacs-version >= 26.1
@@ -100,6 +100,24 @@
 ;; DimPac
 (use-package diminish)
 ;; -DimPac
+
+
+;; Bootstrap quelpa
+(setq quelpa-update-melpa-p nil)
+(if (require 'quelpa nil t)
+    (message "quelpa loaded")
+  (with-temp-buffer
+    (url-insert-file-contents
+     "https://framagit.org/steckerhalter/quelpa/raw/master/bootstrap.el")
+    (eval-buffer)))
+
+;; Install quelpa-use-package, which will install use-package as well
+(quelpa
+ '(quelpa-use-package
+   :fetcher git
+   :url "https://framagit.org/steckerhalter/quelpa-use-package.git"
+   :stable nil))
+(require 'quelpa-use-package)
 
 (provide 'init-package)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

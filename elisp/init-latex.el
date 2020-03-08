@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Dec 24 12:00:08 2019 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Sun Mar  8 11:49:19 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
 ;; Compatibility: emacs-version >= 26.1
@@ -324,6 +324,12 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   :defer t
   :init
   (add-to-list '+latex--company-backends #'+latex-symbols-company-backend nil #'eq))
+
+(use-package company-english-helper
+  :after (company tex)
+  :defer t
+  :commands toggle-company-english-helper
+  :quelpa (company-english-helper :fetcher github :repo "manateelazycat/company-english-helper"))
 ;; -AUCTeXPac
 
 ;; OrgLatexPac
