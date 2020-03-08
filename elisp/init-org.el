@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Mar  8 15:36:16 2020 (+0800)
+;; Last-Updated: Sun Mar  8 16:13:07 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -42,7 +42,7 @@
 
 ;; OrgPac
 ;; (defvar org-self-dir "~/org-notes/")
-(defvar org-self-dir "~/Dropbox/org-notes")
+(defvar org-self-dir "~/Dropbox/org-notes/")
 (use-package org
   :ensure nil
   :hook (org-mode . org-indent-mode)
@@ -64,6 +64,10 @@
   (unless (version< org-version "9.2")
     (require 'org-tempo))
 
+  (+org-init-appearance-h)
+  (+org-init-agenda-h)
+  (+org-init-capture-defaults-h)
+
   ;; binding
   (evil-set-initial-state 'org-agenda-mode 'motion)
   (evil-define-key 'normal org-mode-map
@@ -74,37 +78,18 @@
   ;; org screenshot for macos
   (require 'org/+screenshot)
 
-  (defvar +org-capture-todo-file (concat org-self-dir "todo.org"))
-  (defvar +org-capture-note-file (concat org-self-dir "note.org"))
-  (defvar +org-capture-journal-file (concat org-self-dir "journal.org"))
-  (defvar +org-capture-papers-file (concat org-self-dir "papers.org"))
-  (defvar +org-capture-ideas-file (concat org-self-dir "ideas.org"))
+  (defvar +org-capture-file (concat org-self-dir "main.org"))
   (setq org-capture-templates
-        '(("t" "Personal todo" entry
-           (file+headline +org-capture-todo-file "Inbox")
+        '(("t" "Journal" entry
+           (file+headline +org-capture-file "GTD")
            "* TODO %?\n%i" :prepend t :kill-buffer t)
-          ("n" "Personal notes" entry
-           (file+headline +org-capture-note-file "Inbox")
-           "* %u %?\n%i" :prepend t :kill-buffer t)
-          ("j" "Journal" entry
-           (file+headline +org-capture-journal-file "Inbox")
-           "* %u %?\n%i" :prepend t :kill-buffer t)
-          ("r" "Paper" entry
-           (file+headline +org-capture-papers-file "Papers")
+          ("n" "Note" entry
+           (file+headline +org-capture-file "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           ("i" "Idea" entry
-           (file+headline +org-capture-ideas-file "Idea")
+           (file+headline +org-capture-file "Ideas")
            "* %u %?\n%i" :prepend t :kill-buffer t)
-
-          ("pt" "Project todo" entry    ; {project-root}/todo.org
-           (file+headline +org-capture-project-todo-file "Inbox")
-           "* TODO %?\n%i" :prepend t :kill-buffer t)
-          ("pn" "Project notes" entry   ; {project-root}/notes.org
-           (file+headline +org-capture-project-notes-file "Inbox")
-           "* TODO %?\n%i" :prepend t :kill-buffer t)
-          ("pc" "Project changelog" entry ; {project-root}/changelog.org
-           (file+headline +org-capture-project-notes-file "Unreleased")
-           "* TODO %?\n%i" :prepend t :kill-buffer t)))
+          ))
 
   (setq org-log-into-drawer "LOGBOOK")
 
@@ -137,11 +122,11 @@
   ;;       )
 
   (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
-  (add-hook 'org-load-hook
-            #'+org-init-appearance-h
-            #'+org-init-agenda-h
-            #'+org-init-capture-defaults-h
-            )
+  ;; (add-hook 'org-load-hook
+  ;;           #'+org-init-appearance-h
+  ;;           #'+org-init-agenda-h
+  ;;           #'+org-init-capture-defaults-h
+  ;;           )
   ;; TocOrgPac
   (use-package toc-org
     :after org

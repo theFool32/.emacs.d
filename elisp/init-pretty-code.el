@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 11
+;;     Update #: 14
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -188,6 +188,9 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :and "and" :or "or"
   :for "for"
   :return "return" :yield "yield")
+
+(set-pretty-symbols! 'emacs-lisp-mode
+  :lambda "lambda")
 
 
 (provide 'init-pretty-code)
