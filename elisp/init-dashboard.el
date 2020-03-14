@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:21:46 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Feb 10 01:29:06 2020 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Fri Mar 13 23:22:55 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dashboard
 ;; Compatibility: emacs-version >= 26.1
@@ -44,9 +44,8 @@
   :custom
   (dashboard-banner-logo-title "Close the world. Open the nExt.")
   ;; (dashboard-startup-banner (expand-file-name "images/emacs.png" user-emacs-directory))
-  ;; (dashboard-items '((recents  . 7)
-  ;;                    (agenda . 5)))
-  (dashboard-items '((recents . 7)))
+  (dashboard-items '((recents  . 7)
+                     (agenda . 5)))
   (initial-buffer-choice (lambda () (get-buffer dashboard-buffer-name)))
   (dashboard-set-heading-icons t)
   (dashboard-set-navigator t)

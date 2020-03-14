@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Mar  8 16:13:07 2020 (+0800)
-;;           By: theFool32
+;; Last-Updated: Sat Mar 14 14:32:06 2020 (+0800)
+;;           By: Jie Li
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
 ;; Compatibility: emacs-version >= 26.1
@@ -156,6 +156,7 @@
   ;;             ;; Clear babel results if point is inside a src block
   ;;             #'+org-clear-babel-results-h)
   ;;   )
+  (require 'init-site)
   )
 ;; -OrgPac
 
