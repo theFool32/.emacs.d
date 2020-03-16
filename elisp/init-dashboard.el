@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:21:46 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Mar 13 23:22:55 2020 (+0800)
+;; Last-Updated: Sat Mar 14 22:34:40 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dashboard

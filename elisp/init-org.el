@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Mar 14 14:32:06 2020 (+0800)
+;; Last-Updated: Sun Mar 15 14:35:13 2020 (+0800)
 ;;           By: Jie Li
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -41,8 +41,8 @@
 (require 'org/+funcs)
 
 ;; OrgPac
-;; (defvar org-self-dir "~/org-notes/")
-(defvar org-self-dir "~/Dropbox/org-notes/")
+(defvar org-self-dir "~/org-notes/")
+;; (defvar org-self-dir "~/Dropbox/org-notes/")
 (use-package org
   :ensure nil
   :hook (org-mode . org-indent-mode)
@@ -156,7 +156,7 @@
   ;;             ;; Clear babel results if point is inside a src block
   ;;             #'+org-clear-babel-results-h)
   ;;   )
-  (require 'init-site)
+  ;; (require 'init-site)
   )
 ;; -OrgPac
 
