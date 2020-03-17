@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Mar 15 14:35:13 2020 (+0800)
-;;           By: Jie Li
+;; Last-Updated: Tue Mar 17 15:30:21 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
 ;; Compatibility: emacs-version >= 26.1
@@ -41,8 +41,7 @@
 (require 'org/+funcs)
 
 ;; OrgPac
-(defvar org-self-dir "~/org-notes/")
-;; (defvar org-self-dir "~/Dropbox/org-notes/")
+(defvar org-self-dir "~/Dropbox/org-notes/")
 (use-package org
   :ensure nil
   :hook (org-mode . org-indent-mode)
@@ -52,12 +51,13 @@
   (org-use-speed-commands t)
   (org-confirm-babel-evaluate 'nil)
   (org-todo-keywords
-   '((sequence "TODO" "IN-PROGRESS" "REVIEW" "|" "DONE")))
+   '((sequence "TODO" "IN-PROGRESS" "|" "DONE")))
   (org-agenda-window-setup 'other-window)
   (org-directory (expand-file-name org-self-dir))
   (org-ellipsis " ▼ ")
   (org-babel-python-command "python3")
   (org-bullets-bullet-list '("#"))
+  (org-tags-column -77)
   :config
   (when (file-directory-p org-directory)
     (setq org-agenda-files (list org-directory)))
@@ -122,11 +122,6 @@
   ;;       )
 
   (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
-  ;; (add-hook 'org-load-hook
-  ;;           #'+org-init-appearance-h
-  ;;           #'+org-init-agenda-h
-  ;;           #'+org-init-capture-defaults-h
-  ;;           )
   ;; TocOrgPac
   (use-package toc-org
     :after org
@@ -135,33 +130,8 @@
     )
   ;; -TocOrgPac
 
-  ;; not work for saving
-  ;; (use-package evil-org
-  ;;   :after (evil org)
-  ;;   :hook (org-mode . evil-org-mode)
-  ;;   :quelpa (evil-org-mode :fetcher github :repo "hlissner/evil-org-mode")
-  ;;   :init
-  ;;   (defvar evil-org-retain-visual-state-on-shift t)
-  ;;   (defvar evil-org-special-o/O '(table-row))
-  ;;   (defvar evil-org-use-additional-insert t)
-  ;;   :config
-  ;;   (add-hook 'evil-org-mode-hook
-  ;;             (lambda ()
-  ;;               (evil-org-set-key-theme)))
-  ;;   (require 'evil-org-agenda)
-  ;;   (evil-org-agenda-set-keys)
-  ;;   (add-hook 'org-tab-first-hook
-  ;;             ;; Only fold the current tree, rather than recursively
-  ;;             #'+org-cycle-only-current-subtree-h
-  ;;             ;; Clear babel results if point is inside a src block
-  ;;             #'+org-clear-babel-results-h)
-  ;;   )
-  ;; (require 'init-site)
   )
 ;; -OrgPac
-
-;; (use-package org-bullets
-;;   :hook (org-mode . org-bullets-mode))
 
 (provide 'init-org)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

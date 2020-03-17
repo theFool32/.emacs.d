@@ -168,6 +168,7 @@ If failed try to complete the common part with `company-complete-common'"
   "pf" '(counsel-projectile :wk "Find file in project")
   "pr" '(projectile-recentf :wk "Recent file in project")
   "pt" '(magit-todos-list :wk "List project tasks")
+  "pk" '(projectile-kill-buffers :wk "Kill project buffers")
 
   "q" '(:wk "Quit")
   "qq" '(kill-emacs :wk "Quit")
