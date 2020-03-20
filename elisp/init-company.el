@@ -115,7 +115,6 @@ Examples:
 
 (put '+company-init-backends-h 'permanent-local-hook t)
 
-
 ;; ComPac
 (use-package company
   :diminish company-mode
@@ -125,13 +124,13 @@ Examples:
   (add-hook 'company-mode-hook #'+company-init-backends-h)
   (set-company-backend! 'text-mode 'company-tabnine 'company-yasnippet 'company-ispell 'company-dabbrev)
   :custom
-  (company-minimum-prefix-length 1)
+  (company-minimum-prefix-length 2)
   (company-tooltip-align-annotations t)
   (company-require-match 'never)
   ;; Don't use company in the following modes
   (company-global-modes '(not shell-mode eaf-mode))
   ;; Trigger completion immediately.
-  (company-idle-delay 0.1)
+  (company-idle-delay 0)
   ;; Number the candidates (use M-1, M-2 etc to select completions).
   (company-show-numbers t)
   ;; (company-tooltip-minimum-width 80)
@@ -151,10 +150,10 @@ Examples:
 ;; -ComPac
 
 ;; CompanyLSPPac
-(use-package company-lsp
-  :defer t
-  :after company
-  :custom (company-lsp-cache-candidates 'auto))
+;; (use-package company-lsp
+;;   :defer t
+;;   :after company
+;;   :custom (company-lsp-cache-candidates 'auto))
 ;; -CompanyLSPPac
 
 ;; CompanyTabNinePac
@@ -168,7 +167,7 @@ Examples:
                       (setq company-tabnine-max-num-results 3)
                       (add-to-list 'company-transformers 'company//sort-by-tabnine t)
                       ;; (add-to-list 'company-backends '(company-lsp :with company-tabnine :separate))
-                      (setq company-backends '((company-lsp :with company-tabnine :separate) company-files company-dabbrev))
+                      (setq company-backends '((company-capf :with company-tabnine :separate) company-files company-dabbrev))
                       ))
   (kill-emacs . company-tabnine-kill-process)
   :config

@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Feb  8 14:11:55 2020 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Fri Mar 20 03:20:32 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
 ;; Compatibility: emacs-version >= 26.1
@@ -49,6 +49,9 @@
   (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
   (lsp-file-watch-threshold 2000)
   (read-process-output-max (* 1024 1024))
+  (lsp-refer-capf t)
+  (lsp-keep-workspace-alive nil)
+  (lsp-enable-on-type-formatting nil)
   :hook ((python-mode c-mode c++-mode) . lsp))
 ;; -LSPPac
 
