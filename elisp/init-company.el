@@ -124,7 +124,7 @@ Examples:
   (add-hook 'company-mode-hook #'+company-init-backends-h)
   (set-company-backend! 'text-mode 'company-tabnine 'company-yasnippet 'company-ispell 'company-dabbrev)
   :custom
-  (company-minimum-prefix-length 2)
+  (company-minimum-prefix-length 1)
   (company-tooltip-align-annotations t)
   (company-require-match 'never)
   ;; Don't use company in the following modes

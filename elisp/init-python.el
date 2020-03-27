@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Jun 10 18:58:02 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Feb 22 00:08:22 2020 (+0800)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Fri Mar 27 18:42:38 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: lsp-python-ms
 ;; Compatibility: emacs-version >= 26.1
@@ -67,12 +67,23 @@
         (py-isort-before-save)))
     (add-hook 'python-mode-hook
               (lambda() (add-hook 'before-save-hook #'+python/python-sort-imports)))
-    ))
+    )
+  ;; (use-package company-jedi
+  ;;   :config
+  ;;   (setq jedi:environment-virtualenv (list (expand-file-name "~/.emacs.d/.python-environments/")))
+  ;;   (add-hook 'python-mode-hook 'jedi:setup)
+  ;;   (setq jedi:complete-on-dot t)
+  ;;   (setq jedi:use-shortcuts t)
+  ;;   (defun config/enable-company-jedi ()
+  ;;     (add-to-list 'company-backends 'company-jedi))
+  ;;   (add-hook 'python-mode-hook 'config/enable-company-jedi)
+  ;;   )
+  )
 
 ;; LSPPythonPac
 (use-package lsp-python-ms
-  :hook (python-mode . (lambda () (require 'lsp-python-ms)))
-  :after lsp-mode python
+  :hook (python-mode . (lambda () (require 'lsp-python-ms) (lsp-deferred)))
+  :after python
   :if (or *python3* *python*)
   :custom
   (lsp-python-executable-cmd "python3")

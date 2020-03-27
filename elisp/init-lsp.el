@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Mar 20 03:20:32 2020 (+0800)
+;; Last-Updated: Fri Mar 27 18:39:28 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -43,16 +43,26 @@
 ;; LSPPac
 (use-package lsp-mode
   :defer t
-  :commands lsp
+  :commands (lsp lsp-deferred)
   :custom
+  (lsp-idle-delay 0.5)
+  (lsp-log-io nil)
+  (lsp-enable-folding nil)
   (lsp-auto-guess-root nil)
   (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
+  (lsp-flycheck-live-reporting nil)
+  (lsp-enable-snippet nil)
+  (lsp-enable-file-watchers nil)
+  (lsp-enable-text-document-color nil)
+  (lsp-enable-symbol-highlighting nil)
+  (lsp-enable-on-type-formatting nil)
+  (lsp-eldoc-enable-hover nil)
+
   (lsp-file-watch-threshold 2000)
   (read-process-output-max (* 1024 1024))
   (lsp-refer-capf t)
   (lsp-keep-workspace-alive nil)
-  (lsp-enable-on-type-formatting nil)
-  :hook ((python-mode c-mode c++-mode) . lsp))
+  :hook ((python-mode c-mode c++-mode) . lsp-deferred))
 ;; -LSPPac
 
 ;; LSPUI

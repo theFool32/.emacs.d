@@ -411,15 +411,6 @@ This is for use in `ivy-re-builders-alist'."
       (setq xref-show-definitions-function #'ivy-xref-show-defs))
     (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
 
-  ;; Quick launch apps
-  (cond
-   (*sys/linux*
-    (bind-key "s-<f6>" #'counsel-linux-app counsel-mode-map))
-   (*sys/mac*
-    (use-package counsel-osx-app
-      :bind (:map counsel-mode-map
-                  ("s-<f6>" . counsel-osx-app)))))
-
   ;; Display world clock using Ivy
   (use-package counsel-world-clock
     :bind (:map counsel-mode-map

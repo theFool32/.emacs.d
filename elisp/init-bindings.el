@@ -105,6 +105,7 @@ If failed try to complete the common part with `company-complete-common'"
   "fs" '(save-buffer :which-key "Save file")
   "fd" '(dired :which-key "Find directory")
   "fR" '(rename-file :which-key "Rename file")
+  "fD" '(delete-file :which-key "Delete file")
   ;; "fl" '(locate-file :which-key "Locate file")
   "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :which-key "init.el")
   "fp" '((lambda() (interactive)(counsel-find-file "~/.emacs.d/elisp/")) :which-key ".emacs.d")

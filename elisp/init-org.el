@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Mar 17 15:30:21 2020 (+0800)
+;; Last-Updated: Wed Mar 25 21:17:12 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -70,10 +70,10 @@
 
   ;; binding
   (evil-set-initial-state 'org-agenda-mode 'motion)
-  (evil-define-key 'normal org-mode-map
-    "o" #'+org/insert-item-below
-    "O" #'+org/insert-item-above
-    )
+  ;; (evil-define-key 'normal org-mode-map
+  ;;   "o" #'+org/insert-item-below
+  ;;   "O" #'+org/insert-item-above
+  ;;   )
 
   ;; org screenshot for macos
   (require 'org/+screenshot)
@@ -95,21 +95,21 @@
 
 
   ;; Schedule/deadline popup with default time
-  (defvar org-default-time "08:30"
-    "The default time for deadlines.")
+  ;; (defvar org-default-time "08:30"
+  ;; "The default time for deadlines.")
 
-  (defun advise-org-default-time (func arg &optional time)
-    (let ((old-time (symbol-function #'org-read-date)))
-      (cl-letf (((symbol-function #'org-read-date)
-                 #'(lambda (&optional a b c d default-time f g)
-                     (let ((default-time (or default-time
-                                             org-default-time)))
-                       (apply old-time a b c d f default-time g)
-                       ))))
-        (apply func arg time))))
+  ;; (defun advise-org-default-time (func arg &optional time)
+  ;;   (let ((old-time (symbol-function #'org-read-date)))
+  ;;     (cl-letf (((symbol-function #'org-read-date)
+  ;;                #'(lambda (&optional a b c d default-time f g)
+  ;;                    (let ((default-time (or default-time
+  ;;                                            org-default-time)))
+  ;;                      (apply old-time a b c d f default-time g)
+  ;;                      ))))
+  ;;       (apply func arg time))))
 
-  (advice-add #'org-deadline :around #'advise-org-default-time)
-  (advice-add #'org-schedule :around #'advise-org-default-time)
+  ;; (advice-add #'org-deadline :around #'advise-org-default-time)
+  ;; (advice-add #'org-schedule :around #'advise-org-default-time)
 
 
   ;; (setq bibtex-completion-bibliography '( "~/Dropbox/Paper/egbib.bib" ) ;the major bibtex file
