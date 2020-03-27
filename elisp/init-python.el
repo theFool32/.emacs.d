@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Jun 10 18:58:02 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Mar 27 18:42:38 2020 (+0800)
+;; Last-Updated: Sat Mar 28 00:45:27 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: lsp-python-ms
@@ -83,7 +83,7 @@
 ;; LSPPythonPac
 (use-package lsp-python-ms
   :hook (python-mode . (lambda () (require 'lsp-python-ms) (lsp-deferred)))
-  :after python
+  :after lsp-mode python
   :if (or *python3* *python*)
   :custom
   (lsp-python-executable-cmd "python3")
