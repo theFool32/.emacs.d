@@ -125,14 +125,15 @@ If failed try to complete the common part with `company-complete-common'"
   "sd" '(counsel-rg :wk "Search here")
 
   "c" '(:wk "Code")
-  "cD" '(lsp-ui-peek-find-references :wk "Jump to implementation")
-  "cd" '(evil-goto-definition :wk "Jump to definition")
+  "cD" '(xref-find-references :wk "Jump to implementation")
+  "cd" '(lsp-ui-peek-find-definitions :wk "Jump to definition")
   "cf" '(format-all-buffer :wk "Format buffer")
-  "ci" '(lsp-organize-imports :wk "Organize import")
+  "ci" '(color-rg-search-input-in-project :wk "Color-rg search")
   "cr" '(lsp-rename :wk "LSP rename")
   "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
   "co" '(lsp-ui-imenu :wk "Outline")
-  "es" '(flycheck-select-checker :wk "Select checker")
+  "cJ" '(lsp-ivy-global-workspace-symbol :wk "Jump to Symbol in workspace")
+
 
 
   "e" '(:wk "Error")
@@ -142,6 +143,7 @@ If failed try to complete the common part with `company-complete-common'"
   "ep" '(flycheck-previous-error :wk "Previous error")
   "ee" '(flycheck-explain-error-at-point :wk "Explain error at point")
   "ev" '(flycheck-verify-setup :wk "Verify setup")
+  "es" '(flycheck-select-checker :wk "Select checker")
 
   "g" '(:wh "Git")
   "gs" '(magit-status :wk "Git status")
