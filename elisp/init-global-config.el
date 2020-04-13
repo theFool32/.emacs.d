@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Feb  6 16:26:17 2020 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Sat Apr 11 11:42:28 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
 ;; Compatibility: emacs-version >= 26.1
@@ -126,6 +126,8 @@ The original function deletes trailing whitespace of the current line."
 ;; Don't Lock Files
 (setq-default create-lockfiles nil)
 (setq-default make-backup-files nil)
+(setq create-lockfiles nil)
+(setq make-backup-files nil)
 
 ;; Better Compilation
 (setq-default compilation-always-kill t) ; kill compilation process before starting another
@@ -166,6 +168,11 @@ The original function deletes trailing whitespace of the current line."
   (call-process-shell-command "rc" nil 0)
   )
 (advice-add #'save-buffer :after (η #'+my-sync-code))
+
+;; _ as part of a word
+(modify-syntax-entry ?_ "w")
+(defalias 'forward-evil-word 'forward-evil-symbol)
+
 
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

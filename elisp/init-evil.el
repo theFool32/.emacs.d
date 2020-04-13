@@ -62,7 +62,7 @@
 
   :config
   (add-to-list 'evil-emacs-state-modes 'snails-mode)
-  (add-to-list 'evil-emacs-state-modes 'color-rg-mode)
+  ;; (add-to-list 'evil-emacs-state-modes 'color-rg-mode)
 
   (evil-select-search-module 'evil-search-module 'evil-search)
   (evil-mode 1)

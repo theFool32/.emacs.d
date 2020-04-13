@@ -42,7 +42,8 @@
 
 ;;;###autoload
 (defvar +company-backend-alist
-  '((text-mode company-tabnine company-yasnippet company-ispell company-dabbrev)
+  ;; '((text-mode company-tabnine company-yasnippet company-ispell company-dabbrev)
+  '((text-mode company-yasnippet company-ispell company-dabbrev)
     (prog-mode company-capf company-yasnippet)
     (conf-mode company-capf company-dabbrev-code company-yasnippet))
   "An alist matching modes to company backends. The backends for any mode is
@@ -122,7 +123,10 @@ Examples:
   :init
   (company-tng-configure-default)
   (add-hook 'company-mode-hook #'+company-init-backends-h)
-  (set-company-backend! 'text-mode 'company-tabnine 'company-yasnippet 'company-ispell 'company-dabbrev)
+  (if *sys/mac*
+      (set-company-backend! 'text-mode 'company-tabnine 'company-yasnippet 'company-ispell 'company-dabbrev)
+    (set-company-backend! 'text-mode 'company-yasnippet 'company-ispell 'company-dabbrev)
+    )
   :custom
   (company-minimum-prefix-length 1)
   (company-tooltip-align-annotations t)
@@ -143,8 +147,10 @@ Examples:
                        company-preview-frontend
                        company-echo-metadata-frontend))
   :config
-  (setq company-backends '(company-tabnine company-files company-dabbrev))
-  ;; (unless *clangd* (delete 'company-clang company-backends))
+  (if *sys/mac*
+      (setq company-backends '(company-tabnine company-files company-dabbrev))
+    (setq company-backends '(company-files company-dabbrev))
+    )
   (global-company-mode 1)
   )
 ;; -ComPac
@@ -159,6 +165,7 @@ Examples:
 ;; CompanyTabNinePac
 (use-package company-tabnine
   :defer 1
+  :if *sys/mac*
   :after company
   :custom
   (company-tabnine-max-num-results 9)

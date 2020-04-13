@@ -165,6 +165,7 @@ If failed try to complete the common part with `company-complete-common'"
   ;; "og" '(google-this :wk "Google")
   "ot" '(org-todo-list :wk "Org Todo")
   "ox" '(org-agenda :wk "Org agenda")
+  "ob" '(ebib :wk "Ebib")
 
   "p" '(:wk "Project")
   "pp" '(projectile-switch-project :wk "Switch project")
