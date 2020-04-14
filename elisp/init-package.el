@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:53:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Mar 14 00:05:23 2020 (+0800)
+;; Last-Updated: Tue Apr 14 18:16:20 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d packages use-package
@@ -116,7 +116,8 @@
  '(quelpa-use-package
    :fetcher git
    :url "https://framagit.org/steckerhalter/quelpa-use-package.git"
-   :stable nil))
+   :stable nil
+   ))
 (require 'quelpa-use-package)
 
 (provide 'init-package)

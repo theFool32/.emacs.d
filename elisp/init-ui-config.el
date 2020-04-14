@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Feb 22 11:39:04 2020 (+0800)
-;;           By: John
+;; Last-Updated: Mon Apr 13 20:21:12 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
 ;; Compatibility: emacs-version >= 26.1
@@ -45,7 +45,7 @@
 ;; -PreSym
 
 ;; TitleBar
-(setq-default frame-title-format '("SPC-M-EMACS - " user-login-name "@" system-name " - %b"))
+(setq-default frame-title-format '("EMACS" " - %b"))
 ;; -TitleBar
 
 ;; YorN
@@ -82,9 +82,10 @@
            when (font-installed-p font)
            return (set-face-attribute 'default nil
                                       :font font
-                                      :height (cond (*sys/mac* 160)
-                                                    (*sys/win32* 160)
-                                                    (t 160))))
+                                      :height (cond (*sys/mac* 140)
+                                                    (*sys/win32* 140)
+                                                    (*sys/linux* 110)
+                                                    (t 140))))
 
   ;; Specify font for all unicode characters
   (cl-loop for font in '("Symbola" "Apple Symbols" "Symbol" "icons-in-terminal")
@@ -92,7 +93,8 @@
            return (set-fontset-font t 'unicode font nil 'prepend))
 
   ;; Specify font for Chinese characters
-  (cl-loop for font in '("WenQuanYi Micro Hei" "Microsoft Yahei")
+  ;; (cl-loop for font in '("Noto Sans CJK SC" "WenQuanYi Micro Hei" "Microsoft Yahei")
+  (cl-loop for font in '("Sarasa Mono SC" "Noto Sans CJK SC" "WenQuanYi Micro Hei" "Microsoft Yahei")
            when (font-installed-p font)
            return (set-fontset-font t '(#x4e00 . #x9fff) font)))
 

@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:21:46 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Mar 14 22:34:40 2020 (+0800)
+;; Last-Updated: Mon Apr 13 17:27:58 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dashboard
@@ -49,19 +49,6 @@
   (initial-buffer-choice (lambda () (get-buffer dashboard-buffer-name)))
   (dashboard-set-heading-icons t)
   (dashboard-set-navigator t)
-  (dashboard-navigator-buttons
-   (if (featurep 'all-the-icons)
-       `(((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust -0.05)
-           "M-EMACS" "Browse M-EMACS Homepage"
-           (lambda (&rest _) (browse-url "https://github.com/theFool32/.emacs.d")))
-          (,(all-the-icons-fileicon "elisp" :height 1.0 :v-adjust -0.1)
-           "Configuration" "" (lambda (&rest _) (edit-configs)))
-          (,(all-the-icons-faicon "cogs" :height 1.0 :v-adjust -0.1)
-           "Update" "" (lambda (&rest _) (auto-package-update-now)))))
-     `((("" "M-EMACS" "Browse M-EMACS Homepage"
-         (lambda (&rest _) (browse-url "https://github.com/theFool32/.emacs.d")))
-        ("" "Configuration" "" (lambda (&rest _) (edit-configs)))
-        ("" "Update" "" (lambda (&rest _) (auto-package-update-now)))))))
   :custom-face
   (dashboard-banner-logo-title ((t (:family "Love LetterTW" :height 123))))
   :config

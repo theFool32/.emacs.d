@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:11:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jan  6 14:32:34 2020 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Mon Apr 13 20:14:42 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d doom-themes doom-modeline
 ;; Compatibility: emacs-version >= 26.1
@@ -65,6 +65,8 @@
   (doom-modeline-env-version t)
   (doom-modeline-major-mode-color-icon t)
   (doom-modeline-height 15)
+  (doom-modeline-bar-width 1)
+
   :config
   (doom-modeline-mode))
 ;; -DoomModeline
