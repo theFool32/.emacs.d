@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Tue Mar 19 09:20:19 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Oct  8 00:20:32 2019 (-0400)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Wed Apr 15 17:02:16 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d shell shell-here
 ;; Compatibility: emacs-version >= 26.1
@@ -54,6 +54,8 @@
   :if (not *sys/gui*)
   :config (term-keys-mode t))
 ;; -TermKeysPac
+
+(use-package vterm)
 
 (provide 'init-shell)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
