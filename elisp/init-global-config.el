@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Apr 11 11:42:28 2020 (+0800)
+;; Last-Updated: Wed Apr 15 14:54:38 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -173,6 +173,9 @@ The original function deletes trailing whitespace of the current line."
 (modify-syntax-entry ?_ "w")
 (defalias 'forward-evil-word 'forward-evil-symbol)
 
+(if (and *sys/gui* *sys/linux*)
+    (setq default-directory "/home/lijie")
+  )
 
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
