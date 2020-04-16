@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Mar  8 11:49:19 2020 (+0800)
+;; Last-Updated: Thu Apr 16 03:07:15 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -40,6 +40,7 @@
 (eval-when-compile
   (require 'init-const)
   (require 'init-global-config)
+  (require 'init-bindings)
   (require 'init-func))
 
 ;; Fontification taken from https://tex.stackexchange.com/a/86119/81279
@@ -263,6 +264,8 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   (LaTeX-item-indent 0)
 
   :config
+  (evil-define-key 'normal LaTeX-mode-map (kbd "zo") #'TeX-fold-clearout-item)
+  (evil-define-key 'normal LaTeX-mode-map (kbd "zc") #'TeX-fold-env)
   (add-hook 'LaTeX-mode-hook (lambda ()
                                (push
                                 '("latexmk" "latexmk -pdf -pvc -view=none %s" TeX-run-TeX nil t
@@ -283,7 +286,7 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
        (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer"))))
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
   (add-hook 'TeX-mode-hook (lambda() (setq ispell-parser 'tex
-                                           fill-nobreak-predicate (cons #'texmathp fill-nobreak-predicate))))
+                                      fill-nobreak-predicate (cons #'texmathp fill-nobreak-predicate))))
   ;; Enable word wrapping
   (add-hook 'TeX-mode-hook #'visual-line-mode)
   ;; Fold TeX macros

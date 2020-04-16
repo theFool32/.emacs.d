@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 6
+;;     Update #: 7
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -47,6 +47,7 @@
 ;;; Code:
 
 (use-package rime
+  :if (and *sys/gui* *sys/linux*)
   :custom
   (default-input-method "rime")
   (rime-show-candidate 'posframe)

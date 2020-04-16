@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 6
+;;     Update #: 9
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -139,6 +139,7 @@ FACE defaults to inheriting from default and highlight."
 
 ;; Highlight indentions
 (use-package highlight-indent-guides
+  :disabled
   :if *sys/gui*
   :diminish
   :hook ((prog-mode web-mode nxml-mode) . highlight-indent-guides-mode)

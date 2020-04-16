@@ -4,7 +4,8 @@
 ;; TODO: use same method to set key bindings.
 
 (eval-when-compile
-  (require 'init-const))
+  (require 'init-const)
+  (require 'init-func))
 
 ;; Leader def
 (use-package general
@@ -96,6 +97,7 @@ If failed try to complete the common part with `company-complete-common'"
   "b]" '(next-buffer :wk "Next buffer")
   "bb" '(ivy-switch-buffer :wk "Switch buffer")
   "bk" '(kill-current-buffer :wk "Kill buffer")
+  "bK" '(kill-other-buffers :wk "Kill other buffers")
   "bs" '(basic-save-buffer :wk "Save buffer")
   "bS" '(evil-write-all :wk "Save all buffer")
 
