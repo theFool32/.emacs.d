@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Apr 13 20:21:12 2020 (+0800)
+;; Last-Updated: Fri Apr 17 17:24:03 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -104,7 +104,7 @@
 (setq mac-control-modifier 'control) ; make Control key do Control
 (setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
 
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (custom-set-variables '(x-select-enable-clipboard t))
 
 (use-package nyan-mode

@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 87
+;;     Update #: 92
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -80,7 +80,9 @@
       )
     )
   (if *sys/linux*
-      (setq ebib-file-associations '(("pdf" . "/mnt/c/Program Files/SumatraPDF/SumatraPDF.exe")))
+      (setq ebib-file-associations '(("pdf" . "/mnt/c/Program Files/SumatraPDF/SumatraPDF.exe"))
+            ebib-browser-command "/mnt/c/Windows/System32/cmd.exe /c start" ;; TODO: not work
+            )
     )
   :bind
   (
