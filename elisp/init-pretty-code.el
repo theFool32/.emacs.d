@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 14
+;;     Update #: 16
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -100,12 +100,12 @@ Pretty symbols can be unset for emacs-lisp-mode with:
     :map           "↦"
     ;; Types
     :null          "∅"
-    :true          "𝕋"
-    :false         "𝔽"
+    ;; :true          "𝕋"
+    ;; :false         "𝔽"
     :int           "ℤ"
     :float         "ℝ"
-    :str           "𝕊"
-    :bool          "𝔹"
+    ;; :str           "𝕊"
+    ;; :bool          "𝔹"
     ;; Flow
     :not           "￢"
     :in            "∈"
@@ -177,10 +177,10 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :lambda "lambda"
   ;; Types
   :null "None"
-  :true "True" :false "False"
-  :int "int" :str "str"
+  ;; :true "True" :false "False"
+  ;; :int "int" :str "str"
   :float "float"
-  :bool "bool"
+  ;; :bool "bool"
   :tuple "tuple"
   ;; Flow
   :not "not"

@@ -85,7 +85,8 @@ If failed try to complete the common part with `company-complete-common'"
 
 (leader-def
   "" nil
-  "<SPC>" '(counsel-projectile :wk "Project find file")
+  ;; "<SPC>" '(counsel-projectile :wk "Project find file")
+  "<SPC>" '(snails :wk "Project find file")
   "/" '(counsel-rg :wk "Search here")
   "." '(counsel-find-file :wk "Find file")
   ";" '(execute-extended-command :wk "M-x")
