@@ -51,4 +51,5 @@ elisp/flycheck_*
 custom-set-variables.el
 custom-set-variables.el~
 quelpa/*
+straight/*
 rime/

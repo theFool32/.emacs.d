@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Apr 17 20:13:41 2020 (+0800)
+;; Last-Updated: Fri Apr 24 10:49:57 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -286,7 +286,7 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
        (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer"))))
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
   (add-hook 'TeX-mode-hook (lambda() (setq ispell-parser 'tex
-                                      fill-nobreak-predicate (cons #'texmathp fill-nobreak-predicate))))
+                                           fill-nobreak-predicate (cons #'texmathp fill-nobreak-predicate))))
   ;; Enable word wrapping
   (add-hook 'TeX-mode-hook #'visual-line-mode)
   ;; Fold TeX macros
@@ -334,14 +334,8 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   :after (company tex)
   :defer t
   :commands toggle-company-english-helper
-  :quelpa (company-english-helper :fetcher github :repo "manateelazycat/company-english-helper"))
+  :straight (:host github :repo "manateelazycat/company-english-helper" :depth 1))
 ;; -AUCTeXPac
-
-;; OrgLatexPac
-(use-package org-edit-latex
-  :defer t
-  :after org)
-;; -OrgLatexPac
 
 (provide 'init-latex)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

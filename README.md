@@ -8,7 +8,7 @@ It is compatible **Only with Emacs 26 and above**.
 
 ```bash
 # install with:
-git clone --recurse-submodules -j8 https://github.com/theFool32/.emacs.d.git
+git clone --depth 1 https://github.com/theFool32/.emacs.d.git
 
 ```
 

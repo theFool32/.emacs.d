@@ -444,13 +444,15 @@ This is for use in `ivy-re-builders-alist'."
   ;; For better performance
   (setq ivy-rich-parse-remote-buffer nil))
 
-(use-package ivy-posframe
-  :after ivy
-  :config
-  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
-  :hook
-  (ivy-mode . ivy-posframe-mode)
-  )
+;; TODO: not work in native-comp
+;; (use-package ivy-posframe
+;;   :disabled
+;;   :after ivy
+;;   :config
+;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
+;;   :hook
+;;   (ivy-mode . ivy-posframe-mode)
+;;   )
 
 (provide 'init-ivy)
 

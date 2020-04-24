@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 19
+;;     Update #: 21
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -48,7 +48,7 @@
 ;;; Code:
 
 (use-package nox
-  :quelpa (nox :fetcher github :repo "manateelazycat/nox")
+  :straight (:host github :repo "manateelazycat/nox" :depth 1)
   :hook (python-mode . nox-ensure)
   :config
 

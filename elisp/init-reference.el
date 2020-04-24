@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 92
+;;     Update #: 94
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -47,7 +47,7 @@
 ;;; Code:
 
 (use-package ebib
-  :quelpa (ebib :fetcher github :repo "theFool32/ebib")
+  :straight (:host github :repo "theFool32/ebib" :depth 1)
   :ensure nil
   :custom
   (ebib-preload-bib-files '("~/Ref/ref.bib"))

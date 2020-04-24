@@ -40,10 +40,9 @@
 ;;; Code:
 
 (use-package header2
-  ;; :load-path (lambda () (expand-file-name "site-elisp/header2" user-emacs-directory))
-  :quelpa (header2 :fetcher github :repo "emacsmirror/header2")
+  :straight (:host github :repo "emacsmirror/header2" :depth 1)
   :custom
-  (header-copyright-notice (concat "Copyright (C) 2019 " (user-full-name) "\n"))
+  (header-copyright-notice (concat "Copyright (C) 2020 " (user-full-name) "\n"))
   :hook (emacs-lisp-mode . auto-make-header)
   :config
   (add-to-list 'write-file-functions 'auto-update-file-header)

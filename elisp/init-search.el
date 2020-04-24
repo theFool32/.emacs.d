@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Apr 19 16:59:44 2020 (+0800)
+;; Last-Updated: Fri Apr 24 12:18:33 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -69,14 +69,14 @@
         wgrep-change-readonly-file t))
 
 (use-package color-rg
-  :quelpa (color-rg :fetcher github :repo "manateelazycat/color-rg")
+  :straight (:host github :repo "manateelazycat/color-rg" :depth 1)
   :if *rg*
   )
 
 ;; SnailsPac
 (use-package snails
   :ensure nil
-  :quelpa (snails :fetcher github :repo "manateelazycat/snails") ;; TODO: No elc, should rm *.elc manually
+  :straight (:host github :repo "manateelazycat/snails" :depth 1 :no-byte-compile t)
   :if *sys/gui*
   :custom-face
   (snails-content-buffer-face ((t (:background "#111" :height 110))))
