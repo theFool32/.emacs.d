@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Apr 22 13:23:47 2020 (+0800)
+;; Last-Updated: Sun Apr 26 14:11:29 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -193,22 +193,23 @@ The original function deletes trailing whitespace of the current line."
 (add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
 (add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
 
-(defvar k-gc-timer
-  (run-with-idle-timer 15 t
-                       'garbage-collect))
+;; TODO: check the influence of GC
+;; (defvar k-gc-timer
+;;   (run-with-idle-timer 15 t
+;;                        'garbage-collect))
 
 ;; GC measure
-(defmacro k-time (&rest body)
-  "Measure and return the time it takes evaluating BODY."
-  `(let ((time (current-time)))
-     ,@body
-     (float-time (time-since time))))
+;; (defmacro k-time (&rest body)
+;;   "Measure and return the time it takes evaluating BODY."
+;;   `(let ((time (current-time)))
+;;      ,@body
+;;      (float-time (time-since time))))
 
-(defvar k-gc-timer
-  (run-with-idle-timer 15 t
-                       (lambda ()
-                         (message "Garbage Collector has run for %.06fsec"
-                                  (k-time (garbage-collect))))))
+;; (defvar k-gc-timer
+;;   (run-with-idle-timer 15 t
+;;                        (lambda ()
+;;                          (message "Garbage Collector has run for %.06fsec"
+;;                                   (k-time (garbage-collect))))))
 
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

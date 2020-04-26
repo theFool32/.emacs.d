@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 94
+;;     Update #: 95
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -58,7 +58,7 @@
   (ebib-index-default-sort '("timestamp" . descend))
   (ebib-use-timestamp t "recording the time that entries are added")
   (ebib-extra-fields
-   '((BibTeX "keywords" "abstract" "timestamp" "readed"
+   '((BibTeX "keywords" "abstract" "timestamp" "read"
              "file"  "url" "crossref" "annote" "doi")))
   (ebib-hidden-fields
    '("volume" "number" "series" "editor" "pages" "address" "month" "organization" "publisher" "crossref"))
@@ -67,7 +67,7 @@
                         ("Author/Editor" 40 t)
                         ("Year" 6 t)
                         ("timestamp" 15 t)
-                        ("readed" 1 t)
+                        ("read" 1 t)
                         )
                       )
   :init
