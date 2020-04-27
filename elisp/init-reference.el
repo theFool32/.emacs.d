@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 95
+;;     Update #: 97
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -47,6 +47,7 @@
 ;;; Code:
 
 (use-package ebib
+  ;; :load-path "~/proj/ebib"
   :straight (:host github :repo "theFool32/ebib" :depth 1)
   :ensure nil
   :custom

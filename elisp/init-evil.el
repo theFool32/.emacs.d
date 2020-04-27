@@ -58,7 +58,9 @@
         evil-want-keybinding 'nil
         ;; Only do highlighting in selected window so that Emacs has less work
         ;; to do highlighting them all.
-        evil-ex-interactive-search-highlight 'selected-window)
+        evil-ex-interactive-search-highlight 'selected-window
+        evil-split-window-below t
+        evil-vsplit-window-right t)
 
   :config
   (add-to-list 'evil-emacs-state-modes 'snails-mode)
