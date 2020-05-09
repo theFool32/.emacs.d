@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Apr 13 11:08:11 2020 (+0800)
+;; Last-Updated: Wed May  6 10:50:17 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -51,12 +51,14 @@
   (lsp-auto-guess-root nil)
   (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
   (lsp-flycheck-live-reporting nil)
+  (lsp-diagnostic-package :none)
   (lsp-enable-snippet nil)
   (lsp-enable-file-watchers nil)
   (lsp-enable-text-document-color nil)
   (lsp-enable-symbol-highlighting nil)
   (lsp-enable-on-type-formatting nil)
   (lsp-eldoc-enable-hover nil)
+  (lsp-restart 'auto-restart)
 
   (lsp-file-watch-threshold 2000)
   (read-process-output-max (* 1024 1024))

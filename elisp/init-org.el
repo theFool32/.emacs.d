@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Mar 25 21:17:12 2020 (+0800)
+;; Last-Updated: Wed May  6 17:47:41 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -70,10 +70,10 @@
 
   ;; binding
   (evil-set-initial-state 'org-agenda-mode 'motion)
-  ;; (evil-define-key 'normal org-mode-map
-  ;;   "o" #'+org/insert-item-below
-  ;;   "O" #'+org/insert-item-above
-  ;;   )
+  (evil-define-key 'normal org-mode-map
+    "o" #'+org/insert-item-below
+    "O" #'+org/insert-item-above
+    )
 
   ;; org screenshot for macos
   (require 'org/+screenshot)
