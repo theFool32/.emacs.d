@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Mar  6 20:39:17 2020 (+0800)
+;; Last-Updated: Mon May 11 15:46:20 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit

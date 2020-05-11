@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Apr 26 14:11:29 2020 (+0800)
+;; Last-Updated: Mon May 11 12:19:33 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -178,7 +178,7 @@ The original function deletes trailing whitespace of the current line."
   )
 
 ;; Auto save session
-(setq desktop-save-mode 1)
+;; (setq desktop-save-mode 1)
 
 
 ;; For GC

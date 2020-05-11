@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Apr 17 17:24:03 2020 (+0800)
+;; Last-Updated: Mon May 11 15:43:28 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -76,27 +76,33 @@
 
 ;;Font
 
-(when (display-graphic-p)
-  ;; Set default font
-  (cl-loop for font in '("SauceCodePro Nerd Font")
-           when (font-installed-p font)
-           return (set-face-attribute 'default nil
-                                      :font font
-                                      :height (cond (*sys/mac* 140)
-                                                    (*sys/win32* 140)
-                                                    (*sys/linux* 110)
-                                                    (t 140))))
+(defun my-default-frame-face ()
+  (when (display-graphic-p)
+    ;; Set default font
+    (cl-loop for font in '("SauceCodePro Nerd Font")
+             when (font-installed-p font)
+             return (set-face-attribute 'default nil
+                                        :font font
+                                        :height (cond (*sys/mac* 140)
+                                                      (*sys/win32* 140)
+                                                      (*sys/linux* 105)
+                                                      (t 140))))
 
-  ;; Specify font for all unicode characters
-  (cl-loop for font in '("Symbola" "Apple Symbols" "Symbol" "icons-in-terminal")
-           when (font-installed-p font)
-           return (set-fontset-font t 'unicode font nil 'prepend))
+    ;; Specify font for all unicode characters
+    (cl-loop for font in '("Symbola" "Apple Symbols" "Symbol" "icons-in-terminal")
+             when (font-installed-p font)
+             return (set-fontset-font t 'unicode font nil 'prepend))
 
-  ;; Specify font for Chinese characters
-  ;; (cl-loop for font in '("Noto Sans CJK SC" "WenQuanYi Micro Hei" "Microsoft Yahei")
-  (cl-loop for font in '("Sarasa Mono SC" "Noto Sans CJK SC" "WenQuanYi Micro Hei" "Microsoft Yahei")
-           when (font-installed-p font)
-           return (set-fontset-font t '(#x4e00 . #x9fff) font)))
+    ;; Specify font for Chinese characters
+    ;; (cl-loop for font in '("Noto Sans CJK SC" "WenQuanYi Micro Hei" "Microsoft Yahei")
+    (cl-loop for font in '("Sarasa Mono SC" "Noto Sans CJK SC" "WenQuanYi Micro Hei" "Microsoft Yahei")
+             when (font-installed-p font)
+             return (set-fontset-font t '(#x4e00 . #x9fff) font))))
+(my-default-frame-face)
+(add-hook 'after-make-frame-functions
+	      (lambda (new-frame)
+	        (select-frame new-frame)
+	        (my-default-frame-face) ))
 
 
 (setq mac-command-modifier 'meta) ; make cmd key do Meta

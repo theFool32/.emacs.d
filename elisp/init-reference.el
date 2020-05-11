@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 97
+;;     Update #: 105
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -54,6 +54,9 @@
   (ebib-preload-bib-files '("~/Ref/ref.bib"))
   (ebib-file-search-dirs '("~/Ref/pdfs/"))
   (ebib-notes-directory "~/Ref/notes/")
+  (ebib-keywords-file "~/Ref/ebib-keywords.txt")
+  (ebib-keywords-field-keep-sorted t)
+  (ebib-keywords-file-save-on-exit 'always)
   (ebib-index-window-size 30)
   (ebib-timestamp-format "%Y-%m-%d,%T")
   (ebib-index-default-sort '("timestamp" . descend))
@@ -69,6 +72,7 @@
                         ("Year" 6 t)
                         ("timestamp" 15 t)
                         ("read" 1 t)
+                        ("readtime" 15 t)
                         )
                       )
   :init
@@ -99,6 +103,22 @@
    )
   )
 
+(setq arxiv-dir "~/Ref/pdfs")    ; change dir as desired
+
+(defun ebib-import-arxiv (arxiv-url)
+  (interactive)
+
+  (let ((tempbuff (get-buffer-create "*arxiv*"))
+        (arxiv-id (car (cdr (split-string arxiv-url "abs/"))))
+        (arxiv-pdf-url (concat (replace-regexp-in-string "abs" "pdf" arxiv-url) ".pdf")))
+
+    (call-process-shell-command "arxiv2bib" nil tempbuff nil arxiv-id)
+
+    (call-process-shell-command "links" nil nil nil
+                                "-source" arxiv-pdf-url "> " (concat arxiv-dir arxiv-id ".pdf"))
+
+    (with-current-buffer tempbuff
+      (ebib-import))))
 
 (provide 'init-reference)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

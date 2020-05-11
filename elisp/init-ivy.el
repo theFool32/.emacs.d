@@ -429,7 +429,9 @@ This is for use in `ivy-re-builders-alist'."
 (use-package all-the-icons-ivy-rich
   :if (icons-displayable-p)
   :after ivy
-  :init (all-the-icons-ivy-rich-mode 1))
+  :init (all-the-icons-ivy-rich-mode 1)
+  :config
+  (setq all-the-icons-ivy-rich-icon-size 0.9))
 
 ;; More friendly display transformer for Ivy
 (use-package ivy-rich
@@ -445,14 +447,13 @@ This is for use in `ivy-re-builders-alist'."
   (setq ivy-rich-parse-remote-buffer nil))
 
 ;; TODO: not work in native-comp
-;; (use-package ivy-posframe
-;;   :disabled
-;;   :after ivy
-;;   :config
-;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
-;;   :hook
-;;   (ivy-mode . ivy-posframe-mode)
-;;   )
+(use-package ivy-posframe
+  :after ivy
+  :config
+  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
+  :hook
+  (ivy-mode . ivy-posframe-mode)
+  )
 
 (provide 'init-ivy)
 

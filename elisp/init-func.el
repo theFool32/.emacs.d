@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Apr 16 01:00:39 2020 (+0800)
+;; Last-Updated: Sun May 10 17:19:28 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -176,6 +176,15 @@ advised)."
   "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+
+;; Below macro is used to wrap stuff that need to be run only after emacs
+;; starts up completely. This is very crucial when calling functions like
+;; `find-font' which return correct value only after emacs startup is finished
+;; especially when emacs is started in daemon mode.
+(defmacro do-once-1-sec-after-emacs-startup (&rest body)
+  `(run-with-idle-timer 5 ; run this after emacs is idle for 1 second
+                        nil ; do this just once; don't repeat
+                        (lambda () ,@body)))
 
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
