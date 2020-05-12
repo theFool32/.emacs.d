@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Mar 18 14:20:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Feb 20 10:42:54 2020 (+0800)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Tue May 12 20:02:39 2020 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d constants
 ;; Compatibility: emacs-version >= 26.1
@@ -44,7 +44,7 @@
 
 ;; Consts
 (defconst *sys/gui*
-  (display-graphic-p)
+  (or (display-graphic-p) (daemonp))
   "Are we running on a GUI Emacs?")
 
 (defconst *sys/win32*
@@ -93,7 +93,7 @@
 
 (defconst *clangd*
   (or (executable-find "clangd")  ;; usually
-    (executable-find "/usr/local/opt/llvm/bin/clangd"))  ;; macOS
+      (executable-find "/usr/local/opt/llvm/bin/clangd"))  ;; macOS
   "Do we have clangd?")
 
 (defconst *pdflatex*

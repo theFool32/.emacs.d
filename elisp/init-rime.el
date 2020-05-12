@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 7
+;;     Update #: 10
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -50,6 +50,7 @@
   :if (and *sys/gui* *sys/linux*)
   :custom
   (default-input-method "rime")
+  (evil-input-method "rime")
   (rime-show-candidate 'posframe)
   )
 
