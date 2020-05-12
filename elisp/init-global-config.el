@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon May 11 12:19:33 2020 (+0800)
+;; Last-Updated: Tue May 12 13:00:00 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -210,6 +210,16 @@ The original function deletes trailing whitespace of the current line."
 ;;                        (lambda ()
 ;;                          (message "Garbage Collector has run for %.06fsec"
 ;;                                   (k-time (garbage-collect))))))
+
+(advice-add #'save-buffers-kill-terminal :before
+            (lambda (&optional args)
+              (interactive) (setq client-revert-bufferp (current-buffer))))
+
+(defun client-revert-buffer ()
+  "revert the buffer if client-revert-bufferp is defined"
+  (interactive)
+  (if (boundp 'client-revert-bufferp)
+      (switch-to-buffer client-revert-bufferp)))
 
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
