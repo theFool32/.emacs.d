@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 21
+;;     Update #: 24
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -51,34 +51,34 @@
   :straight (:host github :repo "manateelazycat/nox" :depth 1)
   :hook (python-mode . nox-ensure)
   :config
+  (setq nox-python-server "pyls")
+  ;; (defun push-tabnine ()
+  ;;   (add-to-list 'company-transformers 'company//sort-by-tabnine t)
+  ;;   ;; (add-to-list 'company-backends '(company-capf :with company-tabnine :separate))
+  ;;   (setq company-backends '((company-capf :with company-tabnine :separate) company-files company-dabbrev))
+  ;;   )
+  ;; (add-hook 'nox-managed-mode-hook #'push-tabnine)
 
-  (defun push-tabnine ()
-    (add-to-list 'company-transformers 'company//sort-by-tabnine t)
-    ;; (add-to-list 'company-backends '(company-capf :with company-tabnine :separate))
-    (setq company-backends '((company-capf :with company-tabnine :separate) company-files company-dabbrev))
-    )
-  (add-hook 'nox-managed-mode-hook #'push-tabnine)
+  ;; (defvar lsp-python "/usr/bin/python3")
+  ;; (defvar lsp-search-paths [])
 
-  (defvar lsp-python "/usr/bin/python3")
-  (defvar lsp-search-paths [])
+  ;; (defclass nox-mspyls (nox-lsp-server) ()
+  ;;   :documentation
+  ;;   "MS Python Language Server.")
 
-  (defclass nox-mspyls (nox-lsp-server) ()
-    :documentation
-    "MS Python Language Server.")
+  ;; (setq-default nox-workspace-configuration
+  ;;               '((:python :autoComplete (:extraPaths nil)
+  ;;                          :analysis (:autoSearchPaths :json-false :usePYTHONPATH :json-false))))
 
-  (setq-default nox-workspace-configuration
-                '((:python :autoComplete (:extraPaths nil)
-                           :analysis (:autoSearchPaths :json-false :usePYTHONPATH :json-false))))
+  ;; (cl-defmethod nox-initialization-options ((_server nox-mspyls))
+  ;;   `(:interpreter
+  ;;     (:properties
+  ;;      (:InterpreterPath ,lsp-python))
+  ;;     :searchPaths ,lsp-search-paths))
 
-  (cl-defmethod nox-initialization-options ((_server nox-mspyls))
-    `(:interpreter
-      (:properties
-       (:InterpreterPath ,lsp-python))
-      :searchPaths ,lsp-search-paths))
-
-  (add-to-list 'nox-server-programs
-               `(python-mode nox-mspyls
-                             "/home/lijie/.local/mspyls/Microsoft.Python.LanguageServer"))
+  ;; (add-to-list 'nox-server-programs
+  ;;              `(python-mode nox-mspyls
+  ;;                            "/home/lijie/.local/mspyls/Microsoft.Python.LanguageServer"))
   )
 
 (provide 'init-nox)

@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 10
+;;     Update #: 18
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -50,8 +50,20 @@
   :if (and *sys/gui* *sys/linux*)
   :custom
   (default-input-method "rime")
-  (evil-input-method "rime")
+  ;; (evil-input-method "rime")
   (rime-show-candidate 'posframe)
+  (rime-posframe-properties (list :font "sarasa ui sc"
+                                  :internal-border-width 10))
+  (rime-disable-predicates
+   '(rime-predicate-evil-mode-p
+     rime-predicate-after-alphabet-char-p
+     rime-predicate-prog-in-code-p
+     rime-predicate-after-ascii-char-p
+     rime-predicate-space-after-cc-p))
+
+  :config
+  (toggle-input-method)
+  (toggle-input-method)
   )
 
 (provide 'init-rime)

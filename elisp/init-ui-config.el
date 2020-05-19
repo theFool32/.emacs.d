@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon May 11 15:52:29 2020 (+0800)
+;; Last-Updated: Sun May 17 16:26:37 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -54,8 +54,7 @@
 
 ;; StartupScreen
 (setq inhibit-startup-screen t)
-(setq initial-major-mode 'text-mode)
-(setq initial-scratch-message "Present Day, Present Time...\n")
+;; (setq initial-major-mode 'text-mode)
 ;; -StartupScreen
 
 ;; DisLineNum
@@ -85,7 +84,7 @@
                                         :font font
                                         :height (cond (*sys/mac* 140)
                                                       (*sys/win32* 140)
-                                                      (*sys/linux* 100)
+                                                      (*sys/linux* 200)
                                                       (t 140))))
 
     ;; Specify font for all unicode characters
@@ -111,6 +110,7 @@
 (setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
 
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
 (custom-set-variables '(x-select-enable-clipboard t))
 
 (use-package nyan-mode

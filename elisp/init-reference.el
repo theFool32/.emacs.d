@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 110
+;;     Update #: 114
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -94,6 +94,7 @@
    :map ebib-index-mode-map
    ("/" . ebib-jump-to-entry)
    ("?" . ebib-search)
+   ("D" . ebib-delete-entry-with-file)
    :map ebib-multiline-mode-map
    ("C-c C-c" . 'ebib-quit-multiline-buffer-and-save)
    ("C-c C-q" . 'ebib-cancel-multiline-buffer)
@@ -106,7 +107,7 @@
 (setq arxiv-dir "~/Ref/pdfs")    ; change dir as desired
 
 (defun ebib-import-arxiv (arxiv-url)
-  (interactive)
+  (interactive "sUrl:")
 
   (let ((tempbuff (get-buffer-create "*arxiv*"))
         (arxiv-id (car (cdr (split-string arxiv-url "abs/"))))

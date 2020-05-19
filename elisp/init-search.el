@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Apr 24 12:18:33 2020 (+0800)
+;; Last-Updated: Thu May 14 17:56:18 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -75,12 +75,13 @@
 
 ;; SnailsPac
 (use-package snails
+  :disabled
   :ensure nil
   :straight (:host github :repo "manateelazycat/snails" :depth 1 :no-byte-compile t)
   :if *sys/gui*
   :custom-face
-  (snails-content-buffer-face ((t (:background "#111" :height 110))))
-  (snails-input-buffer-face ((t (:background "#222" :foreground "gold" :height 110))))
+  (snails-content-buffer-face ((t (:background "#111" :height 210))))
+  (snails-input-buffer-face ((t (:background "#222" :foreground "gold" :height 210))))
   (snails-header-line-face ((t (:inherit font-lock-function-name-face :underline t :height 1.1))))
   :config
   ;; Functions for specific backends

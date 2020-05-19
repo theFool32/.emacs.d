@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed May  6 17:47:41 2020 (+0800)
+;; Last-Updated: Sun May 17 17:35:28 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -58,7 +58,9 @@
   (org-babel-python-command "python3")
   (org-bullets-bullet-list '("#"))
   (org-tags-column -77)
+
   :config
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
   (when (file-directory-p org-directory)
     (setq org-agenda-files (list org-directory)))
   (unless (version< org-version "9.2")
@@ -78,16 +80,24 @@
   ;; org screenshot for macos
   (require 'org/+screenshot)
 
-  (defvar +org-capture-file (concat org-self-dir "main.org"))
+  (defvar +org-capture-file-gtd (concat org-self-dir "main.org"))
+  (defvar +org-capture-file-idea (concat org-self-dir "ideas.org"))
+  (defvar +org-capture-file-note (concat org-self-dir "notes.org"))
   (setq org-capture-templates
-        '(("t" "Journal" entry
-           (file+headline +org-capture-file "GTD")
+        '(("t" "Next actions" entry
+           (file+headline +org-capture-file-gtd "Next actions")
+           "* TODO %?\n%i" :prepend t :kill-buffer t)
+          ("w" "Waiting for" entry
+           (file+headline +org-capture-file-gtd "Waiting for")
+           "* TODO %?\n%i" :prepend t :kill-buffer t)
+          ("s" "Some day/maybe" entry
+           (file+headline +org-capture-file-gtd "Some day/maybe")
            "* TODO %?\n%i" :prepend t :kill-buffer t)
           ("n" "Note" entry
-           (file+headline +org-capture-file "Notes")
+           (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           ("i" "Idea" entry
-           (file+headline +org-capture-file "Ideas")
+           (file+headline +org-capture-file-idea "Ideas")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           ))
 
