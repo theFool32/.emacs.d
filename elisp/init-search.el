@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jun  1 15:31:11 2020 (+0800)
+;; Last-Updated: Mon Jun  1 15:39:55 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -47,6 +47,10 @@
 ;;         exec-path-from-shell-variables '("PATH" "MANPATH" "https_proxy")
 ;;         exec-path-from-shell-arguments '("-l"))
 ;;   (exec-path-from-shell-initialize))
+
+;; Read $PATH
+;; https://emacs-china.org/t/emacs-mac-port-profile/2895/30
+;; echo "(setenv \"PATH\" \"$PATH\") (setenv \"CPATH\" \"$CPATH\") (setenv \"MANPATH\" \"$MANPATH\")" > ~/.emacsenv
 (condition-case err
     (progn (load "~/.emacsenv")
            (setq exec-path (split-string (getenv "PATH") ":")))
