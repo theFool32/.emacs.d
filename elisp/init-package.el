@@ -44,11 +44,11 @@
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory)
       package-archives
       '(
-	    ;; ("gnu"   . "https://elpa.gnu.org/packages/")
-        ;; ("melpa" . "https://melpa.org/packages/")
+        ("gnu"   . "https://elpa.gnu.org/packages/")
+        ("melpa" . "https://melpa.org/packages/")
         ("cselpa" . "https://elpa.thecybershadow.net/packages/")
-        ("melpa-cn" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
-        ("gnu-cn"   . "http://mirrors.cloud.tencent.com/elpa/gnu/")
+        ;("melpa-cn" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
+        ;("gnu-cn"   . "http://mirrors.cloud.tencent.com/elpa/gnu/")
 
         ;; ("gnu" . "https://mirrors.ustc.edu.cn/elpa/gnu/")
         ;; ("melpa" . "https://mirrors.ustc.edu.cn/elpa/melpa/")

@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue May 12 13:00:00 2020 (+0800)
+;; Last-Updated: Mon Jun  1 15:20:58 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -176,6 +176,8 @@ The original function deletes trailing whitespace of the current line."
 (if (and *sys/gui* *sys/linux*)
     (setq default-directory "/home/lijie")
   )
+(if *sys/mac*
+    (setq default-directory "/Users/lijie"))
 
 ;; Auto save session
 ;; (setq desktop-save-mode 1)

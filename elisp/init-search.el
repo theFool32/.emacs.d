@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu May 14 17:56:18 2020 (+0800)
+;; Last-Updated: Mon Jun  1 15:31:11 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -41,12 +41,16 @@
   (require 'init-global-config)
   (require 'init-const))
 
-(use-package exec-path-from-shell
-  :init
-  (setq exec-path-from-shell-check-startup-files nil
-        exec-path-from-shell-variables '("PATH" "MANPATH" "https_proxy")
-        exec-path-from-shell-arguments '("-l"))
-  (exec-path-from-shell-initialize))
+;; (use-package exec-path-from-shell
+;;   :init
+;;   (setq exec-path-from-shell-check-startup-files nil
+;;         exec-path-from-shell-variables '("PATH" "MANPATH" "https_proxy")
+;;         exec-path-from-shell-arguments '("-l"))
+;;   (exec-path-from-shell-initialize))
+(condition-case err
+    (progn (load "~/.emacsenv")
+           (setq exec-path (split-string (getenv "PATH") ":")))
+  (error (message (error-message-string err))))
 
 (use-package youdao-dictionary
   :commands youdao-dictionary-play-voice-of-current-word
