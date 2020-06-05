@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 121
+;;     Update #: 136
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -46,15 +46,17 @@
 ;;
 ;;; Code:
 
+(require 'init-func)
+
 (use-package ebib
   ;; :load-path "~/proj/ebib"
   :straight (:host github :repo "theFool32/ebib" :depth 1)
   :ensure nil
   :custom
-  (ebib-preload-bib-files '("~/Ref/ref.bib"))
-  (ebib-file-search-dirs '("~/Ref/pdfs/"))
-  (ebib-notes-directory "~/Ref/notes/")
-  (ebib-keywords-file "~/Ref/ebib-keywords.txt")
+  (ebib-preload-bib-files '("~/Dropbox/Ref/ref.bib"))
+  (ebib-file-search-dirs '("~/Dropbox/Ref/pdfs/"))
+  (ebib-notes-directory "~/Dropbox/Ref/notes/")
+  (ebib-keywords-file "~/Dropbox/Ref/ebib-keywords.txt")
   (ebib-keywords-field-keep-sorted t)
   (ebib-keywords-file-save-on-exit 'always)
   (ebib-index-window-size 30)
@@ -107,7 +109,17 @@
    )
   )
 
-(setq arxiv-dir "~/Ref/pdfs")    ; change dir as desired
+(setq arxiv-dir "~/Dropbox/Ref/pdfs")    ; change dir as desired
+(defun ebib-import-ref (url)
+  (interactive "sUrl:")
+  ;; TODO: different buffer name
+  (setq buffername (concat "*ref-" (get-random-uuid) "*"))
+  (let ((tempbuff (get-buffer-create buffername)))
+    (call-process-shell-command (concat "ref_down.py " url " " arxiv-dir) nil tempbuff nil)
+    ;; TODO: auto kill buffer
+    (with-current-buffer tempbuff
+      (ebib-import)
+      (kill-buffer tempbuff))))
 
 (defun ebib-import-arxiv (arxiv-url)
   (interactive "sUrl:")
@@ -118,8 +130,8 @@
 
     (call-process-shell-command "arxiv2bib" nil tempbuff nil arxiv-id)
 
-    (call-process-shell-command "links" nil nil nil
-                                "-source" arxiv-pdf-url "> " (concat arxiv-dir arxiv-id ".pdf"))
+    ;; (call-process-shell-command "links" nil nil nil
+    ;;                             "-source" arxiv-pdf-url "> " (concat arxiv-dir arxiv-id ".pdf"))
 
     (with-current-buffer tempbuff
       (ebib-import))))

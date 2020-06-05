@@ -446,7 +446,6 @@ This is for use in `ivy-re-builders-alist'."
   ;; For better performance
   (setq ivy-rich-parse-remote-buffer nil))
 
-;; TODO: not work in native-comp
 (use-package ivy-posframe
   :after ivy
   :config
