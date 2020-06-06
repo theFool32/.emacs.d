@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:53:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat May  9 20:50:15 2020 (+0800)
+;; Last-Updated: Sat Jun  6 16:40:26 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d packages use-package
@@ -47,8 +47,8 @@
         ("gnu"   . "https://elpa.gnu.org/packages/")
         ("melpa" . "https://melpa.org/packages/")
         ("cselpa" . "https://elpa.thecybershadow.net/packages/")
-        ;("melpa-cn" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
-        ;("gnu-cn"   . "http://mirrors.cloud.tencent.com/elpa/gnu/")
+        ;; ("melpa-cn" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
+        ;; ("gnu-cn"   . "http://mirrors.cloud.tencent.com/elpa/gnu/")
 
         ;; ("gnu" . "https://mirrors.ustc.edu.cn/elpa/gnu/")
         ;; ("melpa" . "https://mirrors.ustc.edu.cn/elpa/melpa/")

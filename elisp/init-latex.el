@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue May 19 17:36:45 2020 (+0800)
+;; Last-Updated: Sat Jun  6 16:40:05 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -336,6 +336,9 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   :commands toggle-company-english-helper
   :straight (:host github :repo "manateelazycat/company-english-helper" :depth 1))
 ;; -AUCTeXPac
+
+(use-package magic-latex-buffer
+  :after (tex))
 
 (provide 'init-latex)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
