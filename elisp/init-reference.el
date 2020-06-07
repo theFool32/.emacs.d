@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 136
+;;     Update #: 143
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -48,6 +48,7 @@
 
 (require 'init-func)
 
+;; FIXME: too small for splitting (have no idea now)
 (use-package ebib
   ;; :load-path "~/proj/ebib"
   :straight (:host github :repo "theFool32/ebib" :depth 1)
@@ -111,12 +112,11 @@
 
 (setq arxiv-dir "~/Dropbox/Ref/pdfs")    ; change dir as desired
 (defun ebib-import-ref (url)
+  ;; TODO: async-start
   (interactive "sUrl:")
-  ;; TODO: different buffer name
   (setq buffername (concat "*ref-" (get-random-uuid) "*"))
   (let ((tempbuff (get-buffer-create buffername)))
     (call-process-shell-command (concat "ref_down.py " url " " arxiv-dir) nil tempbuff nil)
-    ;; TODO: auto kill buffer
     (with-current-buffer tempbuff
       (ebib-import)
       (kill-buffer tempbuff))))
