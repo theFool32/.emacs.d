@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Jun  6 16:18:07 2020 (+0800)
+;; Last-Updated: Sun Jun  7 15:09:26 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -144,6 +144,7 @@
 ;; -OrgPac
 
 (use-package org-latex-instant-preview
+  ;; npm install mathjax-node-cli
   :straight (:host github :repo "yangsheng6810/org-latex-instant-preview" :depth 1)
   :hook (org-mode . org-latex-instant-preview-mode)
   :init
