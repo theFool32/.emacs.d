@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue May 12 21:04:34 2020 (+0800)
+;; Last-Updated: Sat Jul 11 20:59:02 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -64,7 +64,22 @@
   (read-process-output-max (* 1024 1024))
   (lsp-refer-capf t)
   (lsp-keep-workspace-alive nil)
-  :hook ((python-mode c-mode c++-mode) . lsp-deferred))
+  :hook ((python-mode c-mode c++-mode) . lsp-deferred)
+  :config
+
+  (setq lsp-pylance-ms-executable "~/bin/pylance.sh")
+
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection (lambda () lsp-pylance-ms-executable)
+                                          (lambda () (f-exists? lsp-pylance-ms-executable)))
+    :major-modes '(python-mode)
+    :server-id 'mspylance
+    :priority -3
+    :initialized-fn (lambda (workspace)
+                      (with-lsp-workspace workspace
+                                          (lsp--set-configuration (lsp-configuration-section "python"))))))
+  )
 ;; -LSPPac
 
 ;; LSPUI
