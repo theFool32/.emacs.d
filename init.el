@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May 17 17:01:02 2020 (+0800)
+;; Last-Updated: Mon Sep 21 16:51:54 2020 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -168,7 +168,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-bindings)
 (require 'init-restart-emacs)
 (require 'init-reference)
-(require 'init-rime)
+;; (require 'init-rime)
 
 (provide 'init)
 

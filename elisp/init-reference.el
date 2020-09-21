@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 143
+;;     Update #: 148
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -60,7 +60,7 @@
   (ebib-keywords-file "~/Dropbox/Ref/ebib-keywords.txt")
   (ebib-keywords-field-keep-sorted t)
   (ebib-keywords-file-save-on-exit 'always)
-  (ebib-index-window-size 30)
+  ;; (ebib-index-window-size 30)
   (ebib-timestamp-format "%Y-%m-%d,%T")
   (ebib-index-default-sort '("timestamp" . descend))
   (ebib-use-timestamp t "recording the time that entries are added")
@@ -93,7 +93,7 @@
             ))
   (if *sys/mac*
       (setq ebib-file-associations '(("pdf" . "open"))
-            ebib-index-window-size 60
+            ebib-index-window-size 30
             ))
   :bind
   (
