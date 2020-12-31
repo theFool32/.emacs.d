@@ -100,3 +100,7 @@
           ("FIXME" . ,(face-foreground 'error))
           ("XXX"   . ,(face-foreground 'error))
           ("XXXX"  . ,(face-foreground 'error)))))
+
+(after! evil
+  (setq evil-split-window-below t
+        evil-vsplit-window-right t))

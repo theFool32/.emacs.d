@@ -52,8 +52,9 @@ The original function deletes trailing whitespace of the current line."
   )
 
 ;; Indent
-(setq-default indent-tabs-mode nil)
-(setq-default indent-line-function 'insert-tab)
+;; (setq-default indent-tabs-mode nil)
+;; (setq-default indent-line-function 'insert-tab)
+(setq-default tab-always-indent t)
 (setq-default tab-width 4)
 (add-hook 'after-change-major-mode-hook
           (lambda () (if (equal electric-indent-mode 't)

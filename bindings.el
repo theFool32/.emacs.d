@@ -41,18 +41,18 @@
         )
       )
 
-(defun my-company-yasnippet()
-  (interactive)
-  (company-abort)
-  (call-interactively 'company-yasnippet)
-  )
-(map!
- (:after company
-   (:map company-active-map
-     ;; "<tab>"   #'company-complete-common-or-cycle
-     "C-n" #'my-company-yasnippet
-     )))
-(define-key evil-insert-state-map (kbd "C-k") 'yas-expand)
+;; (defun my-company-yasnippet()
+;;   (interactive)
+;;   (company-abort)
+;;   (call-interactively 'company-yasnippet)
+;;   )
+;; (map!
+;;  (:after company
+;;    (:map company-active-map
+;;      ;; "<tab>"   #'company-complete-common-or-cycle
+;;      "C-n" #'my-company-yasnippet
+;;      )))
+;; (define-key evil-insert-state-map (kbd "C-k") 'yas-expand)
 
 (defun smarter-yas-expand-next-field-complete ()
   "Try to `yas-expand' and `yas-next-field' at current cursor position.

@@ -1,6 +1,6 @@
 * Doom-based Configuration
 
-I switch to Doom-Emacs now for better speed :)
+I switch to Doom-Emacs now for better speed :)  \\
 The configuration is based on [[https://github.com/50ways2sayhard/.doom.d][50ways2sayhard/.doom.d]], will be refactored recently.
 
 ** Install Emacs
