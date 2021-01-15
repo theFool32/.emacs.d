@@ -50,10 +50,10 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
-(load! "ui")
+;; (load! "ui")
 (load! "bindings")
-(load! "misc")
-(load! "prog")
-(load! "lsp")
-(load! "edit")
-(load! "ebib")
+;; (load! "misc")
+;; (load! "prog")
+;; (load! "lsp")
+;; (load! "edit")
+;; (load! "ebib")

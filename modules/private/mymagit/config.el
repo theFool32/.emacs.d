@@ -1,4 +1,4 @@
-;;; misc.el -*- lexical-binding: t; -*-
+;;; private/mymagit/config.el -*- lexical-binding: t; -*-
 
 
 ;; gitmoji
@@ -78,29 +78,3 @@
             :action (lambda (x)
                       (insert (cdr (cdr x)))
                       (insert " "))))
-
-
-(after! counsel
-  (setq counsel-find-file-ignore-regexp "\\(?:^[#.]\\)\\|\\(?:[#~]$\\)\\|\\(?:^Icon?\\)"
-        counsel-describe-function-function 'helpful-callable
-        counsel-describe-variable-function 'helpful-variable
-        counsel-rg-base-command "rg -zS --no-heading --line-number --max-columns 1000 --color never %s ."
-        counsel-grep-base-command counsel-rg-base-command))
-
-(after! hl-todo
-  (setq hl-todo-keyword-faces
-        `(("TODO"  . ,(face-foreground 'warning))
-          ("HACK"  . ,(face-foreground 'warning))
-          ("TEMP"  . ,(face-foreground 'warning))
-          ("DONE"  . ,(face-foreground 'success))
-          ("NOTE"  . ,(face-foreground 'success))
-          ("DONT"  . ,(face-foreground 'error))
-          ("DEBUG"  . ,(face-foreground 'error))
-          ("FAIL"  . ,(face-foreground 'error))
-          ("FIXME" . ,(face-foreground 'error))
-          ("XXX"   . ,(face-foreground 'error))
-          ("XXXX"  . ,(face-foreground 'error)))))
-
-(after! evil
-  (setq evil-split-window-below t
-        evil-vsplit-window-right t))

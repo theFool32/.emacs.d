@@ -1,8 +1,7 @@
-;;; ebib.el -*- lexical-binding: t; -*-
+;;; private/reference/config.el -*- lexical-binding: t; -*-
 
-;; FIXME: too small for splitting (have no idea now)
 (use-package! ebib
-  :ensure nil
+  :commands ebib
   :custom
   (ebib-preload-bib-files '("~/Dropbox/Ref/ref.bib"))
   (ebib-file-search-dirs '("~/Dropbox/Ref/pdfs/"))
@@ -43,9 +42,9 @@
   :bind
   (
    :map ebib-index-mode-map
-   ("/" . ebib-jump-to-entry)
-   ("?" . ebib-search)
-   ("D" . ebib-delete-entry-with-file)
+   ("/" . 'ebib-jump-to-entry)
+   ("?" . 'ebib-search)
+   ("D" . 'ebib-delete-entry-with-file)
    :map ebib-multiline-mode-map
    ("C-c C-c" . 'ebib-quit-multiline-buffer-and-save)
    ("C-c C-q" . 'ebib-cancel-multiline-buffer)
@@ -97,6 +96,3 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
 
     (with-current-buffer tempbuff
       (ebib-import))))
-
-(provide 'init-reference)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

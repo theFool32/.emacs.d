@@ -49,24 +49,4 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
 
-;; ui
-(package! company-box)
 (package! exec-path-from-shell)
-(package! nyan-mode)
-(package! lsp-treemacs)
-(package! all-the-icons-ivy-rich)
-(package! smooth-scrolling)
-
-;; prog
-(package! py-isort)
-(package! company-prescient)
-(package! lsp-pyright)
-
-;; edit
-(package! color-rg :recipe (:repo "manateelazycat/color-rg" :host github))
-(package! delete-block :recipe (:repo "manateelazycat/delete-block" :host github))
-(package! awesome-pair :recipe (:repo "manateelazycat/awesome-pair" :host github))
-
-
-;; reference
-(package! ebib :recipe (:repo "thefool32/ebib" :host github))

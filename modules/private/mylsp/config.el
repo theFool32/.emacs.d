@@ -1,11 +1,4 @@
-;;; lsp.el -*- lexical-binding: t; -*-
-
-
-(use-package! lsp-treemacs
-  :defer
-  :config
-  (lsp-treemacs-sync-mode 1))
-
+;;; private/mylsp/config.el -*- lexical-binding: t; -*-
 
 (use-package! lsp-mode
   :init

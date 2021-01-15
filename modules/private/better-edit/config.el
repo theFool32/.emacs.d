@@ -1,5 +1,4 @@
-;;; edit.el -*- lexical-binding: t; -*-
-
+;;; private/better-edit/config.el -*- lexical-binding: t; -*-
 
 (setq scroll-step 1)
 (setq scroll-margin 1)
@@ -14,11 +13,6 @@
 (setq hscroll-step 1)
 (setq hscroll-margin 1)
 ;; -SmoothScroll
-
-(use-package! smooth-scrolling
-  :config
-  (smooth-scrolling-mode 1)
-  )
 
 (use-package! color-rg)
 
@@ -52,9 +46,8 @@ The original function deletes trailing whitespace of the current line."
   )
 
 ;; Indent
-;; (setq-default indent-tabs-mode nil)
-;; (setq-default indent-line-function 'insert-tab)
-(setq-default tab-always-indent t)
+(setq-default indent-tabs-mode nil)
+(setq-default indent-line-function 'insert-tab)
 (setq-default tab-width 4)
 (add-hook 'after-change-major-mode-hook
           (lambda () (if (equal electric-indent-mode 't)
@@ -66,6 +59,14 @@ The original function deletes trailing whitespace of the current line."
 
 (use-package! awesome-pair
   :hook (prog-mode . awesome-pair-mode))
+
+(after! evil
+  (setq evil-split-window-below t
+        evil-vsplit-window-right t)
+  )
+
+(remove-hook 'undo-fu-mode-hook #'global-undo-fu-session-mode)
+
 
 ;; use for sync my code
 (add-hook 'after-save-hook (lambda () (call-process-shell-command "rc" nil 0)))
