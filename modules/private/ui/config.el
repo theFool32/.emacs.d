@@ -33,17 +33,17 @@
   (doom-themes-org-config)
   )
 
-(use-package! doom-modeline
-  :custom
-  (inhibit-compacting-font-caches t)
-  (doom-modeline-buffer-file-name-style 'file-name)
-  (doom-modeline-unicode-fallback t)
-  (doom-modeline-icon t)
-  (doom-modeline-major-mode-color-icon t)
-  (doom-modeline-env-version t)
-  (doom-modeline-height 15)
-  (doom-modeline-buffer-modification-icon t)
-  )
+;; (use-package! doom-modeline
+;;   :custom
+;;   (inhibit-compacting-font-caches t)
+;;   (doom-modeline-buffer-file-name-style 'file-name)
+;;   (doom-modeline-unicode-fallback t)
+;;   (doom-modeline-icon t)
+;;   (doom-modeline-major-mode-color-icon t)
+;;   (doom-modeline-env-version t)
+;;   (doom-modeline-height 15)
+;;   (doom-modeline-buffer-modification-icon t)
+;;   )
 
 (when (display-graphic-p)
   (cond (IS-MAC
@@ -92,11 +92,11 @@
                                      ("Command"  0 t)]))
 
 
-(when (display-graphic-p)
-  (use-package nyan-mode
-    :custom
-    (nyan-cat-face-number 4)
-    (nyan-animate-nyancat t)
-    :hook
-    (doom-modeline-mode . nyan-mode))
-  )
+;; (when (display-graphic-p)
+;;   (use-package nyan-mode
+;;     :custom
+;;     (nyan-cat-face-number 4)
+;;     (nyan-animate-nyancat t)
+;;     :hook
+;;     (doom-modeline-mode . nyan-mode))
+;;   )

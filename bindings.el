@@ -22,23 +22,23 @@
       :desc "Org Capture"           "x"    #'org-capture
 
       (:prefix-map ("g" . "git")
-        (:when (featurep! :ui vc-gutter)
-          :desc "Git stage hunk"            "S"   #'git-gutter:stage-hunk
-          )
-        (:when (featurep! :tools magit)
-          :desc "Magit commit"      "c"   #'magit-commit
-          :desc "Magit stage file"  "s"   #'magit-stage-file
-          :desc "Magit push"        "p"   #'magit-push
-          :desc "Magit clone"        "n"   #'magit-clone
-          )
-        (:prefix ("C" . "create")
-          :desc "Initialize repo"           "r"   #'magit-init
-          :desc "Clone repo"                "R"   #'+magit/clone
-          :desc "Commit"                    "c"   #'magit-commit-create
-          :desc "Branch"                    "b"   #'magit-branch-and-checkout
-          :desc "Issue"                     "i"   #'forge-create-issue
-          :desc "Pull request"              "p"   #'forge-create-pullreq)
+       (:when (featurep! :ui vc-gutter)
+        :desc "Git stage hunk"            "S"   #'git-gutter:stage-hunk
         )
+       (:when (featurep! :tools magit)
+        :desc "Magit commit"      "c"   #'magit-commit
+        :desc "Magit stage file"  "s"   #'magit-stage-file
+        :desc "Magit push"        "p"   #'magit-push
+        :desc "Magit clone"        "n"   #'magit-clone
+        )
+       (:prefix ("C" . "create")
+        :desc "Initialize repo"           "r"   #'magit-init
+        :desc "Clone repo"                "R"   #'+magit/clone
+        :desc "Commit"                    "c"   #'magit-commit-create
+        :desc "Branch"                    "b"   #'magit-branch-and-checkout
+        :desc "Issue"                     "i"   #'forge-create-issue
+        :desc "Pull request"              "p"   #'forge-create-pullreq)
+       )
       )
 
 (map!
@@ -79,15 +79,8 @@
       :desc "project-find-file" :nmv "SPC" #'projectile-find-file
       :desc "Sync code" :nmv "r" #'(lambda() (interactive)(call-process-shell-command "rc" nil 0))
 
-      (:prefix "c"
-       :desc "Toggle Comment" "/" #'doom/toggle-comment-region-or-line
-       :desc "Glance doc" "g" #'lsp-ui-doc-glance
-       )
-      (:prefix "TAB"
-       :desc "Switch workspace" "TAB" #'+workspace/other)
       (:prefix "f"
        :desc "Save all" "S" #'evil-write-all
-       :desc "Deer" "j" #'deer
        :desc "Org file" "o" #'(lambda() (interactive)(find-file "~/Dropbox/org-notes/main.org"))
        )
       (:prefix "g"
@@ -112,22 +105,11 @@
        :desc "Flycheck explain error"  "e" #'flycheck-explain-error-at-point
        :desc "Flycheck list errors"    "l" #'flycheck-list-errors
        :desc "Flycheck verify setup"   "v" #'flycheck-verify-setup)
-      (:prefix "l"
-       :desc "Treemacs Symbols" "i" #'lsp-treemacs-symbols
-       :desc "Treemacs References" "r" #'lsp-treemacs-references
-       :desc "Treemacs Errors" "e" #'lsp-treemacs-errors-list)
       (:prefix "o"                      ; open
-       :desc "Kill ring"             "k" #'helm-show-kill-ring
-       :desc "Treemacs Symbols"      "i" #'lsp-treemacs-symbols
        :desc "Open link"             "x" #'link-hint-open-link
        :desc "Open link at point"    "X" #'link-hint-open-link-at-point
-       :desc "Vterm"                 "s" #'+vterm/toggle
-       :desc "Project run Vterm"     "S" #'+vterm/here
-       :desc "Toggle eshell popup"   "e" #'+eshell/toggle
-       :desc "Project run Eshell"    "E" #'projectile-run-eshell
        :desc "Youdao dictionary"     "y" #'youdao-dictionary-search-at-point-tooltip
        :desc "Youdao play voice"     "Y" #'youdao-dictionary-play-voice-at-point
-       :desc "Docker open apps"      ";" #'+docker/reveal-in-apps
        :desc "Org Todo"              "t" #'org-todo-list
        :desc "Ebib"                  "b" #'ebib
        (:when IS-MAC
@@ -136,33 +118,15 @@
         :desc "Reveal project in Finder"   "O" #'+macos/reveal-project-in-finder
         ;; :desc "Reveal in Terminal"         "t" #'+macos/reveal-in-terminal
         ;; :desc "Reveal project in Terminal" "T" #'+macos/reveal-project-in-terminal
-        :desc "Reveal file in Apps"        "," #'+shell/reveal-in-apps
-        :desc "Reveal project in Apps"     "." #'+shell/reveal-project-in-apps))
-      (:prefix "p"                      ; project
-       :desc "Update projectile list" "u" #'update-projectile-known-projects)
-      (:prefix ("d" . "debug")
-       "b" #'dap-breakpoint-toggle
-       "h" #'dap-hydra
-       "l" #'dap-ui-locals
-       "s" #'dap-ui-sessions
-       "k" #'dap-delete-session
-       "K" #'dap-delete-all-sessions
-       "S" #'realgud-short-key-mode)
+        )
+       )
       (:prefix "t"                      ; toggle
-       "c" #'centered-window-mode
        "d" #'toggle-debug-on-error
        "L" #'toggle-truncate-lines
        "S" #'size-indication-mode
        "I" #'ivy-rich-mode
        "v" #'visual-line-mode)
-      (:prefix "s"                      ; search
-       (:when IS-LINUX
-        :desc "Open App" "a" #'counsel-linux-app)
-       (:when IS-MAC
-        :desc "Open App" "a" #'counsel-osx-app)
-       :desc "Comments"  "c" #'counsel-imenu-comments
-       :desc "Search project with regex" "P" #'+default/search-project-regex
-       :desc "Project (hidden)" "h" #'+ivy/project-search-with-hidden-files))
+      )
 
 (map!
  (:after lsp-ui
@@ -195,12 +159,7 @@
    :desc "Popup test panel" "p" #'python-pytest-popup
    :desc "Test repeat" "r" #'python-pytest-repeat
    )
-  :desc "Docstring" "d" #'sphinx-doc
-  (:prefix ("v" . "ENV")
-   "w" #'pyvenv-workon
-   "v" #'pyvenv-activate
-   "V" #'pyvenv-deactivate
-   ))
+  )
  )
 
 (map!

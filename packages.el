@@ -50,3 +50,4 @@
 ;(unpin! t)
 
 (package! exec-path-from-shell)
+;; (package! evil-snipe :disable t)

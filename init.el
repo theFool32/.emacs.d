@@ -46,10 +46,12 @@
        ;;indent-guides     ; highlighted indent columns
        (ligatures +extra)         ; ligatures and symbols to make your code pretty again
        ;;minimap           ; show a map of the code on the side
-       modeline          ; snazzy, Atom-inspired modeline, plus API
+       (modeline
+         +light
+         )          ; snazzy, Atom-inspired modeline, plus API
        ;;nav-flash         ; blink cursor line after big motions
        ;;neotree           ; a project drawer, like NERDTree for vim
-       ophints           ; highlight the region an operation acts on
+       ;; ophints           ; highlight the region an operation acts on
        (popup
         +defaults
         +all)   ; tame sudden yet inevitable temporary windows
@@ -57,9 +59,9 @@
        ;; treemacs          ; a project drawer, like neotree but cooler
        ;;unicode           ; extended unicode support for various languages
        vc-gutter         ; vcs diff in the fringe
-       vi-tilde-fringe   ; fringe tildes to mark beyond EOB
+       ;; vi-tilde-fringe   ; fringe tildes to mark beyond EOB
        ;;window-select     ; visually switch windows
-       workspaces        ; tab emulation, persistence & separate workspaces
+       ;; workspaces        ; tab emulation, persistence & separate workspaces
        ;;zen               ; distraction-free coding or writing
 
        :editor
@@ -72,7 +74,7 @@
        ;;multiple-cursors  ; editing in many places at once
        ;objed             ; text object editing for the innocent
        ;;parinfer          ; turn lisp into python, sort of
-       rotate-text       ; cycle region at point between text candidates
+       ;; rotate-text       ; cycle region at point between text candidates
        snippets          ; my elves. They type so I don't have to
        ;;word-wrap         ; soft wrapping with language-aware indent
 
@@ -89,11 +91,12 @@
        ;; eshell            ; the elisp shell that works everywhere
        ;;shell             ; simple shell REPL for Emacs
        ;;term              ; basic terminal emulator for Emacs
-       vterm             ; the best terminal emulation in Emacs
+       ;; vterm             ; the best terminal emulation in Emacs
 
        :checkers
        (syntax +childframe)              ; tasing you for every semicolon you forget
-       ;;spell             ; tasing you for misspelling mispelling
+       (spell
+        +aspell)             ; tasing you for misspelling mispelling
        ;;grammar           ; tasing grammar mistake every you make
 
        :tools
@@ -101,9 +104,9 @@
        ;;debugger          ; FIXME stepping through code, to help you add bugs
        ;;direnv
        ;;docker
-       editorconfig      ; let someone else argue about tabs vs spaces
+       ;; editorconfig      ; let someone else argue about tabs vs spaces
        ;;ein               ; tame Jupyter notebooks with emacs
-       (eval +overlay)     ; run code, run (also, repls)
+       ;; (eval +overlay)     ; run code, run (also, repls)
        ;;gist              ; interacting with github gists
        ;; (lookup
        ;;  +devdocs
@@ -152,7 +155,9 @@
        ;; (javascript +lsp)        ; all(hope(abandon(ye(who(enter(here))))))
        ;;julia             ; a better, faster MATLAB
        ;;kotlin            ; a better, slicker Java(Script)
-       latex             ; writing papers in Emacs has never been so fun
+       (latex
+        +cdlatex
+        )             ; writing papers in Emacs has never been so fun
        ;;lean
        ;;factor
        ;;ledger            ; an accounting system in Emacs
@@ -212,4 +217,5 @@
        mypython
        reference
        mylatex
+       youdao
        )

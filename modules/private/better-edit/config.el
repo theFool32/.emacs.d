@@ -70,3 +70,9 @@ The original function deletes trailing whitespace of the current line."
 
 ;; use for sync my code
 (add-hook 'after-save-hook (lambda () (call-process-shell-command "rc" nil 0)))
+
+
+;; disable `s'
+(after! evil-snipe (evil-snipe-mode -1))
+
+(setq ispell-dictionary "english")
