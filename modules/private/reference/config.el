@@ -77,10 +77,11 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
   (interactive "sUrl:")
   (setq buffername (concat "*ref-" (get-random-uuid) "*"))
   (let ((tempbuff (get-buffer-create buffername)))
-    (call-process-shell-command (concat "ref_down.py " url " " arxiv-dir) nil tempbuff nil)
+    (call-process-shell-command (concat "ref_down.py " (shell-quote-argument url) " " arxiv-dir) nil tempbuff nil)
     (with-current-buffer tempbuff
       (ebib-import)
-      (kill-buffer tempbuff))))
+      (kill-buffer tempbuff)
+      (ebib--update-buffers))))
 
 (defun ebib-import-arxiv (arxiv-url)
   (interactive "sUrl:")
