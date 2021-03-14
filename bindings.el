@@ -11,36 +11,6 @@
   (define-key input-decode-map "\C-i" [C-i])
   (map! "<C-i>" #'better-jumper-jump-forward))
 
-(map! :map global-map
-      :localleader
-      :desc "goto word" "w" #'evil-avy-goto-char
-      :desc "comment" "/" #'comment-line
-
-      :leader
-      :desc "Eval expression"       ":"    #'eval-expression
-      :desc "M-x"                   ";"    #'execute-extended-command
-      :desc "Org Capture"           "x"    #'org-capture
-
-      (:prefix-map ("g" . "git")
-       (:when (featurep! :ui vc-gutter)
-        :desc "Git stage hunk"            "S"   #'git-gutter:stage-hunk
-        )
-       (:when (featurep! :tools magit)
-        :desc "Magit commit"      "c"   #'magit-commit
-        :desc "Magit stage file"  "s"   #'magit-stage-file
-        :desc "Magit push"        "p"   #'magit-push
-        :desc "Magit clone"        "n"   #'magit-clone
-        )
-       (:prefix ("C" . "create")
-        :desc "Initialize repo"           "r"   #'magit-init
-        :desc "Clone repo"                "R"   #'+magit/clone
-        :desc "Commit"                    "c"   #'magit-commit-create
-        :desc "Branch"                    "b"   #'magit-branch-and-checkout
-        :desc "Issue"                     "i"   #'forge-create-issue
-        :desc "Pull request"              "p"   #'forge-create-pullreq)
-       )
-      )
-
 (map!
  (:after company
   (:map (company-active-map evil-insert-state-map)
@@ -57,27 +27,25 @@
          (funcall mode-symbol -1))))
    minor-mode-list))
 
-(map!
- ;; :gi "C-n" #'next-line
- ;; :gi "C-p" #'previous-line
- ;; :gi "C-b" #'backward-char
- ;; :gi "C-f" #'forward-char
- ;; :gi "C-k" #'kill-line
- ;; :gi "C-d" #'delete-forward-char
- ;; :gi "C-<backspace>" #'delete-block-backward
+(map! :map global-map
+      :v "DEL" (kbd "\"_d")
+      :v "<del>" (kbd "\"_d")
+      :v "<backspace>" (kbd "\"_d")
+      :nmv "-" (λ! (better-jumper-jump-backward 1))
+      :nmv "=" (λ! (better-jumper-jump-forward 1))
+      :nmv "/" #'swiper
+      :nmv "C-h C-m" #'(lambda() (interactive)(disable-all-minor-modes))
 
- :v "DEL" (kbd "\"_d")
- :v "<del>" (kbd "\"_d")
- :v "<backspace>" (kbd "\"_d")
- :nmv "-" (λ! (better-jumper-jump-backward 1))
- :nmv "=" (λ! (better-jumper-jump-forward 1))
- :nmv "/" #'swiper
- :nmv "C-h C-m" #'(lambda() (interactive)(disable-all-minor-modes))
- )
+      :localleader
+      :desc "goto word" "w" #'evil-avy-goto-char
+      :desc "comment" "/" #'comment-line
 
-(map! :leader
+      :leader
       :desc "project-find-file" :nmv "SPC" #'projectile-find-file
       :desc "Sync code" :nmv "r" #'(lambda() (interactive)(call-process-shell-command "rc" nil 0))
+      :desc "Eval expression"       ":"    #'eval-expression
+      :desc "M-x"                   ";"    #'execute-extended-command
+      :desc "Org Capture"           "x"    #'org-capture
 
       (:prefix "f"
        :desc "Save all" "S" #'evil-write-all

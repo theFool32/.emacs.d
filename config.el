@@ -52,10 +52,4 @@
 
 (setq default-directory "~")
 
-;; (load! "ui")
 (load! "bindings")
-;; (load! "misc")
-;; (load! "prog")
-;; (load! "lsp")
-;; (load! "edit")
-;; (load! "ebib")
