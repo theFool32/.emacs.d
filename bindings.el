@@ -49,7 +49,7 @@
 
       (:prefix "f"
        :desc "Save all" "S" #'evil-write-all
-       :desc "Org file" "o" #'(lambda() (interactive)(find-file "~/Dropbox/org-notes/main.org"))
+       :desc "Org file" "o" #'(lambda() (interactive)(find-file "~/Dropbox/org-notes/gtd.org"))
        )
       (:prefix "g"
        "s" nil

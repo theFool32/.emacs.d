@@ -1,18 +1,38 @@
 (defvar org-self-dir "~/Dropbox/org-notes/")
-(defvar +org-capture-file-gtd (concat org-self-dir "main.org"))
+(defvar +org-capture-file-gtd (concat org-self-dir "gtd.org"))
 (defvar +org-capture-file-idea (concat org-self-dir "ideas.org"))
 (defvar +org-capture-file-note (concat org-self-dir "notes.org"))
+(defvar +org-capture-file-inbox (concat org-self-dir "inbox.org"))
+(defvar +org-capture-file-someday (concat org-self-dir "someday.org"))
+(defvar +org-capture-file-tickler (concat org-self-dir "tickler.org"))
+
+(defun archive-done-tasks ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward
+            (concat "\\* " (regexp-opt org-done-keywords) " ") nil t)
+      (goto-char (line-beginning-position))
+      (org-archive-subtree))))
+
+(map!
+ (:after evil-org
+  :map evil-org-mode-map
+  :localleader
+  :desc "archive tasks" "D" #'archive-done-tasks))
+
 (after! org
+  (setq org-agenda-files '(+org-capture-file-inbox
+                           +org-capture-file-gtd
+                           +org-capture-file-tickler))
+  (setq org-log-into-drawer t)
   (setq org-capture-templates
-        '(("t" "Next actions" entry
-           (file+headline +org-capture-file-gtd "Next actions")
+        '(("t" "Todo [inbox]" entry
+           (file+headline +org-capture-file-inbox "Tasks")
            "* TODO %?\n%i" :prepend t :kill-buffer t)
           ("w" "Waiting for" entry
-           (file+headline +org-capture-file-gtd "Waiting for")
-           "* TODO %?\n%i" :prepend t :kill-buffer t)
-          ("s" "Some day/maybe" entry
-           (file+headline +org-capture-file-gtd "Some day/maybe")
-           "* TODO %?\n%i" :prepend t :kill-buffer t)
+           (file+headline +org-capture-file-tickler "Tickler")
+           "* %?\n%i" :prepend t :kill-buffer t)
           ("n" "Note" entry
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
@@ -21,7 +41,7 @@
            "* %u %?\n%i" :prepend t :kill-buffer t)
           )
         org-todo-keywords
-        '((sequence "TODO" "IN-PROGRESS" "|" "DONE"))
+        '((sequence "TODO(t!)" "|" "DONE(d!)" "CANCELLED(c!)"))
         org-agenda-window-setup 'other-window))
 
 ;; (use-package org-latex-instant-preview
