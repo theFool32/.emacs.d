@@ -52,6 +52,5 @@ custom-set-variables.el
 custom-set-variables.el~
 quelpa/*
 straight/*
-rime/
 elisp-objects
 project-list

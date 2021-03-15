@@ -219,4 +219,5 @@
        mylatex
        youdao
        myorg
+       rime
        )
