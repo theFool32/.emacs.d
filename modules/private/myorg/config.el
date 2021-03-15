@@ -22,9 +22,15 @@
   :desc "archive tasks" "D" #'archive-done-tasks))
 
 (after! org
-  (setq org-agenda-files '(+org-capture-file-inbox
-                           +org-capture-file-gtd
-                           +org-capture-file-tickler))
+  ;; (setq org-agenda-files '(+org-capture-file-inbox
+  ;;                          +org-capture-file-gtd
+  ;;                          +org-capture-file-tickler))
+  (setq org-agenda-files '("~/Dropbox/org-notes/inbox.org"
+                           "~/Dropbox/org-notes/gtd.org"
+                           "~/Dropbox/org-notes/tickler.org"))
+  (setq org-refile-targets '(("~/Dropbox/org-notes/gtd.org" :level . 1)
+                           ("~/Dropbox/org-notes/someday.org" :level . 1)
+                           ("~/Dropbox/org-notes/tickler.org" :level . 2)))
   (setq org-log-into-drawer t)
   (setq org-capture-templates
         '(("t" "Todo [inbox]" entry
