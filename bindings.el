@@ -35,6 +35,7 @@
       :nmv "=" (λ! (better-jumper-jump-forward 1))
       :nmv "/" #'swiper
       :nmv "C-h C-m" #'(lambda() (interactive)(disable-all-minor-modes))
+      :i "C-l" #'cdlatex-tab ;; FIXME ugly, not work for org-mode
 
       :localleader
       :desc "goto word" "w" #'evil-avy-goto-char
