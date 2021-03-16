@@ -32,7 +32,7 @@
     (progn
       (call-interactively 'ebib-jump-to-entry)
       (call-interactively 'ebib-copy-entry)
-      (call-interactively 'popup-kill-ring)
+      (call-interactively '+default/yank-pop) ;; FIXME: new function, not focus on the latest
       )
     )
   (if IS-MAC
@@ -42,7 +42,6 @@
   :bind
   (
    :map ebib-index-mode-map
-   ("/" . 'ebib-jump-to-entry)
    ("?" . 'ebib-search)
    ("D" . 'ebib-delete-entry-with-file)
    :map ebib-multiline-mode-map
@@ -50,7 +49,7 @@
    ("C-c C-q" . 'ebib-cancel-multiline-buffer)
    ("C-c C-s" . 'ebib-save-from-multiline-buffer)
    :map bibtex-mode-map
-   ("C-c C-i" . 'insert-to-bib)
+   ("C-c C-i" . 'insert-to-bib) ;; C-c <Tab>
    )
   )
 
