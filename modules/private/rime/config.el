@@ -8,6 +8,10 @@
   (rime-librime-root "~/.emacs.d/librime/dist")
   (rime-user-data-dir "~/Library/Rime")
   :config
+  ;; Config for M1
+  (let ((module-header (expand-file-name "emacs-module.h" "/opt/homebrew/opt/emacs-plus/include/")))
+     (when (file-exists-p module-header)
+       (setq rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus/include/")))
   (defadvice! +rime--posframe-display-result-a (args)
     "给 `rime--posframe-display-result' 传入的字符串加一个全角空
 格，以解决 `posframe' 偶尔吃字的问题。"
