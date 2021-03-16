@@ -47,7 +47,7 @@
 
 (when (display-graphic-p)
   (cond (IS-MAC
-         (setq doom-font (font-spec :family "CaskaydiaCove Nerd Font" :size 16)
+         (setq doom-font (font-spec :family "CaskaydiaCove Nerd Font" :size 15)
                doom-big-font (font-spec :family "CaskaydiaCove Nerd Font" :size 22)
                doom-unicode-font (font-spec :family "Apple Color Emoji" :size 8)
                doom-modeline-height 32))
