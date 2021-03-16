@@ -48,7 +48,8 @@
           )
         org-todo-keywords
         '((sequence "TODO(t!)" "|" "DONE(d!)" "CANCELLED(c!)"))
-        org-agenda-window-setup 'other-window))
+        ;; org-agenda-window-setup 'other-window
+        ))
 
 ;; (use-package org-latex-instant-preview
 ;;   ;; npm install mathjax-node-cli
