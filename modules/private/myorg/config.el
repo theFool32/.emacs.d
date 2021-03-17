@@ -29,9 +29,10 @@
                            "~/Dropbox/org-notes/gtd.org"
                            "~/Dropbox/org-notes/tickler.org"))
   (setq org-refile-targets '(("~/Dropbox/org-notes/gtd.org" :level . 1)
-                           ("~/Dropbox/org-notes/someday.org" :level . 1)
-                           ("~/Dropbox/org-notes/tickler.org" :level . 1)))
+                             ("~/Dropbox/org-notes/someday.org" :level . 1)
+                             ("~/Dropbox/org-notes/tickler.org" :level . 1)))
   (setq org-log-into-drawer t)
+  (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)))
   (setq org-capture-templates
         '(("t" "Todo [inbox]" entry
            (file+headline +org-capture-file-inbox "Tasks")
@@ -59,3 +60,9 @@
 ;;   (setq org-latex-instant-preview-tex2svg-bin
 ;;         ;; location of tex2svg executable
 ;;         "~/node_modules/mathjax-node-cli/bin/tex2svg"))
+
+(use-package! valign
+  :init
+  (require 'valign)
+  :hook
+  ('org-mode . #'valign-mode))
