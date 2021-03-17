@@ -42,8 +42,10 @@
   :bind
   (
    :map ebib-index-mode-map
-   ("?" . 'ebib-search)
-   ("D" . 'ebib-delete-entry-with-file)
+   ("?"   . 'ebib-search)
+   ("D"   . 'ebib-delete-entry-with-file)
+   ("s"   . 'ebib-save-all-databases)
+   ("C-k" . 'ebib-keywords-add)
    :map ebib-multiline-mode-map
    ("C-c C-c" . 'ebib-quit-multiline-buffer-and-save)
    ("C-c C-q" . 'ebib-cancel-multiline-buffer)

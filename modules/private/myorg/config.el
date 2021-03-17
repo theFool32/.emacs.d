@@ -30,7 +30,7 @@
                            "~/Dropbox/org-notes/tickler.org"))
   (setq org-refile-targets '(("~/Dropbox/org-notes/gtd.org" :level . 1)
                            ("~/Dropbox/org-notes/someday.org" :level . 1)
-                           ("~/Dropbox/org-notes/tickler.org" :level . 2)))
+                           ("~/Dropbox/org-notes/tickler.org" :level . 1)))
   (setq org-log-into-drawer t)
   (setq org-capture-templates
         '(("t" "Todo [inbox]" entry
