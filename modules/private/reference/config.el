@@ -1,7 +1,7 @@
 ;;; private/reference/config.el -*- lexical-binding: t; -*-
 
 (use-package! ebib
-  :load-path "/Users/lijie/dev/ebib"
+  ;; :load-path "/Users/lijie/dev/ebib"
   :defer t
   :commands ebib
   :custom
