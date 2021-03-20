@@ -100,3 +100,7 @@
 ;;     :hook
 ;;     (doom-modeline-mode . nyan-mode))
 ;;   )
+
+;; split window vertically in default
+(setq split-width-threshold 0
+      split-height-threshold nil)

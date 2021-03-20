@@ -1,6 +1,7 @@
 ;;; private/reference/config.el -*- lexical-binding: t; -*-
 
 (use-package! ebib
+  ;; :load-path "/Users/lijie/dev/ebib"
   :defer t
   :commands ebib
   :custom
@@ -91,18 +92,3 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
       (ebib-import)
       (kill-buffer tempbuff)
       (ebib--update-buffers))))
-
-(defun ebib-import-arxiv (arxiv-url)
-  (interactive "sUrl:")
-
-  (let ((tempbuff (get-buffer-create "*arxiv*"))
-        (arxiv-id (car (cdr (split-string arxiv-url "abs/"))))
-        (arxiv-pdf-url (concat (replace-regexp-in-string "abs" "pdf" arxiv-url) ".pdf")))
-
-    (call-process-shell-command "arxiv2bib" nil tempbuff nil arxiv-id)
-
-    ;; (call-process-shell-command "links" nil nil nil
-    ;;                             "-source" arxiv-pdf-url "> " (concat arxiv-dir arxiv-id ".pdf"))
-
-    (with-current-buffer tempbuff
-      (ebib-import))))
