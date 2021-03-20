@@ -1,6 +1,7 @@
 ;;; private/reference/config.el -*- lexical-binding: t; -*-
 
 (use-package! ebib
+  :defer t
   :commands ebib
   :custom
   (ebib-preload-bib-files '("~/Dropbox/Ref/ref.bib"))
@@ -35,14 +36,21 @@
       (call-interactively '+default/yank-pop) ;; FIXME: new function, not focus on the latest
       )
     )
+  :config
   (if IS-MAC
       (setq ebib-file-associations '(("pdf" . "open"))
             ebib-index-window-size 30
             ))
+  (map! :map ebib-index-mode-map
+        ;; :nmv "/" #'ebib-jump-to-entry)
+        :nmv "/" (λ! (progn
+                      (swiper)
+                      (ebib--update-entry-buffer))))
   :bind
   (
    :map ebib-index-mode-map
    ("?"   . 'ebib-search)
+   ;; ("/"   . 'ebib-jump-to-entry)
    ("D"   . 'ebib-delete-entry-with-file)
    ("s"   . 'ebib-save-all-databases)
    ("C-k" . 'ebib-keywords-add)

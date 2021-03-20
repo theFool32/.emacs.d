@@ -57,7 +57,7 @@
        :desc "Status" "s" #'magit-status
        :desc "Gitmoji picker" "m" #'gitmoji-picker
        :desc "Stage file" "a" #'magit-stage-file
-       :desc "Stage and Commit" "u" #'(lambda() (interactive)(progn (call-interactively 'magit-stage-file) (call-interactively 'magit-commit)))
+       :desc "Stage and Commit" "U" #'(lambda() (interactive)(progn (call-interactively 'magit-stage-file) (call-interactively 'magit-commit)))
        )
       (:prefix "h"
        :desc "Helpful command" "C" #'helpful-command)
