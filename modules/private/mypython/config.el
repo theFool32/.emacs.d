@@ -1,14 +1,15 @@
 ;;; private/mypython/config.el -*- lexical-binding: t; -*-
 
-(use-package! lsp-pyright
-  :init (when (executable-find "python3") (setq lsp-pyright-python-executable-cmd "python3"))
-  :config
-  (setq lsp-pyright-venv-path ".venv")
-  (setq lsp-pyright-multi-root nil)
-  (setq lsp-pyright-use-library-code-for-types t)
-  )
 
 (after! python
+  (use-package! lsp-pyright
+    :init (when (executable-find "python3") (setq lsp-pyright-python-executable-cmd "python3"))
+    :config
+    (setq lsp-pyright-venv-path ".venv")
+    (setq lsp-pyright-multi-root nil)
+    (setq lsp-pyright-use-library-code-for-types t)
+    )
+
   (setq python-indent-offset 4
         importmagic-python-interpreter "python"
         flycheck-python-flake8-executable "flake8"))
