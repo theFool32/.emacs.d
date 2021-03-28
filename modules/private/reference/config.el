@@ -50,8 +50,8 @@
   :bind
   (
    :map ebib-index-mode-map
-   ("?"   . 'ebib-search)
-   ;; ("/"   . 'ebib-jump-to-entry)
+   ;; ("?"   . 'ebib-search)
+   ("?"   . 'ebib-jump-to-entry)
    ("D"   . 'ebib-delete-entry-with-file)
    ("s"   . 'ebib-save-all-databases)
    ("C-k" . 'ebib-keywords-add)
