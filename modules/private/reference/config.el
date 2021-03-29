@@ -45,8 +45,8 @@
   (map! :map ebib-index-mode-map
         ;; :nmv "/" #'ebib-jump-to-entry)
         :nmv "/" (λ! (progn
-                      (swiper)
-                      (ebib--update-entry-buffer))))
+                       (swiper)
+                       (ebib--update-entry-buffer))))
   :bind
   (
    :map ebib-index-mode-map
@@ -64,7 +64,7 @@
    )
   )
 
-(setq arxiv-dir "~/Dropbox/Ref/pdfs")    ; change dir as desired
+(setq download-dir "/Users/lijie/Dropbox/Ref/pdfs")    ; change dir as desired
 
 (random t)
 (defun get-random-uuid ()
@@ -83,12 +83,24 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
           (random (expt 16 6)) ) )
 
 (defun ebib-import-ref (url)
-  ;; TODO: async-start
   (interactive "sUrl:")
   (setq buffername (concat "*ref-" (get-random-uuid) "*"))
-  (let ((tempbuff (get-buffer-create buffername)))
-    (call-process-shell-command (concat "ref_down.py " (shell-quote-argument url) " " arxiv-dir) nil tempbuff nil)
-    (with-current-buffer tempbuff
-      (ebib-import)
-      (kill-buffer tempbuff)
-      (ebib--update-buffers))))
+  (run-with-idle-timer
+   0.1
+   nil
+   (lambda ()
+     (let ((tempbuff (get-buffer-create buffername)))
+       (make-process
+        :name ""
+        :buffer tempbuff
+        :command (list "ref_down.py" (shell-quote-argument url) download-dir)
+        :sentinel (lambda (process event)
+                    ;; Render result to content buffer when subprocess finish.
+                    (when (string= (substring event 0 -1) "finished")
+                      (let ((buffer (process-buffer process)))
+                        ;; Do nothing if process buffer has killed.
+                        (when (get-buffer buffer)
+                          (with-current-buffer buffer
+                            (ebib-import)
+                            (kill-buffer buffer)
+                            (ebib--update-buffers)))))))))))
