@@ -93,7 +93,8 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
        (make-process
         :name ""
         :buffer tempbuff
-        :command (list "ref_down.py" (shell-quote-argument url) download-dir)
+        ;; :command (list "ref_down.py" (shell-quote-argument url) download-dir) ;; FIXME: http\\:
+        :command (list "ref_down.py" url download-dir)
         :sentinel (lambda (process event)
                     ;; Render result to content buffer when subprocess finish.
                     (when (string= (substring event 0 -1) "finished")
