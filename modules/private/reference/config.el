@@ -38,6 +38,7 @@
       )
     )
   :config
+  (org-link-set-parameters "ebib" :follow #'org-ebib-open :store #'org-ebib-store-link)
   (if IS-MAC
       (setq ebib-file-associations '(("pdf" . "open"))
             ebib-index-window-size 30
