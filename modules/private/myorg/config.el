@@ -61,8 +61,8 @@
 ;;         ;; location of tex2svg executable
 ;;         "~/node_modules/mathjax-node-cli/bin/tex2svg"))
 
-(use-package! valign
-  :init
-  (require 'valign)
-  :hook
-  ('org-mode . #'valign-mode))
+;; (use-package! valign
+;;   :init
+;;   (require 'valign)
+;;   :hook
+;;   ('org-mode . #'valign-mode))
