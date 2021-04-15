@@ -56,4 +56,6 @@
   :init
   (exec-path-from-shell-initialize))
 
+(setq confirm-kill-emacs nil)
+
 (load! "bindings")
