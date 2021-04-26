@@ -4,13 +4,13 @@
   :init
   (setq read-process-output-max (* 1024 1024))
 
-  (setq lsp-auto-guess-root t        ; Detect project root
+  (setq lsp-auto-guess-root nil        ; Detect project root
         lsp-keep-workspace-alive nil ; Auto-kill LSP server
         lsp-enable-indentation nil
         lsp-signature-auto-activate nil
         lsp-modeline-code-actions-enable nil
         lsp-modeline-workspace-status-enable nil
-        lsp-enable-semantic-highlighting nil
+        lsp-semantic-tokens-enable nil
         lsp-keep-workspace-alive nil
         lsp-diagnostics-provider :none
         lsp-idle-delay 0.5
