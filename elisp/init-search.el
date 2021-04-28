@@ -41,12 +41,12 @@
   (require 'init-global-config)
   (require 'init-const))
 
-;; (use-package exec-path-from-shell
-;;   :init
-;;   (setq exec-path-from-shell-check-startup-files nil
-;;         exec-path-from-shell-variables '("PATH" "MANPATH" "https_proxy")
-;;         exec-path-from-shell-arguments '("-l"))
-;;   (exec-path-from-shell-initialize))
+ (use-package exec-path-from-shell
+   :init
+   (setq exec-path-from-shell-check-startup-files nil
+         exec-path-from-shell-variables '("PATH" "MANPATH" "https_proxy")
+         exec-path-from-shell-arguments '("-l"))
+   (exec-path-from-shell-initialize))
 
 ;; Read $PATH
 ;; https://emacs-china.org/t/emacs-mac-port-profile/2895/30

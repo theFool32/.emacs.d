@@ -1,4 +1,5 @@
 ;;; init-reference.el ---
+
 ;;
 ;; Filename: init-reference.el
 ;; Description:  for bib reference
@@ -10,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 148
+;;     Update #: 156
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -50,9 +51,8 @@
 
 ;; FIXME: too small for splitting (have no idea now)
 (use-package ebib
-  ;; :load-path "~/proj/ebib"
-  :straight (:host github :repo "theFool32/ebib" :depth 1)
-  :ensure nil
+  :load-path "/Users/lijie/dev/ebib/"
+  ;; :straight (:host github :repo "theFool32/ebib" :depth 1)
   :custom
   (ebib-preload-bib-files '("~/Dropbox/Ref/ref.bib"))
   (ebib-file-search-dirs '("~/Dropbox/Ref/pdfs/"))

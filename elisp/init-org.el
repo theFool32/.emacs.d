@@ -1,12 +1,14 @@
 ;;; init-org.el --- -*- lexical-binding: t -*-
 ;;
+
+
 ;; Filename: init-org.el
 ;; Description: Initialize Org, Toc-org, HTMLize, OX-GFM
 ;; Author: Mingde (Matthew) Zeng
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Jun  7 15:09:26 2020 (+0800)
+;; Last-Updated: Tue Apr 27 22:12:11 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -63,8 +65,6 @@
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
   (when (file-directory-p org-directory)
     (setq org-agenda-files (list org-directory)))
-  (unless (version< org-version "9.2")
-    (require 'org-tempo))
 
   (+org-init-appearance-h)
   (+org-init-agenda-h)
@@ -143,14 +143,14 @@
   )
 ;; -OrgPac
 
-(use-package org-latex-instant-preview
-  ;; npm install mathjax-node-cli
-  :straight (:host github :repo "yangsheng6810/org-latex-instant-preview" :depth 1)
-  :hook (org-mode . org-latex-instant-preview-mode)
-  :init
-  (setq org-latex-instant-preview-tex2svg-bin
-        ;; location of tex2svg executable
-        "~/node_modules/mathjax-node-cli/bin/tex2svg"))
+;; (use-package org-latex-instant-preview
+;;   ;; npm install mathjax-node-cli
+;;   :straight (:host github :repo "yangsheng6810/org-latex-instant-preview" :depth 1)
+;;   :hook (org-mode . org-latex-instant-preview-mode)
+;;   :init
+;;   (setq org-latex-instant-preview-tex2svg-bin
+;;         ;; location of tex2svg executable
+;;         "~/node_modules/mathjax-node-cli/bin/tex2svg"))
 
 (provide 'init-org)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

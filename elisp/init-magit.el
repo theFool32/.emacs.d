@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon May 11 15:46:20 2020 (+0800)
+;; Last-Updated: Wed Apr 28 14:59:17 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit
@@ -129,10 +129,6 @@
 
 (use-package magit-todos
   :after magit)
-
-(require 'init-evil)
-(use-package evil-magit
-  :after (evil magit))
 
 ;; Walk through git revisions of a file
 (use-package git-timemachine

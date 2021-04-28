@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Jun 10 18:58:02 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Nov 23 17:09:25 2020 (+0800)
+;; Last-Updated: Wed Apr 28 14:29:26 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: lsp-python-ms
@@ -56,6 +56,24 @@
   (with-eval-after-load 'exec-path-from-shell
     (exec-path-from-shell-copy-env "PYTHONPATH"))
 
+  (with-eval-after-load 'lsp-mode
+  (setq lsp-pylance-ms-executable "~/bin/pylance.sh")  ;; Use the pyright from vscode instead.
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection (lambda () lsp-pylance-ms-executable)
+                                          (lambda () (f-exists? lsp-pylance-ms-executable)))
+    :major-modes '(python-mode)
+    :server-id 'mspylance
+    :priority 3
+    :initialized-fn (lambda (workspace)
+                      (with-lsp-workspace workspace
+                        (lsp--set-configuration (lsp-configuration-section "python"))))))
+
+  (setq python-indent-offset 4
+        importmagic-python-interpreter "python"
+        flycheck-python-flake8-executable "flake8")
+  )
+
   (use-package py-isort
     :defer t
     :init
@@ -68,38 +86,17 @@
     (add-hook 'python-mode-hook
               (lambda() (add-hook 'before-save-hook #'+python/python-sort-imports)))
     )
-  ;; (use-package company-jedi
-  ;;   :config
-  ;;   (setq jedi:environment-virtualenv (list (expand-file-name "~/.emacs.d/.python-environments/")))
-  ;;   (add-hook 'python-mode-hook 'jedi:setup)
-  ;;   (setq jedi:complete-on-dot t)
-  ;;   (setq jedi:use-shortcuts t)
-  ;;   (defun config/enable-company-jedi ()
-  ;;     (add-to-list 'company-backends 'company-jedi))
-  ;;   (add-hook 'python-mode-hook 'config/enable-company-jedi)
-  ;;   )
   )
 
-;; LSPPythonPac
-;; (use-package lsp-python-ms
-;;   :hook (python-mode . (lambda () (require 'lsp-python-ms) (lsp-deferred)))
-;;   :after lsp-mode python
-;;   :if (or *python3* *python*)
-;;   :custom
-;;   (lsp-python-executable-cmd "python3")
-;;   (lsp-python-ms-dir "~/.local/mspyls/")
+;; (use-package lsp-pyright
+;;   :hook (python-mode . (lambda () (require 'lsp-pyright)))
+;;   :init (when (executable-find "python3")
+;;           (setq lsp-pyright-python-executable-cmd "python3"))
+;;   :config
+;;   (setq lsp-pyright-venv-path ".venv")
+;;   (setq lsp-pyright-multi-root nil)
+;;   (setq lsp-pyright-use-library-code-for-types t)
 ;;   )
-;; -LSPPythonPac
-
-(use-package lsp-pyright
-  :hook (python-mode . (lambda () (require 'lsp-pyright)))
-  :init (when (executable-find "python3")
-          (setq lsp-pyright-python-executable-cmd "python3"))
-  :config
-  (setq lsp-pyright-venv-path ".venv")
-  (setq lsp-pyright-multi-root nil)
-  (setq lsp-pyright-use-library-code-for-types t)
-  )
 
 (provide 'init-python)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

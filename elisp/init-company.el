@@ -164,6 +164,7 @@ Examples:
 
 ;; CompanyTabNinePac
 (use-package company-tabnine
+  :disabled
   :defer 1
   :if *sys/mac*
   :after company

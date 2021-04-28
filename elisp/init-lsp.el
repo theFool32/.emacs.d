@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Nov 23 17:09:51 2020 (+0800)
+;; Last-Updated: Wed Apr 28 14:35:17 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -45,6 +45,11 @@
   :defer t
   :commands (lsp lsp-deferred)
   :custom
+  (lsp-enable-indentation nil)
+  (lsp-signature-auto-activate nil)
+  (lsp-modeline-code-actions-enable nil)
+  (lsp-semantic-tokens-enable nil)
+
   (lsp-idle-delay 0.5)
   (lsp-log-io nil)
   (lsp-enable-folding nil)
@@ -58,27 +63,16 @@
   (lsp-enable-symbol-highlighting nil)
   (lsp-enable-on-type-formatting nil)
   (lsp-eldoc-enable-hover nil)
+  (lsp-eldoc-render-all nil)
   (lsp-restart 'auto-restart)
 
-  (lsp-file-watch-threshold 2000)
   (read-process-output-max (* 1024 1024))
   (lsp-refer-capf t)
   (lsp-keep-workspace-alive nil)
+  (gc-cons-threshold 100000000)
   :hook ((python-mode c-mode c++-mode) . lsp-deferred)
   :config
 
-  ;; (setq lsp-pylance-ms-executable "~/bin/pylance.sh")
-
-  ;; (lsp-register-client
-  ;;  (make-lsp-client
-  ;;   :new-connection (lsp-stdio-connection (lambda () lsp-pylance-ms-executable)
-  ;;                                         (lambda () (f-exists? lsp-pylance-ms-executable)))
-  ;;   :major-modes '(python-mode)
-  ;;   :server-id 'mspylance
-  ;;   :priority 1
-  ;;   :initialized-fn (lambda (workspace)
-  ;;                     (with-lsp-workspace workspace
-  ;;                                         (lsp--set-configuration (lsp-configuration-section "python"))))))
   )
 ;; -LSPPac
 

@@ -113,7 +113,7 @@ If failed try to complete the common part with `company-complete-common'"
   "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :which-key "init.el")
   "fp" '((lambda() (interactive)(counsel-find-file "~/.emacs.d/elisp/")) :which-key ".emacs.d")
   ;; TODO: use org-self-dir instead
-  "fo" '((lambda() (interactive)(find-file "~/Dropbox/org-notes/main.org")) :which-key "Org files")
+  "fo" '((lambda() (interactive)(find-file "~/Dropbox/org-notes/gtd.org")) :which-key "Org files")
 
   "j" '(:wk "Jump")
   "jj" '(evil-avy-goto-char :wk "Jump to character")

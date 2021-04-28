@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri May 29 16:42:01 2020 (+0800)
+;; Last-Updated: Wed Apr 28 14:57:30 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -82,7 +82,7 @@
              when (font-installed-p font)
              return (set-face-attribute 'default nil
                                         :font font
-                                        :height (cond (*sys/mac* 140)
+                                        :height (cond (*sys/mac* 160)
                                                       (*sys/win32* 140)
                                                       (*sys/linux* 200)
                                                       (t 140))))
@@ -112,13 +112,6 @@
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (custom-set-variables '(x-select-enable-clipboard t))
-
-(use-package nyan-mode
-  :custom
-  (nyan-cat-face-number 4)
-  (nyan-animate-nyancat t)
-  :hook
-  (doom-modeline-mode . nyan-mode))
 
 
 (provide 'init-ui-config)

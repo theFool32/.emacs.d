@@ -55,3 +55,4 @@ straight/*
 rime/
 elisp-objects
 project-list
+eln-cache
