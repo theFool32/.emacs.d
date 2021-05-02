@@ -40,6 +40,32 @@
 (eval-when-compile
   (require 'init-const))
 
+
+(defun smarter-yas-expand-next-field-complete ()
+  "Try to `yas-expand' and `yas-next-field' at current cursor position.
+
+If failed try to complete the common part with `company-complete-common'"
+  (interactive)
+  (if yas-minor-mode
+      (let ((old-point (point))
+            (old-tick (buffer-chars-modified-tick)))
+        (yas-expand)
+        (when (and (eq old-point (point))
+                   (eq old-tick (buffer-chars-modified-tick)))
+          (ignore-errors (yas-next-field))
+          (when (and (eq old-point (point))
+                     (eq old-tick (buffer-chars-modified-tick)))
+            (progn
+              (call-interactively 'company-abort)
+              (call-interactively 'company-yasnippet))
+            )
+          ))
+    ;; FIXME: c-k tab c-k
+    (company-complete-common)
+    )
+  )
+
+
 ;;;###autoload
 (defvar +company-backend-alist
   ;; '((text-mode company-tabnine company-yasnippet company-ispell company-dabbrev)
@@ -121,7 +147,7 @@ Examples:
   :diminish company-mode
   :hook ((prog-mode LaTeX-mode) . company-mode)
   :init
-  (company-tng-configure-default)
+  (company-tng-mode)
   (add-hook 'company-mode-hook #'+company-init-backends-h)
   (if *sys/mac*
       (set-company-backend! 'text-mode 'company-tabnine 'company-yasnippet 'company-ispell 'company-dabbrev)
@@ -147,11 +173,16 @@ Examples:
                        company-preview-frontend
                        company-echo-metadata-frontend))
   :config
-  (if *sys/mac*
-      (setq company-backends '(company-tabnine company-files company-dabbrev))
-    (setq company-backends '(company-files company-dabbrev))
-    )
+  (setq company-backends '(company-files company-dabbrev))
   (global-company-mode 1)
+
+  (general-define-key
+   :keymaps '(company-active-map evil-insert-state-map)
+   "C-k" 'smarter-yas-expand-next-field-complete)
+  (general-def 'insert
+    :prefix "C-x"
+    "C-f" 'company-files
+    )
   )
 ;; -ComPac
 

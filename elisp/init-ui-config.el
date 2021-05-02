@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Apr 28 14:57:30 2021 (+0800)
+;; Last-Updated: Thu Apr 29 01:56:02 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -78,11 +78,12 @@
 (defun my-default-frame-face ()
   (when (display-graphic-p)
     ;; Set default font
-    (cl-loop for font in '("SauceCodePro Nerd Font")
+    ;; (cl-loop for font in '("SauceCodePro Nerd Font")
+    (cl-loop for font in '("CaskaydiaCove Nerd Font")
              when (font-installed-p font)
              return (set-face-attribute 'default nil
                                         :font font
-                                        :height (cond (*sys/mac* 160)
+                                        :height (cond (*sys/mac* 150)
                                                       (*sys/win32* 140)
                                                       (*sys/linux* 200)
                                                       (t 140))))
@@ -112,6 +113,9 @@
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (custom-set-variables '(x-select-enable-clipboard t))
+
+(setq split-width-threshold 0
+      split-height-threshold nil)
 
 
 (provide 'init-ui-config)

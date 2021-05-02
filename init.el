@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Sep 21 16:51:54 2020 (+0800)
+;; Last-Updated: Sun May  2 13:17:47 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -39,7 +39,7 @@
 
 ;; CheckVer
 (cond ((version< emacs-version "26.1")
-       (warn "M-EMACS requires Emacs 26.1 and above!"))
+       (warn "We need Emacs 26.1 and above!"))
       ((let* ((early-init-f (expand-file-name "early-init.el" user-emacs-directory))
               (early-init-do-not-edit-d (expand-file-name "early-init-do-not-edit/" user-emacs-directory))
               (early-init-do-not-edit-f (expand-file-name "early-init.el" early-init-do-not-edit-d)))
@@ -74,15 +74,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
                                 (unless (frame-focus-state)
                                   (garbage-collect))))
               (add-hook 'after-focus-change-function 'garbage-collect))
-            ;; (defun gc-minibuffer-setup-hook ()
-            ;;   (setq gc-cons-threshold (* better-gc-cons-threshold 2)))
 
-            ;; (defun gc-minibuffer-exit-hook ()
-            ;;   (garbage-collect)
-            ;;   (setq gc-cons-threshold better-gc-cons-threshold))
-
-            ;; (add-hook 'minibuffer-setup-hook #'gc-minibuffer-setup-hook)
-            ;; (add-hook 'minibuffer-exit-hook #'gc-minibuffer-exit-hook)
             (add-hook 'minibuffer-setup-hook (lambda() (setq gc-cons-threshold (* better-gc-cons-threshold 2))))
             (add-hook 'minibuffer-exit-hook (lambda() (garbage-collect) (setq gc-cons-threshold better-gc-cons-threshold )))
             ))
@@ -106,7 +98,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 ;; -LoadPath
 
 ;; Constants
-
+(require 'init-custom)
 (require 'init-const)
 
 ;; Packages
@@ -121,6 +113,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 
 
 ;; Global Functionalities
+(require 'init-evil)
 (require 'init-func)
 (require 'init-global-config)
 (require 'init-search)
@@ -164,11 +157,19 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 
 ;; Miscellaneous
 (require 'init-org)
-(require 'init-evil)
 (require 'init-bindings)
 (require 'init-restart-emacs)
 (require 'init-reference)
 ;; (require 'init-rime)
+
+(defun efs/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections."
+           (format "%.2f seconds"
+                   (float-time
+                    (time-subtract after-init-time before-init-time)))
+           gcs-done))
+
+(add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
 (provide 'init)
 

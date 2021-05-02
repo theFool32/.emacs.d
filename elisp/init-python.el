@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Jun 10 18:58:02 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Apr 28 14:29:26 2021 (+0800)
+;; Last-Updated: Sun May  2 02:08:10 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: lsp-python-ms
@@ -57,22 +57,30 @@
     (exec-path-from-shell-copy-env "PYTHONPATH"))
 
   (with-eval-after-load 'lsp-mode
-  (setq lsp-pylance-ms-executable "~/bin/pylance.sh")  ;; Use the pyright from vscode instead.
-  (lsp-register-client
-   (make-lsp-client
-    :new-connection (lsp-stdio-connection (lambda () lsp-pylance-ms-executable)
-                                          (lambda () (f-exists? lsp-pylance-ms-executable)))
-    :major-modes '(python-mode)
-    :server-id 'mspylance
-    :priority 3
-    :initialized-fn (lambda (workspace)
-                      (with-lsp-workspace workspace
-                        (lsp--set-configuration (lsp-configuration-section "python"))))))
+    (setq lsp-pyright-multi-root nil)
+    (setq lsp-pyright-use-library-code-for-types t)
+    (setq lsp-pyright-auto-search-paths nil)
+    (setq lsp-pyright-auto-import-completions nil)
+    (setq lsp-pyright-venv-path ".venv")
+    (setq lsp-pyright-python-executable-cmd "python3")
 
-  (setq python-indent-offset 4
-        importmagic-python-interpreter "python"
-        flycheck-python-flake8-executable "flake8")
-  )
+    (setq lsp-pylance-ms-executable "~/bin/pylance.sh")  ;; Use the pyright from vscode instead.
+
+    (lsp-register-client
+     (make-lsp-client
+      :new-connection (lsp-stdio-connection (lambda () lsp-pylance-ms-executable)
+                                            (lambda () (f-exists? lsp-pylance-ms-executable)))
+      :major-modes '(python-mode)
+      :server-id 'mspylance
+      :priority 3
+      :initialized-fn (lambda (workspace)
+                        (with-lsp-workspace workspace
+                                            (lsp--set-configuration (lsp-configuration-section "python"))))))
+
+    (setq python-indent-offset 4
+          importmagic-python-interpreter "python"
+          flycheck-python-flake8-executable "flake8")
+    )
 
   (use-package py-isort
     :defer t

@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun  4 14:05:05 2020 (+0800)
+;; Last-Updated: Sun May  2 13:20:34 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -39,13 +39,6 @@
 
 (eval-when-compile
   (require 'init-global-config))
-
-;; EditConfig
-(defun edit-configs ()
-  "Opens the README.org file."
-  (interactive)
-  (find-file "~/.emacs.d/init.org"))
-;; -EditConfig
 
 ;; OrgIncludeAuto
 (defun save-and-update-includes ()

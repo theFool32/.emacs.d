@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Jun  6 16:40:05 2020 (+0800)
+;; Last-Updated: Sat May  1 21:49:55 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -264,8 +264,8 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   (LaTeX-item-indent 0)
 
   :config
-  (evil-define-key 'normal LaTeX-mode-map (kbd "zo") #'TeX-fold-clearout-item)
-  (evil-define-key 'normal LaTeX-mode-map (kbd "zc") #'TeX-fold-env)
+  (general-define-key 'normal LaTeX-mode-map (kbd "zo") #'TeX-fold-clearout-item)
+  (general-define-key 'normal LaTeX-mode-map (kbd "zc") #'TeX-fold-env)
   (add-hook 'LaTeX-mode-hook (lambda ()
                                (push
                                 '("latexmk" "latexmk -pdf -pvc -view=none %s" TeX-run-TeX nil t
@@ -329,12 +329,6 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   :defer t
   :init
   (add-to-list '+latex--company-backends #'+latex-symbols-company-backend nil #'eq))
-
-(use-package company-english-helper
-  :after (company tex)
-  :defer t
-  :commands toggle-company-english-helper
-  :straight (:host github :repo "manateelazycat/company-english-helper" :depth 1))
 ;; -AUCTeXPac
 
 (use-package magic-latex-buffer

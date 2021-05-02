@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Apr 27 22:12:11 2021 (+0800)
+;; Last-Updated: Sun May  2 13:15:36 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -43,7 +43,20 @@
 (require 'org/+funcs)
 
 ;; OrgPac
-(defvar org-self-dir "~/Dropbox/org-notes/")
+(defvar +org-capture-file-gtd (concat org-base-dir "gtd.org"))
+(defvar +org-capture-file-idea (concat org-base-dir "ideas.org"))
+(defvar +org-capture-file-note (concat org-base-dir "notes.org"))
+(defvar +org-capture-file-inbox (concat org-base-dir "inbox.org"))
+(defvar +org-capture-file-someday (concat org-base-dir "someday.org"))
+(defvar +org-capture-file-tickler (concat org-base-dir "tickler.org"))
+(defun archive-done-tasks ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward
+            (concat "\\* " (regexp-opt org-done-keywords) " ") nil t)
+      (goto-char (line-beginning-position))
+      (org-archive-subtree))))
 (use-package org
   :ensure nil
   :hook (org-mode . org-indent-mode)
@@ -52,84 +65,57 @@
   (org-export-backends (quote (ascii html icalendar latex md odt)))
   (org-use-speed-commands t)
   (org-confirm-babel-evaluate 'nil)
-  (org-todo-keywords
-   '((sequence "TODO" "IN-PROGRESS" "|" "DONE")))
-  (org-agenda-window-setup 'other-window)
-  (org-directory (expand-file-name org-self-dir))
+  (org-directory (expand-file-name org-base-dir))
   (org-ellipsis " ▼ ")
   (org-babel-python-command "python3")
   (org-bullets-bullet-list '("#"))
   (org-tags-column -77)
 
   :config
+  (add-hook (quote hack-local-variables-hook)
+            (lambda ()
+              (let ((symbol (quote org-startup-folded)))
+                (when (and (eq major-mode (quote org-mode))
+                           (boundp symbol))
+                  (let ((value (symbol-value symbol)))
+                    (when (and value (integerp value))
+                      (org-shifttab value)))))))
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
-  (when (file-directory-p org-directory)
-    (setq org-agenda-files (list org-directory)))
 
   (+org-init-appearance-h)
   (+org-init-agenda-h)
   (+org-init-capture-defaults-h)
 
-  ;; binding
-  (evil-set-initial-state 'org-agenda-mode 'motion)
-  (evil-define-key 'normal org-mode-map
-    "o" #'+org/insert-item-below
-    "O" #'+org/insert-item-above
-    )
-
   ;; org screenshot for macos
   (require 'org/+screenshot)
 
-  (defvar +org-capture-file-gtd (concat org-self-dir "main.org"))
-  (defvar +org-capture-file-idea (concat org-self-dir "ideas.org"))
-  (defvar +org-capture-file-note (concat org-self-dir "notes.org"))
+  (setq org-log-into-drawer "LOGBOOK")
+  (setq org-agenda-files '(+org-capture-file-inbox
+                           +org-capture-file-gtd
+                           +org-capture-file-tickler))
+  (setq org-refile-targets '((+org-capture-file-gtd :level . 1)
+                             (+org-capture-file-someday :level . 1)
+                             (+org-capture-file-tickler :level . 1)))
+  (setq org-log-into-drawer t)
+  (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)))
   (setq org-capture-templates
-        '(("t" "Next actions" entry
-           (file+headline +org-capture-file-gtd "Next actions")
+        '(("t" "Todo [inbox]" entry
+           (file+headline +org-capture-file-inbox "Tasks")
            "* TODO %?\n%i" :prepend t :kill-buffer t)
           ("w" "Waiting for" entry
-           (file+headline +org-capture-file-gtd "Waiting for")
-           "* TODO %?\n%i" :prepend t :kill-buffer t)
-          ("s" "Some day/maybe" entry
-           (file+headline +org-capture-file-gtd "Some day/maybe")
-           "* TODO %?\n%i" :prepend t :kill-buffer t)
+           (file+headline +org-capture-file-tickler "Tickler")
+           "* %?\n%i" :prepend t :kill-buffer t)
           ("n" "Note" entry
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           ("i" "Idea" entry
            (file+headline +org-capture-file-idea "Ideas")
            "* %u %?\n%i" :prepend t :kill-buffer t)
-          ))
-
-  (setq org-log-into-drawer "LOGBOOK")
-
-
-  ;; Schedule/deadline popup with default time
-  ;; (defvar org-default-time "08:30"
-  ;; "The default time for deadlines.")
-
-  ;; (defun advise-org-default-time (func arg &optional time)
-  ;;   (let ((old-time (symbol-function #'org-read-date)))
-  ;;     (cl-letf (((symbol-function #'org-read-date)
-  ;;                #'(lambda (&optional a b c d default-time f g)
-  ;;                    (let ((default-time (or default-time
-  ;;                                            org-default-time)))
-  ;;                      (apply old-time a b c d f default-time g)
-  ;;                      ))))
-  ;;       (apply func arg time))))
-
-  ;; (advice-add #'org-deadline :around #'advise-org-default-time)
-  ;; (advice-add #'org-schedule :around #'advise-org-default-time)
-
-
-  ;; (setq bibtex-completion-bibliography '( "~/Dropbox/Paper/egbib.bib" ) ;the major bibtex file
-  ;;       bibtex-completion-library-path "~/Dropbox/org-notes/reference/pdf/" ;the directory to store pdfs
-  ;;       bibtex-completion-notes-path "~/Dropbox/org-notes/ref.org" ;the note file for reference notes
-  ;;       ;; org-directory "~/Dropbox/org"
-  ;;       org-ref-default-bibliography '( "~/Dropbox/Paper/egbib.bib" )
-  ;;       org-ref-bibliography-notes "~/Dropbox/org-notes/ref.org"
-  ;;       org-ref-pdf-directory "~/Dropbox/org-notes/reference/pdf/"
-  ;;       )
+          )
+        org-todo-keywords
+        '((sequence "TODO(t!)" "|" "DONE(d!)" "CANCELLED(c!)"))
+        ;; org-agenda-window-setup 'other-window
+        )
 
   (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
   ;; TocOrgPac
@@ -140,17 +126,159 @@
     )
   ;; -TocOrgPac
 
+
+  ;; binding
+  (evil-set-initial-state 'org-agenda-mode 'motion)
+  (general-define-key :states '(normal insert)
+                      :keymaps 'org-mode-map
+                      "C-<ret>" #'+org/insert-item-below
+                      "C-S-<ret>" #'+org/insert-item-above
+                      )
+
+  (local-leader-def
+    :keymaps 'org-mode-map
+    "'" 'org-edit-special
+    "*" 'org-ctrl-c-star
+    "+" 'org-ctrl-c-minus
+    "," 'org-switchb
+    ;; "." 'org-goto
+
+    "." 'counsel-org-goto
+    "/" 'counsel-org-goto-all
+
+    "A" 'org-archive-subtree
+    "e" 'org-export-dispatch
+    "f" 'org-footnote-new
+    "h" 'org-toggle-heading
+    "i" 'org-toggle-item
+    "I" 'org-toggle-inline-images
+    "n" 'org-store-link
+    "o" 'org-set-property
+    "q" 'org-set-tags-command
+    "t" 'org-todo
+    "T" 'org-todo-list
+    "x" 'org-toggle-checkbox
+
+    "a" '(:wk "attackments")
+    "aa" 'org-attach
+    "ad" 'org-attach-delete-one
+    "aD" 'org-attach-delete-all
+    "af" '+org/find-file-in-attachments
+    "al" '+org/attach-file-and-insert-link
+    "an" 'org-attach-new
+    "ao" 'org-attach-open
+    "aO" 'org-attach-open-in-emacs
+    "ar" 'org-attach-reveal
+    "aR" 'org-attach-reveal-in-emacs
+    "au" 'org-attach-url
+    "as" 'org-attach-set-directory
+    "aS" 'org-attach-sync
+
+    "b"  '(:wk "tables")
+    "b-" 'org-table-insert-hline
+    "ba" 'org-table-align
+    "bb" 'org-table-blank-field
+    "bc" 'org-table-create-or-convert-from-region
+    "be" 'org-table-edit-field
+    "bf" 'org-table-edit-formulas
+    "bh" 'org-table-field-info
+    "bs" 'org-table-sort-lines
+    "br" 'org-table-recalculate
+    "bR" 'org-table-recalculate-buffer-tables
+    "bd" '(:wk "delete")
+    "bdc" 'org-table-delete-column
+    "bdr" 'org-table-kill-row
+    "bi" '(:wk "insert")
+    "bic" 'org-table-insert-column
+    "bih" 'org-table-insert-hline
+    "bir" 'org-table-insert-row
+    "biH" 'org-table-hline-and-move
+    "bt" '("toggle")
+    "btf" 'org-table-toggle-formula-debugger
+    "bto" 'org-table-toggle-coordinate-overlays
+
+    "c" '(:wk "clock")
+    "cc" 'org-clock-cancel
+    "cd" 'org-clock-mark-default-task
+    "ce" 'org-clock-modify-effort-estimate
+    "cE" 'org-set-effort
+    "cg" 'org-clock-goto
+    "cl" '+org/toggle-last-clock
+    "ci" 'org-clock-in
+    "cI" 'org-clock-in-last
+    "co" 'org-clock-out
+    "cr" 'org-resolve-clocks
+    "cR" 'org-clock-report
+    "ct" 'org-evaluate-time-range
+    "c=" 'org-clock-timestamps-up
+    "c-" 'org-clock-timestamps-down
+
+    "d" '(:wk "date/deadline")
+    "dd" 'org-deadline
+    "ds" 'org-schedule
+    "dt" 'org-time-stamp
+    "dT" 'org-time-stamp-inactive
+
+    "D" 'archive-done-tasks
+
+    "g" '(:wk "goto")
+    "gg" 'counsel-org-goto
+    "gG" 'counsel-org-goto-all
+    "gc" 'org-clock-goto
+    "gi" 'org-id-goto
+    "gr" 'org-refile-goto-last-stored
+    "gv" '+org/goto-visible
+    "gx" 'org-capture-goto-last-stored
+
+    "l" '(:wk "links")
+    "lc" 'org-cliplink
+    "ld" '+org/remove-link
+    "li" 'org-id-store-link
+    "ll" 'org-insert-link
+    "lL" 'org-insert-all-links
+    "ls" 'org-store-link
+    "lS" 'org-insert-last-stored-link
+    "lt" 'org-toggle-link-display
+
+    "P" '(:wk "publish")
+    "Pa" 'org-publish-all
+    "Pf" 'org-publish-current-file
+    "Pp" 'org-publish
+    "PP" 'org-publish-current-project
+    "Ps" 'org-publish-sitemap
+
+    "r" '(:wk "refile")
+    "r." '+org/refile-to-current-file
+    "rc" '+org/refile-to-running-clock
+    "rl" '+org/refile-to-last-location
+    "rf" '+org/refile-to-file
+    "ro" '+org/refile-to-other-window
+    "rO" '+org/refile-to-other-buffer
+    "rv" '+org/refile-to-visible
+    "rr" 'org-refile
+
+    "s" '(:wk "tree/subtree")
+    "sa" 'org-toggle-archive-tag
+    "sb" 'org-tree-to-indirect-buffer
+    "sd" 'org-cut-subtree
+    "sh" 'org-promote-subtree
+    "sj" 'org-move-subtree-down
+    "sk" 'org-move-subtree-up
+    "sl" 'org-demote-subtree
+    "sn" 'org-narrow-to-subtree
+    "sr" 'org-refile
+    "ss" 'org-sparse-tree
+    "sA" 'org-archive-subtree
+    "sN" 'widen
+    "sS" 'org-sort
+
+    "p" '(:wk "priority")
+    "pd" 'org-priority-down
+    "pp" 'org-priority
+    "pu" 'org-priority-up
+    )
   )
 ;; -OrgPac
-
-;; (use-package org-latex-instant-preview
-;;   ;; npm install mathjax-node-cli
-;;   :straight (:host github :repo "yangsheng6810/org-latex-instant-preview" :depth 1)
-;;   :hook (org-mode . org-latex-instant-preview-mode)
-;;   :init
-;;   (setq org-latex-instant-preview-tex2svg-bin
-;;         ;; location of tex2svg executable
-;;         "~/node_modules/mathjax-node-cli/bin/tex2svg"))
 
 (provide 'init-org)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
