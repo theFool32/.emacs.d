@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 237
+;;     Update #: 239
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -49,7 +49,6 @@
 
 (require 'init-func)
 
-;; FIXME: too small for splitting (have no idea now)
 (use-package ebib
   :straight (:host github :repo "theFool32/ebib" :depth 1)
   ;; :straight (ebib :local-repo "/Users/lijie/dev/ebib")
@@ -124,7 +123,7 @@
          (make-process
           :name ""
           :buffer tempbuff
-          ;; :command (list "ref_down.py" (shell-quote-argument url) download-dir) ;; FIXME: http\\:
+          ;; :command (list "ref_down.py" (shell-quote-argument url) download-dir)
           :command (list "ref_down.py" pdf-url download-dir)
           :sentinel (lambda (process event)
                       ;; Render result to content buffer when subprocess finish.

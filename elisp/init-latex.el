@@ -264,8 +264,8 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   (LaTeX-item-indent 0)
 
   :config
-  (general-define-key 'normal LaTeX-mode-map (kbd "zo") #'TeX-fold-clearout-item)
-  (general-define-key 'normal LaTeX-mode-map (kbd "zc") #'TeX-fold-env)
+  (general-define-key :states 'normal :keymaps 'LaTeX-mode-map (kbd "zo") #'TeX-fold-clearout-item)
+  (general-define-key :states 'normal :keymaps 'LaTeX-mode-map (kbd "zc") #'TeX-fold-env)
   (add-hook 'LaTeX-mode-hook (lambda ()
                                (push
                                 '("latexmk" "latexmk -pdf -pvc -view=none %s" TeX-run-TeX nil t

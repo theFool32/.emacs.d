@@ -1,7 +1,6 @@
 ;;; init-bindings.el --- -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
-;; TODO: use same method to set key bindings.
 
 (eval-when-compile
   (require 'init-const)
@@ -13,7 +12,6 @@
   :ensure
   :config
   (general-create-definer leader-def
-    ;; FIXME: not work in *Message*
     :states '(normal visual emacs motion)
     :keymaps 'override
     :prefix "SPC"

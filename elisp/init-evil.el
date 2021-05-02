@@ -63,9 +63,6 @@
         evil-vsplit-window-right t)
 
   :config
-  (add-to-list 'evil-emacs-state-modes 'snails-mode)
-  ;; (add-to-list 'evil-emacs-state-modes 'color-rg-mode)
-
   (evil-select-search-module 'evil-search-module 'evil-search)
   (evil-mode 1)
   (put 'evil-define-key* 'lisp-indent-function 'defun)

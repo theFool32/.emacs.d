@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May  2 00:30:46 2021 (+0800)
+;; Last-Updated: Sun May  2 13:53:24 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -87,6 +87,11 @@ The original function deletes trailing whitespace of the current line."
 
 ;; Map Alt key to Meta
 (setq x-alt-keysym 'meta)
+(setq mac-command-modifier 'meta) ; make cmd key do Meta
+(setq mac-option-modifier 'super) ; make opt key do Super
+(setq mac-control-modifier 'control) ; make Control key do Control
+(setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
+
 ;; -EditExp
 
 ;; History
@@ -172,40 +177,6 @@ The original function deletes trailing whitespace of the current line."
 ;; _ as part of a word
 (modify-syntax-entry ?_ "w")
 (defalias 'forward-evil-word 'forward-evil-symbol)
-
-;; Auto save session
-;; (setq desktop-save-mode 1)
-
-
-;; For GC
-(setq gc-max (* 512 1024 1024))
-(setq gc-min (* 16 1024 1024))
-
-(setq gc-cons-threshold gc-min)
-
-(defun my-minibuffer-setup-hook nil (setq gc-cons-threshold gc-max))
-(defun my-minibuffer-exit-hook nil (setq gc-cons-threshold gc-min))
-
-(add-hook 'minibuffer-setup-hook #'my-minibuffer-setup-hook)
-(add-hook 'minibuffer-exit-hook #'my-minibuffer-exit-hook)
-
-;; TODO: check the influence of GC
-;; (defvar k-gc-timer
-;;   (run-with-idle-timer 15 t
-;;                        'garbage-collect))
-
-;; GC measure
-;; (defmacro k-time (&rest body)
-;;   "Measure and return the time it takes evaluating BODY."
-;;   `(let ((time (current-time)))
-;;      ,@body
-;;      (float-time (time-since time))))
-
-;; (defvar k-gc-timer
-;;   (run-with-idle-timer 15 t
-;;                        (lambda ()
-;;                          (message "Garbage Collector has run for %.06fsec"
-;;                                   (k-time (garbage-collect))))))
 
 (advice-add #'save-buffers-kill-terminal :before
             (lambda (&optional args)

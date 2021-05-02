@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May  2 13:17:47 2021 (+0800)
+;; Last-Updated: Sun May  2 15:15:29 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -117,13 +117,14 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-func)
 (require 'init-global-config)
 (require 'init-search)
+;; (require 'init-selectrum)
 (require 'init-ivy)
 
 (require 'init-which-key)
 (require 'init-popup-kill-ring)
 (require 'init-undo-tree)
 (require 'init-discover-my-major)
-(require 'init-shell)
+;; (require 'init-shell)
 (require 'init-dired)
 (require 'init-buffer)
 (require 'init-header)
@@ -140,7 +141,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 ;; General Programming
 (require 'init-magit)
 (require 'init-projectile)
-(require 'init-treemacs)
+;; (require 'init-treemacs)
 (require 'init-yasnippet)
 (require 'init-flycheck)
 (require 'init-parens)
@@ -161,15 +162,6 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-restart-emacs)
 (require 'init-reference)
 ;; (require 'init-rime)
-
-(defun efs/display-startup-time ()
-  (message "Emacs loaded in %s with %d garbage collections."
-           (format "%.2f seconds"
-                   (float-time
-                    (time-subtract after-init-time before-init-time)))
-           gcs-done))
-
-(add-hook 'emacs-startup-hook #'efs/display-startup-time)
 
 (provide 'init)
 

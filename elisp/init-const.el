@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Mar 18 14:20:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri May 29 16:29:59 2020 (+0800)
+;; Last-Updated: Sun May  2 15:16:53 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d constants
@@ -51,7 +51,6 @@
   (eq system-type 'windows-nt)
   "Are we running on a WinTel system?")
 
-;; TODO: WSL
 (defconst *sys/linux*
   (eq system-type 'gnu/linux)
   "Are we running on a GNU/Linux system?")

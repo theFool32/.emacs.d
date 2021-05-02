@@ -38,7 +38,8 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'init-const))
+  (require 'init-const)
+  (require 'init-bindings))
 
 
 (defun smarter-yas-expand-next-field-complete ()
