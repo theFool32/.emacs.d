@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 239
+;;     Update #: 240
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -54,6 +54,7 @@
   ;; :straight (ebib :local-repo "/Users/lijie/dev/ebib")
   :custom
   (ebib-preload-bib-files (list (concat ebib-base-dir "ref.bib")))
+  (ebib-file-search-dirs (list (concat ebib-base-dir "pdfs/")))
   (ebib-notes-directory (concat ebib-base-dir "notes/"))
   (ebib-keywords-file (concat ebib-base-dir "ebib-keywords.txt"))
   (ebib-keywords-field-keep-sorted t)
