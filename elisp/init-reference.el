@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 240
+;;     Update #: 245
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -85,7 +85,6 @@
    ;; ("?" . ebib-search)
    ("D" . ebib-delete-entry-with-file)
    ("s"   . 'ebib-save-all-databases)
-   ("C-k" . 'ebib-keywords-add)
    :map ebib-multiline-mode-map
    ("C-c C-c" . 'ebib-quit-multiline-buffer-and-save)
    ("C-c C-q" . 'ebib-cancel-multiline-buffer)
