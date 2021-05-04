@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May  2 13:34:27 2021 (+0800)
+;; Last-Updated: Wed May  5 00:31:56 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit
@@ -210,6 +210,12 @@ window that already exists in that direction. It will split otherwise."
                            (when (bound-and-true-p git-timemachine-mode)
                              (user-error "Cannot revert the timemachine buffer")))))
 
+(use-package magit-gitflow
+  :after magit
+  :hook (magit-mode . turn-on-magit-gitflow)
+  :bind (:map magit-status-mode-map
+              ("%" . magit-gitflow-popup))
+  )
 
 (provide 'init-magit)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
