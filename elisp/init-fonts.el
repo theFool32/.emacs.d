@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:32:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Apr 29 01:30:52 2021 (+0800)
+;; Last-Updated: Thu May  6 20:05:17 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d fonts
@@ -64,8 +64,8 @@
       (set-frame-font font-setting nil t)
       (add-to-list 'default-frame-alist (cons 'font font-setting)))))
 
-(when *sys/gui*
-  (change-font))
+;; (when *sys/gui*
+;;   (change-font))
 ;; -FontFun
 
 ;; ATIPac

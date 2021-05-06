@@ -19,6 +19,8 @@
 ;; This initializes company
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 ;;
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -69,9 +71,8 @@ If failed try to complete the common part with `company-complete-common'"
 
 ;;;###autoload
 (defvar +company-backend-alist
-  ;; '((text-mode company-tabnine company-yasnippet company-ispell company-dabbrev)
-  '((text-mode company-yasnippet company-ispell company-dabbrev)
-    (prog-mode company-capf company-yasnippet)
+  '((text-mode company-tabnine company-yasnippet company-dabbrev)
+    (prog-mode company-files company-capf company-yasnippet)
     (conf-mode company-capf company-dabbrev-code company-yasnippet))
   "An alist matching modes to company backends. The backends for any mode is
 built from this.")
@@ -150,27 +151,21 @@ Examples:
   :init
   (company-tng-mode)
   (add-hook 'company-mode-hook #'+company-init-backends-h)
-  (if *sys/mac*
-      (set-company-backend! 'text-mode 'company-tabnine 'company-yasnippet 'company-ispell 'company-dabbrev)
-    (set-company-backend! 'text-mode 'company-yasnippet 'company-ispell 'company-dabbrev)
-    )
   :custom
   (company-minimum-prefix-length 1)
   (company-tooltip-align-annotations t)
   (company-require-match 'never)
   ;; Don't use company in the following modes
-  (company-global-modes '(not shell-mode eaf-mode))
+  (company-global-modes '(not shell-mode))
   ;; Trigger completion immediately.
   (company-idle-delay 0)
   ;; Number the candidates (use M-1, M-2 etc to select completions).
-  (company-show-numbers t)
+  (company-show-numbers nil)
   ;; (company-tooltip-minimum-width 80)
   (company-quickelp-delay nil)
   (company-dabbrev-downcase nil)
   (company-dabbrev-ignore-case t)
-  (company-frontends '(
-                       company-tng-frontend
-                       company-pseudo-tooltip-unless-just-one-frontend
+  (company-frontends '(company-pseudo-tooltip-unless-just-one-frontend
                        company-preview-frontend
                        company-echo-metadata-frontend))
   :config
@@ -187,32 +182,23 @@ Examples:
   )
 ;; -ComPac
 
-;; CompanyLSPPac
-;; (use-package company-lsp
-;;   :defer t
-;;   :after company
-;;   :custom (company-lsp-cache-candidates 'auto))
-;; -CompanyLSPPac
+(use-package company-box
+  :after company
+  :hook (company-mode . company-box-mode))
 
 ;; CompanyTabNinePac
+;; TODO: whether or not to use tabnine for lsp or even prog-mode.
 (use-package company-tabnine
-  :disabled
+  :straight (:host github :repo "theFool32/company-tabnine" :depth 1)
   :defer 1
-  :if *sys/mac*
   :after company
   :custom
-  (company-tabnine-max-num-results 9)
+  (company-tabnine-max-num-results 3)
   :hook
-  (lsp-after-open . (lambda ()
-                      (setq company-tabnine-max-num-results 3)
-                      (add-to-list 'company-transformers 'company//sort-by-tabnine t)
-                      ;; (add-to-list 'company-backends '(company-lsp :with company-tabnine :separate))
-                      (setq company-backends '((company-capf :with company-tabnine :separate) company-files company-dabbrev))
-                      ))
   (kill-emacs . company-tabnine-kill-process)
   :config
   ;; Enable TabNine on default
-  (add-to-list 'company-backends #'company-tabnine)
+  ;; (add-to-list 'company-backends #'company-tabnine)
 
   ;; Integrate company-tabnine with lsp-mode
   (defun company//sort-by-tabnine (candidates)
