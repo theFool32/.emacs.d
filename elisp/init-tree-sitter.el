@@ -1,16 +1,16 @@
-;;; init-custom.el ---
+;;; init-tree-sitter.el ---
 ;;
-;; Filename: init-custom.el
+;; Filename: init-tree-sitter.el
 ;; Description:
 ;; Author: theFool32
 ;; Maintainer:
 ;; Copyright (C) 2020 theFool32
-;; Created: Sat May  1 22:51:41 2021 (+0800)
+;; Created: Thu May  6 17:00:53 2021 (+0800)
 ;; Version:
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 13
+;;     Update #: 6
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -46,14 +46,14 @@
 ;;
 ;;; Code:
 
+(use-package tree-sitter-langs)
 
-;; For ebib
-(defvar ebib-base-dir "/Users/lijie/Dropbox/Ref/")
-(defvar org-base-dir "/Users/lijie/Dropbox/org-notes/")
-(setq default-directory "/Users/lijie")
+(use-package tree-sitter
+  :config
+  (require 'tree-sitter-langs)
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
-(setq straight-disable-native-compile t)
-
-(provide 'init-custom)
+(provide 'init-tree-sitter)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-custom.el ends here
+;;; init-tree-sitter.el ends here

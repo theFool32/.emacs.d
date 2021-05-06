@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May  2 15:15:29 2021 (+0800)
+;; Last-Updated: Thu May  6 17:02:54 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -97,11 +97,14 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (update-to-load-path (expand-file-name "elisp" user-emacs-directory))
 ;; -LoadPath
 
-;; Constants
-(require 'init-custom)
-(require 'init-const)
+;; InitPrivate
+;; Load init-custom.el if it exists
+(when (file-exists-p (expand-file-name "init-custom.el" user-emacs-directory))
+  (load-file (expand-file-name "init-custom.el" user-emacs-directory)))
+;; -InitPrivate
 
-;; Packages
+;; Constants
+(require 'init-const)
 
 ;; Package Management
 (require 'init-package)
@@ -119,6 +122,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-search)
 ;; (require 'init-selectrum)
 (require 'init-ivy)
+(require 'init-tree-sitter)
 
 (require 'init-which-key)
 (require 'init-popup-kill-ring)
@@ -162,6 +166,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-restart-emacs)
 (require 'init-reference)
 ;; (require 'init-rime)
+
 
 (provide 'init)
 
