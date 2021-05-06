@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu May  6 17:02:54 2021 (+0800)
+;; Last-Updated: Thu May  6 23:31:19 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -122,7 +122,8 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-search)
 ;; (require 'init-selectrum)
 (require 'init-ivy)
-(require 'init-tree-sitter)
+(when (featurep 'native-compile) ;;FIXME: tree-sitter not work in M1 now.
+  (require 'init-tree-sitter))
 
 (require 'init-which-key)
 (require 'init-popup-kill-ring)

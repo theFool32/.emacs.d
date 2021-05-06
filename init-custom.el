@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 18
+;;     Update #: 21
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -52,8 +52,8 @@
 (defvar org-base-dir "/Users/lijie/Dropbox/org-notes/")
 (setq default-directory "/Users/lijie")
 
-(if (not (featurep 'native-compile))
-    (setq straight-disable-native-compile t))
+(unless (featurep 'native-compile)
+  (setq straight-disable-native-compile t))
 
 (provide 'init-custom)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
