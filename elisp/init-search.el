@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May  2 14:40:25 2021 (+0800)
+;; Last-Updated: Fri May  7 10:49:44 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -68,6 +68,7 @@
 (use-package color-rg
   :straight (:host github :repo "manateelazycat/color-rg" :depth 1)
   :if *rg*
+  :commands color-rg
   )
 
 (provide 'init-search)

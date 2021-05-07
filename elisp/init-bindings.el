@@ -112,10 +112,9 @@
 
 
     "o" '(:wk "Open")
-    "op" '(treemacs :wk "Treemacs")
     "oy" '(my-youdao-search-at-point :wk "Youdao")
-    "oe" '((lambda() (interactive)(if (get-buffer "vterm") (switch-to-buffer "vterm") (call-interactively #'vterm))) :wk "Shell")
-    "ov" '(vterm-other-window :wk "Shell in window")
+    ;; "oe" '((lambda() (interactive)(if (get-buffer "vterm") (switch-to-buffer "vterm") (call-interactively #'vterm))) :wk "Shell")
+    ;; "ov" '(vterm-other-window :wk "Shell in window")
     "ot" '(org-todo-list :wk "Org Todo")
     "ox" '(org-agenda :wk "Org agenda")
     "ob" '(ebib :wk "Ebib")

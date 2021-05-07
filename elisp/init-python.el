@@ -6,10 +6,10 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Jun 10 18:58:02 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu May  6 22:01:29 2021 (+0800)
+;; Last-Updated: Fri May  7 09:59:11 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
-;; Keywords: lsp-python-ms
+;; Keywords: 
 ;; Compatibility: emacs-version >= 26.1
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -100,16 +100,6 @@
               (lambda() (add-hook 'before-save-hook #'+python/python-sort-imports)))
     )
   )
-
-;; (use-package lsp-pyright
-;;   :hook (python-mode . (lambda () (require 'lsp-pyright)))
-;;   :init (when (executable-find "python3")
-;;           (setq lsp-pyright-python-executable-cmd "python3"))
-;;   :config
-;;   (setq lsp-pyright-venv-path ".venv")
-;;   (setq lsp-pyright-multi-root nil)
-;;   (setq lsp-pyright-use-library-code-for-types t)
-;;   )
 
 (provide 'init-python)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

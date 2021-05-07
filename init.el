@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu May  6 23:31:19 2021 (+0800)
+;; Last-Updated: Fri May  7 11:04:57 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -105,6 +105,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 
 ;; Constants
 (require 'init-const)
+;; (require 'init-benchmarking)
 
 ;; Package Management
 (require 'init-package)
@@ -129,7 +130,6 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-popup-kill-ring)
 (require 'init-undo-tree)
 (require 'init-discover-my-major)
-;; (require 'init-shell)
 (require 'init-dired)
 (require 'init-buffer)
 (require 'init-header)
@@ -139,14 +139,12 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-pretty-code)
 (require 'init-theme)
 ;; (require 'init-dashboard)
-(require 'init-fonts)
 (require 'init-scroll)
 (require 'init-highlight)
 
 ;; General Programming
 (require 'init-magit)
 (require 'init-projectile)
-;; (require 'init-treemacs)
 (require 'init-yasnippet)
 (require 'init-flycheck)
 (require 'init-parens)
