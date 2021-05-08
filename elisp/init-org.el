@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May  2 13:15:36 2021 (+0800)
+;; Last-Updated: Sat May  8 14:24:09 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -90,7 +90,7 @@
   (require 'org/+screenshot)
 
   (setq org-log-into-drawer "LOGBOOK")
-  (setq org-agenda-files '(+org-capture-file-inbox
+  (setq org-agenda-files (list +org-capture-file-inbox
                            +org-capture-file-gtd
                            +org-capture-file-tickler))
   (setq org-refile-targets '((+org-capture-file-gtd :level . 1)
@@ -135,6 +135,7 @@
                       "C-S-<ret>" #'+org/insert-item-above
                       )
 
+  ;; TODO: org-agenda binding
   (local-leader-def
     :keymaps 'org-mode-map
     "'" 'org-edit-special
