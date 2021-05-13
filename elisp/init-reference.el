@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 245
+;;     Update #: 246
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -132,7 +132,7 @@
                           ;; Do nothing if process buffer has killed.
                           (when (get-buffer buffer)
                             (with-current-buffer buffer
-                              (ebib-import)
+                              (ebib-import-entries)
                               (kill-buffer buffer)
                               (ebib--update-buffers)))))))))))
   :config
