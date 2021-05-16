@@ -111,6 +111,9 @@
     "gF" '(magit-pull :wk "pull")
 
 
+    "t" '(:wh "Toggle")
+    "tl" '(toggle-truncate-lines :wh "Toggle line wrap")
+
     "o" '(:wk "Open")
     "oy" '(my-youdao-search-at-point :wk "Youdao")
     "oY" '(youdao-dictionary-search-from-input :wk "Youdao from input")
