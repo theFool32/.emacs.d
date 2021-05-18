@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 246
+;;     Update #: 251
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -84,13 +84,13 @@
    ("/" . ebib-swiper)
    ;; ("?" . ebib-search)
    ("D" . ebib-delete-entry-with-file)
-   ("s"   . 'ebib-save-all-databases)
+   ("s"   . ebib-save-all-databases)
    :map ebib-multiline-mode-map
-   ("C-c C-c" . 'ebib-quit-multiline-buffer-and-save)
-   ("C-c C-q" . 'ebib-cancel-multiline-buffer)
-   ("C-c C-s" . 'ebib-save-from-multiline-buffer)
+   ("C-c C-c" . ebib-quit-multiline-buffer-and-save)
+   ("C-c C-q" . ebib-cancel-multiline-buffer)
+   ("C-c C-s" . ebib-save-from-multiline-buffer)
    :map bibtex-mode-map
-   ("C-c C-i" . 'insert-to-bib)
+   ("C-c C-i" . insert-to-bib)
    )
   :init
   (defun ebib-swiper ()
