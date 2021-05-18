@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 251
+;;     Update #: 252
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -53,6 +53,7 @@
   :straight (:host github :repo "theFool32/ebib" :depth 1)
   ;; :straight (ebib :local-repo "/Users/lijie/dev/ebib")
   :custom
+  (ebib-citation-description-function 'ebib-title-description)
   (ebib-preload-bib-files (list (concat ebib-base-dir "ref.bib")))
   (ebib-file-search-dirs (list (concat ebib-base-dir "pdfs/")))
   (ebib-notes-directory (concat ebib-base-dir "notes/"))
