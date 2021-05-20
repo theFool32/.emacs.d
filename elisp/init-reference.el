@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 248
+;;     Update #: 253
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -53,6 +53,7 @@
   :straight (:host github :repo "theFool32/ebib" :depth 1)
   ;; :straight (ebib :local-repo "/Users/lijie/dev/ebib")
   :custom
+  (ebib-citation-description-function 'ebib-title-description)
   (ebib-preload-bib-files (list (concat ebib-base-dir "ref.bib")))
   (ebib-file-search-dirs (list (concat ebib-base-dir "pdfs/")))
   (ebib-notes-directory (concat ebib-base-dir "notes/"))
@@ -84,13 +85,13 @@
    ("/" . ebib-swiper)
    ;; ("?" . ebib-search)
    ("D" . ebib-delete-entry-with-file)
-   ("s"   . 'ebib-save-all-databases)
+   ("s"   . ebib-save-all-databases)
    :map ebib-multiline-mode-map
-   ("C-c C-c" . 'ebib-quit-multiline-buffer-and-save)
-   ("C-c C-q" . 'ebib-cancel-multiline-buffer)
-   ("C-c C-s" . 'ebib-save-from-multiline-buffer)
+   ("C-c C-c" . ebib-quit-multiline-buffer-and-save)
+   ("C-c C-q" . ebib-cancel-multiline-buffer)
+   ("C-c C-s" . ebib-save-from-multiline-buffer)
    :map bibtex-mode-map
-   ("C-c C-i" . 'insert-to-bib)
+   ("C-c C-i" . insert-to-bib)
    )
   :init
   (defun ebib-swiper ()
