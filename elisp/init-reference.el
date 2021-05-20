@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 246
+;;     Update #: 248
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -56,9 +56,9 @@
   (ebib-preload-bib-files (list (concat ebib-base-dir "ref.bib")))
   (ebib-file-search-dirs (list (concat ebib-base-dir "pdfs/")))
   (ebib-notes-directory (concat ebib-base-dir "notes/"))
-  (ebib-keywords-file (concat ebib-base-dir "ebib-keywords.txt"))
+  (ebib-keywords (concat ebib-base-dir "ebib-keywords.txt"))
   (ebib-keywords-field-keep-sorted t)
-  (ebib-keywords-file-save-on-exit 'always)
+  (ebib-keywords-save-on-exit 'always)
   ;; (ebib-index-window-size 30)
   (ebib-timestamp-format "%Y-%m-%d,%T")
   (ebib-index-default-sort '("timestamp" . descend))
