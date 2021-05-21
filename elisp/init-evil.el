@@ -86,8 +86,11 @@
   (add-hook 'messages-buffer-mode-hook #'(lambda ()
                                            (evil-emacs-state)))
 
-
-
+  (general-define-key :keymaps 'evil-window-map
+                      "C-h" 'evil-window-left
+                      "C-j" 'evil-window-down
+                      "C-k" 'evil-window-up
+                      "C-l" 'evil-window-right)
   )
 
 ;;
