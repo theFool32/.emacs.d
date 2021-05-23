@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:17:13 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Jan 17 11:00:25 2020 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Sun May 23 15:08:03 2021 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d parenthesis smartparens delete-block
 ;; Compatibility: emacs-version >= 26.1
@@ -40,17 +40,11 @@
 (eval-when-compile
   (require 'init-global-config))
 
-;; SmartParensPac
-(use-package smartparens
-  :hook (prog-mode . smartparens-mode)
-  :diminish smartparens-mode
-  :custom
-  (sp-escape-quotes-after-insert nil)
-  :config
-  ;; Stop pairing single quotes in elisp
-  (sp-local-pair 'emacs-lisp-mode "'" nil :actions nil)
-  (sp-local-pair 'org-mode "[" nil :actions nil))
-;; -SmartParensPac
+;; Automatic parenthesis pairing
+(use-package elec-pair
+  :ensure nil
+  :hook (after-init . electric-pair-mode)
+  :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit))
 
 ;; MatchParens
 ;; Show matching parenthesis
