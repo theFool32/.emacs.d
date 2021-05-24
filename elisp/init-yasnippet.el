@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Tue Apr 23 23:08:17 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Dec 14 20:56:21 2019 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Mon May 24 21:52:16 2021 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d yasnippet
 ;; Compatibility: emacs-version >= 26.1
@@ -41,7 +41,6 @@
 (use-package yasnippet
   :diminish yas-minor-mode
   :init
-  (use-package yasnippet-snippets :after yasnippet)
   :hook ((prog-mode LaTeX-mode org-mode) . yas-minor-mode)
   :config
   (yas-reload-all)

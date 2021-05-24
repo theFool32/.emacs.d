@@ -1,12 +1,8 @@
 # -*- mode: snippet -*-
 # name: uml
 # key: uml
+# contributor : Robert O'Connor
 # --
-#+begin_src plantuml :file ./${1:path/name}.png
-  @startuml
-  $0
-  @enduml
-#+end_src
-#+ATTR_LATEX: :height ${2:5}cm
-#+RESULTS:
-[[file:./$1.png]]
+#+begin_uml
+$1
+#+end_uml

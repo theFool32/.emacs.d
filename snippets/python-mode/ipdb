@@ -1,5 +1,6 @@
-# -*- mode: snippet -*-
-# name:ipdb
+# -*- mode: snippet; require-final-newline: nil -*-
+# name: ipdb trace
 # key: ipdb
+# group: debug
 # --
 __import__("ipdb").set_trace()
