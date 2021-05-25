@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue May 25 12:10:34 2021 (+0800)
+;; Last-Updated: Tue May 25 14:48:30 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -71,6 +71,11 @@
   (org-tags-column -77)
 
   :config
+  (defvar load-language-list '((emacs-lisp . t)
+                               (python . t)
+                               (C . t)))
+  (org-babel-do-load-languages 'org-babel-load-languages
+                               load-language-list)
   (add-hook (quote hack-local-variables-hook)
             (lambda ()
               (let ((symbol (quote org-startup-folded)))
