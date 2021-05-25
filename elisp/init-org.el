@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue May 25 09:59:04 2021 (+0800)
+;; Last-Updated: Tue May 25 12:10:34 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -106,6 +106,9 @@
           ("n" "Note" entry
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
+          ("m" "Maybe" entry
+           (file+headline +org-capture-file-someday "Some day/maybe")
+           "* %?\n%i" :prepend t :kill-buffer t)
           ("i" "Idea" entry
            (file+headline +org-capture-file-idea "Ideas")
            "* %u %?\n%i" :prepend t :kill-buffer t)
