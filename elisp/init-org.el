@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May  9 16:38:43 2021 (+0800)
+;; Last-Updated: Tue May 25 09:59:04 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -46,7 +46,6 @@
 (defvar +org-capture-file-gtd (concat org-base-dir "gtd.org"))
 (defvar +org-capture-file-idea (concat org-base-dir "ideas.org"))
 (defvar +org-capture-file-note (concat org-base-dir "notes.org"))
-(defvar +org-capture-file-inbox (concat org-base-dir "inbox.org"))
 (defvar +org-capture-file-someday (concat org-base-dir "someday.org"))
 (defvar +org-capture-file-tickler (concat org-base-dir "tickler.org"))
 (defun archive-done-tasks ()
@@ -90,8 +89,7 @@
   (require 'org/+screenshot)
 
   (setq org-log-into-drawer "LOGBOOK")
-  (setq org-agenda-files (list +org-capture-file-inbox
-                               +org-capture-file-gtd
+  (setq org-agenda-files (list +org-capture-file-gtd
                                +org-capture-file-tickler))
   (setq org-refile-targets '((+org-capture-file-gtd :level . 1)
                              (+org-capture-file-someday :level . 1)
@@ -99,8 +97,8 @@
   (setq org-log-into-drawer t)
   (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)))
   (setq org-capture-templates
-        '(("t" "Todo [inbox]" entry
-           (file+headline +org-capture-file-inbox "Tasks")
+        '(("t" "Todo" entry
+           (file+headline +org-capture-file-gtd "Next Actions")
            "* TODO %?\n%i" :prepend t :kill-buffer t)
           ("w" "Waiting for" entry
            (file+headline +org-capture-file-tickler "Tickler")
