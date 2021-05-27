@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Apr 29 01:37:12 2021 (+0800)
+;; Last-Updated: Thu May 27 21:56:34 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -50,6 +50,7 @@
   (lsp-modeline-code-actions-enable nil)
   (lsp-semantic-tokens-enable nil)
 
+  (lsp-enable-imenu nil)
   (lsp-idle-delay 0.5)
   (lsp-log-io nil)
   (lsp-enable-folding nil)
