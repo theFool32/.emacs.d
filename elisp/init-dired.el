@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:37:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon May 17 21:14:10 2021 (+0800)
+;; Last-Updated: Thu May 27 21:22:29 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dired auto-save
@@ -99,15 +99,12 @@ Version 2019-11-04"
 
   (general-define-key :states '(normal)
                       :keymaps 'dired-mode-map
-                      "C-<return>" 'xah-open-in-external-app)
-
-
-  :hook
-  (dired-mode . (lambda ()
-                  (local-set-key (kbd "<mouse-2>") #'dired-find-alternate-file)
-                  (local-set-key (kbd "RET") #'dired-find-alternate-file)
-                  (local-set-key (kbd "^")
-                                 (lambda () (interactive) (find-alternate-file ".."))))))
+                      "C-<return>" 'xah-open-in-external-app
+                      "<return>" 'dired-find-alternate-file
+                      "l" 'dired-find-alternate-file
+                      "h" (lambda () (interactive) (find-alternate-file ".."))
+                      "^" (lambda () (interactive) (find-alternate-file "..")))
+  )
 ;; -DiredPackage
 
 ;; SaveAllBuffers
