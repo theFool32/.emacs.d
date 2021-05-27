@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu May 27 22:09:19 2021 (+0800)
+;; Last-Updated: Thu May 27 22:15:58 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -134,6 +134,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-buffer)
 (require 'init-header)
 (require 'init-utils)
+(require 'init-treemacs)
 
 ;; User Interface Enhancements
 (require 'init-ui-config)

@@ -114,6 +114,9 @@
     "t" '(:wh "Toggle")
     "tl" '(toggle-truncate-lines :wh "Toggle line wrap")
     "td" '(toggle-debug-on-error :wh "Toggle debug on error")
+    "tt" '(treemacs :wh "Treemacs")
+    "ti" '(lsp-treemacs-symbols-toggle :wh "LSP Treemacs")
+    "tj" '(imenu-list-smart-toggle :wh "imenu-list")
 
     "o" '(:wk "Open")
     "oy" '(my-youdao-search-at-point :wk "Youdao")
