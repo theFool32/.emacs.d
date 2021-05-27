@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu May 27 21:56:34 2021 (+0800)
+;; Last-Updated: Thu May 27 22:31:23 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -63,8 +63,8 @@
   (lsp-enable-text-document-color nil)
   (lsp-enable-symbol-highlighting nil)
   (lsp-enable-on-type-formatting nil)
-  (lsp-eldoc-enable-hover nil)
-  (lsp-eldoc-render-all nil)
+  (lsp-eldoc-enable-hover t)
+  (lsp-eldoc-render-all t)
   (lsp-restart 'auto-restart)
 
   (read-process-output-max (* 1024 1024))
