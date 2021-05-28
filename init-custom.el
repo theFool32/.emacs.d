@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 21
+;;     Update #: 29
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -51,6 +51,8 @@
 (defvar ebib-base-dir "/Users/lijie/Dropbox/Ref/")
 (defvar org-base-dir "/Users/lijie/Dropbox/org-notes/")
 (setq default-directory "/Users/lijie")
+(defvar my-mini-buffer-completion "vertico"
+  "vertico or selectrum")
 
 (unless (featurep 'native-compile)
   (setq straight-disable-native-compile t))

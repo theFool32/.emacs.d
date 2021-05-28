@@ -75,22 +75,6 @@
                               ("sh" "-c" "printf LOCAL >core/DYN-VERSION")))
                          :files ("core/DYN-VERSION" "core/tsc-dyn.*" "core/*.el")))
 
-(use-package tree-sitter
-  :config
-  (require 'tree-sitter-langs)
-  (global-tree-sitter-mode)
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
-
-(use-package tree-sitter-langs
-  ;; Don't clone the separate tree-sitter-langs repo, use the dylibs we
-  ;; already built
-  :straight (:host github :repo "ubolonton/emacs-tree-sitter"
-             :files ("langs/*.el" ("bin" "langs/bin/*.dylib") ("queries" "langs/queries/*")))
-  :after tree-sitter
-  ;; If this isn't set then it'll download x86_64 dylibs over the arm64
-  ;; dylibs we built
-  :init (setf tree-sitter-langs--testing t))
-
 (provide 'init-tree-sitter)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-tree-sitter.el ends here
