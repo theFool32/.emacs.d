@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 6
+;;     Update #: 9
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -46,13 +46,50 @@
 ;;
 ;;; Code:
 
-(use-package tree-sitter-langs)
+(eval-when-compile
+  (require 'init-const))
+
+;; https://github.com/ubolonton/emacs-tree-sitter/issues/88#issuecomment-849338234
+(use-package tsc
+  :straight `(:pre-build ,(when (and (memq window-system '(mac ns))
+                                     (string-match-p (rx string-start "arm-")
+                                                     system-configuration))
+                                         ;; required for tree-sitter
+                            (unless (and (executable-find "cargo")
+                                         ;; required for building bindings
+                                         (executable-find "cask")
+                                         (executable-find "git")
+                                         ;; required for tree-sitter to generate
+                                         (executable-find "npm")
+                                         ;; required for bindings
+                                         (executable-find "llvm-gcc"))
+                              (warn "tree-sitter build will fail"))
+                              ;; get the latest tree-sitter
+                            '(("sh" "-c" "test -d rust-tree-sitter || git clone https://github.com/tree-sitter/tree-sitter rust-tree-sitter; cd rust-tree-sitter && git pull")
+                              ("sh" "-c" "cd rust-tree-sitter/cli && cargo install --path .")
+                              ;; rebuild bindings
+                              ("sh" "-c" "EMACS=emacs ./bin/setup && EMACS=emacs ./bin/build")
+                              ;; ensure all language definitions
+                              ("find" "langs/repos" "-type" "f" "-name" "grammar.js" "-not" "-path" "\\*/node_modules/\\*" "-exec" "sh" "-c" "grammar_path=\"${1%/*}\"; EMACS=emacs make \"ensure/${grammar_path##*/}\"" "sh" "{}" ";")
+                              ;; needed or it will download x86_64 dylibs over the arm64 ones we just built
+                              ("sh" "-c" "printf LOCAL >core/DYN-VERSION")))
+                         :files ("core/DYN-VERSION" "core/tsc-dyn.*" "core/*.el")))
 
 (use-package tree-sitter
   :config
   (require 'tree-sitter-langs)
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
+(use-package tree-sitter-langs
+  ;; Don't clone the separate tree-sitter-langs repo, use the dylibs we
+  ;; already built
+  :straight (:host github :repo "ubolonton/emacs-tree-sitter"
+             :files ("langs/*.el" ("bin" "langs/bin/*.dylib") ("queries" "langs/queries/*")))
+  :after tree-sitter
+  ;; If this isn't set then it'll download x86_64 dylibs over the arm64
+  ;; dylibs we built
+  :init (setf tree-sitter-langs--testing t))
 
 (provide 'init-tree-sitter)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
