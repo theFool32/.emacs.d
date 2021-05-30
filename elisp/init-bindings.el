@@ -56,7 +56,7 @@
     "bS" '(evil-write-all :wk "Save all buffer")
 
     "f" '(:which-key "Files")
-    "ff" '(find-file :which-key "Find file")
+    "ff" '(counsel-find-file :which-key "Find file")
     "fr" '(counsel-recentf :which-key "Recent file")
     "fs" '(save-buffer :which-key "Save file")
     "fd" '(dired :which-key "Find directory")
