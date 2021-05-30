@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May 30 20:58:01 2021 (+0800)
+;; Last-Updated: Sun May 30 21:11:33 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -123,7 +123,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-search)
 ;; (require 'init-mini-buffer)
 (require 'init-ivy)
-;; (require 'init-tree-sitter)
+(require 'init-tree-sitter)
 
 (require 'init-which-key)
 (require 'init-popup-kill-ring)
