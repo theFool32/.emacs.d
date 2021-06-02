@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May 30 21:11:33 2021 (+0800)
+;; Last-Updated: Wed Jun  2 21:06:50 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -110,6 +110,7 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 ;; Package Management
 (require 'init-package)
 ;; (use-package benchmark-init
+;;   :straight (benchmark-init :local-repo "/Users/lijie/dev/benchmark-init-el")
 ;;   :init
 ;;   (benchmark-init/activate)
 ;;   :hook
@@ -153,7 +154,6 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 (require 'init-format)
 (require 'init-edit)
 (require 'init-lsp)
-;; (require 'init-nox)
 (require 'init-company)
 
 ;; Programming
