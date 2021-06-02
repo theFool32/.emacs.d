@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 09:10:23 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jan 27 01:03:56 2020 (-0500)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Thu Jun  3 01:11:49 2021 (+0800)
+;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d projectile
 ;; Compatibility: emacs-version >= 26.1
@@ -42,8 +42,6 @@
 
 ;; ProjPac
 (use-package projectile
-  :custom
-  (projectile-completion-system 'ivy)
   :config
   (projectile-mode 1)
   (when (and *sys/win32* *tr*)

@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 33
+;;     Update #: 34
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -50,7 +50,7 @@
 ;; For ebib
 (defvar ebib-base-dir "/Users/lijie/Dropbox/Ref/")
 (defvar org-base-dir "/Users/lijie/Dropbox/org-notes/")
-(setq default-directory "/Users/lijie")
+(setq default-directory "/Users/lijie/")
 
 (defvar my-mini-buffer-completion "selectrum"  ;; not used currently since selectrum is not usable
   "vertico or selectrum")

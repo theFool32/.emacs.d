@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Jun  2 15:17:37 2021 (+0800)
+;; Last-Updated: Thu Jun  3 01:45:43 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -68,6 +68,14 @@
   :init
   (setq wgrep-auto-save-buffer t
         wgrep-change-readonly-file t))
+
+;; ColorRGPac
+(use-package color-rg
+  :straight (:host github :repo "manateelazycat/color-rg")
+  :if *rg*
+  :bind ("C-M-s" . color-rg-search-input))
+;; -ColorRGPac
+
 
 (provide 'init-search)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

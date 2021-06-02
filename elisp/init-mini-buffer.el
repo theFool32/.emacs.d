@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 106
+;;     Update #: 121
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -64,6 +64,57 @@
   (use-package selectrum
     :config
     (selectrum-mode +1)
+    (global-set-key (kbd "C-c C-r") #'selectrum-repeat)
+
+    (autoload 'ffap-file-at-point "ffap")
+    (add-hook 'completion-at-point-functions
+              (defun complete-path-at-point+ ()
+                (let ((fn (ffap-file-at-point))
+                      (fap (thing-at-point 'filename)))
+                  (when (and (or fn
+                                 (equal "/" fap))
+                             (save-excursion
+                               (search-backward fap (line-beginning-position) t)))
+                    (list (match-beginning 0)
+                          (match-end 0)
+                          #'completion-file-name-table)))) 'append)
+    (defun selectrum-fido-backward-updir ()
+      "Delete char before or go up directory, like `ido-mode'."
+      (interactive)
+      (if (and (eq (char-before) ?/)
+               (eq (selectrum--get-meta 'category) 'file))
+          (save-excursion
+            (goto-char (1- (point)))
+            (when (search-backward "/" (point-min) t)
+              (delete-region (1+ (point)) (point-max))))
+        (call-interactively 'backward-delete-char)))
+
+    (defun selectrum-fido-delete-char ()
+      "Delete char or maybe call `dired', like `ido-mode'."
+      (interactive)
+      (let ((end (point-max)))
+        (if (or (< (point) end) (not (eq (selectrum--get-meta 'category) 'file)))
+            (call-interactively 'delete-char)
+          (dired (file-name-directory (minibuffer-contents)))
+          (exit-minibuffer))))
+
+    (defun selectrum-fido-ret ()
+      "Exit minibuffer or enter directory, like `ido-mode'."
+      (interactive)
+      (let* ((dir (and (eq (selectrum--get-meta 'category) 'file)
+                       (file-name-directory (minibuffer-contents))))
+             (current (selectrum-get-current-candidate))
+             (probe (and dir current
+                         (expand-file-name (directory-file-name current) dir))))
+        (cond ((and probe (file-directory-p probe) (not (string= current "./")))
+               (selectrum-insert-current-candidate))
+              (t
+               (selectrum-select-current-candidate)))))
+
+
+    (define-key selectrum-minibuffer-map (kbd "RET") 'selectrum-fido-ret)
+    (define-key selectrum-minibuffer-map (kbd "DEL") 'selectrum-fido-backward-updir)
+    (define-key selectrum-minibuffer-map (kbd "C-d") 'selectrum-fido-delete-char)
     )
   ))
 
@@ -73,48 +124,10 @@
   :bind (
          ([remap recentf-open-files] . consult-recent-file)
          ([remap imenu] . consult-imenu)
-         ("C-x r x" . consult-register)
-         ("C-x r b" . consult-bookmark)
-         ("C-c k" . consult-kmacro)
-         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complet-command
-         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-         ("C-x 5 b" . consult-buffer-other-frame)
-         ("M-#" . consult-register-load)
-         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-M-#" . consult-register)
+         ([remap switch-to-buffer] . consult-buffer)
          ("M-g o" . consult-outline)
          ("M-g h" . consult-org-heading)
          ("M-g a" . consult-org-agenda)
-         ("M-g m" . consult-mark)
-         ("C-x b" . consult-buffer)
-         ("<help> a" . consult-apropos)            ;; orig. apropos-command
-         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-         ("M-g o" . consult-outline)
-         ("M-g m" . consult-mark)
-         ("M-g k" . consult-global-mark)
-         ("M-g i" . consult-imenu)
-         ("M-g I" . consult-project-imenu)
-         ("M-g e" . consult-error)
-         ;; M-s bindings (search-map)
-         ("M-s f" . consult-find)
-         ("M-s L" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
-         ("M-s l" . consult-line)
-         ("M-s m" . consult-multi-occur)
-         ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines)
-         ;; Isearch integration
-         ("M-s e" . consult-isearch)
-         ("M-g l" . consult-line)
-         ("M-s m" . consult-multi-occur)
-         ("C-x c o" . consult-multi-occur)
-         ("C-x c SPC" . consult-mark)
-         :map isearch-mode-map
-         ("M-e" . consult-isearch)                 ;; orig. isearch-edit-string
-         ("M-s e" . consult-isearch)               ;; orig. isearch-edit-string
-         ("M-s l" . consult-line)
          )
   :init
   (setq register-preview-delay 0
@@ -122,23 +135,136 @@
   :config
   (setq consult-preview-key nil)
   (setq consult-project-root-function #'projectile-project-root)
-  (setq consult-narrow-key "<"))
+  (setq consult-narrow-key "<")
+  (setq consult-async-input-debounce 0)
+  (setq consult-async-input-throttle 0)
+
+  (autoload 'projectile-project-root "projectile")
+  (setq consult-project-root-function #'projectile-project-root)
+  (setq consult-preview-key nil)
+  (setq consult-narrow-key "<")
+  (setq xref-show-xrefs-function #'consult-xref
+        xref-show-definitions-function #'consult-xref)
+  (setq consult-find-command "fd --color=never --full-path ARG OPTS")
+
+  (defun consult-line-symbol-at-point ()
+    (interactive)
+    (consult-line (thing-at-point 'symbol)))
+
+  (defcustom noct-consult-ripgrep-or-line-limit 300000
+    "Buffer size threshold for `noct-consult-ripgrep-or-line'.
+When the number of characters in a buffer exceeds this threshold,
+`consult-ripgrep' will be used instead of `consult-line'."
+    :type 'integer)
+
+  (defun noct-consult-ripgrep-or-line ()
+    "Call `consult-line' for small buffers or `consult-ripgrep' for large files."
+    (interactive)
+    (if (or (not buffer-file-name)
+            (buffer-narrowed-p)
+            (ignore-errors
+              (file-remote-p buffer-file-name))
+            (jka-compr-get-compression-info buffer-file-name)
+            (<= (buffer-size)
+                (/ noct-consult-ripgrep-or-line-limit
+                   (if (eq major-mode 'org-mode) 4 1))))
+        (consult-line)
+      (when (file-writable-p buffer-file-name)
+        (save-buffer))
+      (let ((consult-ripgrep-command
+             (concat "rg "
+                     "--null "
+                     "--line-buffered "
+                     "--color=ansi "
+                     "--max-columns=250 "
+                     "--no-heading "
+                     "--line-number "
+                     ;; adding these to default
+                     "--smart-case "
+                     "--hidden "
+                     "--max-columns-preview "
+                     ;; add back filename to get parsing to work
+                     "--with-filename "
+                     ;; defaults
+                     "-e ARG OPTS "
+                     (shell-quote-argument buffer-file-name))))
+        (consult-ripgrep))))
+
+  (autoload 'org-buffer-list "org")
+  (defvar org-buffer-source
+    `(:name     "Org"
+                :narrow   ?o
+                :category buffer
+                :state    ,#'consult--buffer-state
+                :hidden   t
+                :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
+  (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
+
+
+  (projectile-load-known-projects)
+  (setq my/consult-source-projectile-projects
+        `(:name "Projectile projects"
+                :narrow   ?P
+                :category project
+                :action   ,#'projectile-switch-project-by-name
+                :items    ,projectile-known-projects))
+  (add-to-list 'consult-buffer-sources my/consult-source-projectile-projects 'append)
+
+  ;; Configure initial narrowing per command
+  (defvar consult-initial-narrow-config
+    '((consult-buffer . ?b)))
+
+  ;; Add initial narrowing hook
+  (defun consult-initial-narrow ()
+    (when-let (key (alist-get this-command consult-initial-narrow-config))
+      (setq unread-command-events (append unread-command-events (list key 32)))))
+  (add-hook 'minibuffer-setup-hook #'consult-initial-narrow)
+
+  )
 
 (use-package consult-projectile
   :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
 
-
 (use-package orderless
   :custom (completion-styles '(orderless))
+  :demand t
   :config
   (savehist-mode)
   (setq orderless-skip-highlighting (lambda () selectrum-is-active))
   (setq selectrum-refine-candidates-function #'orderless-filter)
   (setq selectrum-highlight-candidates-function #'orderless-highlight-matches)
+  (defun dm/orderless-dispatch (pattern _index _total)
+    (cond
+     ;; Ensure that $ works with Consult commands, which add disambiguation suffixes
+     ((string-suffix-p "$" pattern) `(orderless-regexp . ,(concat (substring pattern 0 -1) "[\x100000-\x10FFFD]*$")))
+     ;; File extensions
+     ((string-match-p "\\`\\.." pattern) `(orderless-regexp . ,(concat "\\." (substring pattern 1) "[\x100000-\x10FFFD]*$")))
+     ;; Ignore single !
+     ((string= "!" pattern) `(orderless-literal . ""))
+     ;; Without literal
+     ((string-prefix-p "!" pattern) `(orderless-without-literal . ,(substring pattern 1)))
+     ((string-suffix-p "!" pattern) `(orderless-without-literal . ,(substring pattern 0 -1)))
+     ;; Initialism matching
+     ((string-prefix-p "`" pattern) `(orderless-initialism . ,(substring pattern 1)))
+     ((string-suffix-p "`" pattern) `(orderless-initialism . ,(substring pattern 0 -1)))
+     ;; Literal matching
+     ((string-prefix-p "=" pattern) `(orderless-literal . ,(substring pattern 1)))
+     ((string-suffix-p "=" pattern) `(orderless-literal . ,(substring pattern 0 -1)))
+     ;; Flex matching
+     ((string-prefix-p "~" pattern) `(orderless-flex . ,(substring pattern 1)))
+     ((string-suffix-p "~" pattern) `(orderless-flex . ,(substring pattern 0 -1)))))
+  (setq completion-styles '(orderless)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles . (partial-completion))))
+        orderless-style-dispatchers '(dm/orderless-dispatch))
   )
-;; (use-package embark)
+
 (use-package marginalia
-  :hook (after-init . marginalia-mode))
+  :hook (after-init . marginalia-mode)
+  :config
+  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light))
+  (advice-add #'marginalia-cycle :after
+              (lambda () (when (bound-and-true-p selectrum-mode) (selectrum-exhibit)))))
 
 
 (use-package mini-frame
