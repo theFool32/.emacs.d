@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri May  7 10:49:44 2021 (+0800)
+;; Last-Updated: Wed Jun  2 15:17:37 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -41,9 +41,13 @@
   (require 'init-global-config)
   (require 'init-const))
 
- (use-package exec-path-from-shell
-   :init
-   (exec-path-from-shell-initialize))
+;; https://github.com/purcell/exec-path-from-shell/issues/75
+(defun my-exec-path-from-shell-initialize ()
+     (when (memq window-system '(mac ns x))
+       (exec-path-from-shell-initialize)))
+(use-package exec-path-from-shell
+  :init
+  (add-hook 'after-init-hook 'my-exec-path-from-shell-initialize))
 
 (use-package youdao-dictionary
   :commands youdao-dictionary-play-voice-of-current-word
@@ -64,12 +68,6 @@
   :init
   (setq wgrep-auto-save-buffer t
         wgrep-change-readonly-file t))
-
-(use-package color-rg
-  :straight (:host github :repo "manateelazycat/color-rg" :depth 1)
-  :if *rg*
-  :commands color-rg
-  )
 
 (provide 'init-search)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
