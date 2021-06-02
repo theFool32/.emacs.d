@@ -27,7 +27,7 @@
 
   ;; evil mode
   (general-def 'normal
-    "/" 'swiper
+    "/" 'noct-consult-ripgrep-or-line
     "gd" 'xref-find-definitions
     "gD" 'xref-find-references)
 
@@ -38,10 +38,13 @@
 
   (leader-def
     "" nil
-    "<SPC>" '(counsel-projectile :wk "Project find file")
-    ;; "<SPC>" '(snails :wk "Project find file")
-    "/" '(counsel-rg :wk "Search here")
-    "." '(counsel-find-file :wk "Find file")
+    "<SPC>" '(consult-buffer :wk "All")
+    "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
+    ;; TODO `find-file' not work smoothly
+    ;; 1. "/" for dir
+    ;; 2. "c-w" for up dir
+    ;; 3. can not move up "~"
+    "." '(find-file :wk "Find file")
     ";" '(execute-extended-command :wk "M-x")
     ":" '(pp-eval-expression :wk "Evil expression")
     "x" '(org-capture :wk "Org capture")
@@ -49,22 +52,22 @@
     "b" '(:wk "Buffer")
     "b[" '(previous-buffer :wk "Previous buffer")
     "b]" '(next-buffer :wk "Next buffer")
-    "bb" '(ivy-switch-buffer :wk "Switch buffer")
+    "bb" '(switch-to-buffer :wk "Switch buffer")
     "bk" '(kill-current-buffer :wk "Kill buffer")
     "bK" '(kill-other-buffers :wk "Kill other buffers")
     "bs" '(basic-save-buffer :wk "Save buffer")
     "bS" '(evil-write-all :wk "Save all buffer")
 
     "f" '(:which-key "Files")
-    "ff" '(counsel-find-file :which-key "Find file")
-    "fr" '(counsel-recentf :which-key "Recent file")
+    "ff" '(find-file :which-key "Find file")
+    "fr" '(consult-recent-file :which-key "Recent file")
     "fs" '(save-buffer :which-key "Save file")
     "fd" '(dired :which-key "Find directory")
     "fR" '(rename-file :which-key "Rename file")
     "fc" '(copy-file :which-key "Copy file")
     "fD" '(delete-file :which-key "Delete file")
     "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :which-key "init.el")
-    "fp" '((lambda() (interactive)(counsel-find-file "~/.emacs.d/elisp/")) :which-key ".emacs.d")
+    "fp" '((lambda() (interactive)(counsel-find-file "~/.emacs.d/elisp/")) :which-key ".emacs.d") ;;TODO remove counsel
     "fo" '((lambda() (interactive)(find-file +org-capture-file-gtd)) :which-key "Org files")
 
     "j" '(:wk "Jump")
@@ -72,22 +75,21 @@
     "jl" '(evil-avy-goto-line :wk "Jump to line")
 
     "s" '(:wk "Search")
-    "sb" '(swiper :wk "Search buffer")
-    ;; "sf" '(locate :wk "Locate file")
+    "sb" '(consult-line-symbol-at-point :wk "Search buffer")
     "si" '(imenu :wk "Jump to symbol")
-    "sp" '(counsel-projectile-rg :wk "Search project")
+    "sp" '(consult-ripgrep :wk "Search project")
     "sT" '(load-theme :wk "Load theme")
-    "sd" '(counsel-rg :wk "Search here")
+    "sd" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
+    "sP" '(color-rg-search-project :wk "Color-rg Search project")
+    "sy" '(color-rg-search-symbol-in-project :wk "Color-rg Search symbol")
 
     "c" '(:wk "Code")
     "cD" '(xref-find-references :wk "Jump to implementation")
     "cd" '(lsp-ui-peek-find-definitions :wk "Jump to definition")
     "cf" '(format-all-buffer :wk "Format buffer")
-    "ci" '(color-rg-search-input-in-project :wk "Color-rg search")
     "cr" '(lsp-rename :wk "LSP rename")
     "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
     "co" '(lsp-ui-imenu :wk "Outline")
-    "cJ" '(lsp-ivy-global-workspace-symbol :wk "Jump to Symbol in workspace")
 
     "e" '(:wk "Error")
     "eb" '(flycheck-buffer :wk "Check current buffer")
@@ -130,7 +132,7 @@
 
     "p" '(:wk "Project")
     "pp" '(projectile-switch-project :wk "Switch project")
-    "pf" '(counsel-projectile :wk "Find file in project")
+    "pf" '(consult-projectile :wk "Find file in project")
     "pr" '(projectile-recentf :wk "Recent file in project")
     "pt" '(magit-todos-list :wk "List project tasks")
     "pk" '(projectile-kill-buffers :wk "Kill project buffers")

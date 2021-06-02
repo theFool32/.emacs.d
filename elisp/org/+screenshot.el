@@ -47,6 +47,7 @@
       (if (file-exists-p img-dir)
           (print "yes")
         (mkdir img-dir))
+      ;; TODO remvoe `ivy-read`
       (let ((temp-name (ivy-read "please selete a image name"
                                  (delete ".." (delete "." (directory-files img-dir))))))
         (setq filename (concat img-dir "/" (file-name-base temp-name) ".png"))

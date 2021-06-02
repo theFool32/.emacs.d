@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 121
+;;     Update #: 122
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -267,6 +267,7 @@ When the number of characters in a buffer exceeds this threshold,
               (lambda () (when (bound-and-true-p selectrum-mode) (selectrum-exhibit)))))
 
 
+;; TODO mini-frame
 (use-package mini-frame
   :disabled
   :straight (:type git :host github :repo "muffinmad/emacs-mini-frame")
