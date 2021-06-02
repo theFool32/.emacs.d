@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri May  7 11:10:16 2021 (+0800)
+;; Last-Updated: Wed Jun  2 14:54:13 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -186,6 +186,18 @@
                '(gfm-mode all-the-icons-octicon "markdown" :face all-the-icons-lblue)))
 
 ;; -ATIPac
+
+(setq initial-scratch-message "
+;;              ▀████▀▄▄              ▄█
+;;                █▀    ▀▀▄▄▄▄▄    ▄▄▀▀█
+;;        ▄        █          ▀▀▀▀▄  ▄▀
+;;       ▄▀ ▀▄      ▀▄              ▀▄▀
+;;      ▄▀    █     █▀   ▄█▀▄      ▄█
+;;      ▀▄     ▀▄  █     ▀██▀     ██▄█
+;;       ▀▄    ▄▀ █   ▄██▄   ▄  ▄  ▀▀ █
+;;        █  ▄▀  █    ▀██▀    ▀▀ ▀▀  ▄▀
+;;       █   █  █      ▄▄           ▄▀
+")
 
 (provide 'init-ui-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
