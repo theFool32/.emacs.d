@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 34
+;;     Update #: 35
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -52,7 +52,7 @@
 (defvar org-base-dir "/Users/lijie/Dropbox/org-notes/")
 (setq default-directory "/Users/lijie/")
 
-(defvar my-mini-buffer-completion "selectrum"  ;; not used currently since selectrum is not usable
+(defvar my-mini-buffer-completion "selectrum"
   "vertico or selectrum")
 
 (unless (featurep 'native-compile)
