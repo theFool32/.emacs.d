@@ -38,12 +38,8 @@
 
   (leader-def
     "" nil
-    "<SPC>" '(consult-buffer :wk "All")
+    "<SPC>" '(consult-projectile :wk "Projectile")
     "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
-    ;; TODO `find-file' not work smoothly
-    ;; 1. "/" for dir
-    ;; 2. "c-w" for up dir
-    ;; 3. can not move up "~"
     "." '(find-file :wk "Find file")
     ";" '(execute-extended-command :wk "M-x")
     ":" '(pp-eval-expression :wk "Evil expression")
@@ -67,7 +63,7 @@
     "fc" '(copy-file :which-key "Copy file")
     "fD" '(delete-file :which-key "Delete file")
     "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :which-key "init.el")
-    "fp" '((lambda() (interactive)(counsel-find-file "~/.emacs.d/elisp/")) :which-key ".emacs.d") ;;TODO remove counsel
+    "fp" '((lambda() (interactive)(find-file (read-file-name ".emacs.d: " "~/.emacs.d/elisp/"))) :which-key ".emacs.d")
     "fo" '((lambda() (interactive)(find-file +org-capture-file-gtd)) :which-key "Org files")
 
     "j" '(:wk "Jump")

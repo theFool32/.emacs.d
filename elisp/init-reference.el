@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 253
+;;     Update #: 254
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -96,7 +96,8 @@
   :init
   (defun ebib-swiper ()
     (interactive)
-    (progn (swiper) (ebib--update-entry-buffer)))
+    (progn (consult-line) (ebib--update-entry-buffer))
+    )
   (defun insert-to-bib ()
     (interactive)
     (progn

@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 122
+;;     Update #: 161
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -98,23 +98,29 @@
           (dired (file-name-directory (minibuffer-contents)))
           (exit-minibuffer))))
 
-    (defun selectrum-fido-ret ()
-      "Exit minibuffer or enter directory, like `ido-mode'."
+    (defun selectrum-fido-enter-dir ()
       (interactive)
-      (let* ((dir (and (eq (selectrum--get-meta 'category) 'file)
-                       (file-name-directory (minibuffer-contents))))
-             (current (selectrum-get-current-candidate))
-             (probe (and dir current
-                         (expand-file-name (directory-file-name current) dir))))
-        (cond ((and probe (file-directory-p probe) (not (string= current "./")))
-               (selectrum-insert-current-candidate))
-              (t
-               (selectrum-select-current-candidate)))))
+      (let ((candidate (selectrum-get-current-candidate)))
+        (if (and (eq (selectrum--get-meta 'category) 'file)
+                 (file-directory-p candidate)
+                 (not (string-equal candidate "~/")))
+            (selectrum-insert-current-candidate)
+          (insert "/"))))
+
+    (defun selectrum-fido-do-backward-updir ()
+      (interactive)
+      (if (and (eq (char-before) ?/)
+               (eq (selectrum--get-meta 'category) 'file))
+          (save-excursion
+            (goto-char (1- (point)))
+            (when (search-backward "/" (point-min) t)
+              (delete-region (1+ (point)) (point-max))))))
 
 
-    (define-key selectrum-minibuffer-map (kbd "RET") 'selectrum-fido-ret)
     (define-key selectrum-minibuffer-map (kbd "DEL") 'selectrum-fido-backward-updir)
+    (define-key selectrum-minibuffer-map (kbd "/") 'selectrum-fido-enter-dir)
     (define-key selectrum-minibuffer-map (kbd "C-d") 'selectrum-fido-delete-char)
+    (define-key selectrum-minibuffer-map (kbd "C-w") 'selectrum-fido-do-backward-updir)
     )
   ))
 
@@ -138,6 +144,7 @@
   (setq consult-narrow-key "<")
   (setq consult-async-input-debounce 0)
   (setq consult-async-input-throttle 0)
+  (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer))
 
   (autoload 'projectile-project-root "projectile")
   (setq consult-project-root-function #'projectile-project-root)
@@ -208,23 +215,24 @@ When the number of characters in a buffer exceeds this threshold,
                 :category project
                 :action   ,#'projectile-switch-project-by-name
                 :items    ,projectile-known-projects))
-  (add-to-list 'consult-buffer-sources my/consult-source-projectile-projects 'append)
+  ;; (add-to-list 'consult-buffer-sources my/consult-source-projectile-projects 'append)
 
   ;; Configure initial narrowing per command
-  (defvar consult-initial-narrow-config
-    '((consult-buffer . ?b)))
+  ;; (defvar consult-initial-narrow-config
+  ;;   '((consult-buffer . ?b)))
 
   ;; Add initial narrowing hook
-  (defun consult-initial-narrow ()
-    (when-let (key (alist-get this-command consult-initial-narrow-config))
-      (setq unread-command-events (append unread-command-events (list key 32)))))
-  (add-hook 'minibuffer-setup-hook #'consult-initial-narrow)
+  ;; (defun consult-initial-narrow ()
+  ;;   (when-let (key (alist-get this-command consult-initial-narrow-config))
+  ;;     (setq unread-command-events (append unread-command-events (list key 32)))))
+  ;; (add-hook 'minibuffer-setup-hook #'consult-initial-narrow)
 
   )
 
 (use-package consult-projectile
   :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
 
+;; TODO: not work for something like `foo foor`
 (use-package orderless
   :custom (completion-styles '(orderless))
   :demand t
@@ -238,7 +246,7 @@ When the number of characters in a buffer exceeds this threshold,
      ;; Ensure that $ works with Consult commands, which add disambiguation suffixes
      ((string-suffix-p "$" pattern) `(orderless-regexp . ,(concat (substring pattern 0 -1) "[\x100000-\x10FFFD]*$")))
      ;; File extensions
-     ((string-match-p "\\`\\.." pattern) `(orderless-regexp . ,(concat "\\." (substring pattern 1) "[\x100000-\x10FFFD]*$")))
+     ;; ((string-match-p "\\`\\.." pattern) `(orderless-regexp . ,(concat "\\." (substring pattern 1) "[\x100000-\x10FFFD]*$")))
      ;; Ignore single !
      ((string= "!" pattern) `(orderless-literal . ""))
      ;; Without literal
@@ -256,8 +264,7 @@ When the number of characters in a buffer exceeds this threshold,
   (setq completion-styles '(orderless)
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (partial-completion))))
-        orderless-style-dispatchers '(dm/orderless-dispatch))
-  )
+        orderless-style-dispatchers '(dm/orderless-dispatch)))
 
 (use-package marginalia
   :hook (after-init . marginalia-mode)
@@ -266,34 +273,32 @@ When the number of characters in a buffer exceeds this threshold,
   (advice-add #'marginalia-cycle :after
               (lambda () (when (bound-and-true-p selectrum-mode) (selectrum-exhibit)))))
 
-
-;; TODO mini-frame
 (use-package mini-frame
-  :disabled
   :straight (:type git :host github :repo "muffinmad/emacs-mini-frame")
   :hook (after-init . mini-frame-mode)
   :commands (mini-frame-mode)
-  :custom
-  (mini-frame-show-parameters `((left . 0.5)
-                                (top . ,(/ (frame-pixel-height) 2))
-                                (background-mode 'dark)
-                                (foreground-color . "#bbc2cf")
-                                (background-color . "#242730")
-                                (min-width . 80)
-                                (min-height . ,(if (member this-command
-                                                           '(swiper
-                                                             swiper-backward swiper-all
-                                                             swiper-isearch swiper-isearch-backward
-                                                             counsel-grep-or-swiper counsel-grep-or-swiper-backward))
-                                                   16
-                                                 0))
-                                (width . 0.8)
-                                ))
-
-
-  (mini-frame-advice-functions '(read-from-minibuffer
-                                 read-string
-                                 completing-read))
+  :config
+  (setq resize-mini-frames t)
+  (setq mini-frame-show-parameters `((left . 0.5)
+                                     (top . ,(/ (frame-pixel-height) 2))
+                                     (background-mode 'dark)
+                                     (foreground-color . "#bbc2cf")
+                                     (background-color . "#242730")
+                                     (min-width . 80)
+                                     (min-height . ,(if (member this-command
+                                                                '(swiper
+                                                                  swiper-backward swiper-all
+                                                                  swiper-isearch swiper-isearch-backward
+                                                                  counsel-grep-or-swiper counsel-grep-or-swiper-backward))
+                                                        16
+                                                      0))
+                                     (width . 0.8)))
+  (when (and (not noninteractive) (require 'mini-frame nil t)) ;batch 模式下miniframe 有问题
+    (add-to-list 'mini-frame-ignore-functions 'y-or-n-p)
+    (add-to-list 'mini-frame-ignore-functions 'yes-or-no-p)
+    (add-to-list 'mini-frame-ignore-commands 'evil-ex)
+    (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-forward)
+    (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-backward))
   )
 
 (provide 'init-mini-buffer)

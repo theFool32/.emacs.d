@@ -181,6 +181,9 @@ Examples:
     )
   )
 ;; -ComPac
+(use-package company-prescient
+  :init (company-prescient-mode 1))
+
 
 (use-package company-box
   :after company
