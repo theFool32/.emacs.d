@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun  3 02:03:45 2021 (+0800)
+;; Last-Updated: Thu Jun  3 22:00:56 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -91,7 +91,7 @@
   (+org-init-capture-defaults-h)
 
   ;; org screenshot for macos
-  (require 'org/+screenshot)
+  ;; (require 'org/+screenshot)
 
   (setq org-log-into-drawer "LOGBOOK")
   (setq org-agenda-files (list +org-capture-file-gtd
@@ -286,9 +286,28 @@
     "pd" 'org-priority-down
     "pp" 'org-priority
     "pu" 'org-priority-up
+
+    "x" '(:wk "Download")
+    "xc" 'org-download-clipboard
+    "xd" 'org-download-delete
+    "xi" 'org-download-image
+    "xy" 'org-download-yank
+    "xe" 'org-download-edit
+    "xr" 'org-download-rename-at-point
+    "xR" 'org-download-rename-last-file
+    "xs" 'org-download-screenshot
     )
   )
 ;; -OrgPac
+
+(use-package org-download
+  :after org
+  :custom
+  (org-download-image-dir "img/")
+  (org-download-heading-lvl nil)
+  :config
+  (cond (*sys/mac*
+          (setq org-download-screenshot-method "screencapture -i %s"))))
 
 (provide 'init-org)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
