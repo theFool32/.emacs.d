@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun  3 23:59:10 2021 (+0800)
+;; Last-Updated: Fri Jun  4 00:41:23 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -108,7 +108,7 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
   (interactive)
   (rename-file
    (read-file-name "Move from: " default-directory buffer-file-name)
-   (read-file-name "Move to:" default-directory)))
+   (read-file-name "Move to:" default-directory))) ;; TODO: auto kill old buffer
 
 (defun my-copy-file()
   (interactive)
@@ -119,7 +119,9 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
 (defun my-delete-file()
   (interactive)
   (delete-file
-   (read-file-name "Delete: " default-directory buffer-file-name)))
+   (read-file-name "Delete: " default-directory buffer-file-name))
+  (unless (file-exists-p (buffer-file-name))
+    (kill-current-buffer)))
 
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
