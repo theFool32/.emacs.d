@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 161
+;;     Update #: 162
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -300,6 +300,15 @@ When the number of characters in a buffer exceeds this threshold,
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-forward)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-backward))
   )
+
+(use-package affe
+  :straight (:host github :repo "minad/affe")
+  :after orderless
+  :config
+  ;; Configure Orderless
+  (setq affe-regexp-function #'orderless-pattern-compiler
+        affe-highlight-function #'orderless-highlight-matches
+        affe-find-command "fd --color=never --full-path"))
 
 (provide 'init-mini-buffer)
 

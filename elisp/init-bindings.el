@@ -39,7 +39,7 @@
   (leader-def
     "" nil
     "<SPC>" '(consult-projectile :wk "Projectile")
-    "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
+    "/" '((lambda() (interactive) (affe-grep default-directory)) :wk "Search here")
     "." '(find-file :wk "Find file")
     ";" '(execute-extended-command :wk "M-x")
     ":" '(pp-eval-expression :wk "Evil expression")
@@ -73,9 +73,9 @@
     "s" '(:wk "Search")
     "sb" '(consult-line-symbol-at-point :wk "Search buffer")
     "si" '(imenu :wk "Jump to symbol")
-    "sp" '(consult-ripgrep :wk "Search project")
+    "sp" '(affe-grep :wk "Search project")
     "sT" '(load-theme :wk "Load theme")
-    "sd" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
+    "sd" '((lambda() (interactive) (affe-grep default-directory)) :wk "Search here")
     "sP" '(color-rg-search-project :wk "Color-rg Search project")
     "sy" '(color-rg-search-symbol-in-project :wk "Color-rg Search symbol")
 
