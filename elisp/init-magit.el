@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun  3 02:26:37 2021 (+0800)
+;; Last-Updated: Fri Jun  4 00:18:03 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit
@@ -189,7 +189,8 @@ window that already exists in that direction. It will split otherwise."
          (candidates (mapcar (lambda (cell)
                                (cons (format "%s — %s" (cdr cell) (car cell)) (concat (cdr cell) " ")))
                              choices)))
-    (insert (cdr (assoc (completing-read "Choose a gitmoji " candidates) candidates)))))
+    (insert (cdr (assoc (completing-read "Choose a gitmoji " candidates) candidates)))
+    (evil-insert-state)))
 
 (use-package magit-todos
   :after magit)

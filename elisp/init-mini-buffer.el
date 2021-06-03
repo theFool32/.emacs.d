@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 189
+;;     Update #: 191
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -157,8 +157,8 @@
   (defun my-consult-set-evil-search-pattern (&optional condition)
     (let ((re
            (cond
-            ((string-equal condition "rg") (substring (car consult--grep-history) 1)) ;; HACK: assume the history begins with `#'
-            ((or t (string-equal condition "line")) (car consult--line-history))
+            ((eq condition 'rg) (substring (car consult--grep-history) 1)) ;; HACK: assume the history begins with `#'
+            ((or t (eq condition 'line)) (car consult--line-history))
            )))
       (add-to-history 'evil-ex-search-history re)
       (setq evil-ex-search-pattern (list re t t))
@@ -208,7 +208,7 @@ When the number of characters in a buffer exceeds this threshold,
                      "-e ARG OPTS "
                      (shell-quote-argument buffer-file-name))))
         (consult-ripgrep)
-        (my-consult-set-evil-search-pattern "rg"))))
+        (my-consult-set-evil-search-pattern 'rg))))
 
   (autoload 'org-buffer-list "org")
   (defvar org-buffer-source

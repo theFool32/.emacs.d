@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May  2 14:21:59 2021 (+0800)
+;; Last-Updated: Thu Jun  3 23:59:10 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -102,6 +102,24 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
           (random (expt 16 4))
           (random (expt 16 6))
           (random (expt 16 6)) ) )
+
+
+(defun my-rename-file()
+  (interactive)
+  (rename-file
+   (read-file-name "Move from: " default-directory buffer-file-name)
+   (read-file-name "Move to:" default-directory)))
+
+(defun my-copy-file()
+  (interactive)
+  (copy-file
+   (read-file-name "Copy from: " default-directory buffer-file-name)
+   (read-file-name "Copy to:" default-directory)))
+
+(defun my-delete-file()
+  (interactive)
+  (delete-file
+   (read-file-name "Delete: " default-directory buffer-file-name)))
 
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
