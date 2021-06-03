@@ -71,7 +71,7 @@
     "jl" '(evil-avy-goto-line :wk "Jump to line")
 
     "s" '(:wk "Search")
-    "sb" '(consult-line-symbol-at-point :wk "Search buffer")
+    "sb" '(my-consult-line-symbol-at-point :wk "Search buffer")
     "si" '(imenu :wk "Jump to symbol")
     "sp" '(affe-grep :wk "Search project")
     "sT" '(load-theme :wk "Load theme")

@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 162
+;;     Update #: 189
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -154,9 +154,20 @@
         xref-show-definitions-function #'consult-xref)
   (setq consult-find-command "fd --color=never --full-path ARG OPTS")
 
-  (defun consult-line-symbol-at-point ()
+  (defun my-consult-set-evil-search-pattern (&optional condition)
+    (let ((re
+           (cond
+            ((string-equal condition "rg") (substring (car consult--grep-history) 1)) ;; HACK: assume the history begins with `#'
+            ((or t (string-equal condition "line")) (car consult--line-history))
+           )))
+      (add-to-history 'evil-ex-search-history re)
+      (setq evil-ex-search-pattern (list re t t))
+      (setq evil-ex-search-direction 'forward)))
+
+  (defun my-consult-line-symbol-at-point ()
     (interactive)
-    (consult-line (thing-at-point 'symbol)))
+    (consult-line (thing-at-point 'symbol))
+    (my-consult-set-evil-search-pattern))
 
   (defcustom noct-consult-ripgrep-or-line-limit 300000
     "Buffer size threshold for `noct-consult-ripgrep-or-line'.
@@ -175,7 +186,8 @@ When the number of characters in a buffer exceeds this threshold,
             (<= (buffer-size)
                 (/ noct-consult-ripgrep-or-line-limit
                    (if (eq major-mode 'org-mode) 4 1))))
-        (consult-line)
+        (progn (consult-line)
+               (my-consult-set-evil-search-pattern))
       (when (file-writable-p buffer-file-name)
         (save-buffer))
       (let ((consult-ripgrep-command
@@ -195,7 +207,8 @@ When the number of characters in a buffer exceeds this threshold,
                      ;; defaults
                      "-e ARG OPTS "
                      (shell-quote-argument buffer-file-name))))
-        (consult-ripgrep))))
+        (consult-ripgrep)
+        (my-consult-set-evil-search-pattern "rg"))))
 
   (autoload 'org-buffer-list "org")
   (defvar org-buffer-source
@@ -279,6 +292,7 @@ When the number of characters in a buffer exceeds this threshold,
   :commands (mini-frame-mode)
   :config
   (setq resize-mini-frames t)
+  (setq mini-frame-create-lazy nil)
   (setq mini-frame-show-parameters `((left . 0.5)
                                      (top . ,(/ (frame-pixel-height) 2))
                                      (background-mode 'dark)
