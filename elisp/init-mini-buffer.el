@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 225
+;;     Update #: 226
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -65,7 +65,7 @@
     :config
     (selectrum-mode +1)
     (global-set-key (kbd "C-c C-r") #'selectrum-repeat)
-    (setq selectrum-should-sort nil)
+    ;; (setq selectrum-should-sort nil)
 
     (autoload 'ffap-file-at-point "ffap")
     (add-hook 'completion-at-point-functions

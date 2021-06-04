@@ -37,6 +37,8 @@
     "C-e" 'end-of-line)
 
   (general-def "<escape>" 'keyboard-quit)
+  (general-def "C-h v" '(lambda() (interactive) (let ((selectrum-should-sort nil)) (call-interactively 'describe-variable) (setq selectrum-should-sort t))))
+  (general-def "C-h f" '(lambda() (interactive) (let ((selectrum-should-sort nil)) (call-interactively 'describe-function) (setq selectrum-should-sort t))))
 
   (leader-def
     "" nil
