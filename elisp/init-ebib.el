@@ -1,7 +1,7 @@
-;;; init-reference.el ---
+;;; init-ebib.el ---
 
 ;;
-;; Filename: init-reference.el
+;; Filename: init-ebib.el
 ;; Description:  for bib reference
 ;; Author: theFool32
 ;; Maintainer:
@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 254
+;;     Update #: 257
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -141,6 +141,6 @@
   (org-link-set-parameters "ebib" :follow #'org-ebib-open :store #'org-ebib-store-link)
   )
 
-(provide 'init-reference)
+(provide 'init-ebib)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-reference.el ends here
+;;; init-ebib ends here

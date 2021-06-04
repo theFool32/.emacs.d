@@ -36,6 +36,8 @@
     "C-a" 'beginning-of-line
     "C-e" 'end-of-line)
 
+  (general-def "<escape>" 'keyboard-quit)
+
   (leader-def
     "" nil
     "<SPC>" '(execute-extended-command :wk "M-x")
