@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 192
+;;     Update #: 201
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -160,7 +160,7 @@
            (cond
             ((eq condition 'rg) (substring (car consult--grep-history) 1)) ;; HACK: assume the history begins with `#'
             ((or t (eq condition 'line)) (car consult--line-history))
-           )))
+            )))
       (add-to-history 'evil-ex-search-history re)
       (setq evil-ex-search-pattern (list re t t))
       (setq evil-ex-search-direction 'forward)))
@@ -246,39 +246,36 @@ When the number of characters in a buffer exceeds this threshold,
 (use-package consult-projectile
   :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
 
+
+;; Completion styles
+(setq completion-styles '(basic partial-completion substring initials flex))
 ;; TODO: not work for something like `foo foor`
 (use-package orderless
-  :custom (completion-styles '(orderless))
   :demand t
   :config
   (savehist-mode)
   (setq orderless-skip-highlighting (lambda () selectrum-is-active))
   (setq selectrum-refine-candidates-function #'orderless-filter)
   (setq selectrum-highlight-candidates-function #'orderless-highlight-matches)
-  (defun dm/orderless-dispatch (pattern _index _total)
-    (cond
-     ;; Ensure that $ works with Consult commands, which add disambiguation suffixes
-     ((string-suffix-p "$" pattern) `(orderless-regexp . ,(concat (substring pattern 0 -1) "[\x100000-\x10FFFD]*$")))
-     ;; File extensions
-     ;; ((string-match-p "\\`\\.." pattern) `(orderless-regexp . ,(concat "\\." (substring pattern 1) "[\x100000-\x10FFFD]*$")))
-     ;; Ignore single !
-     ((string= "!" pattern) `(orderless-literal . ""))
-     ;; Without literal
-     ((string-prefix-p "!" pattern) `(orderless-without-literal . ,(substring pattern 1)))
-     ((string-suffix-p "!" pattern) `(orderless-without-literal . ,(substring pattern 0 -1)))
-     ;; Initialism matching
-     ((string-prefix-p "`" pattern) `(orderless-initialism . ,(substring pattern 1)))
-     ((string-suffix-p "`" pattern) `(orderless-initialism . ,(substring pattern 0 -1)))
-     ;; Literal matching
-     ((string-prefix-p "=" pattern) `(orderless-literal . ,(substring pattern 1)))
-     ((string-suffix-p "=" pattern) `(orderless-literal . ,(substring pattern 0 -1)))
-     ;; Flex matching
-     ((string-prefix-p "~" pattern) `(orderless-flex . ,(substring pattern 1)))
-     ((string-suffix-p "~" pattern) `(orderless-flex . ,(substring pattern 0 -1)))))
-  (setq completion-styles '(orderless)
+
+  (setq orderless-matching-styles '(orderless-regexp orderless-literal orderless-initialism ))
+  (defun without-if-$! (pattern _index _total)
+    (when (or (string-prefix-p "$" pattern) ;如果以! 或$ 开头，则表示否定，即不包含此关键字
+              (string-prefix-p "!" pattern))
+      `(orderless-without-literal . ,(substring pattern 1))))
+  (defun flex-if-comma (pattern _index _total) ;如果以逗号结尾，则以flex 算法匹配此组件
+    (when (string-suffix-p "," pattern)
+      `(orderless-flex . ,(substring pattern 0 -1))))
+  (defun literal-if-= (pattern _index _total) ;如果以=结尾，则以literal  算法匹配此关键字
+    (when (or (string-suffix-p "=" pattern)
+              (string-suffix-p "-" pattern)
+              (string-suffix-p ";" pattern))
+      `(orderless-literal . ,(substring pattern 0 -1))))
+  (setq orderless-style-dispatchers '(literal-if-= flex-if-comma without-if-$!))
+
+  (setq completion-styles (cons 'orderless completion-styles)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles . (partial-completion))))
-        orderless-style-dispatchers '(dm/orderless-dispatch)))
+        completion-category-overrides '((file (styles . (partial-completion))))))
 
 (use-package marginalia
   :hook (after-init . marginalia-mode)
