@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:53:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri May  7 10:52:34 2021 (+0800)
+;; Last-Updated: Fri Jun  4 16:07:56 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d packages use-package
@@ -101,8 +101,11 @@
 (use-package diminish)
 ;; -DimPac
 
+;; TODO: should we use two package managers?
 ;; Straight
 (defvar bootstrap-version)
+(setq straight--process-log nil)
+(setq straight-vc-git-default-clone-depth 1)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
       (bootstrap-version 5))
