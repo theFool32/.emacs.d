@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 201
+;;     Update #: 225
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -296,19 +296,19 @@ When the number of characters in a buffer exceeds this threshold,
                                      (background-mode 'dark)
                                      (foreground-color . "#bbc2cf")
                                      (background-color . "#242730")
+                                     ;; (internal-border-width . 1)
+                                     ;; (child-frame-border-width . 1)
                                      (min-width . 80)
-                                     (min-height . ,(if (member this-command
-                                                                '(swiper
-                                                                  swiper-backward swiper-all
-                                                                  swiper-isearch swiper-isearch-backward
-                                                                  counsel-grep-or-swiper counsel-grep-or-swiper-backward))
-                                                        16
-                                                      0))
                                      (width . 0.8)))
+
+  ;; (setq mini-frame-internal-border-color "gray50")  ;; FIXME: very slow
+  ;; (set-face-background 'child-frame-border "gray50" mini-frame-frame)
+
   (when (and (not noninteractive) (require 'mini-frame nil t)) ;batch 模式下miniframe 有问题
     (add-to-list 'mini-frame-ignore-functions 'y-or-n-p)
     (add-to-list 'mini-frame-ignore-functions 'yes-or-no-p)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex)
+    (add-to-list 'mini-frame-ignore-commands 'pp-eval-expression)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-forward)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-backward))
   )

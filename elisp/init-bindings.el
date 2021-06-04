@@ -38,11 +38,10 @@
 
   (leader-def
     "" nil
-    "<SPC>" '(consult-projectile :wk "Projectile")
+    "<SPC>" '(execute-extended-command :wk "M-x")
     "/" '((lambda() (interactive) (affe-grep default-directory)) :wk "Search here")
     "." '(find-file :wk "Find file")
-    ";" '(execute-extended-command :wk "M-x")
-    ":" '(pp-eval-expression :wk "Evil expression")
+    ";" '(pp-eval-expression :wk "Evil expression")
     "x" '(org-capture :wk "Org capture")
 
     "b" '(:wk "Buffer")
