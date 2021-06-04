@@ -46,6 +46,7 @@
     "/" '((lambda() (interactive) (affe-grep default-directory)) :wk "Search here")
     "." '(find-file :wk "Find file")
     ";" '(pp-eval-expression :wk "Evil expression")
+    ":" '(org-agenda :wk "Agenda")
     "x" '(org-capture :wk "Org capture")
 
     "b" '(:wk "Buffer")
