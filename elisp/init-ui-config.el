@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Jun  4 11:32:25 2021 (+0800)
+;; Last-Updated: Sat Jun  5 15:55:54 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -91,6 +91,7 @@
              when (font-installed-p font)
              return (set-fontset-font t '(#x4e00 . #x9fff) font))))
 (my-default-frame-face)
+(set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend)
 (add-hook 'after-make-frame-functions
 	      (lambda (new-frame)
 	        (select-frame new-frame)

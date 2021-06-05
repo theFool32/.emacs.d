@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Jun  4 13:07:55 2021 (+0800)
+;; Last-Updated: Sat Jun  5 16:04:02 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -105,7 +105,7 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
 
 
 (defun my-rename-file()
-  "Rename file while using current file defaultly."
+  "Rename file while using current file as default."
   (interactive)
   (let ((file-from (read-file-name "Move from: " default-directory buffer-file-name))
         (file-to (read-file-name "Move to:" default-directory)))
@@ -118,14 +118,14 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
       (find-file file-to))))
 
 (defun my-copy-file()
-  "Copy file while using current file defaultly."
+  "Copy file while using current file as default."
   (interactive)
   (copy-file
    (read-file-name "Copy from: " default-directory buffer-file-name)
    (read-file-name "Copy to:" default-directory)))
 
 (defun my-delete-file()
-  "Delete file while using current file defaultly."
+  "Delete file while using current file as default."
   (interactive)
   (delete-file
    (read-file-name "Delete: " default-directory buffer-file-name))

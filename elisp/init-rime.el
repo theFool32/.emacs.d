@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 18
+;;     Update #: 40
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -47,10 +47,12 @@
 ;;; Code:
 
 (use-package rime
-  :if (and *sys/gui* *sys/linux*)
+  :init
+  (setq rime-librime-root "~/.emacs.d/librime/dist/"
+        rime-user-data-dir "~/Library/Rime"  ;; FIXME: 无法读到自定义词库
+        default-input-method "rime")
+
   :custom
-  (default-input-method "rime")
-  ;; (evil-input-method "rime")
   (rime-show-candidate 'posframe)
   (rime-posframe-properties (list :font "sarasa ui sc"
                                   :internal-border-width 10))
@@ -62,8 +64,11 @@
      rime-predicate-space-after-cc-p))
 
   :config
-  (toggle-input-method)
-  (toggle-input-method)
+  (unless rime-emacs-module-header-root
+    (setq rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus@28/include"))
+
+  (define-key rime-mode-map (kbd "M-j") 'rime-force-enable)
+  (define-key rime-active-mode-map (kbd "M-j") 'rime-inline-ascii)
   )
 
 (provide 'init-rime)
