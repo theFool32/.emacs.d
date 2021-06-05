@@ -1,0 +1,26 @@
+
+* Emacs for self-use
+
+I use it with emacs@28.
+
+#+begin_src bash
+# install with:
+git clone --depth 1 https://github.com/theFool32/.emacs.d.git .emacs.d
+#+end_src
+
+
+The order of packages is not well designed, you may need to restart emacs more than once to install packages.
+
+Enjoy hacking!
+
+
+** Emacs-rime
+Following [[https://github.com/DogLooksGood/emacs-rime/blob/master/INSTALLATION.org][Installation]] to use `emacs-rime`.
+
+------
+
+** Reference
+- [[https://github.com/seagle0128/.emacs.d][seagle0128/.emacs.d]]
+- [[https://github.com/MatthewZMD/.emacs.d][MatthewZMD/.emacs.d]]
+- [[https://github.com/50ways2sayhard/.emacs.d][50ways2sayhard/.emacs.d]]
+- [[https://github.com/hlissner/doom-emacs][hlissner/doom-emacs]]

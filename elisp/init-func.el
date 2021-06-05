@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Jun  5 16:04:02 2021 (+0800)
+;; Last-Updated: Sat Jun  5 16:41:33 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -110,7 +110,7 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
   (let ((file-from (read-file-name "Move from: " default-directory buffer-file-name))
         (file-to (read-file-name "Move to:" default-directory)))
     (rename-file file-from file-to)
-    (when (string= (file-truename file-from) (buffer-file-name))
+    (when (string= (file-truename file-from) (file-truename (buffer-file-name)))
       ;; (set-visited-file-name file-to)
       ;; (rename-buffer file-to)
       ;; (save-buffer)
