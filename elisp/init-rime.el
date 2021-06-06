@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 40
+;;     Update #: 69
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -49,7 +49,7 @@
 (use-package rime
   :init
   (setq rime-librime-root "~/.emacs.d/librime/dist/"
-        rime-user-data-dir "~/Library/Rime"  ;; FIXME: 无法读到自定义词库
+        rime-user-data-dir "~/Library/Rime"
         default-input-method "rime")
 
   :custom
@@ -69,6 +69,16 @@
 
   (define-key rime-mode-map (kbd "M-j") 'rime-force-enable)
   (define-key rime-active-mode-map (kbd "M-j") 'rime-inline-ascii)
+
+  (defun +rime-sync ()
+    ;; HACK: force emacs-rime to use userdb.
+    ;; I am not sure if it is safe as the deploy may delete the old userdb.
+    (interactive)
+    (when rime--lib-loaded
+      (let ((lock-name (concat rime-user-data-dir "/luna_pinyin.userdb/LOCK")))
+        (when (file-exists-p lock-name)
+          (delete-file lock-name)
+          (rime-deploy)))))
   )
 
 (provide 'init-rime)
