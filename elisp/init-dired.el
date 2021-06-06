@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:37:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu May 27 21:22:29 2021 (+0800)
+;; Last-Updated: Sun Jun  6 14:41:20 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dired auto-save
@@ -112,8 +112,8 @@ Version 2019-11-04"
   "Instead of `save-buffer', save all opened buffers by calling `save-some-buffers' with ARG t."
   (interactive)
   (save-some-buffers t))
-(global-set-key (kbd "C-x C-s") nil)
-(global-set-key (kbd "C-x C-s") #'save-all-buffers)
+(general-def "C-x C-s" nil)
+(general-def "C-x C-s" 'save-all-buffers)
 ;; -SaveAllBuffers
 
 (provide 'init-dired)

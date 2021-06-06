@@ -113,15 +113,14 @@
 
 
 (use-package evil-embrace
-  :commands embrace-add-pair embrace-add-pair-regexp
-  :hook (LaTeX-mode . embrace-LaTeX-mode-hook)
-  :hook (org-mode . embrace-org-mode-hook)
-  :hook (emacs-lisp-mode . embrace-emacs-lisp-mode-hook)
-  :hook ((c++-mode rustic-mode csharp-mode java-mode swift-mode typescript-mode)
-         . +evil-embrace-angle-bracket-modes-hook-h)
   :config
   (require 'evil/+embrace)
-  (setq evil-embrace-show-help-p nil)
+
+  (add-hook 'LaTeX-mode-hook 'embrace-LaTeX-mode-hook)
+  (add-hook 'org-mode-hook 'embrace-org-mode-hook)
+  (add-hook 'emacs-lisp-mode-hook 'embrace-emacs-lisp-mode-hook)
+  (add-hook 'c++-mode-hook '+evil-embrace-angle-bracket-modes-hook-h)
+
 
   (with-eval-after-load 'evil-surround
     (evil-embrace-enable-evil-surround-integration))
@@ -196,10 +195,6 @@
 
 
 (use-package evil-surround
-  :commands (global-evil-surround-mode
-             evil-surround-edit
-             evil-Surround-edit
-             evil-surround-region)
   :config (global-evil-surround-mode 1))
 
 
