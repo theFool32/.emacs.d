@@ -1,37 +1,6 @@
-;;; org/+tables.el --- -*- lexical-binding: t -*-
+;;; lang/org/autoload/org-tables.el -*- lexical-binding: t; -*-
+
 ;;
-;; Filename: +tables.el
-;; Description: tables configuration for org-mode
-;; Author: theFool32
-;; Maintainer:
-;; Copyright (C) 2019 theFool32
-;; Created: Fri Mar  6 19:52:14 2020 (+0800)
-;; Last-Updated:
-;;           By:
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Commentary:
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Code:
 ;;; Row/Column traversal
 
 ;;;###autoload
@@ -77,11 +46,11 @@ re-align the table if necessary. (Necessary because org-mode has a
 
 ;;;###autoload
 (defun +org-realign-table-maybe-h ()
-  "Auto-align table under cursor and re-calculate formulas."
+  "Auto-align table under cursor."
   (when (and (org-at-table-p) org-table-may-need-update)
     (let ((pt (point))
           (inhibit-message t))
-      (org-table-recalculate)
+      ;; (org-table-recalculate)
       (if org-table-may-need-update (org-table-align))
       (goto-char pt))))
 
@@ -93,30 +62,6 @@ Meant for `org-mode-hook'."
     (add-hook 'evil-insert-state-exit-hook #'+org-realign-table-maybe-h nil t)
     (add-hook 'evil-replace-state-exit-hook #'+org-realign-table-maybe-h nil t)
     (advice-add #'evil-replace :after #'+org-realign-table-maybe-a)))
-
-;;;###autoload
-(defun +org-delete-backward-char-and-realign-table-maybe-h ()
-  "Ensure deleting characters with backspace doesn't deform the table cell."
-  (when (eq major-mode 'org-mode)
-    (org-check-before-invisible-edit 'delete-backward)
-    (save-match-data
-      (when (and (org-at-table-p)
-                 (not (org-region-active-p))
-                 (string-match-p "|" (buffer-substring (point-at-bol) (point)))
-                 (looking-at-p ".*?|"))
-        (let ((pos (point))
-              (noalign (looking-at-p "[^|\n\r]*  |"))
-              (c org-table-may-need-update))
-          (delete-char -1)
-          (unless overwrite-mode
-            (skip-chars-forward "^|")
-            (insert " ")
-            (goto-char (1- pos)))
-          ;; noalign: if there were two spaces at the end, this field
-          ;; does not determine the width of the column.
-          (when noalign (setq org-table-may-need-update c)))
-        t))))
-
 
 ;;
 ;;; Advice

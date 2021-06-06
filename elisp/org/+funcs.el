@@ -125,18 +125,6 @@
         (buffer-substring-no-properties (match-beginning 1) (match-end 1))))))
 
 ;;;###autoload
-(defun +org-get-global-property (name &optional file bound)
-  "Get a document property named NAME (string) from an org FILE (defaults to
-current file). Only scans first 2048 bytes of the document."
-  (unless bound
-    (setq bound 256))
-  (if file
-      (with-temp-buffer
-        (insert-file-contents-literally file nil 0 bound)
-        (+org--get-property name))
-    (+org--get-property name bound)))
-
-;;;###autoload
 (defun +org-get-todo-keywords-for (&optional keyword)
   "Returns the list of todo keywords that KEYWORD belongs to."
   (when keyword
@@ -150,23 +138,6 @@ current file). Only scans first 2048 bytes of the document."
              if (eq type 'sequence)
              if (member keyword keywords)
              return keywords)))
-
-
-;;
-;;; Modes
-
-;;;###autoload
-(define-minor-mode +org-pretty-mode
-  "Hides emphasis markers and toggles pretty entities."
-  :init-value nil
-  :lighter " *"
-  :group 'evil-org
-  (setq org-hide-emphasis-markers +org-pretty-mode)
-  (org-toggle-pretty-entities)
-  (with-silent-modifications
-    ;; In case the above un-align tables
-    (org-table-map-tables 'org-table-align t)))
-
 
 ;;
 ;;; Commands
@@ -284,202 +255,16 @@ If on a:
   (interactive "p")
   (dotimes (_ count) (+org--insert-item 'above)))
 
-
-;;;###autoload
-(defun +org/dedent ()
-  "TODO"
-  (interactive)
-  (cond ((org-at-item-p)
-         (org-list-indent-item-generic
-          -1 nil
-          (save-excursion
-            (when (org-region-active-p)
-              (goto-char (region-beginning)))
-            (org-list-struct))))
-        ((org-at-heading-p)
-         (ignore-errors (org-promote)))
-        ((call-interactively #'self-insert-command))))
-
-;;;###autoload
-(defun +org/toggle-clock (arg)
-  "Toggles clock on the last clocked item.
-
-Clock out if an active clock is running. Clock in otherwise.
-
-If in an org file, clock in on the item at point. Otherwise clock into the last
-task you clocked into.
-
-See `org-clock-out', `org-clock-in' and `org-clock-in-last' for details on how
-the prefix ARG changes this command's behavior."
-  (interactive "P")
-  (if (org-clocking-p)
-      (if arg
-          (org-clock-cancel)
-        (org-clock-out))
-    (org-clock-in-last arg)))
-
-
-;;; Folds
-;;;###autoload
-(defalias #'+org/toggle-fold #'+org-cycle-only-current-subtree-h)
-
-;;;###autoload
-(defun +org/open-fold ()
-  "Open the current fold (not but its children)."
-  (interactive)
-  (+org/toggle-fold t))
-
-;;;###autoload
-(defalias #'+org/close-fold #'outline-hide-subtree)
-
-(defun +org--get-foldlevel ()
-  (let ((max 1))
-    (save-restriction
-      (narrow-to-region (window-start) (window-end))
-      (save-excursion
-        (goto-char (point-min))
-        (while (not (eobp))
-          (org-next-visible-heading 1)
-          (when (outline-invisible-p (line-end-position))
-            (let ((level (org-outline-level)))
-              (when (> level max)
-                (setq max level))))))
-      max)))
-
-;;;###autoload
-(defun +org/show-next-fold-level ()
-  "Decrease the fold-level of the visible area of the buffer. This unfolds
-another level of headings on each invocation."
-  (interactive)
-  (let* ((current-level (+org--get-foldlevel))
-         (new-level (1+ current-level)))
-    (outline-hide-sublevels new-level)
-    (message "Folded to level %s" new-level)))
-
-;;;###autoload
-(defun +org/hide-next-fold-level ()
-  "Increase the global fold-level of the visible area of the buffer. This folds
-another level of headings on each invocation."
-  (interactive)
-  (let* ((current-level (+org--get-foldlevel))
-         (new-level (max 1 (1- current-level))))
-    (outline-hide-sublevels new-level)
-    (message "Folded to level %s" new-level)))
-
-
 ;;
 ;;; Hooks
-
-;;;###autoload
-(defun +org-indent-maybe-h ()
-  "Indent the current item (header or item), if possible.
-Made for `org-tab-first-hook' in evil-mode."
-  (interactive)
-  (cond ((not (and (bound-and-true-p evil-local-mode)
-                   (evil-insert-state-p)))
-         nil)
-        ((org-at-item-p)
-         (if (eq this-command 'org-shifttab)
-             (org-outdent-item-tree)
-           (org-indent-item-tree))
-         t)
-        ((org-at-heading-p)
-         (ignore-errors
-           (if (eq this-command 'org-shifttab)
-               (org-promote)
-             (org-demote)))
-         t)
-        ((org-in-src-block-p t)
-         (org-babel-do-in-edit-buffer
-          (call-interactively #'indent-for-tab-command))
-         t)
-        ((and (save-excursion
-                (skip-chars-backward " \t")
-                (bolp))
-              (org-in-subtree-not-table-p))
-         (call-interactively #'tab-to-tab-stop)
-         t)))
 
 ;;;###autoload
 (defun +org-update-cookies-h ()
   "Update counts in headlines (aka \"cookies\")."
   (when (and buffer-file-name (file-exists-p buffer-file-name))
     (let (org-hierarchical-todo-statistics)
-      (org-update-parent-todo-statistics))))
-
-;;;###autoload
-(defun +org-yas-expand-maybe-h ()
-  "Tries to expand a yasnippet snippet, if one is available. Made for
-`org-tab-first-hook'."
-  (when (bound-and-true-p yas-minor-mode)
-    (let ((major-mode (if (org-in-src-block-p t)
-                          (org-src-get-lang-mode (org-eldoc-get-src-lang))
-                        major-mode))
-          (org-src-tab-acts-natively nil) ; causes breakages
-          ;; Smart indentation doesn't work with yasnippet, and painfully slow
-          ;; in the few cases where it does.
-          (yas-indent-line 'fixed))
-      ;; HACK Yasnippet field overlays break org-bullet-mode. Don't ask me why.
-      (add-hook! 'yas-after-exit-snippet-hook :local
-                 (when (bound-and-true-p org-bullets-mode)
-                   (org-bullets-mode -1)
-                   (org-bullets-mode +1)))
-      (cond ((and (or (not (bound-and-true-p evil-local-mode))
-                      (evil-insert-state-p))
-                  (yas--templates-for-key-at-point))
-             (yas-expand)
-             t)
-            ((use-region-p)
-             (yas-insert-snippet)
-             t)))))
-
-;;;###autoload
-(defun +org-cycle-only-current-subtree-h (&optional arg)
-  "Toggle the local fold at the point (as opposed to cycling through all levels
-with `org-cycle')."
-  (interactive "P")
-  (unless (eq this-command 'org-shifttab)
-    (save-excursion
-      (org-beginning-of-line)
-      (let (invisible-p)
-        (when (and (org-at-heading-p)
-                   (or org-cycle-open-archived-trees
-                       (not (member org-archive-tag (org-get-tags))))
-                   (or (not arg)
-                       (setq invisible-p (outline-invisible-p (line-end-position)))))
-          (unless invisible-p
-            (setq org-cycle-subtree-status 'subtree))
-          (org-cycle-internal-local)
-          t)))))
-
-;;;###autoload
-(defun +org-clear-babel-results-h ()
-  "Remove the results block for the org babel block at point."
-  (when (and (org-in-src-block-p t)
-             (org-babel-where-is-src-block-result))
-    (org-babel-remove-result)
-    t))
-
-;;;###autoload
-(defun +org-unfold-to-2nd-level-or-point-h ()
-  "My version of the 'overview' #+STARTUP option: expand first-level headings.
-Expands the first level, but no further. If point was left somewhere deeper,
-unfold to point on startup."
-  (unless org-agenda-inhibit-startup
-    (when (eq org-startup-folded t)
-      (outline-hide-sublevels +org-initial-fold-level))
-    (when (outline-invisible-p)
-      (ignore-errors
-        (save-excursion
-          (outline-previous-visible-heading 1)
-          (org-show-subtree))))))
-
-;;;###autoload
-(defun +org-remove-occur-highlights-h ()
-  "Remove org occur highlights on ESC in normal mode."
-  (when org-occur-highlights
-    (org-remove-occur-highlights)
-    t))
+      ;; (org-update-parent-todo-statistics) ;; HACK: it does not work to update statistics while the below one works
+      (call-interactively 'org-update-statistics-cookies))))
 
 ;;;###autoload
 (defun +org-enable-auto-update-cookies-h ()
@@ -509,7 +294,7 @@ unfold to point on startup."
           (?B . warning)
           (?C . success))
         org-startup-indented t
-        org-tags-column 0
+        org-tags-column -77
         org-use-sub-superscripts '{}
         ))
 
@@ -533,6 +318,87 @@ unfold to point on startup."
   (add-hook 'org-capture-mode-hook #'evil-insert-state)
   )
 
+;;;###autoload
+(defun +org/remove-link ()
+  "Unlink the text at point."
+  (interactive)
+  (unless (org-in-regexp org-link-bracket-re 1)
+    (user-error "No link at point"))
+  (save-excursion
+    (let ((label (if (match-end 2)
+                     (match-string-no-properties 2)
+                   (org-link-unescape (match-string-no-properties 1)))))
+      (delete-region (match-beginning 0) (match-end 0))
+      (insert label))))
+
+
+
+;; REVIEW These are all proof-of-concept. Refactor me!
+
+;;;###autoload
+(defun +org/refile-to-current-file (arg &optional file)
+  "Refile current heading to elsewhere in the current buffer.
+If prefix ARG, copy instead of move."
+  (interactive "P")
+  (let ((org-refile-targets `((,file :maxlevel . 10)))
+        (org-refile-use-outline-path nil)
+        (org-refile-keep arg)
+        current-prefix-arg)
+    (call-interactively #'org-refile)))
+
+;;;###autoload
+(defun +org/refile-to-file (arg file)
+  "Refile current heading to a particular org file.
+If prefix ARG, copy instead of move."
+  (interactive
+   (list current-prefix-arg
+         (read-file-name "Select file to refile to: "
+                         default-directory
+                         (buffer-file-name (buffer-base-buffer))
+                         t nil
+                         (lambda (f) (string-match-p "\\.org$" f)))))
+  (+org/refile-to-current-file arg file))
+
+;;;###autoload
+(defun +org/refile-to-other-window (arg)
+  "Refile current heading to an org buffer visible in another window.
+If prefix ARG, copy instead of move."
+  (interactive "P")
+  (let ((org-refile-keep arg)
+        org-refile-targets
+        current-prefix-arg)
+    (dolist (win (delq (selected-window) (window-list)))
+      (with-selected-window win
+        (let ((file (buffer-file-name (buffer-base-buffer))))
+          (and (eq major-mode 'org-mode)
+               file
+               (cl-pushnew (cons file (cons :maxlevel 10))
+                           org-refile-targets)))))
+    (call-interactively #'org-refile)))
+
+;;;###autoload
+(defun +org/refile-to-running-clock (arg)
+  "Refile current heading to the currently clocked in task.
+If prefix ARG, copy instead of move."
+  (interactive "P")
+  (unless (bound-and-true-p org-clock-current-task)
+    (user-error "No active clock to refile to"))
+  (let ((org-refile-keep arg))
+    (org-refile 2)))
+
+;;;###autoload
+(defun +org/refile-to-last-location (arg)
+  "Refile current heading to the last node you refiled to.
+If prefix ARG, copy instead of move."
+  (interactive "P")
+  (or (assoc (plist-get org-bookmark-names-plist :last-refile)
+             bookmark-alist)
+      (user-error "No saved location to refile to"))
+  (let ((org-refile-keep arg)
+        (completing-read-function
+         (lambda (_p _coll _pred _rm _ii _h default &rest _)
+           default)))
+    (org-refile)))
 
 (provide 'org/+funcs)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

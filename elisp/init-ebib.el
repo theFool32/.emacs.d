@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 257
+;;     Update #: 259
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -139,6 +139,10 @@
                               (ebib--update-buffers)))))))))))
   :config
   (org-link-set-parameters "ebib" :follow #'org-ebib-open :store #'org-ebib-store-link)
+  (local-leader-def
+    :keymaps 'org-mode-map
+    "lb" 'ebib-insert-citation
+    )
   )
 
 (provide 'init-ebib)

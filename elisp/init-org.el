@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun  3 22:00:56 2021 (+0800)
+;; Last-Updated: Sun Jun  6 14:22:32 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -58,7 +58,8 @@
       (org-archive-subtree))))
 (use-package org
   :ensure nil
-  :hook (org-mode . org-indent-mode)
+  :hook ((org-mode . org-indent-mode)
+         (org-mode . +org-enable-auto-update-cookies-h))
   :custom
   (org-log-done 'time)
   (org-export-backends (quote (ascii html icalendar latex md odt)))
@@ -68,7 +69,9 @@
   (org-ellipsis " ▼ ")
   (org-babel-python-command "python3")
   (org-bullets-bullet-list '("#"))
-  (org-tags-column -77)
+
+  ;; :preface
+  ;; (add-hook 'org-load-hook #'+org-enable-auto-update-cookies-h)
 
   :config
   (defvar load-language-list '((emacs-lisp . t)
@@ -76,6 +79,11 @@
                                (C . t)))
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list)
+
+  ;; https://emacs-china.org/t/orgmode/8673/8
+  ;; Open org file with default fold level
+  ;; Add something like below to the beginning
+  ;; # -*- org-startup-folded: 2; -*-
   (add-hook (quote hack-local-variables-hook)
             (lambda ()
               (let ((symbol (quote org-startup-folded)))
@@ -84,12 +92,12 @@
                   (let ((value (symbol-value symbol)))
                     (when (and value (integerp value))
                       (org-shifttab value)))))))
+
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
 
   (+org-init-appearance-h)
   (+org-init-agenda-h)
   (+org-init-capture-defaults-h)
-
   ;; org screenshot for macos
   ;; (require 'org/+screenshot)
 
@@ -144,7 +152,6 @@
                       :keymaps 'org-mode-map
                       "<return>" #'+org/dwim-at-point)
 
-  ;; TODO: org-agenda binding
   (local-leader-def
     :keymaps 'org-mode-map
     "'" 'org-edit-special
@@ -173,8 +180,6 @@
     "aa" 'org-attach
     "ad" 'org-attach-delete-one
     "aD" 'org-attach-delete-all
-    "af" '+org/find-file-in-attachments
-    "al" '+org/attach-file-and-insert-link
     "an" 'org-attach-new
     "ao" 'org-attach-open
     "aO" 'org-attach-open-in-emacs
@@ -213,7 +218,6 @@
     "ce" 'org-clock-modify-effort-estimate
     "cE" 'org-set-effort
     "cg" 'org-clock-goto
-    "cl" '+org/toggle-last-clock
     "ci" 'org-clock-in
     "cI" 'org-clock-in-last
     "co" 'org-clock-out
@@ -237,7 +241,6 @@
     "gc" 'org-clock-goto
     "gi" 'org-id-goto
     "gr" 'org-refile-goto-last-stored
-    "gv" '+org/goto-visible
     "gx" 'org-capture-goto-last-stored
 
     "l" '(:wk "links")
@@ -263,8 +266,6 @@
     "rl" '+org/refile-to-last-location
     "rf" '+org/refile-to-file
     "ro" '+org/refile-to-other-window
-    "rO" '+org/refile-to-other-buffer
-    "rv" '+org/refile-to-visible
     "rr" 'org-refile
 
     "s" '(:wk "tree/subtree")
@@ -297,6 +298,29 @@
     "xR" 'org-download-rename-last-file
     "xs" 'org-download-screenshot
     )
+
+  (local-leader-def
+    :keymaps 'org-agenda-mode-map
+    "d" '(:wk "date/deadline")
+    "dd" 'org-agenda-deadline
+    "ds" 'org-agenda-schedule
+
+    "c" '(:wk "clock")
+    "cc" 'org-agenda-clock-cancel
+    "cg" 'org-agenda-clock-goto
+    "ci" 'org-agenda-clock-in
+    "co" 'org-agenda-clock-out
+    "cr" 'org-agenda-clockreport-mode
+    "cs" 'org-agenda-show-clocking-issues
+
+    "p" '(:wk "priority")
+    "pd" 'org-agenda-priority-down
+    "pp" 'org-agenda-priority
+    "pu" 'org-agenda-priority-up
+
+    "q" 'org-agenda-set-tags
+    "r" 'org-agenda-refile
+    "t" 'org-agenda-todo)
   )
 ;; -OrgPac
 
@@ -307,7 +331,7 @@
   (org-download-heading-lvl nil)
   :config
   (cond (*sys/mac*
-          (setq org-download-screenshot-method "screencapture -i %s"))))
+         (setq org-download-screenshot-method "screencapture -i %s"))))
 
 (provide 'init-org)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
