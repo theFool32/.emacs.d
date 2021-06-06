@@ -152,6 +152,7 @@ Examples:
   (company-tng-mode)
   (add-hook 'company-mode-hook #'+company-init-backends-h)
   :custom
+  (company-files-chop-trailing-slash nil)
   (company-minimum-prefix-length 1)
   (company-tooltip-align-annotations t)
   (company-require-match 'never)
