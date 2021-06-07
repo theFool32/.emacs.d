@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 35
+;;     Update #: 37
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -52,7 +52,7 @@
 (defvar org-base-dir "/Users/lijie/Dropbox/org-notes/")
 (setq default-directory "/Users/lijie/")
 
-(defvar my-mini-buffer-completion "selectrum"
+(defvar my-mini-buffer-completion "selectrum" ;; Currently `vertico' lacks sth like `normalize' symbols and strings. Long way to go.
   "vertico or selectrum")
 
 (unless (featurep 'native-compile)

@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Mar 18 14:20:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May 30 21:18:49 2021 (+0800)
+;; Last-Updated: Mon Jun  7 20:01:19 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d constants
@@ -36,6 +36,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Code:
+
+(eval-when-compile
+  (require 'init-custom))
 
 ;; UserInfo
 (setq user-full-name "theFool32")
@@ -104,6 +107,12 @@
 (defconst *pdflatex*
   (executable-find "pdflatex")
   "Do we have pdflatex?")
+
+(defconst *selectrum*
+   (string-equal my-mini-buffer-completion "selectrum"))
+
+(defconst *vertico*
+   (string-equal my-mini-buffer-completion "vertico"))
 ;; -Consts
 
 (provide 'init-const)

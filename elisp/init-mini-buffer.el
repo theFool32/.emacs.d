@@ -1,6 +1,6 @@
-;;; init-selectrum.el ---
+;;; init-mini-buffer.el ---
 ;;
-;; Filename: init-selectrum.el
+;; Filename: init-mini-buffer.el
 ;; Description:
 ;; Author: theFool32
 ;; Maintainer:
@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 230
+;;     Update #: 305
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -48,82 +48,129 @@
 
 
 (eval-when-compile
-  (require 'init-custom))
+  (require 'init-custom)
+  (require 'init-const))
+
+(autoload 'ffap-file-at-point "ffap")
+;; Copy from selectrum
+(defun +complete--metadata ()
+  "Get completion metadata.
+Demotes any errors to messages."
+  (condition-case-unless-debug err
+      (completion-metadata (minibuffer-contents)
+                           minibuffer-completion-table
+                           minibuffer-completion-predicate)
+    (error (message (error-message-string err)) nil)))
+
+(defun +complete--get-meta (setting)
+  "Get metadata SETTING from completion table."
+  (completion-metadata-get (+complete--metadata) setting))
+
+(add-hook 'completion-at-point-functions
+          (defun complete-path-at-point+ ()
+            (let ((fn (ffap-file-at-point))
+                  (fap (thing-at-point 'filename)))
+              (when (and (or fn
+                             (equal "/" fap))
+                         (save-excursion
+                           (search-backward fap (line-beginning-position) t)))
+                (list (match-beginning 0)
+                      (match-end 0)
+                      #'completion-file-name-table)))) 'append)
+(defun +complete-fido-backward-updir ()
+  "Delete char before or go up directory, like `ido-mode'."
+  (interactive)
+  (if (and (eq (char-before) ?/)
+           (eq (+complete--get-meta 'category) 'file))
+      (save-excursion
+        (goto-char (1- (point)))
+        (when (search-backward "/" (point-min) t)
+          (delete-region (1+ (point)) (point-max))))
+    (call-interactively 'backward-delete-char)))
+
+(defun +complete-fido-delete-char ()
+  "Delete char or maybe call `dired', like `ido-mode'."
+  (interactive)
+  (let ((end (point-max)))
+    (if (or (< (point) end) (not (eq (+complete--get-meta 'category) 'file)))
+        (call-interactively 'delete-char)
+      (dired (file-name-directory (minibuffer-contents)))
+      (exit-minibuffer))))
+
+(defun +complete-get-current-candidate ()
+  (cond
+   (*vertico*
+    (vertico--candidate))
+   (*selectrum*
+    (selectrum-get-current-candidate))))
+
+(defun +complete-insert-current-candidate ()
+  (cond
+   (*vertico*
+    (vertico-insert))
+   (*selectrum*
+    (selectrum-insert-current-candidate))))
+
+(defun +complete-fido-enter-dir ()
+  (interactive)
+  (let ((candidate (+complete-get-current-candidate)))
+    (if (and (eq (+complete--get-meta 'category) 'file)
+             (file-directory-p candidate)
+             (not (string-equal candidate "~/")))
+        (+complete-insert-current-candidate)
+      (insert "/"))))
+
+(defun +complete-fido-do-backward-updir ()
+  (interactive)
+  (if (and (eq (char-before) ?/)
+           (eq (+complete--get-meta 'category) 'file))
+      (save-excursion
+        (goto-char (1- (point)))
+        (when (search-backward "/" (point-min) t)
+          (delete-region (1+ (point)) (point-max))))))
+
 
 (cond
- ((string-equal my-mini-buffer-completion "vertico")
+ (*vertico*
   (use-package vertico
     :straight (:type git :host github :repo "minad/vertico" :branch "main")
     :init
     (vertico-mode)
     :config
+    (set-face-background 'vertico-current "#42444a")
     ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-    (setq vertico-cycle t))
+    (setq vertico-cycle t)
+
+    (define-key vertico-map (kbd "DEL") '+complete-fido-backward-updir)
+    (define-key vertico-map (kbd "/") '+complete-fido-enter-dir)
+    (define-key vertico-map (kbd "C-d") '+complete-fido-delete-char)
+    (define-key vertico-map (kbd "C-w") '+complete-fido-do-backward-updir)
+
+    (use-package uchronia
+      :straight (:type git :host github :repo "minad/uchronia" :branch "main")
+      :config
+      (general-def "C-c C-r" 'uchronia-repeat)
+      (uchronia-mode)
+      ))
   )
- ((string-equal my-mini-buffer-completion "selectrum")
+ (*selectrum*
   (use-package selectrum
     :config
     (selectrum-mode +1)
     (general-def "C-c C-r" 'selectrum-repeat)
     ;; (setq selectrum-should-sort nil)
+    (with-eval-after-load 'orderless
+      (setq orderless-skip-highlighting (lambda () selectrum-is-active))
+      (setq selectrum-refine-candidates-function #'orderless-filter)
+      (setq selectrum-highlight-candidates-function #'orderless-highlight-matches))
 
-    (autoload 'ffap-file-at-point "ffap")
-    (add-hook 'completion-at-point-functions
-              (defun complete-path-at-point+ ()
-                (let ((fn (ffap-file-at-point))
-                      (fap (thing-at-point 'filename)))
-                  (when (and (or fn
-                                 (equal "/" fap))
-                             (save-excursion
-                               (search-backward fap (line-beginning-position) t)))
-                    (list (match-beginning 0)
-                          (match-end 0)
-                          #'completion-file-name-table)))) 'append)
-    (defun selectrum-fido-backward-updir ()
-      "Delete char before or go up directory, like `ido-mode'."
-      (interactive)
-      (if (and (eq (char-before) ?/)
-               (eq (selectrum--get-meta 'category) 'file))
-          (save-excursion
-            (goto-char (1- (point)))
-            (when (search-backward "/" (point-min) t)
-              (delete-region (1+ (point)) (point-max))))
-        (call-interactively 'backward-delete-char)))
+    (define-key selectrum-minibuffer-map (kbd "DEL") '+complete-fido-backward-updir)
+    (define-key selectrum-minibuffer-map (kbd "/") '+complete-fido-enter-dir)
+    (define-key selectrum-minibuffer-map (kbd "C-d") '+complete-fido-delete-char)
+    (define-key selectrum-minibuffer-map (kbd "C-w") '+complete-fido-do-backward-updir)
 
-    (defun selectrum-fido-delete-char ()
-      "Delete char or maybe call `dired', like `ido-mode'."
-      (interactive)
-      (let ((end (point-max)))
-        (if (or (< (point) end) (not (eq (selectrum--get-meta 'category) 'file)))
-            (call-interactively 'delete-char)
-          (dired (file-name-directory (minibuffer-contents)))
-          (exit-minibuffer))))
+    )))
 
-    (defun selectrum-fido-enter-dir ()
-      (interactive)
-      (let ((candidate (selectrum-get-current-candidate)))
-        (if (and (eq (selectrum--get-meta 'category) 'file)
-                 (file-directory-p candidate)
-                 (not (string-equal candidate "~/")))
-            (selectrum-insert-current-candidate)
-          (insert "/"))))
-
-    (defun selectrum-fido-do-backward-updir ()
-      (interactive)
-      (if (and (eq (char-before) ?/)
-               (eq (selectrum--get-meta 'category) 'file))
-          (save-excursion
-            (goto-char (1- (point)))
-            (when (search-backward "/" (point-min) t)
-              (delete-region (1+ (point)) (point-max))))))
-
-
-    (define-key selectrum-minibuffer-map (kbd "DEL") 'selectrum-fido-backward-updir)
-    (define-key selectrum-minibuffer-map (kbd "/") 'selectrum-fido-enter-dir)
-    (define-key selectrum-minibuffer-map (kbd "C-d") 'selectrum-fido-delete-char)
-    (define-key selectrum-minibuffer-map (kbd "C-w") 'selectrum-fido-do-backward-updir)
-    )
-  ))
 
 (use-package consult
   :straight (:host github :repo "minad/consult")
@@ -254,10 +301,6 @@ When the number of characters in a buffer exceeds this threshold,
   :demand t
   :config
   (savehist-mode)
-  (setq orderless-skip-highlighting (lambda () selectrum-is-active))
-  (setq selectrum-refine-candidates-function #'orderless-filter)
-  (setq selectrum-highlight-candidates-function #'orderless-highlight-matches)
-
   (setq orderless-matching-styles '(orderless-regexp orderless-literal orderless-initialism ))
   (defun without-if-$! (pattern _index _total)
     (when (or (string-prefix-p "$" pattern) ;如果以! 或$ 开头，则表示否定，即不包含此关键字
@@ -325,4 +368,4 @@ When the number of characters in a buffer exceeds this threshold,
 (provide 'init-mini-buffer)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-selectrum.el ends here
+;;; init-mini-buffer.el ends here
