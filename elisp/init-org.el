@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Jun  6 14:22:32 2021 (+0800)
+;; Last-Updated: Mon Jun  7 10:37:17 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -61,6 +61,7 @@
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h))
   :custom
+  (org-capture-bookmark nil) ;; TODO: no bookmark for refile
   (org-log-done 'time)
   (org-export-backends (quote (ascii html icalendar latex md odt)))
   (org-use-speed-commands t)
