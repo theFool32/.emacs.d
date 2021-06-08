@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 37
+;;     Update #: 46
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -20,7 +20,8 @@
 ;;
 ;;; Commentary:
 ;;
-;;
+;;  TODO: This file should not be managed by git.
+;;  And a fallback should be defined in init-const.el maybe.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -48,15 +49,13 @@
 
 
 ;; For ebib
-(defvar ebib-base-dir "/Users/lijie/Dropbox/Ref/")
-(defvar org-base-dir "/Users/lijie/Dropbox/org-notes/")
-(setq default-directory "/Users/lijie/")
+(defconst ebib-base-dir "/Users/lijie/Dropbox/Ref/")
+;; For org-mode
+(defconst org-base-dir "/Users/lijie/Dropbox/org-notes/")
+(defconst default-directory "/Users/lijie/")
 
-(defvar my-mini-buffer-completion "selectrum" ;; Currently `vertico' lacks sth like `normalize' symbols and strings. Long way to go.
+(defconst my-mini-buffer-completion "selectrum" ;; Currently `vertico' lacks sth like `normalize' symbols and strings. Long way to go.
   "vertico or selectrum")
-
-(unless (featurep 'native-compile)
-  (setq straight-disable-native-compile t))
 
 (provide 'init-custom)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

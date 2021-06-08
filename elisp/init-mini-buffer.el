@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 305
+;;     Update #: 310
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -214,8 +214,9 @@ Demotes any errors to messages."
 
   (defun my-consult-line-symbol-at-point ()
     (interactive)
-    (consult-line (thing-at-point 'symbol))
-    (my-consult-set-evil-search-pattern))
+    (evil-without-repeat ;; I use evil always
+      (consult-line (thing-at-point 'symbol))
+      (my-consult-set-evil-search-pattern)))
 
   (defcustom noct-consult-ripgrep-or-line-limit 300000
     "Buffer size threshold for `noct-consult-ripgrep-or-line'.
@@ -226,37 +227,38 @@ When the number of characters in a buffer exceeds this threshold,
   (defun noct-consult-ripgrep-or-line ()
     "Call `consult-line' for small buffers or `consult-ripgrep' for large files."
     (interactive)
-    (if (or (not buffer-file-name)
-            (buffer-narrowed-p)
-            (ignore-errors
-              (file-remote-p buffer-file-name))
-            (jka-compr-get-compression-info buffer-file-name)
-            (<= (buffer-size)
-                (/ noct-consult-ripgrep-or-line-limit
-                   (if (eq major-mode 'org-mode) 4 1))))
-        (progn (consult-line)
-               (my-consult-set-evil-search-pattern))
-      (when (file-writable-p buffer-file-name)
-        (save-buffer))
-      (let ((consult-ripgrep-command
-             (concat "rg "
-                     "--null "
-                     "--line-buffered "
-                     "--color=ansi "
-                     "--max-columns=250 "
-                     "--no-heading "
-                     "--line-number "
-                     ;; adding these to default
-                     "--smart-case "
-                     "--hidden "
-                     "--max-columns-preview "
-                     ;; add back filename to get parsing to work
-                     "--with-filename "
-                     ;; defaults
-                     "-e ARG OPTS "
-                     (shell-quote-argument buffer-file-name))))
-        (consult-ripgrep)
-        (my-consult-set-evil-search-pattern 'rg))))
+    (evil-without-repeat ;; I use evil always
+      (if (or (not buffer-file-name)
+              (buffer-narrowed-p)
+              (ignore-errors
+                (file-remote-p buffer-file-name))
+              (jka-compr-get-compression-info buffer-file-name)
+              (<= (buffer-size)
+                  (/ noct-consult-ripgrep-or-line-limit
+                     (if (eq major-mode 'org-mode) 4 1))))
+          (progn (consult-line)
+                 (my-consult-set-evil-search-pattern))
+        (when (file-writable-p buffer-file-name)
+          (save-buffer))
+        (let ((consult-ripgrep-command
+               (concat "rg "
+                       "--null "
+                       "--line-buffered "
+                       "--color=ansi "
+                       "--max-columns=250 "
+                       "--no-heading "
+                       "--line-number "
+                       ;; adding these to default
+                       "--smart-case "
+                       "--hidden "
+                       "--max-columns-preview "
+                       ;; add back filename to get parsing to work
+                       "--with-filename "
+                       ;; defaults
+                       "-e ARG OPTS "
+                       (shell-quote-argument buffer-file-name))))
+          (consult-ripgrep)
+          (my-consult-set-evil-search-pattern 'rg)))))
 
   (autoload 'org-buffer-list "org")
   (defvar org-buffer-source
