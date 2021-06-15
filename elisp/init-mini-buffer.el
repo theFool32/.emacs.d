@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 310
+;;     Update #: 311
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -111,7 +111,7 @@ Demotes any errors to messages."
    (*selectrum*
     (selectrum-insert-current-candidate))))
 
-(defun +complete-fido-enter-dir ()
+(defun +complete-fido-enter-dir ()  ;; FIXME: it does not work for ../../
   (interactive)
   (let ((candidate (+complete-get-current-candidate)))
     (if (and (eq (+complete--get-meta 'category) 'file)
