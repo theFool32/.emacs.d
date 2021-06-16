@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 311
+;;     Update #: 376
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -111,14 +111,24 @@ Demotes any errors to messages."
    (*selectrum*
     (selectrum-insert-current-candidate))))
 
-(defun +complete-fido-enter-dir ()  ;; FIXME: it does not work for ../../
+(defun +complete-fido-enter-dir ()
   (interactive)
-  (let ((candidate (+complete-get-current-candidate)))
-    (if (and (eq (+complete--get-meta 'category) 'file)
-             (file-directory-p candidate)
-             (not (string-equal candidate "~/")))
-        (+complete-insert-current-candidate)
-      (insert "/"))))
+  (let ((candidate (+complete-get-current-candidate))
+        (current-input (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+    (cond
+     ((and (eq (+complete--get-meta 'category) 'file)
+           (string= (car (last (s-split "/" current-input))) ".."))
+      (progn
+        (insert "/")
+        (+complete-fido-do-backward-updir)
+        (+complete-fido-do-backward-updir)))
+
+     ((and (eq (+complete--get-meta 'category) 'file)
+           (file-directory-p candidate)
+           (not (string= candidate "~/")))
+      (+complete-insert-current-candidate))
+
+     (t (insert "/")))))
 
 (defun +complete-fido-do-backward-updir ()
   (interactive)
@@ -330,7 +340,6 @@ When the number of characters in a buffer exceeds this threshold,
               (lambda () (when (bound-and-true-p selectrum-mode) (selectrum-exhibit)))))
 
 (use-package mini-frame
-  :straight (:type git :host github :repo "muffinmad/emacs-mini-frame")
   :hook (after-init . mini-frame-mode)
   :commands (mini-frame-mode)
   :config
@@ -359,7 +368,6 @@ When the number of characters in a buffer exceeds this threshold,
   )
 
 (use-package affe
-  :straight (:host github :repo "minad/affe")
   :after orderless
   :config
   ;; Configure Orderless
