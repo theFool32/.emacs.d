@@ -185,11 +185,6 @@ Examples:
 (use-package company-prescient
   :init (company-prescient-mode 1))
 
-
-(use-package company-box
-  :after company
-  :hook (company-mode . company-box-mode))
-
 ;; CompanyTabNinePac
 ;; TODO: whether or not to use tabnine for lsp or even prog-mode.
 (use-package company-tabnine
