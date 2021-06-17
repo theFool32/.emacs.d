@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:17:13 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun 17 17:22:53 2021 (+0800)
+;; Last-Updated: Thu Jun 17 20:55:43 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d parenthesis smartparens delete-block
@@ -44,12 +44,19 @@
 (use-package elec-pair
   :ensure nil
   :hook (after-init . electric-pair-mode)
-  :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit))
+  :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
+  :config
+  ;; disable <> auto pairing in electric-pair-mode for org-mode
+  (add-hook 'org-mode-hook
+            '(lambda ()
+               (setq-local electric-pair-inhibit-predicate
+                           `(lambda (c)
+                              (if (char-equal c ?<) t
+                                (,electric-pair-inhibit-predicate c)))))))
 
 (use-package awesome-pair
   :straight (:host github :repo "manateelazycat/awesome-pair")
-  :hook ((prog-mode . awesome-pair-mode)
-         (text-mode . awesome-pair-mode))
+  :hook (prog-mode . awesome-pair-mode)
   :config
   (define-key awesome-pair-mode-map (kbd "(") 'awesome-pair-open-round)
   (define-key awesome-pair-mode-map (kbd "[") 'awesome-pair-open-bracket)
