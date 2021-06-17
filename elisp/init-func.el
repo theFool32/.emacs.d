@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Jun  5 16:41:33 2021 (+0800)
+;; Last-Updated: Thu Jun 17 19:17:14 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -131,6 +131,13 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
    (read-file-name "Delete: " default-directory buffer-file-name))
   (unless (file-exists-p (buffer-file-name))
     (kill-current-buffer)))
+
+(defun +my-imenu ()
+  "consult-outline in org-mode unless imenu"
+  (interactive)
+  (if (derived-mode-p 'org-mode)
+      (consult-outline)
+    (consult-imenu)))
 
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

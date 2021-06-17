@@ -181,17 +181,21 @@ Examples:
     "C-f" 'company-files
     )
 
-  (defvar-local +company-completion-styles '(partial-completion))
-  (defvar-local +completion-styles '(basic partial-completion substring initials flex))
-  (defun set-company-completion-style (backend)
-    (setq +completion-styles completion-styles)
-    (setq completion-styles +company-completion-styles))
-  (defun restore-company-completion-style (backend)
-    (setq completion-styles +completion-styles))
+  (with-eval-after-load 'orderless
+    (defvar-local +company-completion-styles '(partial-completion))
+    (defvar-local +completion-styles nil)
+    (defun set-company-completion-style (backend)
+      (setq +completion-styles completion-styles)
+      (setq completion-styles +company-completion-styles))
+    (defun restore-company-completion-style ()
+      (when +completion-styles
+        (setq completion-styles +completion-styles)
+        (setq +completion-styles nil)))
 
-
-  (add-hook 'company-completion-started-hook #'set-company-completion-style)
-  (add-hook 'company-after-completion-hook #'restore-company-completion-style)
+    (add-hook 'company-completion-started-hook #'set-company-completion-style)
+    ;; (add-hook 'company-completion-cancelled-hook #'restore-company-completion-style)
+    ;; (add-hook 'company-completion-finished-hook #'restore-company-completion-style)
+    (add-hook 'evil-normal-state-entry-hook #'restore-company-completion-style))
   )
 ;; -ComPac
 (use-package company-prescient

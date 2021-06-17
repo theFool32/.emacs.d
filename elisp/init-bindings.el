@@ -75,7 +75,7 @@
 
     "s" '(:wk "Search")
     "sb" '(my-consult-line-symbol-at-point :wk "Search buffer")
-    "si" '(imenu :wk "Jump to symbol")
+    "si" '(+my-imenu :wk "Jump to symbol")
     "sp" '(affe-grep :wk "Search project")
     "sT" '(load-theme :wk "Load theme")
     "sd" '((lambda() (interactive) (affe-grep default-directory)) :wk "Search here")
