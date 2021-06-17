@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:17:13 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun 17 10:55:19 2021 (+0800)
+;; Last-Updated: Thu Jun 17 17:22:53 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d parenthesis smartparens delete-block
@@ -40,6 +40,12 @@
 (eval-when-compile
   (require 'init-global-config))
 
+;; Automatic parenthesis pairing
+(use-package elec-pair
+  :ensure nil
+  :hook (after-init . electric-pair-mode)
+  :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit))
+
 (use-package awesome-pair
   :straight (:host github :repo "manateelazycat/awesome-pair")
   :hook ((prog-mode . awesome-pair-mode)
@@ -58,7 +64,7 @@
   (define-key awesome-pair-mode-map (kbd "SPC") 'awesome-pair-space)
 
   (define-key awesome-pair-mode-map (kbd "C-k") 'awesome-pair-kill)
-  (define-key awesome-pair-mode-map (kbd "<backspace>") 'awesome-pair-backward-delete)
+  ;; (define-key awesome-pair-mode-map (kbd "<backspace>") 'awesome-pair-backward-delete)
 
   )
 

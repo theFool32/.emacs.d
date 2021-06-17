@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat May  1 21:49:55 2021 (+0800)
+;; Last-Updated: Thu Jun 17 11:30:02 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -311,6 +311,19 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   (cdlatex-sub-super-scripts-outside-math-mode nil)
   :config
   ;; Disabling keys that have overlapping functionality with other parts of Doom
+  )
+(use-package asymbol
+  :straight (:host github :repo "dwuggh/asymbol" :depth 1)
+  :hook (LaTeX-mode . asymbol-mode)
+  :init
+  ;; a little customization
+  (setq asymbol-help-symbol-linewidth 110
+	    asymbol-help-tag-linewidth 110)
+
+  :config
+  (add-hook 'org-cdlatex-mode-hook
+            (lambda () (interactive)
+              (define-key org-cdlatex-mode-map "`" 'asymbol-insert-text-or-symbol)))
   )
 (use-package adaptive-wrap
   :after tex

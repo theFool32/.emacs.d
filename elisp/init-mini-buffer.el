@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 376
+;;     Update #: 377
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -308,7 +308,6 @@ When the number of characters in a buffer exceeds this threshold,
 
 ;; Completion styles
 (setq completion-styles '(basic partial-completion substring initials flex))
-;; TODO: not work for something like `foo foor`
 (use-package orderless
   :demand t
   :config
