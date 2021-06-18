@@ -72,7 +72,8 @@ If failed try to complete the common part with `company-complete-common'"
 ;;;###autoload
 (defvar +company-backend-alist
   '((text-mode company-tabnine company-yasnippet company-dabbrev)
-    (prog-mode company-files company-capf company-yasnippet)
+    ;; (prog-mode company-files company-capf company-yasnippet)
+    (prog-mode company-files (company-capf :with company-tabnine :separate) company-yasnippet)
     (conf-mode company-capf company-dabbrev-code company-yasnippet))
   "An alist matching modes to company backends. The backends for any mode is
 built from this.")
@@ -178,8 +179,7 @@ Examples:
    "C-k" 'smarter-yas-expand-next-field-complete)
   (general-def 'insert
     :prefix "C-x"
-    "C-f" 'company-files
-    )
+    "C-f" 'company-files)
 
   (with-eval-after-load 'orderless
     (defvar-local +company-completion-styles '(partial-completion))
@@ -216,12 +216,12 @@ Examples:
   (company-tabnine-max-num-results 3)
   :hook
   (kill-emacs . company-tabnine-kill-process)
-  :config
-  ;; Enable TabNine on default
-  ;; (add-to-list 'company-backends #'company-tabnine)
-
-  ;; Integrate company-tabnine with lsp-mode
+  :bind
+  (:map company-mode-map
+        ("C-x C-t" . company-tabnine))
+  :init
   (defun company//sort-by-tabnine (candidates)
+    "Integrate company-tabnine with lsp-mode"
     (if (or (functionp company-backend)
             (not (and (listp company-backend) (memq 'company-tabnine company-backend))))
         candidates
@@ -241,7 +241,11 @@ Examples:
                (seq-take candidates-tabnine 2)
                (seq-drop candidates-lsp 2)
                (seq-drop candidates-tabnine 2)
-               )))))
+               ))))
+
+  :config
+  (add-to-list 'company-transformers 'company//sort-by-tabnine t)
+  )
 ;; -CompanyTabNinePac
 
 (provide 'init-company)

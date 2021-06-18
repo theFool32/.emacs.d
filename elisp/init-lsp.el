@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun May 30 21:01:09 2021 (+0800)
+;; Last-Updated: Fri Jun 18 17:12:11 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -69,9 +69,10 @@
   (lsp-eldoc-render-all t)
 
   (read-process-output-max (* 1024 1024))
-  (lsp-refer-capf t)
   (lsp-keep-workspace-alive nil)
   (gc-cons-threshold 100000000)
+  (lsp-completion-provider :none)
+
   :hook ((python-mode c-mode c++-mode) . lsp-deferred)
   :config
 
