@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 259
+;;     Update #: 261
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -60,6 +60,7 @@
   (ebib-keywords (concat ebib-base-dir "ebib-keywords.txt"))
   (ebib-keywords-field-keep-sorted t)
   (ebib-keywords-save-on-exit 'always)
+  (ebib-filters-default-file (concat ebib-base-dir "ebib-filters"))
   ;; (ebib-index-window-size 30)
   (ebib-timestamp-format "%Y-%m-%d,%T")
   (ebib-index-default-sort '("timestamp" . descend))
