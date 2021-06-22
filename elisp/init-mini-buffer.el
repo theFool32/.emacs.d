@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 377
+;;     Update #: 379
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -361,6 +361,9 @@ When the number of characters in a buffer exceeds this threshold,
     (add-to-list 'mini-frame-ignore-functions 'y-or-n-p)
     (add-to-list 'mini-frame-ignore-functions 'yes-or-no-p)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex)
+    (add-to-list 'mini-frame-ignore-commands 'org-time-stamp)
+    (add-to-list 'mini-frame-ignore-commands 'org-deadline)
+    (add-to-list 'mini-frame-ignore-commands 'org-schedule)
     (add-to-list 'mini-frame-ignore-commands 'pp-eval-expression)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-forward)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-backward))
