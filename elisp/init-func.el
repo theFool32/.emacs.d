@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun 17 19:17:14 2021 (+0800)
+;; Last-Updated: Tue Jun 22 18:39:18 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -127,10 +127,13 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
 (defun my-delete-file()
   "Delete file while using current file as default."
   (interactive)
-  (delete-file
-   (read-file-name "Delete: " default-directory buffer-file-name))
-  (unless (file-exists-p (buffer-file-name))
-    (kill-current-buffer)))
+  (let ((file-name (read-file-name "Delete: " default-directory buffer-file-name)))
+    (cond
+     ((file-directory-p file-name) (delete-directory file-name t))
+     ((file-exists-p file-name) (delete-file file-name))
+     (t (message "Not found!")))
+    (unless (file-exists-p (buffer-file-name))
+      (kill-current-buffer))))
 
 (defun +my-imenu ()
   "consult-outline in org-mode unless imenu"
