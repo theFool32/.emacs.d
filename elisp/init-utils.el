@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 3
+;;     Update #: 19
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -47,6 +47,17 @@
 ;;; Code:
 
 (use-package imenu-list)
+
+(use-package devdocs
+  :config
+  (add-hook 'python-mode-hook
+            (lambda() (setq-local devdocs-current-docs '("python~3.9" "PyTorch" "NumPy~1.20"))))
+  (defun devdocs-lookup-at-point()
+    (interactive)
+    (devdocs-lookup devdocs-current-docs (thing-at-point 'symbol)))
+  (defun devdocs-search-at-point()
+    (interactive)
+    (devdocs-search (thing-at-point 'symbol))))
 
 
 (provide 'init-utils)

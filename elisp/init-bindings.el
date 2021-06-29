@@ -4,7 +4,8 @@
 
 (eval-when-compile
   (require 'init-const)
-  (require 'init-func))
+  (require 'init-func)
+  (require 'init-utils))
 
 ;; Leader def
 (use-package general
@@ -78,7 +79,9 @@
     "si" '(+my-imenu :wk "Jump to symbol")
     "sp" '(affe-grep :wk "Search project")
     "sT" '(load-theme :wk "Load theme")
-    "sd" '((lambda() (interactive) (affe-grep default-directory)) :wk "Search here")
+    "sh" '((lambda() (interactive) (affe-grep default-directory)) :wk "Search here")
+    "sd" '(devdocs-lookup-at-point :wk "Search devdocs")
+    "sD" '(devdocs-search-at-point :wk "Search devdocs")
     "sP" '(color-rg-search-project :wk "Color-rg Search project")
     "sy" '(color-rg-search-symbol-in-project :wk "Color-rg Search symbol")
 
