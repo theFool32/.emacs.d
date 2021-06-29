@@ -207,7 +207,6 @@ Examples:
   :hook (company-mode . company-box-mode))
 
 ;; CompanyTabNinePac
-;; TODO: whether or not to use tabnine for lsp or even prog-mode.
 (use-package company-tabnine
   :straight (:host github :repo "theFool32/company-tabnine" :depth 1)
   :defer 1

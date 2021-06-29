@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 379
+;;     Update #: 382
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -370,6 +370,7 @@ When the number of characters in a buffer exceeds this threshold,
   )
 
 (use-package affe
+  :straight (:type git :host github :repo "minad/affe" :branch "transformer")
   :after orderless
   :config
   ;; Configure Orderless
