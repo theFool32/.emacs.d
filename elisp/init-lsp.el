@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Jun 18 17:12:11 2021 (+0800)
+;; Last-Updated: Thu Jul  1 19:21:37 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -46,7 +46,7 @@
   :commands (lsp lsp-deferred)
   :custom
   (lsp-enable-indentation nil)
-  (lsp-signature-auto-activate nil)
+  ;; (lsp-signature-auto-activate nil)
   (lsp-modeline-code-actions-enable nil)
   (lsp-semantic-tokens-enable nil)
 
