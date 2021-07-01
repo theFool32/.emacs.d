@@ -68,11 +68,20 @@ If failed try to complete the common part with `company-complete-common'"
     )
   )
 
+(defun company-yasnippet-unless-member-access (command &optional arg &rest ignore)
+  (if (eq command 'prefix)
+      (let ((prefix (company-yasnippet 'prefix)))
+        (and prefix
+             (save-excursion
+               (forward-char (- (length prefix)))
+               (not (looking-back (rx (or "." "->")) (line-beginning-position))))
+             prefix))
+    (company-yasnippet command arg)))
 
 ;;;###autoload
 (defvar +company-backend-alist
   '((text-mode company-tabnine company-yasnippet company-dabbrev)
-    (prog-mode company-files (company-capf :with company-tabnine :with company-yasnippet :separate))
+    (prog-mode company-files (company-capf :with company-tabnine :with company-yasnippet-unless-member-access :separate))
     (conf-mode company-capf company-dabbrev-code company-yasnippet))
   "An alist matching modes to company backends. The backends for any mode is
 built from this.")
