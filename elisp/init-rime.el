@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 69
+;;     Update #: 76
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -67,7 +67,8 @@
   (unless rime-emacs-module-header-root
     (setq rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus@28/include"))
 
-  (define-key rime-mode-map (kbd "M-j") 'rime-force-enable)
+  (define-key rime-mode-map (kbd "M-k") 'rime-force-enable)
+  (define-key rime-mode-map (kbd "M-j") 'rime-inline-ascii)
   (define-key rime-active-mode-map (kbd "M-j") 'rime-inline-ascii)
 
   (defun +rime-sync ()
