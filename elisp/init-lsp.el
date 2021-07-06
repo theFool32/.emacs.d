@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jul  1 19:21:37 2021 (+0800)
+;; Last-Updated: Tue Jul  6 11:05:08 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -81,7 +81,6 @@
 
 ;; LSPUI
 (use-package lsp-ui
-  :disabled
   :after lsp-mode
   :diminish
   :commands lsp-ui-mode
@@ -90,7 +89,8 @@
   (lsp-ui-doc-header ((t (:inherit (font-lock-string-face italic)))))
   :custom
   (lsp-ui-doc-header nil)
-  (lsp-ui-doc-include-signature t)
+  (lsp-ui-doc-include-signature nil)
+  (lsp-ui-doc-enable nil)
   (lsp-ui-doc-border (face-foreground 'default))
   (lsp-ui-sideline-enable nil)
   (lsp-ui-sideline-ignore-duplicate t)

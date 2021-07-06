@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 382
+;;     Update #: 383
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -370,6 +370,8 @@ When the number of characters in a buffer exceeds this threshold,
   )
 
 (use-package affe
+  ;; FIXME: not work when search pattern in filename
+  ;; https://github.com/minad/affe/issues/13
   :straight (:type git :host github :repo "minad/affe" :branch "transformer")
   :after orderless
   :config
