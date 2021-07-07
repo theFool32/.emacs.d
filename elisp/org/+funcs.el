@@ -303,7 +303,7 @@ If on a:
     (setq org-agenda-files (list org-directory)))
   (setq-default
    ;; Don't monopolize the whole frame just for the agenda
-   org-agenda-window-setup 'current-window
+   ;; org-agenda-window-setup 'current-window
    org-agenda-inhibit-startup t
    org-agenda-skip-unavailable-files t
    ;; Move the agenda to show the previous 3 days and the next 7 days for a bit
