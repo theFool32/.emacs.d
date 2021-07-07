@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:53:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Jun 29 11:13:30 2021 (+0800)
+;; Last-Updated: Wed Jul  7 14:44:17 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d packages use-package
@@ -44,13 +44,13 @@
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory)
       package-archives
       '(
-        ("gnu"   . "https://elpa.gnu.org/packages/")
-        ("melpa" . "https://melpa.org/packages/")
+        ;; ("gnu"   . "https://elpa.gnu.org/packages/")
+        ;; ("melpa" . "https://melpa.org/packages/")
         ;; ("melpa-cn" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
         ;; ("gnu-cn"   . "http://mirrors.cloud.tencent.com/elpa/gnu/")
 
-        ;; ("gnu" . "https://mirrors.ustc.edu.cn/elpa/gnu/")
-        ;; ("melpa" . "https://mirrors.ustc.edu.cn/elpa/melpa/")
+        ("gnu" . "https://mirrors.ustc.edu.cn/elpa/gnu/")
+        ("melpa" . "https://mirrors.ustc.edu.cn/elpa/melpa/")
         ;; ("melpa-stable" . "https://mirrors.ustc.edu.cn/elpa/melpa-stable/")
 	    ("org" . "https://mirrors.ustc.edu.cn/elpa/org/")
         ))
