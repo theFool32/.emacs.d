@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Jun  9 11:14:09 2021 (+0800)
+;; Last-Updated: Wed Jul  7 17:13:21 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -291,15 +291,15 @@
     "pp" 'org-priority
     "pu" 'org-priority-up
 
-    "x" '(:wk "Download")
-    "xc" 'org-download-clipboard
-    "xd" 'org-download-delete
-    "xi" 'org-download-image
-    "xy" 'org-download-yank
-    "xe" 'org-download-edit
-    "xr" 'org-download-rename-at-point
-    "xR" 'org-download-rename-last-file
-    "xs" 'org-download-screenshot
+    "z" '(:wk "Download")
+    "zc" 'org-download-clipboard
+    "zd" 'org-download-delete
+    "zi" 'org-download-image
+    "zy" 'org-download-yank
+    "ze" 'org-download-edit
+    "zr" 'org-download-rename-at-point
+    "zR" 'org-download-rename-last-file
+    "zs" 'org-download-screenshot
     )
 
   (local-leader-def
