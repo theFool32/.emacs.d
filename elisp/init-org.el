@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Jul  7 17:13:21 2021 (+0800)
+;; Last-Updated: Thu Jul  8 14:34:01 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -115,7 +115,7 @@
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file+headline +org-capture-file-gtd "Next Actions")
-           "* TODO %?\n%i" :prepend t :kill-buffer t)
+           "* TODO %i%? [/] \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
           ("w" "Waiting for" entry
            (file+headline +org-capture-file-tickler "Tickler")
            "* %?\n%i" :prepend t :kill-buffer t)
@@ -149,7 +149,7 @@
   (general-define-key :states '(normal insert)
                       :keymaps 'org-mode-map
                       "C-<return>" #'+org/insert-item-below
-                      "C-S-<return>" #'+org/insert-item-above
+                      "C-S-<return>" 'org-insert-subheading
                       )
   (general-define-key :states '(normal)
                       :keymaps 'org-mode-map
