@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun 17 11:30:02 2021 (+0800)
+;; Last-Updated: Fri Jul  9 17:27:13 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -280,10 +280,9 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   (setq TeX-view-program-list
         '(("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")))
 
-  (with-eval-after-load 'tex
-    '(progn
-       (assq-delete-all 'output-pdf TeX-view-program-selection)
-       (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer"))))
+  (progn
+    (assq-delete-all 'output-pdf TeX-view-program-selection)
+    (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer")))
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
   (add-hook 'TeX-mode-hook (lambda() (setq ispell-parser 'tex
                                       fill-nobreak-predicate (cons #'texmathp fill-nobreak-predicate))))
