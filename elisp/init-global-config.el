@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Jun  5 01:36:02 2021 (+0800)
+;; Last-Updated: Fri Jul  9 21:44:10 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -186,6 +186,11 @@ The original function deletes trailing whitespace of the current line."
   (interactive)
   (if (boundp 'client-revert-bufferp)
       (switch-to-buffer client-revert-bufferp)))
+
+(use-package gcmh
+  :config
+  (gcmh-mode)
+  (setq gcmh-high-cons-threshold (* 64 1024 1024)))
 
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
