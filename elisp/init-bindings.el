@@ -102,7 +102,7 @@
     "ev" '(flycheck-verify-setup :wk "Verify setup")
     "es" '(flycheck-select-checker :wk "Select checker")
 
-    "g" '(:wh "Git")
+    "g" '(:wk "Git")
     "gs" '(magit-status :wk "status")
     "ga" '(magit-stage-file :wk "stage file")
     "gp" '(magit-push :wk "push")
@@ -115,12 +115,12 @@
     "gF" '(magit-pull :wk "pull")
 
 
-    "t" '(:wh "Toggle")
-    "tl" '(toggle-truncate-lines :wh "Toggle line wrap")
-    "td" '(toggle-debug-on-error :wh "Toggle debug on error")
-    "tt" '(treemacs :wh "Treemacs")
-    "tj" '(lsp-treemacs-symbols-toggle :wh "LSP Treemacs")
-    "ti" '(imenu-list-smart-toggle :wh "imenu-list")
+    "t" '(:wk "Toggle")
+    "tl" '(toggle-truncate-lines :wk "Toggle line wrap")
+    "td" '(toggle-debug-on-error :wk "Toggle debug on error")
+    "tt" '(treemacs :wk "Treemacs")
+    "tj" '(lsp-treemacs-symbols-toggle :wk "LSP Treemacs")
+    "ti" '(imenu-list-smart-toggle :wk "imenu-list")
 
     "o" '(:wk "Open")
     "oy" '(my-youdao-search-at-point :wk "Youdao")
