@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Jul  6 10:45:25 2021 (+0800)
+;; Last-Updated: Fri Jul  9 21:45:56 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -51,34 +51,6 @@
          (add-to-list 'load-path early-init-do-not-edit-d)
          (require 'early-init))))
 ;; -CheckVer
-
-;; BetterGC
-(defvar better-gc-cons-threshold 536870912 ; 512mb
-  "The default value to use for `gc-cons-threshold'.
-
-If you experience freezing, decrease this.  If you experience stuttering, increase this.")
-
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq gc-cons-threshold better-gc-cons-threshold)
-            (setq file-name-handler-alist file-name-handler-alist-original)
-            (makunbound 'file-name-handler-alist-original)))
-;; -BetterGC
-
-;; AutoGC
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (if (boundp 'after-focus-change-function)
-                (add-function :after after-focus-change-function
-                              (lambda ()
-                                (unless (frame-focus-state)
-                                  (garbage-collect))))
-              (add-hook 'after-focus-change-function 'garbage-collect))
-
-            (add-hook 'minibuffer-setup-hook (lambda() (setq gc-cons-threshold (* better-gc-cons-threshold 2))))
-            (add-hook 'minibuffer-exit-hook (lambda() (garbage-collect) (setq gc-cons-threshold better-gc-cons-threshold )))
-            ))
-;; -AutoGC
 
 ;; LoadPath
 (defun update-to-load-path (folder)
