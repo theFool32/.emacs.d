@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jul  8 14:34:01 2021 (+0800)
+;; Last-Updated: Sat Jul 10 13:35:19 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -135,6 +135,12 @@
         )
 
   (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
+  (add-hook 'after-change-major-mode-hook
+            (lambda () (if (equal show-paren-mode 't)
+			          (when (derived-mode-p 'org-mode)
+			            (show-paren-mode -1))
+                    (show-paren-mode 1))))
+
   ;; TocOrgPac
   (use-package toc-org
     :after org
