@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Jul 10 13:35:19 2021 (+0800)
+;; Last-Updated: Sun Jul 11 14:05:41 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -170,7 +170,6 @@
     ;; "." 'org-goto
 
     "." 'consult-org-heading
-    "/" 'consult-org-goto-all
 
     "A" 'org-archive-subtree
     "e" 'org-export-dispatch
@@ -245,8 +244,6 @@
     "D" 'archive-done-tasks
 
     "g" '(:wk "goto")
-    "gg" 'consult-org-goto
-    "gG" 'consult-org-goto-all
     "gc" 'org-clock-goto
     "gi" 'org-id-goto
     "gr" 'org-refile-goto-last-stored

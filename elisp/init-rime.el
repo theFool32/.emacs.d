@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 77
+;;     Update #: 79
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -81,10 +81,11 @@
           (delete-file lock-name)
           (rime-deploy)))))
 
-    (defun activate-default-input-method ()
+  (defun activate-default-input-method ()
     (interactive)
     (activate-input-method default-input-method))
-    (add-hook 'text-mode-hook 'activate-default-input-method)
+  ;; (add-hook 'text-mode-hook 'activate-default-input-method)
+  (add-hook 'org-mode-hook 'activate-default-input-method)
   )
 
 (provide 'init-rime)
