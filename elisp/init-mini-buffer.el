@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 383
+;;     Update #: 385
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -282,12 +282,12 @@ When the number of characters in a buffer exceeds this threshold,
 
 
   (projectile-load-known-projects)
-  (setq my/consult-source-projectile-projects
-        `(:name "Projectile projects"
-                :narrow   ?P
-                :category project
-                :action   ,#'projectile-switch-project-by-name
-                :items    ,projectile-known-projects))
+  ;; (setq my/consult-source-projectile-projects
+  ;;       `(:name "Projectile projects"
+  ;;               :narrow   ?P
+  ;;               :category project
+  ;;               :action   ,#'projectile-switch-project-by-name
+  ;;               :items    ,projectile-known-projects))
   ;; (add-to-list 'consult-buffer-sources my/consult-source-projectile-projects 'append)
 
   ;; Configure initial narrowing per command
@@ -376,6 +376,8 @@ When the number of characters in a buffer exceeds this threshold,
   :after orderless
   :config
   ;; Configure Orderless
+  (when *rga*
+    (setq affe-grep-command "rga --null --color=never --max-columns=1000 --no-heading --line-number -v ^$ ."))
   (setq affe-regexp-function #'orderless-pattern-compiler
         affe-highlight-function #'orderless-highlight-matches
         affe-find-command "fd --color=never --full-path"))
