@@ -60,7 +60,8 @@
         ;; to do highlighting them all.
         evil-ex-interactive-search-highlight 'selected-window
         evil-split-window-below t
-        evil-vsplit-window-right t)
+        evil-vsplit-window-right t
+        evil-undo-system 'undo-redo)
 
   :config
   (evil-select-search-module 'evil-search-module 'evil-search)
