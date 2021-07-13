@@ -69,6 +69,7 @@
     "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :which-key "init.el")
     "fp" '((lambda() (interactive)(find-file (read-file-name ".emacs.d: " "~/.emacs.d/elisp/"))) :which-key ".emacs.d")
     "fo" '((lambda() (interactive)(find-file +org-capture-file-gtd)) :which-key "Org files")
+    "fh" '((lambda() (interactive)(consult-find default-directory)) :wk "Find file here")
 
     "j" '(:wk "Jump")
     "jj" '(evil-avy-goto-char :wk "Jump to character")
