@@ -44,7 +44,6 @@
   (setq evil-want-keybinding nil)
   :preface
   (setq evil-want-visual-char-semi-exclusive t
-        evil-want-C-i-jump 'nil
         evil-ex-search-vim-style-regexp t
         evil-ex-substitute-global t
         evil-ex-visual-char-range t  ; column range for ex commands
