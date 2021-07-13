@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:08:22 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Apr 29 01:43:50 2021 (+0800)
+;; Last-Updated: Tue Jul 13 11:18:42 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d flycheck
@@ -72,6 +72,16 @@
 
   )
 ;; -FlyCheckPac
+
+(use-package wucuo
+  :config
+  (setq ispell-program-name "aspell")
+  ;; You could add extra option "--camel-case" for since Aspell 0.60.8
+  ;; @see https://github.com/redguardtoo/emacs.d/issues/796
+  (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_US" "--run-together"))
+
+  (add-hook 'prog-mode-hook #'wucuo-start)
+  (add-hook 'text-mode-hook #'wucuo-start))
 
 (provide 'init-flycheck)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
