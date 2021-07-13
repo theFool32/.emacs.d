@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Jun  5 15:55:54 2021 (+0800)
+;; Last-Updated: Tue Jul 13 10:40:06 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -101,6 +101,7 @@
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (custom-set-variables '(x-select-enable-clipboard t))
+(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 
 (setq split-width-threshold 0
       split-height-threshold nil)
