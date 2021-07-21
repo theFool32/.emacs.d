@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 19 14:55:24 2021 (+0800)
+;; Last-Updated: Wed Jul 21 10:19:36 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -56,7 +56,7 @@
 ;; DisLineNum
 (add-hook 'text-mode-hook #'display-line-numbers-mode)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
-(add-hook 'org-mode-hook '(lambda () (display-line-numbers-mode 0)))
+(add-hook 'org-mode-hook #'(lambda () (display-line-numbers-mode 0)))
 ;; Display column numbers in modeline
 (column-number-mode 1)
 (setq display-line-numbers-type 'relative)
@@ -94,7 +94,7 @@
 (my-default-frame-face)
 (set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend)
 (add-hook 'after-make-frame-functions
-	      (lambda (new-frame)
+	      #'(lambda (new-frame)
 	        (select-frame new-frame)
 	        (my-default-frame-face) ))
 

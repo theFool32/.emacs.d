@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Jul 11 14:05:41 2021 (+0800)
+;; Last-Updated: Wed Jul 21 10:18:49 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -140,6 +140,18 @@
 			          (when (derived-mode-p 'org-mode)
 			            (show-paren-mode -1))
                     (show-paren-mode 1))))
+
+  ;; https://emacs-china.org/t/topic/2119/15?u=thefool32
+  (defun my--diary-chinese-anniversary (lunar-month lunar-day &optional year mark)
+    (if year
+        (let* ((d-date (diary-make-date lunar-month lunar-day year))
+               (a-date (calendar-absolute-from-gregorian d-date))
+               (c-date (calendar-chinese-from-absolute a-date))
+               (cycle (car c-date))
+               (yy (cadr c-date))
+               (y (+ (* 100 cycle) yy)))
+          (diary-chinese-anniversary lunar-month lunar-day y mark))
+      (diary-chinese-anniversary lunar-month lunar-day year mark)))
 
   ;; TocOrgPac
   (use-package toc-org
