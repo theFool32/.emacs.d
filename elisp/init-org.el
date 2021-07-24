@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Jul 21 10:18:49 2021 (+0800)
+;; Last-Updated: Sat Jul 24 15:08:03 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -350,6 +350,45 @@
   :config
   (cond (*sys/mac*
          (setq org-download-screenshot-method "screencapture -i %s"))))
+
+;; -Notification
+;; disabled now
+(unless t
+  (require 'appt)
+
+  (setq appt-time-msg-list nil) ;; clear existing appt list
+  (setq appt-display-interval '5) ;; warn every 5 minutes from t - appt-message-warning-time
+  (setq
+   appt-message-warning-time '15 ;; send first warning 15 minutes before appointment
+   appt-display-mode-line nil ;; don't show in the modeline
+   appt-display-format 'window) ;; pass warnings to the designated window function
+  (setq appt-disp-window-function (function ct/appt-display-native))
+
+  (appt-activate 1) ;; activate appointment notification
+                                        ; (display-time) ;; Clock in modeline
+
+  ;; One should install https://github.com/vjeantet/alerter
+  ;; brew install alerter
+  (defun ct/send-notification (title msg)
+    (let ((notifier-path (executable-find "alerter")))
+      (start-process
+       "Appointment Alert"
+       "*Appointment Alert*" ; use `nil` to not capture output; this captures output in background
+       notifier-path
+       "-message" msg
+       "-title" title
+       "-sender" "org.gnu.Emacs"
+       "-activate" "org.gnu.Emacs")))
+  (defun ct/appt-display-native (min-to-app new-time msg)
+    (ct/send-notification
+     (format "Appointment in %s minutes" min-to-app) ; Title
+     (format "%s" msg))) ; Message/detail text
+  ;; Agenda-to-appointent hooks
+  (org-agenda-to-appt) ;; generate the appt list from org agenda files on emacs launch
+  (run-at-time "24:01" 3600 'org-agenda-to-appt) ;; update appt list hourly
+  (add-hook 'org-finalize-agenda-hook 'org-agenda-to-appt) ;; update appt list on agenda view
+  )
+;; -Notification
 
 (provide 'init-org)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
