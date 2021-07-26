@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Jul 24 15:08:03 2021 (+0800)
+;; Last-Updated: Mon Jul 26 12:06:07 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -141,7 +141,8 @@
 			            (show-paren-mode -1))
                     (show-paren-mode 1))))
 
-  ;; https://emacs-china.org/t/topic/2119/15?u=thefool32
+  ;; https://emacs-china.org/t/topic/2119/15
+  (require 'cal-china)
   (defun my--diary-chinese-anniversary (lunar-month lunar-day &optional year mark)
     (if year
         (let* ((d-date (diary-make-date lunar-month lunar-day year))
