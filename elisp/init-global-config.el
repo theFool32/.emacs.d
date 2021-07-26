@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Jul 11 13:57:56 2021 (+0800)
+;; Last-Updated: Mon Jul 26 15:23:12 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -97,7 +97,6 @@ The original function deletes trailing whitespace of the current line."
 
 ;; History
 (use-package recentf
-  :ensure nil
   :hook (after-init . recentf-mode)
   :custom
   (recentf-auto-cleanup "05:00am")

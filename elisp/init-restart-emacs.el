@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 2
+;;     Update #: 4
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -46,7 +46,8 @@
 ;;
 ;;; Code:
 
-(use-package restart-emacs)
+(use-package restart-emacs
+  :commands restart-emacs)
 
 (provide 'init-restart-emacs)
 

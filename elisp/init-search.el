@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun  3 02:02:41 2021 (+0800)
+;; Last-Updated: Mon Jul 26 17:07:05 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -40,14 +40,6 @@
   (require 'init-global-config)
   (require 'init-const))
 
-;; https://github.com/purcell/exec-path-from-shell/issues/75
-(defun my-exec-path-from-shell-initialize ()
-     (when (memq window-system '(mac ns x))
-       (exec-path-from-shell-initialize)))
-(use-package exec-path-from-shell
-  :init
-  (add-hook 'after-init-hook 'my-exec-path-from-shell-initialize))
-
 (use-package youdao-dictionary
   :commands youdao-dictionary-play-voice-of-current-word
   :init
@@ -64,6 +56,7 @@
 ;; Search tools
 ;; Writable `grep' buffer
 (use-package wgrep
+  :defer t
   :init
   (setq wgrep-auto-save-buffer t
         wgrep-change-readonly-file t))

@@ -9,8 +9,7 @@
 
 ;; Leader def
 (use-package general
-  :after evil
-  :ensure
+  ;; :after evil
   :config
   (general-create-definer leader-def
     :states '(normal visual emacs motion)

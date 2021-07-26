@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:53:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Jul  7 14:44:17 2021 (+0800)
+;; Last-Updated: Mon Jul 26 16:41:49 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d packages use-package
@@ -38,88 +38,35 @@
 ;;
 ;;; Code:
 
-;; MelpaPackages
-;; Select the folder to store packages
-;; Comment / Uncomment to use desired sites
-(setq package-user-dir (expand-file-name "elpa" user-emacs-directory)
-      package-archives
-      '(
-        ;; ("gnu"   . "https://elpa.gnu.org/packages/")
-        ;; ("melpa" . "https://melpa.org/packages/")
-        ;; ("melpa-cn" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
-        ;; ("gnu-cn"   . "http://mirrors.cloud.tencent.com/elpa/gnu/")
-
-        ("gnu" . "https://mirrors.ustc.edu.cn/elpa/gnu/")
-        ("melpa" . "https://mirrors.ustc.edu.cn/elpa/melpa/")
-        ;; ("melpa-stable" . "https://mirrors.ustc.edu.cn/elpa/melpa-stable/")
-	    ("org" . "https://mirrors.ustc.edu.cn/elpa/org/")
-        ))
-;; -MelpaPackages
-
-;; ConfigurePackageManager
-(unless (bound-and-true-p package--initialized)
-  (setq package-enable-at-startup nil)          ; To prevent initializing twice
-  (package-initialize))
-
-;; set use-package-verbose to t for interpreted .emacs,
-;; and to nil for byte-compiled .emacs.elc.
-(eval-and-compile
-  (setq use-package-verbose (not (bound-and-true-p byte-compile-current-file))))
-;; -ConfigurePackageManager
-
-;; ConfigureUsePackage
-;; Install use-package if not installed
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-
-(eval-and-compile
-  (setq use-package-always-ensure t)
-  (setq use-package-expand-minimally t)
-  (setq use-package-compute-statistics t)
-  (setq use-package-enable-imenu-support t))
-
-(eval-when-compile
-  (require 'use-package)
-  (require 'bind-key))
-;; -ConfigureUsePackage
-
-;; AutoPackageUpdate
-(use-package auto-package-update
-  :if (not (daemonp))
-  :custom
-  (auto-package-update-interval 7) ;; in days
-  (auto-package-update-prompt-before-update t)
-  (auto-package-update-delete-old-versions t)
-  (auto-package-update-hide-results t)
-  :config
-  (auto-package-update-maybe))
-;; -AutoPackageUpdate
-
-;; DimPac
-(use-package diminish)
-;; -DimPac
-
-;; TODO: should we use two package managers?
 ;; Straight
-(defvar bootstrap-version)
+(unless (featurep 'straight)
+  (defvar bootstrap-version)
+
+  (let ((bootstrap-file (concat user-emacs-directory
+                                "straight/repos/straight.el/bootstrap.el"))
+        (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage)))
+;; -Straight
+
 (setq straight--process-log nil)
 (setq straight-vc-git-default-clone-depth 1)
 (unless (featurep 'native-compile)
   (setq straight-disable-native-compile t))
+(setq straight-use-package-by-default t)
+(setq straight-check-for-modifications '(watch-files find-when-checking))
 
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-;; -Straight
+(straight-use-package 'use-package)
+
+;; DimPac
+(use-package diminish)
+;; -DimPac
 
 (provide 'init-package)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

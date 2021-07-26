@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:37:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Jun  6 14:41:20 2021 (+0800)
+;; Last-Updated: Mon Jul 26 15:54:48 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dired auto-save
@@ -39,7 +39,8 @@
 
 ;; DiredPackage
 (use-package dired
-  :ensure nil
+  :defer t
+  :straight nil
   :custom
   ;; Always delete and copy recursively
   (dired-recursive-deletes 'always)
@@ -94,17 +95,19 @@ Version 2019-11-04"
          ((string-equal system-type "gnu/linux")
           (mapc
            (lambda ($fpath) (let ((process-connection-type nil))
-                         (start-process "" nil "xdg-open" $fpath)))
+                              (start-process "" nil "xdg-open" $fpath)))
            $file-list))))))
 
-  (general-define-key :states '(normal)
-                      :keymaps 'dired-mode-map
-                      "C-<return>" 'xah-open-in-external-app
-                      "<return>" 'dired-find-alternate-file
-                      "l" 'dired-find-alternate-file
-                      "h" (lambda () (interactive) (find-alternate-file ".."))
-                      "^" (lambda () (interactive) (find-alternate-file "..")))
-  )
+  (with-eval-after-load 'general
+    (general-define-key :states '(normal)
+                        :keymaps 'dired-mode-map
+                        "C-<return>" 'xah-open-in-external-app
+                        "<return>" 'dired-find-alternate-file
+                        "l" 'dired-find-alternate-file
+                        "h" (lambda () (interactive) (find-alternate-file ".."))
+                        "^" (lambda () (interactive) (find-alternate-file "..")))
+
+    ))
 ;; -DiredPackage
 
 ;; SaveAllBuffers
@@ -112,8 +115,10 @@ Version 2019-11-04"
   "Instead of `save-buffer', save all opened buffers by calling `save-some-buffers' with ARG t."
   (interactive)
   (save-some-buffers t))
-(general-def "C-x C-s" nil)
-(general-def "C-x C-s" 'save-all-buffers)
+(with-eval-after-load 'general
+  (general-def "C-x C-s" nil)
+  (general-def "C-x C-s" 'save-all-buffers)
+  )
 ;; -SaveAllBuffers
 
 (provide 'init-dired)

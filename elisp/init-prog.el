@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 8
+;;     Update #: 11
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -47,6 +47,7 @@
 ;;; Code:
 
 (use-package devdocs
+  :commands (devdocs-lookup-at-point devdocs-search-at-point)
   :config
   (add-hook 'python-mode-hook
             (lambda() (setq-local devdocs-current-docs '("python~3.9" "PyTorch" "NumPy~1.20"))))

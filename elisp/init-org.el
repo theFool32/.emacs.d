@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 26 12:06:07 2021 (+0800)
+;; Last-Updated: Mon Jul 26 16:33:41 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -57,7 +57,6 @@
       (goto-char (line-beginning-position))
       (org-archive-subtree))))
 (use-package org
-  :ensure nil
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h))
   :custom
@@ -77,6 +76,7 @@
   ;; (add-hook 'org-load-hook #'+org-enable-auto-update-cookies-h)
 
   :config
+  ;; TODO: slow
   (defvar load-language-list '((emacs-lisp . t)
                                (python . t)
                                (C . t)))
@@ -137,9 +137,9 @@
   (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
   (add-hook 'after-change-major-mode-hook
             (lambda () (if (equal show-paren-mode 't)
-			          (when (derived-mode-p 'org-mode)
-			            (show-paren-mode -1))
-                    (show-paren-mode 1))))
+			               (when (derived-mode-p 'org-mode)
+			                 (show-paren-mode -1))
+                         (show-paren-mode 1))))
 
   ;; https://emacs-china.org/t/topic/2119/15
   (require 'cal-china)

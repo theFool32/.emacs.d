@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Jul  9 21:45:56 2021 (+0800)
+;; Last-Updated: Mon Jul 26 16:44:07 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -75,12 +75,9 @@
   (load-file (expand-file-name "init-custom.el" user-emacs-directory)))
 ;; -InitPrivate
 
-;; Constants
-(require 'init-const)
-;; (require 'init-benchmarking)
-
-;; Package Management
 (require 'init-package)
+(require 'init-const)
+;; (use-package esup)
 ;; (use-package benchmark-init
 ;;   :straight (benchmark-init :local-repo "/Users/lijie/dev/benchmark-init-el")
 ;;   :init

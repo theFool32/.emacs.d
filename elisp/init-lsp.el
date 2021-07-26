@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Jul  6 11:05:08 2021 (+0800)
+;; Last-Updated: Mon Jul 26 16:36:11 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -42,7 +42,6 @@
 
 ;; LSPPac
 (use-package lsp-mode
-  :defer t
   :commands (lsp lsp-deferred)
   :custom
   (lsp-enable-indentation nil)
@@ -74,8 +73,6 @@
   (lsp-completion-provider :none)
 
   :hook ((python-mode c-mode c++-mode) . lsp-deferred)
-  :config
-
   )
 ;; -LSPPac
 

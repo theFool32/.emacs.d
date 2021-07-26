@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Jul  9 17:27:13 2021 (+0800)
+;; Last-Updated: Mon Jul 26 15:23:39 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -238,7 +238,7 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
 
 (use-package latex
   :defer t
-  :ensure auctex
+  :straight auctex
   :mode ("\\.tex\\'" . LaTeX-mode)
   :custom
   (TeX-parse-self t) ; parse on load

@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 385
+;;     Update #: 403
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -159,7 +159,10 @@ Demotes any errors to messages."
     (use-package uchronia
       :straight (:type git :host github :repo "minad/uchronia" :branch "main")
       :config
-      (general-def "C-c C-r" 'uchronia-repeat)
+
+      (with-eval-after-load 'general
+        (general-def "C-c C-r" 'uchronia-repeat)
+        )
       (uchronia-mode)
       ))
   )
@@ -167,7 +170,10 @@ Demotes any errors to messages."
   (use-package selectrum
     :config
     (selectrum-mode +1)
-    (general-def "C-c C-r" 'selectrum-repeat)
+
+    (with-eval-after-load 'general
+      (general-def "C-c C-r" 'selectrum-repeat)
+      )
     ;; (setq selectrum-should-sort nil)
     (with-eval-after-load 'orderless
       (setq orderless-skip-highlighting (lambda () selectrum-is-active))
@@ -183,8 +189,8 @@ Demotes any errors to messages."
 
 
 (use-package consult
-  :straight (:host github :repo "minad/consult")
   :after projectile
+  :straight (:host github :repo "minad/consult")
   :bind (
          ([remap recentf-open-files] . consult-recent-file)
          ([remap imenu] . consult-imenu)
@@ -211,6 +217,36 @@ Demotes any errors to messages."
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
   (setq consult-find-command "fd --color=never --full-path ARG OPTS")
+
+  (autoload 'org-buffer-list "org")
+  (defvar org-buffer-source
+    `(:name     "Org"
+                :narrow   ?o
+                :category buffer
+                :state    ,#'consult--buffer-state
+                :hidden   t
+                :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
+  (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
+
+
+  (projectile-load-known-projects)
+  ;; (setq my/consult-source-projectile-projects
+  ;;       `(:name "Projectile projects"
+  ;;               :narrow   ?P
+  ;;               :category project
+  ;;               :action   ,#'projectile-switch-project-by-name
+  ;;               :items    ,projectile-known-projects))
+  ;; (add-to-list 'consult-buffer-sources my/consult-source-projectile-projects 'append)
+
+  ;; Configure initial narrowing per command
+  ;; (defvar consult-initial-narrow-config
+  ;;   '((consult-buffer . ?b)))
+
+  ;; Add initial narrowing hook
+  ;; (defun consult-initial-narrow ()
+  ;;   (when-let (key (alist-get this-command consult-initial-narrow-config))
+  ;;     (setq unread-command-events (append unread-command-events (list key 32)))))
+  ;; (add-hook 'minibuffer-setup-hook #'consult-initial-narrow)
 
   (defun my-consult-set-evil-search-pattern (&optional condition)
     (let ((re
@@ -270,40 +306,12 @@ When the number of characters in a buffer exceeds this threshold,
           (consult-ripgrep)
           (my-consult-set-evil-search-pattern 'rg)))))
 
-  (autoload 'org-buffer-list "org")
-  (defvar org-buffer-source
-    `(:name     "Org"
-                :narrow   ?o
-                :category buffer
-                :state    ,#'consult--buffer-state
-                :hidden   t
-                :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
-  (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
-
-
-  (projectile-load-known-projects)
-  ;; (setq my/consult-source-projectile-projects
-  ;;       `(:name "Projectile projects"
-  ;;               :narrow   ?P
-  ;;               :category project
-  ;;               :action   ,#'projectile-switch-project-by-name
-  ;;               :items    ,projectile-known-projects))
-  ;; (add-to-list 'consult-buffer-sources my/consult-source-projectile-projects 'append)
-
-  ;; Configure initial narrowing per command
-  ;; (defvar consult-initial-narrow-config
-  ;;   '((consult-buffer . ?b)))
-
-  ;; Add initial narrowing hook
-  ;; (defun consult-initial-narrow ()
-  ;;   (when-let (key (alist-get this-command consult-initial-narrow-config))
-  ;;     (setq unread-command-events (append unread-command-events (list key 32)))))
-  ;; (add-hook 'minibuffer-setup-hook #'consult-initial-narrow)
 
   )
-
 (use-package consult-projectile
-  :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master"))
+  :after projectile
+  :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master")
+  )
 
 
 ;; Completion styles
@@ -373,6 +381,7 @@ When the number of characters in a buffer exceeds this threshold,
   ;; FIXME: not work when search pattern in filename
   ;; https://github.com/minad/affe/issues/13
   :straight (:type git :host github :repo "minad/affe" :branch "transformer")
+  :defer t
   :after orderless
   :config
   ;; Configure Orderless

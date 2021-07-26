@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:17:13 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Jul  6 11:10:39 2021 (+0800)
+;; Last-Updated: Mon Jul 26 15:20:44 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d parenthesis smartparens delete-block
@@ -42,7 +42,6 @@
 
 ;; Automatic parenthesis pairing
 (use-package elec-pair
-  :ensure nil
   :hook (after-init . electric-pair-mode)
   :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
   :config

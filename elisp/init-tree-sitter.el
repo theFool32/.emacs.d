@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 17
+;;     Update #: 32
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -51,10 +51,11 @@
 
 (use-package tree-sitter
   :if (not *sys/mac_arm*)
-  :config
-  (use-package tree-sitter-langs)
-  (global-tree-sitter-mode)
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+  :hook ((python-mode) . tree-sitter-hl-mode))
+
+(use-package tree-sitter-langs
+  :if (not *sys/mac_arm*)
+  :after tree-sitter)
 
 (provide 'init-tree-sitter)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

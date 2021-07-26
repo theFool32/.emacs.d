@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 09:10:23 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jun  3 01:11:49 2021 (+0800)
+;; Last-Updated: Mon Jul 26 14:17:46 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d projectile
@@ -42,6 +42,7 @@
 
 ;; ProjPac
 (use-package projectile
+  :defer 1
   :config
   (projectile-mode 1)
   (when (and *sys/win32* *tr*)
