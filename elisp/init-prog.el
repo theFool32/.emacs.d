@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 11
+;;     Update #: 14
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -57,26 +57,6 @@
   (defun devdocs-search-at-point()
     (interactive)
     (devdocs-search (thing-at-point 'symbol))))
-
-(use-package citre
-  :disabled
-  :straight (:type git :host github :repo "universal-ctags/citre")
-  :bind (("C-x c j" . citre-jump+)
-         ("C-x c k" . citre-jump-back)
-         ("C-x c p" . citre-peek)
-         ("C-x c a" . citre-ace-peek))
-  :hook (prog-mode . citre-auto-enable-citre-mode)
-  :config
-  (defun citre-jump+ ()
-    (interactive)
-    (condition-case _
-        (citre-jump)
-      (error (call-interactively #'xref-find-definitions))))
-
-  (with-eval-after-load 'projectile
-    (setq citre-project-root-function #'projectile-project-root))
-  )
-
 
 (provide 'init-prog)
 
