@@ -1,7 +1,7 @@
 
 * Emacs for self-use
 
-I use it with emacs@28.
+I use it with Emacs@28 with native-comp.
 
 #+begin_src bash
 # install with:
@@ -9,9 +9,15 @@ git clone --depth 1 https://github.com/theFool32/.emacs.d.git .emacs.d
 #+end_src
 
 
-The order of packages is not well designed, you may need to restart emacs more than once to install packages.
+The order of packages is not well designed, you may need to restart Emacs more than once to install packages.
 
 Enjoy hacking!
+
+** Emacs
+Follow [[https://github.com/jimeh/build-emacs-for-macos][build-emacs-for-macos]] to compile Emacs.
+#+begin_src bash
+./build-emacs-for-macos --no-xwidgets --native-full-aot
+#+end_src
 
 
 ** Emacs-rime

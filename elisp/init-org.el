@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 26 16:33:41 2021 (+0800)
+;; Last-Updated: Tue Jul 27 11:20:53 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -57,6 +57,7 @@
       (goto-char (line-beginning-position))
       (org-archive-subtree))))
 (use-package org
+  :straight nil
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h))
   :custom

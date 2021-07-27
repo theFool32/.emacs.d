@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:53:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 26 16:41:49 2021 (+0800)
+;; Last-Updated: Tue Jul 27 11:11:41 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d packages use-package
@@ -39,6 +39,14 @@
 ;;; Code:
 
 ;; Straight
+
+(setq straight--process-log nil
+      straight-vc-git-default-clone-depth 1
+      straight-use-package-by-default t
+      ;; straight-check-for-modifications '(check-on-save find-when-checking)
+      straight-check-for-modifications nil
+      )
+
 (unless (featurep 'straight)
   (defvar bootstrap-version)
 
@@ -55,13 +63,10 @@
     (load bootstrap-file nil 'nomessage)))
 ;; -Straight
 
-(setq straight--process-log nil)
-(setq straight-vc-git-default-clone-depth 1)
-(unless (featurep 'native-compile)
-  (setq straight-disable-native-compile t))
-(setq straight-use-package-by-default t)
-(setq straight-check-for-modifications '(watch-files find-when-checking))
-
+(setq use-package-enable-imenu-support t
+      use-package-verbose (not (bound-and-true-p byte-compile-current-file))
+      use-package-expand-minimally t
+      use-package-compute-statistics t)
 (straight-use-package 'use-package)
 
 ;; DimPac
