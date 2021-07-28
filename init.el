@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 26 16:44:07 2021 (+0800)
+;; Last-Updated: Wed Jul 28 10:42:36 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -38,18 +38,7 @@
 ;;; Code:
 
 ;; CheckVer
-(cond ((version< emacs-version "26.1")
-       (warn "We need Emacs 26.1 and above!"))
-      ((let* ((early-init-f (expand-file-name "early-init.el" user-emacs-directory))
-              (early-init-do-not-edit-d (expand-file-name "early-init-do-not-edit/" user-emacs-directory))
-              (early-init-do-not-edit-f (expand-file-name "early-init.el" early-init-do-not-edit-d)))
-         (and (version< emacs-version "27")
-              (or (not (file-exists-p early-init-do-not-edit-f))
-                  (file-newer-than-file-p early-init-f early-init-do-not-edit-f)))
-         (make-directory early-init-do-not-edit-d t)
-         (copy-file early-init-f early-init-do-not-edit-f t t t t)
-         (add-to-list 'load-path early-init-do-not-edit-d)
-         (require 'early-init))))
+(load (concat user-emacs-directory "early-init") nil t)
 ;; -CheckVer
 
 ;; LoadPath
