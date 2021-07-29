@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jul 29 11:22:41 2021 (+0800)
+;; Last-Updated: Thu Jul 29 11:53:41 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -37,9 +37,14 @@
 ;;
 ;;; Code:
 
-;; CheckVer
 (load (concat user-emacs-directory "early-init") nil t)
-;; -CheckVer
+(setq auto-mode-case-fold nil)
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.5)
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            "Recover GC values after startup."
+            (setq gc-cons-percentage 0.1)))
 
 ;; LoadPath
 (defun update-to-load-path (folder)

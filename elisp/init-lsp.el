@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Jul 27 18:11:25 2021 (+0800)
+;; Last-Updated: Thu Jul 29 11:28:46 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -71,6 +71,9 @@
   (read-process-output-max (* 1024 1024))
   (lsp-keep-workspace-alive nil)
   (gc-cons-threshold 100000000)
+  (lsp-modeline-code-actions-enable nil)
+  (lsp-modeline-diagnostics-enable nil)
+  (lsp-modeline-workspace-status-enable nil)
   (lsp-completion-provider :none)
 
   :hook ((python-mode c-mode c++-mode) . lsp-deferred)

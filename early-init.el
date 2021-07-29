@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:58:05 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Jul  9 21:11:53 2021 (+0800)
+;; Last-Updated: Thu Jul 29 11:32:50 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init early-init
@@ -39,7 +39,8 @@
 ;;; Code:
 
 ;; DeferGC
-(setq gc-cons-threshold most-positive-fixnum)
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.5)
 ;; -DeferGC
 
 ;; UnsetPES

@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 26 15:23:12 2021 (+0800)
+;; Last-Updated: Thu Jul 29 11:54:44 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -188,8 +188,13 @@ The original function deletes trailing whitespace of the current line."
   (if (boundp 'client-revert-bufferp)
       (switch-to-buffer client-revert-bufferp)))
 
+;; Don't ping things that look like domain names.
+(setq ffap-machine-p-known 'reject)
+(setq command-line-ns-option-alist nil)
+
+
 (use-package gcmh
-  :config
+  :init
   (gcmh-mode)
   (setq gcmh-high-cons-threshold (* 64 1024 1024)))
 
