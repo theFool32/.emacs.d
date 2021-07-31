@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Jun  4 00:18:03 2021 (+0800)
+;; Last-Updated: Sat Jul 31 19:47:27 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit
@@ -213,6 +213,29 @@ window that already exists in that direction. It will split otherwise."
   :bind (:map magit-status-mode-map
               ("%" . magit-gitflow-popup))
   )
+
+(use-package smerge-mode
+  :straight nil
+  :diminish
+  :after magit
+  :hook ((find-file . (lambda ()
+                        (save-excursion
+                          (goto-char (point-min))
+                          (when (re-search-forward "^<<<<<<< " nil t)
+                            (smerge-mode 1))))))
+  :config
+  (with-eval-after-load 'general
+    (local-leader-def
+        :keymaps 'smerge-mode-map
+        "n" '(smerge-next :wk "Next conflict")
+        "p" '(smerge-prev :wk "Previous conflict")
+        "RET" '(smerge-keep-current :wk "Accept current")
+        "l" '(smerge-keep-lower :wk "Keep lower")
+        "u" '(smerge-keep-upper :wk "Keep upper")
+        "m" '(smerge-keep-mine :wk "Keep mine")
+        "A" '(smerge-keep-all :wk "Keep all")))
+  )
+
 
 (provide 'init-magit)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
