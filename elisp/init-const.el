@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Mar 18 14:20:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Aug  2 20:43:56 2021 (+0800)
+;; Last-Updated: Tue Aug  3 16:00:40 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d constants
@@ -42,8 +42,8 @@
 
 ;; https://github.com/purcell/exec-path-from-shell/issues/75
 (use-package exec-path-from-shell
-  :custom
-  (exec-path-from-shell-arguments (quote ("-l")))
+  ;; :custom
+  ;; (exec-path-from-shell-arguments (quote ("-l")))
   :init
   (exec-path-from-shell-initialize))
 
