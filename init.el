@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jul 29 11:53:41 2021 (+0800)
+;; Last-Updated: Tue Aug  3 13:28:50 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -37,7 +37,9 @@
 ;;
 ;;; Code:
 
-(load (concat user-emacs-directory "early-init") nil t)
+;; TODO: autoload
+
+(load (concat user-emacs-directory "early-init") nil 'nomessage)
 (setq auto-mode-case-fold nil)
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.5)
@@ -65,9 +67,14 @@
 
 ;; InitPrivate
 ;; Load init-custom.el if it exists
-(when (file-exists-p (expand-file-name "init-custom.el" user-emacs-directory))
-  (load-file (expand-file-name "init-custom.el" user-emacs-directory)))
+(load (expand-file-name "init-custom.el" user-emacs-directory) nil 'nomessage)
 ;; -InitPrivate
+
+(defvar +self/first-input-hook nil)
+(add-hook 'pre-command-hook #'(lambda ()
+                                (when +self/first-input-hook
+                                  (run-hooks '+self/first-input-hook)
+                                  (setq +self/first-input-hook nil))))
 
 (require 'init-package)
 (require 'init-const)

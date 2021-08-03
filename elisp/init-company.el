@@ -39,11 +39,6 @@
 ;;
 ;;; Code:
 
-(eval-when-compile
-  (require 'init-const)
-  (require 'init-bindings))
-
-
 (defun smarter-yas-expand-next-field-complete ()
   "Try to `yas-expand' and `yas-next-field' at current cursor position.
 
@@ -182,12 +177,14 @@ Examples:
   (setq company-backends '(company-files company-dabbrev))
   (global-company-mode 1)
 
-  (general-define-key
-   :keymaps '(company-active-map evil-insert-state-map)
-   "C-k" 'smarter-yas-expand-next-field-complete)
-  (general-def 'insert
-    :prefix "C-x"
-    "C-f" 'company-files)
+  (with-eval-after-load 'general
+    (general-define-key
+     :keymaps '(company-active-map evil-insert-state-map)
+     "C-k" 'smarter-yas-expand-next-field-complete)
+    (general-def 'insert
+      :prefix "C-x"
+      "C-f" 'company-files)
+    )
 
   (with-eval-after-load 'orderless
     (defvar-local +company-completion-styles '(partial-completion))
@@ -207,6 +204,7 @@ Examples:
   )
 ;; -ComPac
 (use-package company-prescient
+  :after company
   :init (company-prescient-mode 1))
 
 

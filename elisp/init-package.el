@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:53:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Jul 27 11:11:41 2021 (+0800)
+;; Last-Updated: Tue Aug  3 13:19:42 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d packages use-package
@@ -67,6 +67,7 @@
       use-package-verbose (not (bound-and-true-p byte-compile-current-file))
       use-package-expand-minimally t
       use-package-compute-statistics t)
+(setq byte-compile-warnings '(cl-functions))
 (straight-use-package 'use-package)
 
 ;; DimPac

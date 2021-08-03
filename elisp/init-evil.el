@@ -38,6 +38,7 @@
   (require 'init-const))
 
 (use-package evil
+  :hook (after-init . evil-mode)
   :demand t
   :init
   (setq evil-want-keybinding nil)
@@ -63,7 +64,6 @@
 
   :config
   (evil-select-search-module 'evil-search-module 'evil-search)
-  (evil-mode 1)
   (put 'evil-define-key* 'lisp-indent-function 'defun)
 
   ;; stop copying each visual state move to the clipboard:

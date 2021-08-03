@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 49
+;;     Update #: 62
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -49,16 +49,18 @@
 
 
 ;; For ebib
-(defconst ebib-base-dir "/Users/lijie/Dropbox/Ref/")
+(defconst +self/ebib-base-dir "/Users/lijie/Dropbox/Ref/")
 ;; For org-mode
-(defconst org-base-dir "/Users/lijie/Dropbox/org-notes/")
-(defconst default-directory "/Users/lijie/")
+(defconst +self/org-base-dir "/Users/lijie/Dropbox/org-notes/")
 
-(defconst my-mini-buffer-completion "selectrum" ;; Currently `vertico' lacks sth like `normalize' symbols and strings. Long way to go.
+(defconst +self/mini-buffer-completion "selectrum" ;; Currently `vertico' lacks sth like `normalize' symbols and strings. Long way to go.
   "vertico or selectrum")
 
-(defconst use-rc-to-sync t
+(defconst +self/use-rc-to-sync t
   "Should we use `rc' to sync when saving")
+
+(defconst +self/use-rime t
+  "Should we use `rime'")
 
 (provide 'init-custom)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

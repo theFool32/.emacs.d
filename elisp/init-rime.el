@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 79
+;;     Update #: 81
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -47,6 +47,7 @@
 ;;; Code:
 
 (use-package rime
+  :if +self/use-rime
   :init
   (setq rime-librime-root "~/.emacs.d/librime/dist/"
         rime-user-data-dir "~/Library/Rime"
@@ -85,7 +86,7 @@
     (interactive)
     (activate-input-method default-input-method))
   ;; (add-hook 'text-mode-hook 'activate-default-input-method)
-  (add-hook 'org-mode-hook 'activate-default-input-method)
+  ;; (add-hook 'org-mode-hook 'activate-default-input-method)
   )
 
 (provide 'init-rime)

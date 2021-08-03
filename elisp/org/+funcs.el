@@ -34,6 +34,7 @@
 ;;; Code:
 ;;; Helpers
 
+;;;###autoload
 (defun +org--refresh-inline-images-in-subtree ()
   "Refresh image previews in the current heading/tree."
   (if (> (length org-inline-image-overlays) 0)
@@ -273,6 +274,7 @@ If on a:
     (add-hook 'evil-insert-state-exit-hook #'+org-update-cookies-h nil t))
   (add-hook 'before-save-hook #'+org-update-cookies-h nil t))
 
+;;;###autoload
 (defun +org-init-appearance-h ()
   "Configures the UI for `org-mode'."
   (setq org-indirect-buffer-display 'current-window
@@ -298,7 +300,9 @@ If on a:
         org-use-sub-superscripts '{}
         ))
 
+;;;###autoload
 (defun +org-init-agenda-h ()
+  (evil-set-initial-state 'org-agenda-mode 'motion)
   (unless org-agenda-files
     (setq org-agenda-files (list org-directory)))
   (setq-default
@@ -313,6 +317,7 @@ If on a:
    org-agenda-start-on-weekday nil
    org-agenda-start-day "-3d"))
 
+;;;###autoload
 (defun +org-init-capture-defaults-h()
   ;; enter insert state for org-capture
   (add-hook 'org-capture-mode-hook #'evil-insert-state)
@@ -399,6 +404,16 @@ If prefix ARG, copy instead of move."
          (lambda (_p _coll _pred _rm _ii _h default &rest _)
            default)))
     (org-refile)))
+
+;;;###autoload
+(defun +org/archive-done-tasks ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward
+            (concat "\\* " (regexp-opt org-done-keywords) " ") nil t)
+      (goto-char (line-beginning-position))
+      (org-archive-subtree))))
 
 (provide 'org/+funcs)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

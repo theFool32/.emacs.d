@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 261
+;;     Update #: 264
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -50,17 +50,18 @@
 (require 'init-func)
 
 (use-package ebib
+  :commands ebib
   :straight (:host github :repo "theFool32/ebib" :depth 1)
   ;; :straight (ebib :local-repo "/Users/lijie/dev/ebib")
   :custom
   (ebib-citation-description-function 'ebib-title-description)
-  (ebib-preload-bib-files (list (concat ebib-base-dir "ref.bib")))
-  (ebib-file-search-dirs (list (concat ebib-base-dir "pdfs/")))
-  (ebib-notes-directory (concat ebib-base-dir "notes/"))
-  (ebib-keywords (concat ebib-base-dir "ebib-keywords.txt"))
+  (ebib-preload-bib-files (list (concat +self/ebib-base-dir "ref.bib")))
+  (ebib-file-search-dirs (list (concat +self/ebib-base-dir "pdfs/")))
+  (ebib-notes-directory (concat +self/ebib-base-dir "notes/"))
+  (ebib-keywords (concat +self/ebib-base-dir "ebib-keywords.txt"))
   (ebib-keywords-field-keep-sorted t)
   (ebib-keywords-save-on-exit 'always)
-  (ebib-filters-default-file (concat ebib-base-dir "ebib-filters"))
+  (ebib-filters-default-file (concat +self/ebib-base-dir "ebib-filters"))
   ;; (ebib-index-window-size 30)
   (ebib-timestamp-format "%Y-%m-%d,%T")
   (ebib-index-default-sort '("timestamp" . descend))
@@ -112,7 +113,7 @@
             ebib-index-window-size 30
             ))
 
-  (setq download-dir (concat ebib-base-dir "/pdfs"))
+  (setq download-dir (concat +self/ebib-base-dir "/pdfs"))
 
   (defun ebib-import-ref (url)
     (interactive "sUrl:")

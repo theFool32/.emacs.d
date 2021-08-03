@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 404
+;;     Update #: 407
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -168,8 +168,8 @@ Demotes any errors to messages."
   )
  (*selectrum*
   (use-package selectrum
+    :hook (+self/first-input . selectrum-mode)
     :config
-    (selectrum-mode +1)
 
     (with-eval-after-load 'general
       (general-def "C-c C-r" 'selectrum-repeat)
@@ -317,6 +317,7 @@ When the number of characters in a buffer exceeds this threshold,
 ;; Completion styles
 (setq completion-styles '(basic partial-completion substring initials flex))
 (use-package orderless
+  :after marginalia
   :demand t
   :config
   (savehist-mode)
@@ -340,7 +341,7 @@ When the number of characters in a buffer exceeds this threshold,
         completion-category-overrides '((file (styles . (partial-completion))))))
 
 (use-package marginalia
-  :hook (after-init . marginalia-mode)
+  :hook (+self/first-input . marginalia-mode)
   :config
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light))
   (advice-add #'marginalia-cycle :after

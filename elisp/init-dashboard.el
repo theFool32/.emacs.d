@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:21:46 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jul 29 11:19:49 2021 (+0800)
+;; Last-Updated: Tue Aug  3 13:27:43 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dashboard
@@ -41,21 +41,14 @@
 (use-package dashboard
   :demand
   :diminish (dashboard-mode)
-  :functions (all-the-icons-faicon all-the-icons-material winner-undo widget-forward)
-  ;; :bind
-  ;; (("C-z d" . open-dashboard)
-  ;;  :map dashboard-mode-map
-  ;;  (("n" . dashboard-next-line)
-  ;;   ("p" . dashboard-previous-line)
-  ;;   ("N" . dashboard-next-section)
-  ;;   ("F" . dashboard-previous-section)))
   :hook (dashboard-mode . (lambda () (setq-local frame-title-format "")))
   :custom
   (dashboard-banner-logo-title "EMACS - Enjoy Programming & Writing")
   (dashboard-startup-banner (expand-file-name "images/banner.txt" user-emacs-directory))
   (dashboard-center-content t)
   (dashboard-items '((recents  . 7)
-                     (agenda . 5)))
+                     (agenda . 5)
+                     ))
 
   (initial-buffer-choice (lambda () (get-buffer dashboard-buffer-name)))
   (dashboard-set-heading-icons t)
@@ -68,11 +61,6 @@
                              (projects  . "briefcase")
                              (registers . "database")))
   (dashboard-set-footer t)
-  (dashboard-footer-icon (all-the-icons-faicon "heart"
-                                               :height 1.1
-                                               :v-adjust -0.05
-                                               :face 'error))
-  ;; (dashboard-page-separator "\n\f\n")
   :custom-face
   (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
   (dashboard-banner-logo-title ((t (:family "CaskaydiaCove Nerd Font" :height 200))))

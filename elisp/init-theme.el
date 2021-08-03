@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:11:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Apr 16 15:58:18 2020 (+0800)
+;; Last-Updated: Tue Aug  3 13:22:15 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d doom-themes doom-modeline
@@ -45,6 +45,8 @@
 (use-package doom-themes
   :custom-face
   (cursor ((t (:background "BlanchedAlmond"))))
+  ;; :init
+  ;; (setq doom-theme 'doom-one)
   :config
   ;; flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -58,6 +60,7 @@
 
 ;; DoomModeline
 (use-package doom-modeline
+  :hook (after-init . doom-modeline-mode)
   :custom
   ;; Don't compact font caches during GC. Windows Laggy Issue
   (inhibit-compacting-font-caches t)
@@ -67,9 +70,7 @@
   (doom-modeline-major-mode-color-icon t)
   (doom-modeline-height 15)
   (doom-modeline-bar-width 1)
-
-  :config
-  (doom-modeline-mode))
+  )
 ;; -DoomModeline
 
 ;; (use-package hide-mode-line

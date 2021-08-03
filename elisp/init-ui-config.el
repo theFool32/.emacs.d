@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Jul 29 11:55:16 2021 (+0800)
+;; Last-Updated: Tue Aug  3 13:24:06 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -56,8 +56,12 @@
 ;; -YorN
 
 ;; StartupScreen
-(setq inhibit-startup-screen t)
-;; (setq initial-major-mode 'text-mode)
+(setq inhibit-startup-screen t
+      inhibit-startup-message t
+      inhibit-startup-echo-area-message user-login-name
+      inhibit-default-init t
+      initial-major-mode 'fundamental-mode
+      initial-scratch-message nil)
 ;; -StartupScreen
 
 ;; DisLineNum

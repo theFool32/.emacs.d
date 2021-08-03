@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Jul 27 11:20:53 2021 (+0800)
+;; Last-Updated: Mon Aug  2 20:43:11 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -43,19 +43,11 @@
 (require 'org/+funcs)
 
 ;; OrgPac
-(defvar +org-capture-file-gtd (concat org-base-dir "gtd.org"))
-(defvar +org-capture-file-idea (concat org-base-dir "ideas.org"))
-(defvar +org-capture-file-note (concat org-base-dir "notes.org"))
-(defvar +org-capture-file-someday (concat org-base-dir "someday.org"))
-(defvar +org-capture-file-tickler (concat org-base-dir "tickler.org"))
-(defun archive-done-tasks ()
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward
-            (concat "\\* " (regexp-opt org-done-keywords) " ") nil t)
-      (goto-char (line-beginning-position))
-      (org-archive-subtree))))
+(defvar +org-capture-file-gtd (concat +self/org-base-dir "gtd.org"))
+(defvar +org-capture-file-idea (concat +self/org-base-dir "ideas.org"))
+(defvar +org-capture-file-note (concat +self/org-base-dir "notes.org"))
+(defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
+(defvar +org-capture-file-tickler (concat +self/org-base-dir "tickler.org"))
 (use-package org
   :straight nil
   :hook ((org-mode . org-indent-mode)
@@ -68,21 +60,18 @@
   (org-export-backends (quote (ascii html icalendar latex md odt)))
   (org-use-speed-commands t)
   (org-confirm-babel-evaluate 'nil)
-  (org-directory (expand-file-name org-base-dir))
+  (org-directory (expand-file-name +self/org-base-dir))
   (org-ellipsis " ▼ ")
   (org-babel-python-command "python3")
   (org-bullets-bullet-list '("#"))
 
-  ;; :preface
-  ;; (add-hook 'org-load-hook #'+org-enable-auto-update-cookies-h)
-
   :config
   ;; TODO: slow
-  (defvar load-language-list '((emacs-lisp . t)
-                               (python . t)
-                               (C . t)))
-  (org-babel-do-load-languages 'org-babel-load-languages
-                               load-language-list)
+  ;; (defvar load-language-list '((emacs-lisp . t)
+  ;;                              (python . t)
+  ;;                              (C . t)))
+  ;; (org-babel-do-load-languages 'org-babel-load-languages
+  ;;                              load-language-list)
 
   ;; https://emacs-china.org/t/orgmode/8673/8
   ;; Open org file with default fold level
@@ -135,16 +124,16 @@
         ;; org-agenda-window-setup 'other-window
         )
 
-  (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
-  (add-hook 'after-change-major-mode-hook
-            (lambda () (if (equal show-paren-mode 't)
-			               (when (derived-mode-p 'org-mode)
-			                 (show-paren-mode -1))
-                         (show-paren-mode 1))))
+  ;; (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
+  ;; (add-hook 'after-change-major-mode-hook
+  ;;           (lambda () (if (equal show-paren-mode 't)
+  ;;   		          (when (derived-mode-p 'org-mode)
+  ;;   		            (show-paren-mode -1))
+  ;;                   (show-paren-mode 1))))
 
   ;; https://emacs-china.org/t/topic/2119/15
-  (require 'cal-china)
   (defun my--diary-chinese-anniversary (lunar-month lunar-day &optional year mark)
+    (require 'cal-china)
     (if year
         (let* ((d-date (diary-make-date lunar-month lunar-day year))
                (a-date (calendar-absolute-from-gregorian d-date))
@@ -155,196 +144,189 @@
           (diary-chinese-anniversary lunar-month lunar-day y mark))
       (diary-chinese-anniversary lunar-month lunar-day year mark)))
 
-  ;; TocOrgPac
-  (use-package toc-org
-    :after org
-    :hook (org-mode . toc-org-enable)
-    :config (setq toc-org-hrefify-default "gh")
-    )
-  ;; -TocOrgPac
-
-
   ;; binding
-  (evil-set-initial-state 'org-agenda-mode 'motion)
-  (general-define-key :states '(normal insert)
-                      :keymaps 'org-mode-map
-                      "C-<return>" #'+org/insert-item-below
-                      "C-S-<return>" 'org-insert-subheading
-                      )
-  (general-define-key :states '(normal)
-                      :keymaps 'org-mode-map
-                      "<return>" #'+org/dwim-at-point)
+  (with-eval-after-load 'general
+    (general-define-key :states '(normal insert)
+                        :keymaps 'org-mode-map
+                        "C-<return>" #'+org/insert-item-below
+                        "C-S-<return>" 'org-insert-subheading
+                        )
+    (general-define-key :states '(normal)
+                        :keymaps 'org-mode-map
+                        "<return>" #'+org/dwim-at-point)
 
-  (local-leader-def
-    :keymaps 'org-mode-map
-    "'" 'org-edit-special
-    "*" 'org-ctrl-c-star
-    "+" 'org-ctrl-c-minus
-    "," 'org-switchb
-    ;; "." 'org-goto
+    (local-leader-def
+      :keymaps 'org-mode-map
+      "'" 'org-edit-special
+      "*" 'org-ctrl-c-star
+      "+" 'org-ctrl-c-minus
+      "," 'org-switchb
+      ;; "." 'org-goto
 
-    "." 'consult-org-heading
+      "." 'consult-org-heading
 
-    "A" 'org-archive-subtree
-    "e" 'org-export-dispatch
-    "f" 'org-footnote-new
-    "h" 'org-toggle-heading
-    "i" 'org-toggle-item
-    "I" 'org-toggle-inline-images
-    "n" 'org-store-link
-    "o" 'org-set-property
-    "q" 'org-set-tags-command
-    "t" 'org-todo
-    "T" 'org-todo-list
-    "x" 'org-toggle-checkbox
+      "A" 'org-archive-subtree
+      "e" 'org-export-dispatch
+      "f" 'org-footnote-new
+      "h" 'org-toggle-heading
+      "i" 'org-toggle-item
+      "I" 'org-toggle-inline-images
+      "n" 'org-store-link
+      "o" 'org-set-property
+      "q" 'org-set-tags-command
+      "t" 'org-todo
+      "T" 'org-todo-list
+      "x" 'org-toggle-checkbox
 
-    "a" '(:wk "attackments")
-    "aa" 'org-attach
-    "ad" 'org-attach-delete-one
-    "aD" 'org-attach-delete-all
-    "an" 'org-attach-new
-    "ao" 'org-attach-open
-    "aO" 'org-attach-open-in-emacs
-    "ar" 'org-attach-reveal
-    "aR" 'org-attach-reveal-in-emacs
-    "au" 'org-attach-url
-    "as" 'org-attach-set-directory
-    "aS" 'org-attach-sync
+      "a" '(:wk "attackments")
+      "aa" 'org-attach
+      "ad" 'org-attach-delete-one
+      "aD" 'org-attach-delete-all
+      "an" 'org-attach-new
+      "ao" 'org-attach-open
+      "aO" 'org-attach-open-in-emacs
+      "ar" 'org-attach-reveal
+      "aR" 'org-attach-reveal-in-emacs
+      "au" 'org-attach-url
+      "as" 'org-attach-set-directory
+      "aS" 'org-attach-sync
 
-    "b"  '(:wk "tables")
-    "b-" 'org-table-insert-hline
-    "ba" 'org-table-align
-    "bb" 'org-table-blank-field
-    "bc" 'org-table-create-or-convert-from-region
-    "be" 'org-table-edit-field
-    "bf" 'org-table-edit-formulas
-    "bh" 'org-table-field-info
-    "bs" 'org-table-sort-lines
-    "br" 'org-table-recalculate
-    "bR" 'org-table-recalculate-buffer-tables
-    "bd" '(:wk "delete")
-    "bdc" 'org-table-delete-column
-    "bdr" 'org-table-kill-row
-    "bi" '(:wk "insert")
-    "bic" 'org-table-insert-column
-    "bih" 'org-table-insert-hline
-    "bir" 'org-table-insert-row
-    "biH" 'org-table-hline-and-move
-    "bt" '("toggle")
-    "btf" 'org-table-toggle-formula-debugger
-    "bto" 'org-table-toggle-coordinate-overlays
+      "b"  '(:wk "tables")
+      "b-" 'org-table-insert-hline
+      "ba" 'org-table-align
+      "bb" 'org-table-blank-field
+      "bc" 'org-table-create-or-convert-from-region
+      "be" 'org-table-edit-field
+      "bf" 'org-table-edit-formulas
+      "bh" 'org-table-field-info
+      "bs" 'org-table-sort-lines
+      "br" 'org-table-recalculate
+      "bR" 'org-table-recalculate-buffer-tables
+      "bd" '(:wk "delete")
+      "bdc" 'org-table-delete-column
+      "bdr" 'org-table-kill-row
+      "bi" '(:wk "insert")
+      "bic" 'org-table-insert-column
+      "bih" 'org-table-insert-hline
+      "bir" 'org-table-insert-row
+      "biH" 'org-table-hline-and-move
+      "bt" '("toggle")
+      "btf" 'org-table-toggle-formula-debugger
+      "bto" 'org-table-toggle-coordinate-overlays
 
-    "c" '(:wk "clock")
-    "cc" 'org-clock-cancel
-    "cd" 'org-clock-mark-default-task
-    "ce" 'org-clock-modify-effort-estimate
-    "cE" 'org-set-effort
-    "cg" 'org-clock-goto
-    "ci" 'org-clock-in
-    "cI" 'org-clock-in-last
-    "co" 'org-clock-out
-    "cr" 'org-resolve-clocks
-    "cR" 'org-clock-report
-    "ct" 'org-evaluate-time-range
-    "c=" 'org-clock-timestamps-up
-    "c-" 'org-clock-timestamps-down
+      "c" '(:wk "clock")
+      "cc" 'org-clock-cancel
+      "cd" 'org-clock-mark-default-task
+      "ce" 'org-clock-modify-effort-estimate
+      "cE" 'org-set-effort
+      "cg" 'org-clock-goto
+      "ci" 'org-clock-in
+      "cI" 'org-clock-in-last
+      "co" 'org-clock-out
+      "cr" 'org-resolve-clocks
+      "cR" 'org-clock-report
+      "ct" 'org-evaluate-time-range
+      "c=" 'org-clock-timestamps-up
+      "c-" 'org-clock-timestamps-down
 
-    "d" '(:wk "date/deadline")
-    "dd" 'org-deadline
-    "ds" 'org-schedule
-    "dt" 'org-time-stamp
-    "dT" 'org-time-stamp-inactive
+      "d" '(:wk "date/deadline")
+      "dd" 'org-deadline
+      "ds" 'org-schedule
+      "dt" 'org-time-stamp
+      "dT" 'org-time-stamp-inactive
 
-    "D" 'archive-done-tasks
+      "D" '+org/archive-done-tasks
 
-    "g" '(:wk "goto")
-    "gc" 'org-clock-goto
-    "gi" 'org-id-goto
-    "gr" 'org-refile-goto-last-stored
-    "gx" 'org-capture-goto-last-stored
+      "g" '(:wk "goto")
+      "gc" 'org-clock-goto
+      "gi" 'org-id-goto
+      "gr" 'org-refile-goto-last-stored
+      "gx" 'org-capture-goto-last-stored
 
-    "l" '(:wk "links")
-    "lc" 'org-cliplink
-    "ld" '+org/remove-link
-    "li" 'org-id-store-link
-    "ll" 'org-insert-link
-    "lL" 'org-insert-all-links
-    "ls" 'org-store-link
-    "lS" 'org-insert-last-stored-link
-    "lt" 'org-toggle-link-display
+      "l" '(:wk "links")
+      "lc" 'org-cliplink
+      "ld" '+org/remove-link
+      "li" 'org-id-store-link
+      "ll" 'org-insert-link
+      "lL" 'org-insert-all-links
+      "ls" 'org-store-link
+      "lS" 'org-insert-last-stored-link
+      "lt" 'org-toggle-link-display
 
-    "P" '(:wk "publish")
-    "Pa" 'org-publish-all
-    "Pf" 'org-publish-current-file
-    "Pp" 'org-publish
-    "PP" 'org-publish-current-project
-    "Ps" 'org-publish-sitemap
+      "P" '(:wk "publish")
+      "Pa" 'org-publish-all
+      "Pf" 'org-publish-current-file
+      "Pp" 'org-publish
+      "PP" 'org-publish-current-project
+      "Ps" 'org-publish-sitemap
 
-    "r" '(:wk "refile")
-    "r." '+org/refile-to-current-file
-    "rc" '+org/refile-to-running-clock
-    "rl" '+org/refile-to-last-location
-    "rf" '+org/refile-to-file
-    "ro" '+org/refile-to-other-window
-    "rr" 'org-refile
+      "r" '(:wk "refile")
+      "r." '+org/refile-to-current-file
+      "rc" '+org/refile-to-running-clock
+      "rl" '+org/refile-to-last-location
+      "rf" '+org/refile-to-file
+      "ro" '+org/refile-to-other-window
+      "rr" 'org-refile
 
-    "s" '(:wk "tree/subtree")
-    "sa" 'org-toggle-archive-tag
-    "sb" 'org-tree-to-indirect-buffer
-    "sd" 'org-cut-subtree
-    "sh" 'org-promote-subtree
-    "sj" 'org-move-subtree-down
-    "sk" 'org-move-subtree-up
-    "sl" 'org-demote-subtree
-    "sn" 'org-narrow-to-subtree
-    "sr" 'org-refile
-    "ss" 'org-sparse-tree
-    "sA" 'org-archive-subtree
-    "sN" 'widen
-    "sS" 'org-sort
+      "s" '(:wk "tree/subtree")
+      "sa" 'org-toggle-archive-tag
+      "sb" 'org-tree-to-indirect-buffer
+      "sd" 'org-cut-subtree
+      "sh" 'org-promote-subtree
+      "sj" 'org-move-subtree-down
+      "sk" 'org-move-subtree-up
+      "sl" 'org-demote-subtree
+      "sn" 'org-narrow-to-subtree
+      "sr" 'org-refile
+      "ss" 'org-sparse-tree
+      "sA" 'org-archive-subtree
+      "sN" 'widen
+      "sS" 'org-sort
 
-    "p" '(:wk "priority")
-    "pd" 'org-priority-down
-    "pp" 'org-priority
-    "pu" 'org-priority-up
+      "p" '(:wk "priority")
+      "pd" 'org-priority-down
+      "pp" 'org-priority
+      "pu" 'org-priority-up
 
-    "z" '(:wk "Download")
-    "zc" 'org-download-clipboard
-    "zd" 'org-download-delete
-    "zi" 'org-download-image
-    "zy" 'org-download-yank
-    "ze" 'org-download-edit
-    "zr" 'org-download-rename-at-point
-    "zR" 'org-download-rename-last-file
-    "zs" 'org-download-screenshot
+      "z" '(:wk "Download")
+      "zc" 'org-download-clipboard
+      "zd" 'org-download-delete
+      "zi" 'org-download-image
+      "zy" 'org-download-yank
+      "ze" 'org-download-edit
+      "zr" 'org-download-rename-at-point
+      "zR" 'org-download-rename-last-file
+      "zs" 'org-download-screenshot
+      )
+
+    (local-leader-def
+      :keymaps 'org-agenda-mode-map
+      "d" '(:wk "date/deadline")
+      "dd" 'org-agenda-deadline
+      "ds" 'org-agenda-schedule
+
+      "c" '(:wk "clock")
+      "cc" 'org-agenda-clock-cancel
+      "cg" 'org-agenda-clock-goto
+      "ci" 'org-agenda-clock-in
+      "co" 'org-agenda-clock-out
+      "cr" 'org-agenda-clockreport-mode
+      "cs" 'org-agenda-show-clocking-issues
+
+      "p" '(:wk "priority")
+      "pd" 'org-agenda-priority-down
+      "pp" 'org-agenda-priority
+      "pu" 'org-agenda-priority-up
+
+      "q" 'org-agenda-set-tags
+      "r" 'org-agenda-refile
+      "t" 'org-agenda-todo)
     )
-
-  (local-leader-def
-    :keymaps 'org-agenda-mode-map
-    "d" '(:wk "date/deadline")
-    "dd" 'org-agenda-deadline
-    "ds" 'org-agenda-schedule
-
-    "c" '(:wk "clock")
-    "cc" 'org-agenda-clock-cancel
-    "cg" 'org-agenda-clock-goto
-    "ci" 'org-agenda-clock-in
-    "co" 'org-agenda-clock-out
-    "cr" 'org-agenda-clockreport-mode
-    "cs" 'org-agenda-show-clocking-issues
-
-    "p" '(:wk "priority")
-    "pd" 'org-agenda-priority-down
-    "pp" 'org-agenda-priority
-    "pu" 'org-agenda-priority-up
-
-    "q" 'org-agenda-set-tags
-    "r" 'org-agenda-refile
-    "t" 'org-agenda-todo)
   )
 ;; -OrgPac
 
 (use-package org-download
+  :commands (org-download-clipboard org-download-delete org-download-image org-download-yank org-download-edit org-download-rename-at-point org-download-rename-last-file org-download-screenshot)
   :after org
   :custom
   (org-download-image-dir "img/")
