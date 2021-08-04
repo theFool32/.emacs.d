@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Aug  3 13:24:06 2021 (+0800)
+;; Last-Updated: Wed Aug  4 15:10:24 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -99,15 +99,15 @@
     ;; (cl-loop for font in '("Symbola" "Apple Symbols" "Symbol" "icons-in-terminal")
     ;;          when (font-installed-p font)
     ;;          return (set-fontset-font t 'unicode font nil 'prepend))
-    (set-fontset-font t 'unicode "Apple Symbols" nil 'prepend)
+    (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
 
     ;; Specify font for Chinese characters
     ;; (cl-loop for font in '("Sarasa Mono SC" "Noto Sans CJK SC" "WenQuanYi Micro Hei" "Microsoft Yahei")
     ;;          when (font-installed-p font)
     ;;          return (set-fontset-font t '(#x4e00 . #x9fff) font))
-    (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC")
+    (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC Nerd")
 
-    (set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend)
+    ;; (set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend)
     )
 )
 (add-hook 'after-init-hook #'my-default-frame-face)

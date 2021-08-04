@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 21
+;;     Update #: 30
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -124,7 +124,40 @@ Pretty symbols can be unset for emacs-lisp-mode with:
     :<=  8804
     :>=  8805
     :tuple         "⨂"
-    :dot           "•")
+    :dot           "•"
+    :checkbox      "☐"
+    :pending       "◼"
+    :checkedbox    "☑"
+    :list_property "∷"
+    :ellipses      "…"
+    :arrow_right   "→"
+    :arrow_left    "←"
+    :title         "❤"
+    :subtitle      "𝙩"
+    :author        "✍"
+    :date          "⚓"
+    :property      "☸"
+    :options       "⌥"
+    :latex_class   "🄲"
+    :latex_header  "⇥"
+    :beamer_header "↠"
+    :attr_latex    "🄛"
+    :attr_html     "🄗"
+    :begin_quote   "❮"
+    :end_quote     "❯"
+    :caption       "☰"
+    :header        "›"
+    :results       "🍌"
+    :begin_export  "⏩"
+    :end_export    "⏪"
+    :properties    "⚙"
+    :end           "∎"
+    :priority_a   "🄰"
+    :priority_b   "🄱"
+    :priority_c   "🄲"
+    :priority_d   "🄳"
+    ;; :priority_c   "🅲"
+    )
   "Options plist for `set-pretty-symbols!'.
 This should not contain any symbols from the Unicode Private Area! There is no
 universal way of getting the correct symbol as that area varies from font to
@@ -197,6 +230,43 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 (set-pretty-symbols! 'emacs-lisp-mode
   :lambda "lambda")
 
+(set-pretty-symbols! 'org-mode
+  :name "#+NAME:"
+  :src_block "#+begin_src"
+  :src_block_end "#+end_src"
+  :checkbox      "[ ]"
+  :pending       "[-]"
+  :checkedbox    "[X]"
+  :list_property "::"
+  :em_dash       "---"
+  :ellipsis      "..."
+  :arrow_right   "->"
+  :arrow_left    "<-"
+  :title         "#+title:"
+  :subtitle      "#+subtitle:"
+  :author        "#+author:"
+  :date          "#+date:"
+  :property      "#+property:"
+  :options       "#+options:"
+  :latex_class   "#+latex_class:"
+  :latex_header  "#+latex_header:"
+  :beamer_header "#+beamer_header:"
+  :attr_latex    "#+attr_latex:"
+  :attr_html     "#+attr_latex:"
+  :begin_quote   "#+begin_quote"
+  :end_quote     "#+end_quote"
+  :caption       "#+caption:"
+  :header        "#+header:"
+  :begin_export  "#+begin_export"
+  :end_export    "#+end_export"
+  :results       "#+RESULTS:"
+  :property      ":PROPERTIES:"
+  :end           ":END:"
+  :priority_a    "[#A]"
+  :priority_b    "[#B]"
+  :priority_c    "[#C]"
+  :priority_d    "[#D]"
+  )
 
 (provide 'init-pretty-code)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
