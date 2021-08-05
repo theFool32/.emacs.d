@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 30
+;;     Update #: 36
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -125,8 +125,8 @@ Pretty symbols can be unset for emacs-lisp-mode with:
     :>=  8805
     :tuple         "⨂"
     :dot           "•"
-    :checkbox      "☐"
-    :pending       "◼"
+    :checkbox      "□"
+    :pending       "■"
     :checkedbox    "☑"
     :list_property "∷"
     :ellipses      "…"
