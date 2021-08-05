@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 14
+;;     Update #: 15
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -47,6 +47,7 @@
 ;;; Code:
 
 (use-package devdocs
+  :straight (:host github :repo "astoff/devdocs.el")
   :commands (devdocs-lookup-at-point devdocs-search-at-point)
   :config
   (add-hook 'python-mode-hook
