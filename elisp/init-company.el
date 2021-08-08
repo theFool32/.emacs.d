@@ -163,7 +163,7 @@ Examples:
   ;; Don't use company in the following modes
   (company-global-modes '(not shell-mode))
   ;; Trigger completion immediately.
-  (company-idle-delay 0.1)
+  (company-idle-delay 0)
   ;; Number the candidates (use M-1, M-2 etc to select completions).
   (company-show-numbers nil)
   ;; (company-tooltip-minimum-width 80)

@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 12
+;;     Update #: 13
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -126,8 +126,7 @@ Dictionary.app behind the scenes to get definitions.")
 (use-package dumb-jump
   :commands dumb-jump-result-follow
   :config
-  (setq
-   ;; dumb-jump-default-project doom-emacs-dir
+  (setq dumb-jump-default-project "~/.emacs.d/"
         dumb-jump-prefer-searcher 'rg
         dumb-jump-aggressive nil
         dumb-jump-selector 'popup)
