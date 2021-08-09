@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+
+# Save env
+printenv > ~/.emacs.d/env

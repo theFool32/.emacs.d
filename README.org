@@ -17,6 +17,12 @@ Follow [[https://github.com/jimeh/build-emacs-for-macos][build-emacs-for-macos]]
 git clone --depth 1 https://github.com/theFool32/.emacs.d.git .emacs.d
 #+end_src
 
+*** Prepare
+#+begin_src bash
+# generate environment variables
+~/.emacs.d/prepare
+#+end_src
+
 Enjoy hacking!
 
 

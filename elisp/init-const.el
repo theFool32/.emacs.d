@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Mar 18 14:20:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Aug  3 16:00:40 2021 (+0800)
+;; Last-Updated: Mon Aug  9 18:55:35 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d constants
@@ -40,12 +40,47 @@
 (eval-when-compile
   (require 'init-custom))
 
-;; https://github.com/purcell/exec-path-from-shell/issues/75
-(use-package exec-path-from-shell
-  ;; :custom
-  ;; (exec-path-from-shell-arguments (quote ("-l")))
-  :init
-  (exec-path-from-shell-initialize))
+;; Load env
+(defconst my-env-file (concat user-emacs-directory "env"))
+(when (and (or (display-graphic-p)
+               (daemonp))
+           (file-exists-p my-env-file))
+  (defun my-load-envvars-file (file &optional noerror)
+    "Read and set envvars from FILE.
+If NOERROR is non-nil, don't throw an error if the file doesn't exist or is
+unreadable. Returns the names of envvars that were changed."
+    (if (not (file-readable-p file))
+        (unless noerror
+          (signal 'file-error (list "Couldn't read envvar file" file)))
+      (let (envvars environment)
+        (with-temp-buffer
+          (save-excursion
+            (insert "\n")
+            (insert-file-contents file))
+          (while (re-search-forward "\n *\\([^#= \n]*\\)=" nil t)
+            (push (match-string 1) envvars)
+            (push (buffer-substring
+                   (match-beginning 1)
+                   (1- (or (save-excursion
+                             (when (re-search-forward "^\\([^= ]+\\)=" nil t)
+                               (line-beginning-position)))
+                           (point-max))))
+                  environment)))
+        (when environment
+          (setq process-environment
+                (append (nreverse environment) process-environment)
+                exec-path
+                (if (member "PATH" envvars)
+                    (append (split-string (getenv "PATH") path-separator t)
+                            (list exec-directory))
+                  exec-path)
+                shell-file-name
+                (if (member "SHELL" envvars)
+                    (or (getenv "SHELL") shell-file-name)
+                  shell-file-name))
+          envvars))))
+
+  (my-load-envvars-file my-env-file))
 
 ;; UserInfo
 (setq user-full-name "theFool32")
@@ -122,10 +157,10 @@
   "Do we have rga")
 
 (defconst *selectrum*
-   (string-equal +self/mini-buffer-completion "selectrum"))
+  (string-equal +self/mini-buffer-completion "selectrum"))
 
 (defconst *vertico*
-   (string-equal +self/mini-buffer-completion "vertico"))
+  (string-equal +self/mini-buffer-completion "vertico"))
 ;; -Consts
 
 (provide 'init-const)
