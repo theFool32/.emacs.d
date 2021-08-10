@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Aug  3 16:00:11 2021 (+0800)
+;; Last-Updated: Tue Aug 10 19:37:52 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -49,9 +49,10 @@
 (defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
 (defvar +org-capture-file-tickler (concat +self/org-base-dir "tickler.org"))
 (use-package org
-  :straight nil
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h))
+  :bind (:map org-mode-map
+              ([tab] . org-cycle))
   :custom
   (org-src-preserve-indentation nil)
   (org-edit-src-content-indentation 0)
@@ -72,19 +73,6 @@
   ;;                              (C . t)))
   ;; (org-babel-do-load-languages 'org-babel-load-languages
   ;;                              load-language-list)
-
-  ;; https://emacs-china.org/t/orgmode/8673/8
-  ;; Open org file with default fold level
-  ;; Add something like below to the beginning
-  ;; # -*- org-startup-folded: 2; -*-
-  (add-hook (quote hack-local-variables-hook)
-            (lambda ()
-              (let ((symbol (quote org-startup-folded)))
-                (when (and (eq major-mode (quote org-mode))
-                           (boundp symbol))
-                  (let ((value (symbol-value symbol)))
-                    (when (and value (integerp value))
-                      (org-shifttab value)))))))
 
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
 
@@ -334,6 +322,9 @@
   :config
   (cond (*sys/mac*
          (setq org-download-screenshot-method "screencapture -i %s"))))
+
+(use-package org-contrib
+  :after org)
 
 ;; -Notification
 ;; disabled now
