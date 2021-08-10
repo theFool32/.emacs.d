@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 62
+;;     Update #: 63
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -52,9 +52,6 @@
 (defconst +self/ebib-base-dir "/Users/lijie/Dropbox/Ref/")
 ;; For org-mode
 (defconst +self/org-base-dir "/Users/lijie/Dropbox/org-notes/")
-
-(defconst +self/mini-buffer-completion "selectrum" ;; Currently `vertico' lacks sth like `normalize' symbols and strings. Long way to go.
-  "vertico or selectrum")
 
 (defconst +self/use-rc-to-sync t
   "Should we use `rc' to sync when saving")

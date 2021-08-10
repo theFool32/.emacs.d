@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 407
+;;     Update #: 411
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -98,18 +98,10 @@ Demotes any errors to messages."
       (exit-minibuffer))))
 
 (defun +complete-get-current-candidate ()
-  (cond
-   (*vertico*
-    (vertico--candidate))
-   (*selectrum*
-    (selectrum-get-current-candidate))))
+  (selectrum-get-current-candidate))
 
 (defun +complete-insert-current-candidate ()
-  (cond
-   (*vertico*
-    (vertico-insert))
-   (*selectrum*
-    (selectrum-insert-current-candidate))))
+  (selectrum-insert-current-candidate))
 
 (defun +complete-fido-enter-dir ()
   (interactive)
@@ -140,52 +132,25 @@ Demotes any errors to messages."
           (delete-region (1+ (point)) (point-max))))))
 
 
-(cond
- (*vertico*
-  (use-package vertico
-    :straight (:type git :host github :repo "minad/vertico" :branch "main")
-    :init
-    (vertico-mode)
-    :config
-    (set-face-background 'vertico-current "#42444a")
-    ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-    (setq vertico-cycle t)
+(use-package selectrum
+  :hook (+self/first-input . selectrum-mode)
+  :config
 
-    (define-key vertico-map (kbd "DEL") '+complete-fido-backward-updir)
-    (define-key vertico-map (kbd "/") '+complete-fido-enter-dir)
-    (define-key vertico-map (kbd "C-d") '+complete-fido-delete-char)
-    (define-key vertico-map (kbd "C-w") '+complete-fido-do-backward-updir)
+  (with-eval-after-load 'general
+    (general-def "C-c C-r" 'selectrum-repeat)
+    )
+  ;; (setq selectrum-should-sort nil)
+  (with-eval-after-load 'orderless
+    (setq orderless-skip-highlighting (lambda () selectrum-is-active))
+    (setq selectrum-refine-candidates-function #'orderless-filter)
+    (setq selectrum-highlight-candidates-function #'orderless-highlight-matches))
 
-    (use-package uchronia
-      :straight (:type git :host github :repo "minad/uchronia" :branch "main")
-      :config
+  (define-key selectrum-minibuffer-map (kbd "DEL") '+complete-fido-backward-updir)
+  (define-key selectrum-minibuffer-map (kbd "/") '+complete-fido-enter-dir)
+  (define-key selectrum-minibuffer-map (kbd "C-d") '+complete-fido-delete-char)
+  (define-key selectrum-minibuffer-map (kbd "C-w") '+complete-fido-do-backward-updir)
 
-      (with-eval-after-load 'general
-        (general-def "C-c C-r" 'uchronia-repeat)
-        )
-      (uchronia-mode)
-      ))
   )
- (*selectrum*
-  (use-package selectrum
-    :hook (+self/first-input . selectrum-mode)
-    :config
-
-    (with-eval-after-load 'general
-      (general-def "C-c C-r" 'selectrum-repeat)
-      )
-    ;; (setq selectrum-should-sort nil)
-    (with-eval-after-load 'orderless
-      (setq orderless-skip-highlighting (lambda () selectrum-is-active))
-      (setq selectrum-refine-candidates-function #'orderless-filter)
-      (setq selectrum-highlight-candidates-function #'orderless-highlight-matches))
-
-    (define-key selectrum-minibuffer-map (kbd "DEL") '+complete-fido-backward-updir)
-    (define-key selectrum-minibuffer-map (kbd "/") '+complete-fido-enter-dir)
-    (define-key selectrum-minibuffer-map (kbd "C-d") '+complete-fido-delete-char)
-    (define-key selectrum-minibuffer-map (kbd "C-w") '+complete-fido-do-backward-updir)
-
-    )))
 
 
 (use-package consult
