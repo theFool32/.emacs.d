@@ -93,6 +93,7 @@
     "cr" '(lsp-rename :wk "LSP rename")
     "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
     "co" '(lsp-ui-imenu :wk "Outline")
+    "cm" '(symbol-overlay-put :wk "Mark")
 
     "e" '(:wk "Error")
     "eb" '(flycheck-buffer :wk "Check current buffer")

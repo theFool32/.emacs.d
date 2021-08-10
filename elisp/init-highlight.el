@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 14
+;;     Update #: 22
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -135,73 +135,13 @@ FACE defaults to inheriting from default and highlight."
       (symbol-overlay-mode 1)))
   (advice-add #'deactivate-mark :after #'turn-on-symbol-overlay))
 
-;; Highlight indentions
-(use-package highlight-indent-guides
-  :disabled
-  :if *sys/gui*
-  :diminish
-  :hook ((prog-mode web-mode nxml-mode) . highlight-indent-guides-mode)
-  :custom
-  (highlight-indent-guides-method 'character)
-  (highlight-indent-guides-responsive 'top)
-  (highlight-indent-guides-delay 0)
-  (highlight-indent-guides-auto-character-face-perc 7)
-  :commands highlight-indent-guides--highlighter-default
-  :functions my-indent-guides-for-all-but-first-column
-  ;; :hook (prog-mode . highlight-indent-guides-mode)
-  :init (setq highlight-indent-guides-method 'character
-              highlight-indent-guides-responsive 'top)
-  :config
-  ;; Don't display indentations while editing with `company'
-  (with-eval-after-load 'company
-    (add-hook 'company-completion-started-hook
-              (lambda (&rest _)
-		        "Trun off indentation highlighting."
-		        (when highlight-indent-guides-mode
-                  (highlight-indent-guides-mode -1))))
-    (add-hook 'company-after-completion-hook
-              (lambda (&rest _)
-		        "Trun on indentation highlighting."
-		        (when (and (derived-mode-p 'prog-mode)
-                           (not highlight-indent-guides-mode))
-                  (highlight-indent-guides-mode 1)))))
-
-  ;; Don't display first level of indentation
-  (defun my-indent-guides-for-all-but-first-column (level responsive display)
-    (unless (< level 1)
-      (highlight-indent-guides--highlighter-default level responsive display)))
-  (setq highlight-indent-guides-highlighter-function
-	    #'my-indent-guides-for-all-but-first-column)
-  )
-
-;; Colorize color names in buffers
-(use-package rainbow-mode
-  :diminish
-  :hook ((html-mode php-mode) . rainbow-mode)
-  :config
-  ;; HACK: Use overlay instead of text properties to override `hl-line' faces.
-  ;; @see https://emacs.stackexchange.com/questions/36420
-  (defun my-rainbow-colorize-match (color &optional match)
-    (let* ((match (or match 0))
-           (ov (make-overlay (match-beginning match) (match-end match))))
-      (overlay-put ov 'ovrainbow t)
-      (overlay-put ov 'face `((:foreground ,(if (> 0.5 (rainbow-x-color-luminance color))
-                                                "white" "black"))
-                              (:background ,color)))))
-  (advice-add #'rainbow-colorize-match :override #'my-rainbow-colorize-match)
-
-  (defun my-rainbow-clear-overlays ()
-    "Clear all rainbow overlays."
-    (remove-overlays (point-min) (point-max) 'ovrainbow t))
-  (advice-add #'rainbow-turn-off :after #'my-rainbow-clear-overlays))
-
 ;; Highlight brackets according to their depth
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
 ;; Highlight TODO and similar keywords in comments and strings
 (use-package hl-todo
-  :hook (after-init . global-hl-todo-mode)
+  :hook ((prog-mode LaTeX-mode) . hl-todo-mode)
   :config
   (dolist (keyword '("BUG" "DEFECT" "ISSUE"))
     (cl-pushnew `(,keyword . ,(face-foreground 'error)) hl-todo-keyword-faces))
@@ -250,8 +190,11 @@ FACE defaults to inheriting from default and highlight."
 ;; Highlight some operations
 (use-package volatile-highlights
   :diminish
-  :hook (after-init . volatile-highlights-mode)
+  :hook (+self/first-input . volatile-highlights-mode)
   :config
+  (vhl/define-extension 'evil 'evil-paste-after 'evil-paste-before
+                        'evil-paste-pop 'evil-move)
+  (vhl/install-extension 'evil)
   (when (fboundp 'pulse-momentary-highlight-region)
     (defun my-vhl-pulse (beg end &optional _buf face)
       "Pulse the changes."
