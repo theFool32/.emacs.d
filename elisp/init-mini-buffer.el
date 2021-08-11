@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 422
+;;     Update #: 424
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -262,7 +262,13 @@ When the number of characters in a buffer exceeds this threshold,
     (cons
      (mapcar (lambda (r) (consult--convert-regexp r type)) input)
      (lambda (str) (orderless--highlight input str))))
-  (setq consult--regexp-compiler #'consult--orderless-regexp-compiler)
+  ;; (setq consult--regexp-compiler #'consult--orderless-regexp-compiler)
+  (defun consult--with-orderless (&rest args)
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (setq-local consult--regexp-compiler #'consult--orderless-regexp-compiler))
+      (apply args)))
+  (advice-add #'consult-ripgrep :around #'consult--with-orderless)
   )
 
 (use-package consult-projectile
