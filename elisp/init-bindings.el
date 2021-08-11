@@ -42,7 +42,7 @@
   (leader-def
     "" nil
     "<SPC>" '(execute-extended-command :wk "M-x")
-    "/" '((lambda() (interactive) (affe-grep default-directory)) :wk "Search here")
+    "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
     "." '(find-file :wk "Find file")
     ";" '(pp-eval-expression :wk "Evil expression")
     ":" '((lambda() (interactive "") (org-agenda nil "n")) :wk "Agenda")
@@ -78,9 +78,9 @@
     "s" '(:wk "Search")
     "sb" '(my-consult-line-symbol-at-point :wk "Search buffer")
     "si" '(+my-imenu :wk "Jump to symbol")
-    "sp" '(affe-grep :wk "Search project")
+    "sp" '(consult-ripgrep :wk "Search project")
     "sT" '(load-theme :wk "Load theme")
-    "sh" '((lambda() (interactive) (affe-grep default-directory)) :wk "Search here")
+    "sh" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
     "sd" '(devdocs-lookup-at-point :wk "Search devdocs")
     "sD" '(devdocs-search-at-point :wk "Search devdocs")
     "sP" '(color-rg-search-project :wk "Color-rg Search project")

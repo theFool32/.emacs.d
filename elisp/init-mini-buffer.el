@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t -*-
+
 ;;; init-mini-buffer.el ---
 ;;
 ;; Filename: init-mini-buffer.el
@@ -10,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 411
+;;     Update #: 422
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -154,7 +156,7 @@ Demotes any errors to messages."
 
 
 (use-package consult
-  :after projectile
+  :after orderless
   :straight (:host github :repo "minad/consult")
   :bind (
          ([remap recentf-open-files] . consult-recent-file)
@@ -194,24 +196,8 @@ Demotes any errors to messages."
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
 
 
-  (projectile-load-known-projects)
-  ;; (setq my/consult-source-projectile-projects
-  ;;       `(:name "Projectile projects"
-  ;;               :narrow   ?P
-  ;;               :category project
-  ;;               :action   ,#'projectile-switch-project-by-name
-  ;;               :items    ,projectile-known-projects))
-  ;; (add-to-list 'consult-buffer-sources my/consult-source-projectile-projects 'append)
-
-  ;; Configure initial narrowing per command
-  ;; (defvar consult-initial-narrow-config
-  ;;   '((consult-buffer . ?b)))
-
-  ;; Add initial narrowing hook
-  ;; (defun consult-initial-narrow ()
-  ;;   (when-let (key (alist-get this-command consult-initial-narrow-config))
-  ;;     (setq unread-command-events (append unread-command-events (list key 32)))))
-  ;; (add-hook 'minibuffer-setup-hook #'consult-initial-narrow)
+  (with-eval-after-load 'projectile
+    (projectile-load-known-projects))
 
   (defun my-consult-set-evil-search-pattern (&optional condition)
     (let ((re
@@ -271,8 +257,14 @@ When the number of characters in a buffer exceeds this threshold,
           (consult-ripgrep)
           (my-consult-set-evil-search-pattern 'rg)))))
 
-
+  (defun consult--orderless-regexp-compiler (input type)
+    (setq input (orderless-pattern-compiler input))
+    (cons
+     (mapcar (lambda (r) (consult--convert-regexp r type)) input)
+     (lambda (str) (orderless--highlight input str))))
+  (setq consult--regexp-compiler #'consult--orderless-regexp-compiler)
   )
+
 (use-package consult-projectile
   :after projectile
   :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master")
@@ -342,20 +334,6 @@ When the number of characters in a buffer exceeds this threshold,
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-forward)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-backward))
   )
-
-(use-package affe
-  ;; FIXME: not work when search pattern in filename
-  ;; https://github.com/minad/affe/issues/13
-  :straight (:type git :host github :repo "minad/affe" :branch "transformer")
-  :defer t
-  :after orderless
-  :config
-  ;; Configure Orderless
-  (when *rga*
-    (setq affe-grep-command "rga --null --color=never --max-columns=1000 --no-heading --line-number -v ^$ ."))
-  (setq affe-regexp-function #'orderless-pattern-compiler
-        affe-highlight-function #'orderless-highlight-matches
-        affe-find-command "fd --color=never --full-path"))
 
 (use-package all-the-icons-completion
   :straight (:host github :repo "iyefrat/all-the-icons-completion")
