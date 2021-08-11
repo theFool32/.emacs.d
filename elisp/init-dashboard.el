@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:21:46 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Aug  3 13:27:43 2021 (+0800)
+;; Last-Updated: Wed Aug 11 18:00:38 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dashboard
@@ -42,6 +42,9 @@
   :demand
   :diminish (dashboard-mode)
   :hook (dashboard-mode . (lambda () (setq-local frame-title-format "")))
+  :init
+  ;; HACK: clear `org-agenda-new-buffers' in avoid of "ext:org.el"
+  (setq org-agenda-new-buffers nil)
   :custom
   (dashboard-banner-logo-title "EMACS - Enjoy Programming & Writing")
   (dashboard-startup-banner (expand-file-name "images/banner.txt" user-emacs-directory))
@@ -55,6 +58,7 @@
   (dashboard-set-navigator t)
   (dashboard-set-init-info t)
   (dashboard-set-heading-icons t)
+  (dashboard-agenda-release-buffers t)
   (dashboard-heading-icons '((recents   . "file-text")
                              (bookmarks . "bookmark")
                              (agenda    . "calendar")
