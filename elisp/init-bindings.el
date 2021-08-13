@@ -133,6 +133,7 @@
     "ox" '(org-agenda :wk "Org agenda")
     "ob" '(ebib :wk "Ebib")
     "oB" '(ebib-import-ref :wk "Ebib import")
+    "oc" '(cfw:open-org-calendar :wk "Calendar")
 
     "p" '(:wk "Project")
     "pp" '(projectile-switch-project :wk "Switch project")
