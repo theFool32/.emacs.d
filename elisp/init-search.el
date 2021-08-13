@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 26 17:07:05 2021 (+0800)
+;; Last-Updated: Sat Aug 14 01:20:33 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -63,9 +63,11 @@
 
 ;; ColorRGPac
 (use-package color-rg
+  :commands (color-rg-search-input color-rg-search-project color-rg-search-symbol-in-project)
   :straight (:host github :repo "manateelazycat/color-rg")
   :if *rg*
-  :bind ("C-M-s" . color-rg-search-input))
+  :init
+  (setq color-rg-mac-load-path-from-shell nil))
 ;; -ColorRGPac
 
 

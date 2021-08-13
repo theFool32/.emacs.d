@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 15:38:29 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Mar  6 19:58:50 2020 (+0800)
+;; Last-Updated: Sat Aug 14 00:58:27 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d discover-my-major
@@ -38,7 +38,9 @@
 ;;; Code:
 
 ;; DiscMyMajor
-(use-package discover-my-major)
+(use-package discover-my-major
+  :defer t
+  :commands discover-my-major)
 ;; -DiscMyMajor
 
 (provide 'init-discover-my-major)

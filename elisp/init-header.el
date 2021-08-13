@@ -40,9 +40,10 @@
 ;;; Code:
 
 (use-package header2
+  :defer t
   :straight (:host github :repo "emacsmirror/header2" :depth 1)
   :custom
-  (header-copyright-notice (concat "Copyright (C) 2020 " (user-full-name) "\n"))
+  (header-copyright-notice (concat "Copyright (C) 2021 " (user-full-name) "\n"))
   :hook (emacs-lisp-mode . auto-make-header)
   :config
   (add-to-list 'write-file-functions 'auto-update-file-header)

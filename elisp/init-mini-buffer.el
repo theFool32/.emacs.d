@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 424
+;;     Update #: 425
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -257,6 +257,10 @@ When the number of characters in a buffer exceeds this threshold,
           (consult-ripgrep)
           (my-consult-set-evil-search-pattern 'rg)))))
 
+  (defun +consult-ripgrep-at-point (&optional dir initial)
+    (interactive (list prefix-arg (when-let ((s (symbol-at-point)))
+                                    (symbol-name s))))
+    (consult-ripgrep dir initial))
   (defun consult--orderless-regexp-compiler (input type)
     (setq input (orderless-pattern-compiler input))
     (cons

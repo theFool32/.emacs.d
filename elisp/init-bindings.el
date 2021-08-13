@@ -43,6 +43,7 @@
     "" nil
     "<SPC>" '(execute-extended-command :wk "M-x")
     "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
+    "?" '(+consult-ripgrep-at-point :wk "Search symbol here")
     "." '(find-file :wk "Find file")
     ";" '(pp-eval-expression :wk "Evil expression")
     ":" '((lambda() (interactive "") (org-agenda nil "n")) :wk "Agenda")
