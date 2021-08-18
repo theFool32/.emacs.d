@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 15
+;;     Update #: 20
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -58,6 +58,11 @@
   (defun devdocs-search-at-point()
     (interactive)
     (devdocs-search (thing-at-point 'symbol))))
+
+(use-package eldoc-box
+  :disabled
+  :diminish
+  :hook (eldoc-mode . eldoc-box-hover-mode))
 
 (provide 'init-prog)
 

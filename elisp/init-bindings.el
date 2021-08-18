@@ -89,11 +89,9 @@
 
     "c" '(:wk "Code")
     "cD" '(xref-find-references :wk "Jump to implementation")
-    "cd" '(lsp-ui-peek-find-definitions :wk "Jump to definition")
     "cf" '(format-all-buffer :wk "Format buffer")
     "cr" '(lsp-rename :wk "LSP rename")
     "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
-    "co" '(lsp-ui-imenu :wk "Outline")
     "cm" '(symbol-overlay-put :wk "Mark")
 
     "e" '(:wk "Error")

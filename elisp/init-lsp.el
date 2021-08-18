@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Aug  8 19:58:18 2021 (+0800)
+;; Last-Updated: Wed Aug 18 22:15:06 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -86,33 +86,6 @@
     (+lsp-optimization-mode +1))
   )
 ;; -LSPPac
-
-;; LSPUI
-(use-package lsp-ui
-  :after lsp-mode
-  :diminish
-  :commands lsp-ui-mode
-  :custom-face
-  (lsp-ui-doc-background ((t (:background nil))))
-  (lsp-ui-doc-header ((t (:inherit (font-lock-string-face italic)))))
-  :custom
-  (lsp-ui-doc-header nil)
-  (lsp-ui-doc-include-signature nil)
-  (lsp-ui-doc-enable nil)
-  (lsp-ui-doc-border (face-foreground 'default))
-  (lsp-ui-sideline-enable nil)
-  (lsp-ui-sideline-ignore-duplicate t)
-  (lsp-ui-sideline-show-code-actions nil)
-  (lsp-ui-sideline-show-diagnostics nil)
-  :config
-  ;; WORKAROUND Hide mode-line of the lsp-ui-imenu buffer
-  ;; https://github.com/emacs-lsp/lsp-ui/issues/243
-  (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
-    (setq mode-line-format nil))
-  ;; Waiting for https://github.com/emacs-lsp/lsp-ui/pull/390
-  (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide))
-;; -LSPUI
-
 
 (provide 'init-lsp)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
