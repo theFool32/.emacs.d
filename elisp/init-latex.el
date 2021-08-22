@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 26 15:23:39 2021 (+0800)
+;; Last-Updated: Mon Aug 23 01:10:16 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -309,7 +309,7 @@ Continuation lines are indented either twice `LaTeX-indent-level', or
   :custom
   (cdlatex-sub-super-scripts-outside-math-mode nil)
   :config
-  ;; Disabling keys that have overlapping functionality with other parts of Doom
+  (add-to-list 'cdlatex-math-modify-alist-default '(?b "\\bm" nil t t nil))
   )
 (use-package asymbol
   :straight (:host github :repo "dwuggh/asymbol" :depth 1)
