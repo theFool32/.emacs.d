@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Aug 13 14:01:05 2021 (+0800)
+;; Last-Updated: Fri Sep  3 19:15:17 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -331,6 +331,8 @@
   :straight (:host github :repo "kiwanami/emacs-calfw")
   :bind (:map cfw:calendar-mode-map
               ("s" . cfw:show-details-command))
+  :custom
+  (cfw:display-calendar-holidays nil)
   :config
   (with-eval-after-load 'calfw
 	(use-package calfw-ical

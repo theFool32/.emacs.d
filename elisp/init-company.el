@@ -75,7 +75,8 @@ If failed try to complete the common part with `company-complete-common'"
 
 ;;;###autoload
 (defvar +company-backend-alist
-  '((text-mode company-tabnine company-yasnippet company-dabbrev)
+  ;; '((text-mode company-tabnine company-yasnippet company-dabbrev)
+  '((text-mode company-dabbrev company-yasnippet)
     (prog-mode company-files (company-capf :with company-tabnine :with company-yasnippet-unless-member-access :separate))
     (conf-mode company-capf company-dabbrev-code company-yasnippet))
   "An alist matching modes to company backends. The backends for any mode is
