@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Mar 18 14:20:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Aug 11 01:06:25 2021 (+0800)
+;; Last-Updated: Fri Sep  3 23:24:04 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d constants
@@ -107,8 +107,7 @@ unreadable. Returns the names of envvars that were changed."
   "Are we running on a Mac system?")
 
 (defconst *sys/mac_arm*
-  (and *sys/mac* (string-match-p (rx string-start "aarch")
-                                 system-configuration))
+  (and *sys/mac* (string-prefix-p "aarch" system-configuration))
   "Are we running on a Arm Mac system?")
 
 (defconst *sys/root*
