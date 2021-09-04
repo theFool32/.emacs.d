@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Sep  3 19:15:17 2021 (+0800)
+;; Last-Updated: Sat Sep  4 23:13:42 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -328,7 +328,7 @@
 
 (use-package calfw
   :commands (cfw:open-org-calendar)
-  :straight (:host github :repo "kiwanami/emacs-calfw")
+  :straight (:host github :repo "zemaye/emacs-calfw")
   :bind (:map cfw:calendar-mode-map
               ("s" . cfw:show-details-command))
   :custom
@@ -336,11 +336,11 @@
   :config
   (with-eval-after-load 'calfw
 	(use-package calfw-ical
-	  :straight (:host github :repo "kiwanami/emacs-calfw"))
+	  :straight (:host github :repo "zemaye/emacs-calfw"))
 	(use-package calfw-org
-	  :straight (:host github :repo "kiwanami/emacs-calfw"))
+	  :straight (:host github :repo "zemaye/emacs-calfw"))
 	(use-package calfw-cal
-	  :straight (:host github :repo "kiwanami/emacs-calfw"))))
+	  :straight (:host github :repo "zemaye/emacs-calfw"))))
 
 ;; -Notification
 ;; disabled now
