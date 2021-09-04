@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 264
+;;     Update #: 267
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -100,14 +100,12 @@
     (interactive)
     (progn (consult-line) (ebib--update-entry-buffer))
     )
+  ;; TODO: auto remove unnecessary attributes
   (defun insert-to-bib ()
     (interactive)
-    (progn
-      (call-interactively 'ebib-jump-to-entry)
-      (call-interactively 'ebib-copy-entry)
-      (call-interactively 'popup-kill-ring)
-      )
-    )
+    (call-interactively 'ebib-jump-to-entry)
+    (call-interactively 'ebib-copy-entry)
+    (yank))
   (if *sys/mac*
       (setq ebib-file-associations '(("pdf" . "open"))
             ebib-index-window-size 30
