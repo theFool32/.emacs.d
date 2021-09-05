@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Sep  4 23:13:42 2021 (+0800)
+;; Last-Updated: Sun Sep  5 16:50:50 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -326,6 +326,13 @@
 (use-package org-contrib
   :after org)
 
+(use-package org-superstar
+  :after org
+  :hook (org-mode . org-superstar-mode)
+  :custom
+  (org-superstar-remove-leading-stars t)
+  (org-superstar-special-todo-items t))
+
 (use-package calfw
   :commands (cfw:open-org-calendar)
   :straight (:host github :repo "zemaye/emacs-calfw")
@@ -343,7 +350,6 @@
 	  :straight (:host github :repo "zemaye/emacs-calfw"))))
 
 ;; -Notification
-;; disabled now
 (unless t
   (require 'appt)
 
