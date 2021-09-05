@@ -72,6 +72,10 @@
     "fo" '((lambda() (interactive)(find-file +org-capture-file-gtd)) :which-key "Org files")
     "fh" '((lambda() (interactive)(consult-find default-directory)) :wk "Find file here")
 
+    "fE" '(:wk "File Encoding")
+    "fEr" '(revert-buffer-with-coding-system :wk "Revert encoding")
+    "fEs" '(set-buffer-file-coding-system :wk "Set encoding")
+
     "j" '(:wk "Jump")
     "jj" '(evil-avy-goto-char :wk "Jump to character")
     "jl" '(evil-avy-goto-line :wk "Jump to line")
