@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 267
+;;     Update #: 286
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -100,12 +100,55 @@
     (interactive)
     (progn (consult-line) (ebib--update-entry-buffer))
     )
-  ;; TODO: auto remove unnecessary attributes
+
+  (setq my-needed-fields '("author" "booktitle" "year" "title" "journal"))
+  (defun my-ebib--format-entry (key db &optional timestamp sort)
+    "Write entry KEY in DB into the current buffer in BibTeX format.
+If TIMESTAMP is non-nil and `ebib-use-timestamp' is set, a
+timestamp is added to the entry, possibly overwriting an existing
+timestamp.  If SORT is non-nil, the fields are sorted before
+formatting the entry."
+    (let* ((entry (copy-alist (ebib-db-get-entry key db 'noerror)))
+           (type (cdr (assoc "=type=" entry))))
+      (when entry
+        (if (and timestamp ebib-use-timestamp)
+            (setcdr (assoc-string "timestamp" entry 'case-fold) (format-time-string (concat "{" ebib-timestamp-format "}"))))
+        (setq entry (seq-filter (lambda (field)
+                                  (and (cdr field) ; Remove fields with value nil. See `ebib-set-field-value'.
+                                       (not (ebib--special-field-p (car field))))
+                                  (member (car field) my-needed-fields))
+                                entry))
+        (setq entry (if sort
+                        (cl-sort entry #'string< :key #'car)
+                      ;; When reading, fields are stored with `push', so if we don't
+                      ;; sort, we need to reverse them to get the original order
+                      ;; back.  See github issues #42, #55, #62.
+                      (reverse entry)))
+        (insert (format "@%s{%s,\n" type key))
+        (insert (mapconcat (lambda (field)
+                             (format "\t%s = %s" (car field) (cdr field)))
+                           entry
+                           ",\n"))
+        (insert "\n}\n\n"))))
+  (defun my-ebib-copy-entry ()
+    "Copy the current entry.
+The entry is copied to the kill ring."
+    (interactive)
+    (ebib--execute-when
+      (entries
+       (let ((key (ebib--get-key-at-point)))
+         (with-temp-buffer
+           (my-ebib--format-entry key ebib--cur-db)
+           (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+         (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+      (default
+        (beep))))
   (defun insert-to-bib ()
     (interactive)
     (call-interactively 'ebib-jump-to-entry)
-    (call-interactively 'ebib-copy-entry)
+    (call-interactively 'my-ebib-copy-entry)
     (yank))
+
   (if *sys/mac*
       (setq ebib-file-associations '(("pdf" . "open"))
             ebib-index-window-size 30
@@ -138,12 +181,14 @@
                               (kill-buffer buffer)
                               (ebib--update-buffers)))))))))))
   :config
-  (org-link-set-parameters "ebib" :follow #'org-ebib-open :store #'org-ebib-store-link)
-  (local-leader-def
-    :keymaps 'org-mode-map
-    "lb" 'ebib-insert-citation
-    )
-  )
+  (use-package org-ebib
+    :straight (:host github :repo "theFool32/ebib" :depth 1)
+    :config
+    (local-leader-def
+      :keymaps 'org-mode-map
+      "lb" 'org-ebib-insert-link
+      )
+    ))
 
 (provide 'init-ebib)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
