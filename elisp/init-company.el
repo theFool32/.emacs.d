@@ -76,7 +76,7 @@ If failed try to complete the common part with `company-complete-common'"
 ;;;###autoload
 (defvar +company-backend-alist
   ;; '((text-mode company-tabnine company-yasnippet company-dabbrev)
-  '((text-mode company-dabbrev company-yasnippet)
+  '((text-mode company-english-helper-search company-dabbrev company-yasnippet)
     (prog-mode company-files (company-capf :with company-tabnine :with company-yasnippet-unless-member-access :separate))
     (conf-mode company-capf company-dabbrev-code company-yasnippet))
   "An alist matching modes to company backends. The backends for any mode is
@@ -412,6 +412,10 @@ Examples:
   (add-to-list 'company-transformers 'company//sort-by-tabnine t)
   )
 ;; -CompanyTabNinePac
+
+(use-package company-english-helper
+  :straight (:host github :repo "manateelazycat/company-english-helper" :depth 1)
+  :after company)
 
 (provide 'init-company)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
