@@ -76,7 +76,7 @@ If failed try to complete the common part with `company-complete-common'"
 ;;;###autoload
 (defvar +company-backend-alist
   ;; '((text-mode company-tabnine company-yasnippet company-dabbrev)
-  '((text-mode company-english-helper-search company-dabbrev company-yasnippet)
+  '((text-mode company-dabbrev company-yasnippet)
     (prog-mode company-files (company-capf :with company-tabnine :with company-yasnippet-unless-member-access :separate))
     (conf-mode company-capf company-dabbrev-code company-yasnippet))
   "An alist matching modes to company backends. The backends for any mode is
@@ -184,8 +184,8 @@ Examples:
      "C-k" 'smarter-yas-expand-next-field-complete)
     (general-def 'insert
       :prefix "C-x"
-      "C-f" 'company-files)
-    )
+      "C-f" 'company-files
+      "C-e" 'company-english-helper-search))
 
   (with-eval-after-load 'orderless
     (defvar-local +company-completion-styles '(partial-completion))
