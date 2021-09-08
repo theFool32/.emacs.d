@@ -61,9 +61,9 @@
 
     "f" '(:wk "Files")
     "ff" '(find-file :wk "Find file")
-    "fr" '(consult-recent-file :wk "Recent file")
+    "fr" '(my-open-recent :wk "Recent file")
     "fs" '(save-buffer :wk "Save file")
-    "fd" '(dired :wk "Find directory")
+    "fd" '(dired-jump :wk "Current directory")
     "fR" '(my-rename-file :wk "Rename file")
     "fc" '(my-copy-file :wk "Copy file")
     "fD" '(my-delete-file :wk "Delete file")

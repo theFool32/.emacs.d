@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Jun 22 18:39:18 2021 (+0800)
+;; Last-Updated: Thu Sep  9 01:47:45 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -91,7 +91,7 @@ FACE defaults to inheriting from default and highlight."
   "Insert a random UUID.
 Example of a UUID: 1df63142-a513-c850-31a3-535fc3520c3d
 
-WARNING: this is a simple implementation. The chance of generating the same UUID is much higher than a robust algorithm.."
+WARNING: this is a simple implementation.  The chance of generating the same UUID is much higher than a robust algorithm.."
   (interactive)
 
   (format "%04x%04x-%04x-%04x-%04x-%06x%06x"
@@ -136,11 +136,21 @@ WARNING: this is a simple implementation. The chance of generating the same UUID
       (kill-current-buffer))))
 
 (defun +my-imenu ()
-  "consult-outline in org-mode unless imenu"
+  "Consult-outline in `org-mode' unless imenu."
   (interactive)
   (if (derived-mode-p 'org-mode)
       (consult-outline)
     (consult-imenu)))
+
+(defun my-open-recent ()
+  "Open recent directory in dired or file otherwise."
+  (interactive)
+  (unless recentf-mode (recentf-mode 1))
+  (if (derived-mode-p 'dired-mode)
+      (find-file (selectrum--read "Find recent dirs: "
+                                  (delete-dups
+                                   (append (mapcar 'file-name-directory recentf-list)))))
+    (consult-recent-file)))
 
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
