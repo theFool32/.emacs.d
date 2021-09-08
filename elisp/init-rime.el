@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 81
+;;     Update #: 88
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -46,6 +46,43 @@
 ;;
 ;;; Code:
 
+;; karabiner:
+;; shift for emacs-rime
+;; {
+;;     "description": "Shift for Emacs-Rime",
+;;     "manipulators": [
+;;         {
+;;             "type": "basic",
+;;             "from": {
+;;                 "key_code": "left_shift",
+;;                 "modifiers": {
+;;                     "optional": [
+;;                         "any"
+;;                     ]
+;;                 }
+;;             },
+;;             "to": [
+;;                 {
+;;                     "key_code": "left_shift",
+;;                     "lazy": true
+;;                 }
+;;             ],
+;;             "to_if_alone": [
+;;                 {
+;;                     "key_code": "backslash",
+;;                     "modifiers": ["left_control"]
+;;                 }
+;;             ],
+;;             "conditions": [
+;;                 {
+;;                 "type": "frontmost_application_if",
+;;                 "bundle_identifiers": ["org\\.gnu\\.Emacs"]
+;;                 }
+;;             ]
+;;         }
+;;     ]
+;; },
+
 (use-package rime
   :if +self/use-rime
   :init
@@ -67,10 +104,6 @@
   :config
   (unless rime-emacs-module-header-root
     (setq rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus@28/include"))
-
-  (define-key rime-mode-map (kbd "M-k") 'rime-force-enable)
-  (define-key rime-mode-map (kbd "M-j") 'rime-inline-ascii)
-  (define-key rime-active-mode-map (kbd "M-j") 'rime-inline-ascii)
 
   (defun +rime-sync ()
     ;; HACK: force emacs-rime to use userdb.
