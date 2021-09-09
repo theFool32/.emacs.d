@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Aug  8 18:11:31 2021 (+0800)
+;; Last-Updated: Thu Sep  9 15:52:59 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -137,6 +137,7 @@
 (require 'init-ebib)
 (require 'init-rime)
 (require 'init-lookup)
+(require 'init-shell)
 
 (provide 'init)
 
