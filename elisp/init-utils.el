@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 23
+;;     Update #: 30
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -47,7 +47,14 @@
 ;;; Code:
 
 (use-package imenu-list
-  :defer t)
+  :commands imenu-list-smart-toggle)
+
+(use-package neotree
+  :commands neotree-toggle
+  :config
+  (message "neotree")
+  (setq neo-autorefresh t)
+  (setq neo-theme 'icons))
 
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

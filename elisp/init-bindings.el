@@ -123,8 +123,7 @@
     "t" '(:wk "Toggle")
     "tl" '(toggle-truncate-lines :wk "Toggle line wrap")
     "td" '(toggle-debug-on-error :wk "Toggle debug on error")
-    "tt" '(treemacs :wk "Treemacs")
-    "tj" '(lsp-treemacs-symbols-toggle :wk "LSP Treemacs")
+    "tt" '(neotree-toggle :wk "Neotree")
     "ti" '(imenu-list-smart-toggle :wk "imenu-list")
 
     "o" '(:wk "Open")
