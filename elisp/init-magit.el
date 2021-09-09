@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Jul 31 19:47:27 2021 (+0800)
+;; Last-Updated: Thu Sep  9 23:13:00 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit
@@ -107,6 +107,41 @@ window that already exists in that direction. It will split otherwise."
       (switch-to-buffer buffer t t)
       (selected-window))))
 
+;;;###autoload
+(defun +magit/quit (&optional kill-buffer)
+  "Bury the current magit buffer.
+
+If KILL-BUFFER, kill this buffer instead of burying it.
+If the buried/killed magit buffer was the last magit buffer open for this repo,
+kill all magit buffers for this repo."
+  (interactive "P")
+  (let ((topdir (magit-toplevel)))
+    (funcall magit-bury-buffer-function kill-buffer)
+    (or (cl-find-if (lambda (win)
+                      (with-selected-window win
+                        (and (derived-mode-p 'magit-mode)
+                             (equal magit--default-directory topdir))))
+                    (window-list))
+        (+magit/quit-all))))
+
+;;;###autoload
+(defun +magit/quit-all ()
+  "Kill all magit buffers for the current repository."
+  (interactive)
+  (mapc #'+magit--kill-buffer (magit-mode-get-buffers)))
+
+(defun +magit--kill-buffer (buf)
+  "TODO"
+  (when (and (bufferp buf) (buffer-live-p buf))
+    (let ((process (get-buffer-process buf)))
+      (if (not (processp process))
+          (kill-buffer buf)
+        (with-current-buffer buf
+          (if (process-live-p process)
+              (run-with-timer 5 nil #'+magit--kill-buffer buf)
+            (kill-process process)
+            (kill-buffer buf)))))))
+
 ;; MagitPac
 (use-package magit
   :defer t
@@ -115,6 +150,11 @@ window that already exists in that direction. It will split otherwise."
   (global-auto-revert-mode -1)
   (magit-auto-revert-mode -1)
   (setq magit-display-buffer-function #'+magit-display-buffer-fn)
+
+  (general-define-key :states '(normal)
+                      :keymaps 'magit-mode-map
+                      "q" #'+magit/quit
+                      "Q" #'+magit/quit-all)
   )
 ;; -MagitPac
 
