@@ -121,10 +121,11 @@
 
 
     "t" '(:wk "Toggle")
-    "tl" '(toggle-truncate-lines :wk "Toggle line wrap")
-    "td" '(toggle-debug-on-error :wk "Toggle debug on error")
+    "tl" '(toggle-truncate-lines :wk "Line wrap")
+    "td" '(toggle-debug-on-error :wk "Debug on error")
     "tt" '(neotree-toggle :wk "Neotree")
-    "ti" '(imenu-list-smart-toggle :wk "imenu-list")
+    "ti" '(imenu-list-smart-toggle :wk "Imenu-list")
+    "te" '(vterm-posframe-toggle :wk "Shell")
 
     "o" '(:wk "Open")
     "oy" '(my-youdao-search-at-point :wk "Youdao")
