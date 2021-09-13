@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Mon Jun 10 18:58:02 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Aug  9 18:55:54 2021 (+0800)
+;; Last-Updated: Sat Sep 11 00:18:09 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords:
@@ -76,9 +76,10 @@
 
   (use-package lsp-pyright
     :after lsp-mode
-    :init (when (executable-find "python3") (setq lsp-pyright-python-executable-cmd "python3"))
-    :config
+    :init
     (setq lsp-pyright-multi-root nil)
+    (when (executable-find "python3") (setq lsp-pyright-python-executable-cmd "python3"))
+    :config
     (setq lsp-pyright-use-library-code-for-types t)
     (setq lsp-pyright-auto-search-paths nil)
     (setq lsp-pyright-auto-import-completions nil)
