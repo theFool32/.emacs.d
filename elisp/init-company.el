@@ -39,7 +39,22 @@
 ;;
 ;;; Code:
 
+;; HACK: for `company-active-map' and `evil-insert' respectively
 (defun smarter-yas-expand-next-field-complete ()
+  "Try to `yas-expand' and `yas-next-field' at current cursor position.
+
+If failed try to complete the common part with `company-complete-common'"
+  (interactive)
+  (if yas-minor-mode
+      (let ((old-point (point))
+            (old-tick (buffer-chars-modified-tick)))
+        (yas-expand)
+        (when (and (eq old-point (point))
+                   (eq old-tick (buffer-chars-modified-tick)))
+          (company-complete)
+          (ignore-errors (yas-next-field))))
+    (company-complete-common)))
+(defun smarter-yas-expand-next-field-complete-2 ()
   "Try to `yas-expand' and `yas-next-field' at current cursor position.
 
 If failed try to complete the common part with `company-complete-common'"
@@ -53,15 +68,9 @@ If failed try to complete the common part with `company-complete-common'"
           (ignore-errors (yas-next-field))
           (when (and (eq old-point (point))
                      (eq old-tick (buffer-chars-modified-tick)))
-            (progn
-              (call-interactively 'company-abort)
-              (call-interactively 'company-yasnippet))
-            )
-          ))
-    ;; FIXME: c-k tab c-k
-    (company-complete-common)
-    )
-  )
+            (call-interactively 'company-abort)
+            (call-interactively 'company-yasnippet))))
+    (company-complete-common)))
 
 (defun company-yasnippet-unless-member-access (command &optional arg &rest ignore)
   (if (eq command 'prefix)
@@ -180,8 +189,11 @@ Examples:
 
   (with-eval-after-load 'general
     (general-define-key
-     :keymaps '(company-active-map evil-insert-state-map)
+     :keymaps '(company-active-map)
      "C-k" 'smarter-yas-expand-next-field-complete)
+    (general-define-key
+     :keymaps '(evil-insert-state-map)
+     "C-k" 'smarter-yas-expand-next-field-complete-2)
     (general-def 'insert
       :prefix "C-x"
       "C-f" 'company-files
