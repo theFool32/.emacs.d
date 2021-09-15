@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 425
+;;     Update #: 428
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -330,8 +330,7 @@ When the number of characters in a buffer exceeds this threshold,
                                      (min-width . 80)
                                      (width . 0.8)))
 
-  ;; (setq mini-frame-internal-border-color "gray50")  ;; FIXME: very slow for mini-frame border
-  ;; (set-face-background 'child-frame-border "gray50" mini-frame-frame)
+  (setq mini-frame-internal-border-color "gray50")
 
   (when (and (not noninteractive) (require 'mini-frame nil t)) ;batch 模式下miniframe 有问题
     (add-to-list 'mini-frame-ignore-functions 'y-or-n-p)
