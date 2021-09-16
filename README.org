@@ -30,7 +30,7 @@ Enjoy hacking!
 *** Tools
 #+begin_src bash
 # For Mac OS X
-brew install ripgrep fd rga
+brew install ripgrep fd rga terminal-notifier
 #+end_src
 
 *** Emacs-rime (Optional)
