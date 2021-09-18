@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 30
+;;     Update #: 41
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -55,6 +55,7 @@
     :init
     (setq vterm-always-compile-module t)
     :config
+    (evil-define-key 'insert vterm-mode-map (kbd "C-c") 'vterm-send-C-c)
     (with-no-warnings
       (defvar vterm-posframe--frame nil)
 
@@ -69,6 +70,7 @@
               buffer
             (vterm--internal #'ignore))))
 
+      ;; FIXME: cursor disappears after `ret'
       (defun vterm-posframe-toggle ()
         "Toggle `vterm' child frame."
         (interactive)
