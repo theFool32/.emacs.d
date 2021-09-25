@@ -85,6 +85,13 @@
   (add-hook 'messages-buffer-mode-hook #'(lambda ()
                                            (evil-emacs-state)))
 
+
+  (add-hook 'after-change-major-mode-hook #'(lambda ()
+                                              (when (or (derived-mode-p 'fundamental-mode)
+                                                        (derived-mode-p 'text-mode)
+                                                        (derived-mode-p 'snippet-mode))
+                                                (setq-local evil-auto-indent nil))))
+
   (with-eval-after-load 'general
     (general-define-key :keymaps 'evil-window-map
                         "C-h" 'evil-window-left
