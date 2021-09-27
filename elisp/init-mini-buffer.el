@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 428
+;;     Update #: 445
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -152,6 +152,15 @@ Demotes any errors to messages."
   (define-key selectrum-minibuffer-map (kbd "C-d") '+complete-fido-delete-char)
   (define-key selectrum-minibuffer-map (kbd "C-w") '+complete-fido-do-backward-updir)
 
+  (defun open-in-external-app ()
+    (interactive)
+    (let ((candidate (+complete-get-current-candidate)))
+      (message candidate)
+      (message (concat "open " candidate))
+      (when (eq (+complete--get-meta 'category) 'file)
+        (shell-command (concat "open " candidate))
+        (abort-recursive-edit))))
+  (define-key selectrum-minibuffer-map (kbd "C-<return>") 'open-in-external-app)
   )
 
 
