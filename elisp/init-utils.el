@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 30
+;;     Update #: 32
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -50,9 +50,8 @@
   :commands imenu-list-smart-toggle)
 
 (use-package neotree
-  :commands neotree-toggle
+  :commands (neotree-toggle neotree-hide neotree-show)
   :config
-  (message "neotree")
   (setq neo-autorefresh t)
   (setq neo-theme 'icons))
 

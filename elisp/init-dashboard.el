@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:21:46 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Aug 11 18:00:38 2021 (+0800)
+;; Last-Updated: Tue Sep 28 22:40:06 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dashboard
@@ -69,6 +69,8 @@
   (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
   (dashboard-banner-logo-title ((t (:family "CaskaydiaCove Nerd Font" :height 200))))
   :config
+  (evil-define-key 'normal dashboard-mode-map "R" 'persp-resume)
+  ;; Format: "icon title help action face"
   (setq dashboard-set-file-icons t)
   (set-face-attribute 'dashboard-text-banner-face nil :foreground "#E5C07B")
   (dashboard-setup-startup-hook)
