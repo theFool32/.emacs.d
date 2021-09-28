@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:37:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 26 15:54:48 2021 (+0800)
+;; Last-Updated: Tue Sep 28 20:34:23 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dired auto-save
@@ -108,6 +108,20 @@ Version 2019-11-04"
                         "^" (lambda () (interactive) (find-alternate-file "..")))
 
     ))
+
+(use-package all-the-icons-dired
+  :defer t
+  :after dired
+  :hook (dired-mode . all-the-icons-dired-mode))
+
+(use-package dired-hacks
+  :defer t
+  :after dired)
+
+(use-package  dired-git-info
+  :after dired
+  :config
+  (evil-define-key 'normal dired-mode-map ")" 'dired-git-info-mode))
 ;; -DiredPackage
 
 ;; SaveAllBuffers
