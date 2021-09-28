@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:08:22 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Mon Jul 26 14:19:07 2021 (+0800)
+;; Last-Updated: Tue Sep 28 15:32:19 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d flycheck
@@ -80,8 +80,12 @@
   ;; You could add extra option "--camel-case" for since Aspell 0.60.8
   ;; @see https://github.com/redguardtoo/emacs.d/issues/796
   (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_US" "--run-together"))
-
-  (add-hook 'text-mode-hook #'wucuo-start))
+  (add-hook 'text-mode-hook #'wucuo-start)
+  (general-define-key :states 'normal
+                      :keymaps 'LaTeX-mode-map
+                      :prefix ","
+                      "g" '(flyspell-auto-correct-word :wk "Auto correct")
+                      "d" '(flyspell-correct-word-before-point :wk "Correct word")))
 
 (provide 'init-flycheck)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
