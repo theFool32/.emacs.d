@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 445
+;;     Update #: 446
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -152,6 +152,7 @@ Demotes any errors to messages."
   (define-key selectrum-minibuffer-map (kbd "C-d") '+complete-fido-delete-char)
   (define-key selectrum-minibuffer-map (kbd "C-w") '+complete-fido-do-backward-updir)
 
+  ;; TODO: only for mac os now
   (defun open-in-external-app ()
     (interactive)
     (let ((candidate (+complete-get-current-candidate)))

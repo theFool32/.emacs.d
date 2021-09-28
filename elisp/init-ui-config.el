@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Sep 15 20:09:14 2021 (+0800)
+;; Last-Updated: Tue Sep 28 15:06:05 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -201,6 +201,11 @@
   (add-to-list 'all-the-icons-mode-icon-alist
                '(gfm-mode all-the-icons-octicon "markdown" :face all-the-icons-lblue)))
 
+(use-package olivetti
+  :straight (:host github :repo "rnkn/olivetti")
+  :commands (olivetti-mode olivetti-shrink olivetti-expand olivetti-set-width)
+  :custom
+  (olivetti-body-width 120))
 ;; -ATIPac
 
 (provide 'init-ui-config)

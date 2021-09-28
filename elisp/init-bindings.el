@@ -126,6 +126,7 @@
     "tt" '(neotree-toggle :wk "Neotree")
     "ti" '(imenu-list-smart-toggle :wk "Imenu-list")
     "te" '(vterm-posframe-toggle :wk "Shell")
+    "tc" '(olivetti-mode :wk "Center")
 
     "o" '(:wk "Open")
     "oy" '(my-youdao-search-at-point :wk "Youdao")
