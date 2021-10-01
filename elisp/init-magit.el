@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Sep 19 11:40:16 2021 (+0800)
+;; Last-Updated: Fri Oct  1 14:03:37 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit
@@ -263,16 +263,23 @@ kill all magit buffers for this repo."
                           (when (re-search-forward "^<<<<<<< " nil t)
                             (smerge-mode 1))))))
   :config
-  (general-define-key :states 'normal
-                      :keymaps 'smerge-mode-map
-                      :prefix ","
-                      "n" '(smerge-next :wk "Next conflict")
-                      "p" '(smerge-prev :wk "Previous conflict")
-                      "RET" '(smerge-keep-current :wk "Accept current")
-                      "l" '(smerge-keep-lower :wk "Keep lower")
-                      "u" '(smerge-keep-upper :wk "Keep upper")
-                      "m" '(smerge-keep-mine :wk "Keep mine")
-                      "A" '(smerge-keep-all :wk "Keep all"))
+  ;; (general-define-key :states 'normal
+  ;;                     :keymaps 'smerge-mode-map
+  ;;                     :prefix ","
+  ;;                     "n" '(smerge-next :wk "Next conflict")
+  ;;                     "p" '(smerge-prev :wk "Previous conflict")
+  ;;                     "RET" '(smerge-keep-current :wk "Accept current")
+  ;;                     "l" '(smerge-keep-lower :wk "Keep lower")
+  ;;                     "u" '(smerge-keep-upper :wk "Keep upper")
+  ;;                     "m" '(smerge-keep-mine :wk "Keep mine")
+  ;;                     "A" '(smerge-keep-all :wk "Keep all"))
+  (evil-define-key 'normal 'smerge-mode-map ",n" 'smerge-next)
+  (evil-define-key 'normal 'smerge-mode-map ",p" 'smerge-prev)
+  (evil-define-key 'normal 'smerge-mode-map ",," 'smerge-keep-current)
+  (evil-define-key 'normal 'smerge-mode-map ",l" 'smerge-keep-lower)
+  (evil-define-key 'normal 'smerge-mode-map ",u" 'smerge-keep-upper)
+  (evil-define-key 'normal 'smerge-mode-map ",m" 'smerge-mine)
+  (evil-define-key 'normal 'smerge-mode-map ",A" 'smerge-keep-all)
   )
 
 
