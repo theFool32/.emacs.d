@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Oct  1 14:03:37 2021 (+0800)
+;; Last-Updated: Sat Oct  2 23:48:56 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit
@@ -147,8 +147,8 @@ kill all magit buffers for this repo."
   :defer t
   :if *git*
   :config
-  (global-auto-revert-mode -1)
-  (magit-auto-revert-mode -1)
+  ;; (global-auto-revert-mode -1)
+  ;; (magit-auto-revert-mode -1)
   (setq magit-display-buffer-function #'+magit-display-buffer-fn)
 
   (general-define-key :states '(normal)
