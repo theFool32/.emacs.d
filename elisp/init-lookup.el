@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 13
+;;     Update #: 14
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -129,7 +129,8 @@ Dictionary.app behind the scenes to get definitions.")
   (setq dumb-jump-default-project "~/.emacs.d/"
         dumb-jump-prefer-searcher 'rg
         dumb-jump-aggressive nil
-        dumb-jump-selector 'popup)
+        dumb-jump-quiet t
+        dumb-jump-selector 'completing-read)
   (add-hook 'dumb-jump-after-jump-hook #'better-jumper-set-jump))
 
 

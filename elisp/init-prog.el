@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 20
+;;     Update #: 22
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -63,6 +63,18 @@
   :disabled
   :diminish
   :hook (eldoc-mode . eldoc-box-hover-mode))
+
+(use-package xref
+  :straight nil
+  :init
+  ;; On Emacs 28, `xref-search-program' can be set to `ripgrep'.
+  ;; `project-find-regexp' benefits from that.
+  (when (>= emacs-major-version 28)
+    (setq xref-search-program 'ripgrep)
+    (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+    (setq xref-show-definitions-function #'xref-show-definitions-completing-read))
+  :hook ((xref-after-return xref-after-jump) . recenter))
+
 
 (provide 'init-prog)
 
