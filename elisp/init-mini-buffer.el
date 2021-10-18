@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 446
+;;     Update #: 448
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -137,6 +137,16 @@ Demotes any errors to messages."
 (use-package selectrum
   :hook (+self/first-input . selectrum-mode)
   :config
+  ;; (setq mini-frame-show-parameters
+  ;;       (lambda ()
+  ;;         (let* ((info (posframe-poshandler-argbuilder))
+  ;;                (posn (posframe-poshandler-point-bottom-left-corner info))
+  ;;                (left (car posn))
+  ;;                (top (cdr posn)))
+  ;;           `((left . ,left)
+  ;;             (top . ,top)
+  ;;             (min-width . 80)
+  ;;             (width . 0.8)))))
 
   (with-eval-after-load 'general
     (general-def "C-c C-r" 'selectrum-repeat)
