@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Tue Apr 23 23:08:17 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Sep 25 23:58:25 2021 (+0800)
+;; Last-Updated: Tue Oct 19 16:05:56 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d yasnippet
@@ -45,6 +45,7 @@
   :hook ((prog-mode LaTeX-mode org-mode) . yas-minor-mode)
   :config
   (yas-reload-all)
+  (setf yas/indent-line 'fixed) 
   )
 ;; -YASnippetPac
 
