@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 448
+;;     Update #: 453
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -136,6 +136,9 @@ Demotes any errors to messages."
 
 (use-package selectrum
   :hook (+self/first-input . selectrum-mode)
+  :bind (:map selectrum-minibuffer-map
+              ("C-q" . selectrum-quick-select)
+              ("M-q" . selectrum-quick-insert))
   :config
   ;; (setq mini-frame-show-parameters
   ;;       (lambda ()
@@ -149,7 +152,7 @@ Demotes any errors to messages."
   ;;             (width . 0.8)))))
 
   (with-eval-after-load 'general
-    (general-def "C-c C-r" 'selectrum-repeat)
+    (general-def "C-c r" 'selectrum-repeat)
     )
   ;; (setq selectrum-should-sort nil)
   (with-eval-after-load 'orderless
