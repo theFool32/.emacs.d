@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 88
+;;     Update #: 90
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -104,6 +104,9 @@
   :config
   (unless rime-emacs-module-header-root
     (setq rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus@28/include"))
+
+  (define-key rime-mode-map (kbd "M-j") 'rime-force-enable)
+  (define-key rime-mode-map (kbd "M-k") 'rime-inline-ascii)
 
   (defun +rime-sync ()
     ;; HACK: force emacs-rime to use userdb.

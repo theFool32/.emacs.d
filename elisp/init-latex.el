@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Sep  4 19:59:57 2021 (+0800)
+;; Last-Updated: Fri Nov  5 01:17:15 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -273,6 +273,13 @@
   :init
   (add-to-list '+latex--company-backends #'+latex-symbols-company-backend nil #'eq))
 ;; -AUCTeXPac
+
+(use-package atomic-chrome
+  :init (atomic-chrome-start-server)
+  :config
+  (setq atomic-chrome-url-major-mode-alist
+	'(("overleaf\\.com" . latex-mode))))
+
 
 (provide 'init-latex)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
