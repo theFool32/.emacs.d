@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 453
+;;     Update #: 458
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -206,7 +206,7 @@ Demotes any errors to messages."
   (setq consult-narrow-key "<")
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
-  (setq consult-find-command "fd --color=never --full-path ARG OPTS")
+  (setq consult-find-args "fd --color=never --full-path ARG OPTS")
 
   (autoload 'org-buffer-list "org")
   (defvar org-buffer-source
@@ -260,7 +260,7 @@ When the number of characters in a buffer exceeds this threshold,
                  (my-consult-set-evil-search-pattern))
         (when (file-writable-p buffer-file-name)
           (save-buffer))
-        (let ((consult-ripgrep-command
+        (let ((consult-ripgrep-args
                (concat "rg "
                        "--null "
                        "--line-buffered "
