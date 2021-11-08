@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 90
+;;     Update #: 91
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -103,7 +103,7 @@
 
   :config
   (unless rime-emacs-module-header-root
-    (setq rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus@28/include"))
+    (setq rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus@29/include"))
 
   (define-key rime-mode-map (kbd "M-j") 'rime-force-enable)
   (define-key rime-mode-map (kbd "M-k") 'rime-inline-ascii)
