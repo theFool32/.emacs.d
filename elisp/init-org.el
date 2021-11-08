@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Sep 16 11:28:40 2021 (+0800)
+;; Last-Updated: Tue Nov  9 00:28:56 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -327,6 +327,7 @@
   :after org)
 
 (use-package org-superstar
+  :disabled
   :after org
   :hook (org-mode . org-superstar-mode)
   :custom
@@ -350,7 +351,8 @@
 	  :straight (:host github :repo "zemaye/emacs-calfw"))))
 
 ;; -Notification only for mac os
-(when *sys/mac*
+;; (when *sys/mac*
+(unless t
   (require 'appt)
 
   (setq appt-time-msg-list nil) ;; clear existing appt list
