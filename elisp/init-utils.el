@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 32
+;;     Update #: 36
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -54,6 +54,15 @@
   :config
   (setq neo-autorefresh t)
   (setq neo-theme 'icons))
+
+(use-package atomic-chrome
+  :defer
+  :commands (atomic-chrome-start-server)
+  :config
+  (setq atomic-chrome-url-major-mode-alist
+	'(("overleaf\\.com" . latex-mode))))
+
+
 
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

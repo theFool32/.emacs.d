@@ -1,16 +1,16 @@
-;;; init-custom.el ---
+;;; init-custom-example.el ---
 ;;
-;; Filename: init-custom.el
+;; Filename: init-custom-example.el
 ;; Description:
 ;; Author: theFool32
 ;; Maintainer:
-;; Copyright (C) 2020 theFool32
-;; Created: Sat May  1 22:51:41 2021 (+0800)
+;; Copyright (C) 2021 theFool32
+;; Created: Wed Nov 17 10:54:29 2021 (+0800)
 ;; Version:
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 63
+;;     Update #: 5
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -20,8 +20,7 @@
 ;;
 ;;; Commentary:
 ;;
-;;  TODO: This file should not be managed by git.
-;;  And a fallback should be defined in init-const.el maybe.
+;;   Copy this file to `init-custom.el', and customize options for yourself. 
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -49,9 +48,9 @@
 
 
 ;; For ebib
-(defconst +self/ebib-base-dir "/Users/lijie/Dropbox/Ref/")
+(defconst +self/ebib-base-dir "")
 ;; For org-mode
-(defconst +self/org-base-dir "/Users/lijie/Dropbox/org-notes/")
+(defconst +self/org-base-dir "")
 
 (defconst +self/use-rc-to-sync t
   "Should we use `rc' to sync when saving")
@@ -61,4 +60,4 @@
 
 (provide 'init-custom)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-custom.el ends here
+;;; init-custom-example.el ends here

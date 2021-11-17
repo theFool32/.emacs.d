@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Nov  9 00:28:56 2021 (+0800)
+;; Last-Updated: Wed Nov 17 13:48:44 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -349,6 +349,10 @@
 	  :straight (:host github :repo "zemaye/emacs-calfw"))
 	(use-package calfw-cal
 	  :straight (:host github :repo "zemaye/emacs-calfw"))))
+
+(use-package org-gcal
+  :disabled
+  :straight (:host github :repo "kidd/org-gcal.el"))
 
 ;; -Notification only for mac os
 ;; (when *sys/mac*

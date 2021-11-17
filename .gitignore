@@ -60,3 +60,7 @@ projects
 librime
 devdocs/
 env
+init-custom.el
+.org-generic-id-locations
+org-gcal/
+persist/
