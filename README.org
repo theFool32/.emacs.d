@@ -1,15 +1,13 @@
 
 * Emacs for self-use
 
-I use it with Emacs@28 with native-comp.
+I use it with Emacs@29 with native-comp.
 
 ** Installation
 *** Installing Emacs
-Follow [[https://github.com/jimeh/build-emacs-for-macos][build-emacs-for-macos]] to compile Emacs.
 #+begin_src bash
-./build-emacs-for-macos --no-xwidgets --native-full-aot
+brew install emacs-plus@29 --with-native-comp --with-modern-purple-flat-icon
 #+end_src
-
 
 *** Installing this configuration
 #+begin_src bash
@@ -21,6 +19,11 @@ git clone --depth 1 https://github.com/theFool32/.emacs.d.git .emacs.d
 #+begin_src bash
 # generate environment variables
 ~/.emacs.d/prepare
+#+end_src
+
+#+begin_src bash
+# make some custom
+cp ~/.emacs.d/init-custom-example.el ~/.emacs.d/init-custom.el
 #+end_src
 
 Enjoy hacking!
