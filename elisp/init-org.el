@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Nov 17 13:48:44 2021 (+0800)
+;; Last-Updated: Fri Dec  3 00:55:51 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -46,8 +46,6 @@
 (defvar +org-capture-file-gtd (concat +self/org-base-dir "gtd.org"))
 (defvar +org-capture-file-idea (concat +self/org-base-dir "ideas.org"))
 (defvar +org-capture-file-note (concat +self/org-base-dir "notes.org"))
-(defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
-(defvar +org-capture-file-tickler (concat +self/org-base-dir "tickler.org"))
 (use-package org
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h))
@@ -83,11 +81,7 @@
   ;; (require 'org/+screenshot)
 
   (setq org-log-into-drawer "LOGBOOK")
-  (setq org-agenda-files (list +org-capture-file-gtd
-                               +org-capture-file-tickler))
-  (setq org-refile-targets '((+org-capture-file-gtd :level . 1)
-                             (+org-capture-file-someday :level . 1)
-                             (+org-capture-file-tickler :level . 1)))
+  (setq org-agenda-files (list +org-capture-file-gtd))
   (setq org-log-into-drawer t)
   (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)))
   (setq org-capture-templates
@@ -95,13 +89,13 @@
            (file+headline +org-capture-file-gtd "Next Actions")
            "* TODO %i%? [/] \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
           ("w" "Waiting for" entry
-           (file+headline +org-capture-file-tickler "Tickler")
+           (file+headline +org-capture-file-gtd "Tickler")
            "* %?\n%i" :prepend t :kill-buffer t)
           ("n" "Note" entry
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           ("m" "Maybe" entry
-           (file+headline +org-capture-file-someday "Some day/maybe")
+           (file+headline +org-capture-file-gtd "Some day/maybe")
            "* %?\n%i" :prepend t :kill-buffer t)
           ("i" "Idea" entry
            (file+headline +org-capture-file-idea "Ideas")
