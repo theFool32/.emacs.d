@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Oct  2 23:48:56 2021 (+0800)
+;; Last-Updated: Thu Dec 16 22:08:00 2021 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit
@@ -276,7 +276,8 @@ kill all magit buffers for this repo."
   (evil-define-key 'normal 'smerge-mode-map ",n" 'smerge-next)
   (evil-define-key 'normal 'smerge-mode-map ",p" 'smerge-prev)
   (evil-define-key 'normal 'smerge-mode-map ",," 'smerge-keep-current)
-  (evil-define-key 'normal 'smerge-mode-map ",l" 'smerge-keep-lower)
+  ;; (evil-define-key 'normal 'smerge-mode-map ",l" 'smerge-keep-lower)
+  (evil-define-key 'normal 'smerge-mode-map ",d" 'smerge-keep-lower)
   (evil-define-key 'normal 'smerge-mode-map ",u" 'smerge-keep-upper)
   (evil-define-key 'normal 'smerge-mode-map ",m" 'smerge-mine)
   (evil-define-key 'normal 'smerge-mode-map ",A" 'smerge-keep-all)
