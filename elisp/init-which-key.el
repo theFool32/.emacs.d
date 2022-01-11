@@ -6,8 +6,8 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 15:06:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Aug  8 16:08:23 2019 (-0400)
-;;           By: Mingde (Matthew) Zeng
+;; Last-Updated: Tue Jan 11 16:19:21 2022 (+0800)
+;;           By: theFool32
 ;; URL: URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d which-key
 ;; Compatibility: emacs-version >= 26.1
@@ -46,6 +46,9 @@
   :config
   (which-key-mode))
 ;; -WhichKeyPac
+
+(use-package pretty-hydra
+  :diminish)
 
 (provide 'init-which-key)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

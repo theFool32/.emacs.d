@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 08:40:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Dec 18 11:21:07 2021 (+0800)
+;; Last-Updated: Tue Jan 11 16:28:23 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d magit
@@ -261,7 +261,39 @@ kill all magit buffers for this repo."
                         (save-excursion
                           (goto-char (point-min))
                           (when (re-search-forward "^<<<<<<< " nil t)
-                            (smerge-mode 1))))))
+                            (smerge-mode 1)))))
+         (magit-diff-visit-file . (lambda ()
+                                    (when smerge-mode
+                                      (hydra-smerge/body))))
+         )
+  :pretty-hydra
+  ((:title "Smerge"
+           :color pink :quit-key "q")
+   ("Move"
+    (("n" smerge-next "next")
+     ("p" smerge-prev "previous"))
+    "Keep"
+    (("b" smerge-keep-base "base")
+     ("u" smerge-keep-upper "upper")
+     ("l" smerge-keep-lower "lower")
+     ("a" smerge-keep-all "all")
+     ("RET" smerge-keep-current "current")
+     ("C-m" smerge-keep-current "current"))
+    "Diff"
+    (("<" smerge-diff-base-upper "upper/base")
+     ("=" smerge-diff-upper-lower "upper/lower")
+     (">" smerge-diff-base-lower "upper/lower")
+     ("R" smerge-refine "refine")
+     ("E" smerge-ediff "ediff"))
+    "Other"
+    (("C" smerge-combine-with-next "combine")
+     ("r" smerge-resolve "resolve")
+     ("k" smerge-kill-current "kill")
+     ("ZZ" (lambda ()
+             (interactive)
+             (save-buffer)
+             (bury-buffer))
+      "Save and bury buffer" :exit t))))
   :config
   ;; (general-define-key :states 'normal
   ;;                     :keymaps 'smerge-mode-map
