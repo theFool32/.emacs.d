@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 32
+;;     Update #: 33
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -50,11 +50,9 @@
   (require 'init-const))
 
 (use-package tree-sitter
-  :if (not *sys/mac_arm*)
   :hook ((python-mode) . tree-sitter-hl-mode))
 
 (use-package tree-sitter-langs
-  :if (not *sys/mac_arm*)
   :after tree-sitter)
 
 (provide 'init-tree-sitter)
