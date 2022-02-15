@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Feb 15 18:14:37 2022 (+0800)
+;; Last-Updated: Wed Feb 16 00:15:23 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -48,7 +48,8 @@
 (defvar +org-capture-file-note (concat +self/org-base-dir "notes.org"))
 (use-package org
   :hook ((org-mode . org-indent-mode)
-         (org-mode . +org-enable-auto-update-cookies-h))
+         (org-mode . +org-enable-auto-update-cookies-h)
+         (org-mode . org-num-mode))
   :bind (:map org-mode-map
               ([tab] . org-cycle))
   :custom
@@ -56,6 +57,12 @@
   (org-edit-src-content-indentation 0)
   (org-capture-bookmark nil) ;; TODO: no bookmark for refile
   (org-log-done 'time)
+  (org-hide-emphasis-markers t)
+  ;; (org-agenda-span 'day)
+  (org-agenda-span 7)
+  (org-agenda-start-with-log-mode t)
+  (org-agenda-start-with-clockreport-mode t)
+  (org-agenda-start-on-weekday 1)
   (org-export-backends (quote (ascii html icalendar latex md odt)))
   (org-use-speed-commands t)
   (org-confirm-babel-evaluate 'nil)
@@ -81,17 +88,16 @@
   ;; (require 'org/+screenshot)
 
   (setq org-log-into-drawer "LOGBOOK")
-  (setq org-agenda-span 'day)
   (setq org-agenda-files (list +org-capture-file-gtd))
   (setq org-log-into-drawer t)
   (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)))
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file+headline +org-capture-file-gtd "Next Actions")
-           "* TODO %i%? [/] \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
+           "* ☞ TODO %i%? [/] \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
           ("w" "Waiting for" entry
            (file+headline +org-capture-file-gtd "Tickler")
-           "* %?\n%i" :prepend t :kill-buffer t)
+           "* ⚑ WAITING %?\n%i" :prepend t :kill-buffer t)
           ("n" "Note" entry
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
@@ -102,10 +108,30 @@
            (file+headline +org-capture-file-idea "Ideas")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           )
-        org-todo-keywords
-        '((sequence "TODO(t!)" "|" "DONE(d!)" "CANCELLED(c!)"))
+        ;; org-todo-keywords
+        ;; '((sequence "TODO(t!)" "INPROCESS(s!)" "|" "DONE(d!)" "CANCELLED(c!)"))
         ;; org-agenda-window-setup 'other-window
         )
+  (setq org-todo-keywords
+        '((sequence
+           "☞ TODO(t)"  ; A task that needs doing & is ready to do
+           "PROJ(p)"  ; An ongoing project that cannot be completed in one step
+           "⚔ INPROCESS(s)"  ; A task that is in progress
+           "⚑ WAITING(w)"  ; Something is holding up this task; or it is paused
+           "|"
+           "☟ NEXT(n)"
+           "✰ Important(i)"
+           "✔ DONE(d)"  ; Task successfully completed
+           "✘ CANCELED(c@)") ; Task was cancelled, aborted or is no longer applicable
+          (sequence
+           "✍ NOTE(N)"
+           "FIXME(f)"
+           "☕ BREAK(b)"
+           "❤ Love(l)"
+           "REVIEW(r)"
+           )) ; Task was completed
+        )
+
 
   ;; (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
   (add-hook 'after-change-major-mode-hook
@@ -126,6 +152,33 @@
                (y (+ (* 100 cycle) yy)))
           (diary-chinese-anniversary lunar-month lunar-day y mark))
       (diary-chinese-anniversary lunar-month lunar-day year mark)))
+
+  (defun my:org-agenda-time-grid-spacing ()
+    "Set different line spacing w.r.t. time duration."
+    (save-excursion
+      (let* ((background (alist-get 'background-mode (frame-parameters)))
+             (background-dark-p (string= background "dark"))
+             (colors (if background-dark-p
+                         (list "#aa557f" "DarkGreen" "DarkSlateGray" "DarkSlateBlue")
+                       (list "#F6B1C3" "#FFFF9D" "#BEEB9F" "#ADD5F7")))
+             pos
+             duration)
+        (nconc colors colors)
+        (goto-char (point-min))
+        (while (setq pos (next-single-property-change (point) 'duration))
+          (goto-char pos)
+          (when (and (not (equal pos (point-at-eol)))
+                     (setq duration (org-get-at-bol 'duration)))
+            (let ((line-height (if (< duration 30) 1.0 (+ 0.5 (/ duration 60))))
+                  (ov (make-overlay (point-at-bol) (1+ (point-at-eol)))))
+              (overlay-put ov 'face `(:background ,(car colors)
+                                                  :foreground
+                                                  ,(if background-dark-p "black" "white")))
+              (setq colors (cdr colors))
+              (overlay-put ov 'line-height line-height)
+              (overlay-put ov 'line-spacing (1- line-height))))))))
+
+  (add-hook 'org-agenda-finalize-hook #'my:org-agenda-time-grid-spacing)
 
   ;; binding
   (with-eval-after-load 'general
@@ -348,6 +401,17 @@
 (use-package org-gcal
   :disabled
   :straight (:host github :repo "kidd/org-gcal.el"))
+
+(use-package org-bars
+  :straight (:host github :repo "tonyaldon/org-bars")
+  :after org
+  :hook (org-mode . org-bars-mode)
+  :config
+  (setq org-bars-color-options '(:only-one-color t
+                                                 :bar-color "#4C4A4D")
+        org-bars-stars '(:empty "◉"
+                                :invisible "▶"
+                                :visible "▼")))
 
 ;; -Notification only for mac os
 ;; (when *sys/mac*

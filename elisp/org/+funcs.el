@@ -313,9 +313,10 @@ If on a:
    ;; Move the agenda to show the previous 3 days and the next 7 days for a bit
    ;; better context instead of just the current week which is a bit confusing
    ;; on, for example, a sunday
-   org-agenda-span 10
-   org-agenda-start-on-weekday nil
-   org-agenda-start-day "-3d"))
+   ;; org-agenda-span 10
+   ;; org-agenda-start-on-weekday nil
+   ;; org-agenda-start-day "-3d"
+   ))
 
 ;;;###autoload
 (defun +org-init-capture-defaults-h()
