@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Dec  3 00:55:51 2021 (+0800)
+;; Last-Updated: Tue Feb 15 18:14:37 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -81,6 +81,7 @@
   ;; (require 'org/+screenshot)
 
   (setq org-log-into-drawer "LOGBOOK")
+  (setq org-agenda-span 'day)
   (setq org-agenda-files (list +org-capture-file-gtd))
   (setq org-log-into-drawer t)
   (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)))

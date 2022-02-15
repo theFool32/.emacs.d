@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:53:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Nov 24 14:46:23 2021 (+0800)
+;; Last-Updated: Tue Feb 15 17:15:02 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d packages use-package
@@ -65,8 +65,8 @@
 (defun +set-github-mirror (oldfunc &rest args)
   (let ((url (apply oldfunc args)))
     (replace-regexp-in-string (rx (group "github.com"))
-                              "github.com.cnpmjs.org" url nil nil 1)))
-(advice-add 'straight-vc-git--encode-url :around #'+set-github-mirror)
+                              "hub.fastgit.org" url nil nil 1)))
+;; (advice-add 'straight-vc-git--encode-url :around #'+set-github-mirror)
 ;; -Straight
 
 (setq use-package-enable-imenu-support t
