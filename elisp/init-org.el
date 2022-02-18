@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Feb 16 00:15:23 2022 (+0800)
+;; Last-Updated: Thu Feb 17 11:34:05 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -46,6 +46,8 @@
 (defvar +org-capture-file-gtd (concat +self/org-base-dir "gtd.org"))
 (defvar +org-capture-file-idea (concat +self/org-base-dir "ideas.org"))
 (defvar +org-capture-file-note (concat +self/org-base-dir "notes.org"))
+(defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
+(defvar +org-capture-file-tickler (concat +self/org-base-dir "tickler.org"))
 (use-package org
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h)
@@ -58,6 +60,7 @@
   (org-capture-bookmark nil) ;; TODO: no bookmark for refile
   (org-log-done 'time)
   (org-hide-emphasis-markers t)
+  (org-deadline-warning-days 90)
   ;; (org-agenda-span 'day)
   (org-agenda-span 7)
   (org-agenda-start-with-log-mode t)
@@ -88,21 +91,26 @@
   ;; (require 'org/+screenshot)
 
   (setq org-log-into-drawer "LOGBOOK")
-  (setq org-agenda-files (list +org-capture-file-gtd))
+  (setq org-agenda-files (list +org-capture-file-gtd
+                               +org-capture-file-tickler))
+  (setq org-refile-use-outline-path 'file)
+  (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
+                             (+org-capture-file-someday :level . 3)
+                             (+org-capture-file-tickler :level . 3)))
   (setq org-log-into-drawer t)
   (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)))
   (setq org-capture-templates
         '(("t" "Todo" entry
-           (file+headline +org-capture-file-gtd "Next Actions")
-           "* ☞ TODO %i%? [/] \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
+           (file +org-capture-file-gtd)
+           "* ☞TODO %i%? [/] \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
           ("w" "Waiting for" entry
-           (file+headline +org-capture-file-gtd "Tickler")
-           "* ⚑ WAITING %?\n%i" :prepend t :kill-buffer t)
+           (file +org-capture-file-tickler)
+           "* ⚑WAITING %?\n%i" :prepend t :kill-buffer t)
           ("n" "Note" entry
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           ("m" "Maybe" entry
-           (file+headline +org-capture-file-gtd "Some day/maybe")
+           (file +org-capture-file-gtd)
            "* %?\n%i" :prepend t :kill-buffer t)
           ("i" "Idea" entry
            (file+headline +org-capture-file-idea "Ideas")
@@ -110,26 +118,45 @@
           )
         ;; org-todo-keywords
         ;; '((sequence "TODO(t!)" "INPROCESS(s!)" "|" "DONE(d!)" "CANCELLED(c!)"))
-        ;; org-agenda-window-setup 'other-window
+        ;; org-agenda-window-setup 'current-window
         )
   (setq org-todo-keywords
         '((sequence
-           "☞ TODO(t)"  ; A task that needs doing & is ready to do
+           "☞TODO(t)"  ; A task that needs doing & is ready to do
            "PROJ(p)"  ; An ongoing project that cannot be completed in one step
-           "⚔ INPROCESS(s)"  ; A task that is in progress
-           "⚑ WAITING(w)"  ; Something is holding up this task; or it is paused
+           "⚔INPROCESS(s)"  ; A task that is in progress
+           "⚑WAITING(w)"  ; Something is holding up this task; or it is paused
            "|"
-           "☟ NEXT(n)"
-           "✰ Important(i)"
-           "✔ DONE(d)"  ; Task successfully completed
-           "✘ CANCELED(c@)") ; Task was cancelled, aborted or is no longer applicable
+           "☟NEXT(n)"
+           "✰Important(i)"
+           "✔DONE(d)"  ; Task successfully completed
+           "✘CANCELED(c@)") ; Task was cancelled, aborted or is no longer applicable
           (sequence
-           "✍ NOTE(N)"
+           "✍NOTE(N)"
            "FIXME(f)"
-           "☕ BREAK(b)"
-           "❤ Love(l)"
+           "☕BREAK(b)"
+           "❤Love(l)"
            "REVIEW(r)"
            )) ; Task was completed
+
+        org-todo-keyword-faces
+        '(
+          ("☞TODO" . (:foreground "#ff39a3" :weight bold))
+          ("⚔INPROCESS"  . "orangered")
+          ("✘CANCELED" . (:foreground "white" :background "#4d4d4d" :weight bold))
+          ("⚑WAITING" . "pink")
+          ("☕BREAK" . "gray")
+          ("❤LOVE" . (:foreground "VioletRed4"
+                                   ;; :background "#7A586A"
+                                   :weight bold))
+          ("☟NEXT" . (:foreground "DeepSkyBlue"
+                                   ;; :background "#7A586A"
+                                      :weight bold))
+          ("✰IMPORTANT" . (:foreground "greenyellow"
+                                      ;; :background "#7A586A"
+                                      :weight bold))
+          ("✔DONE" . "#008080")
+          ("FIXME" . "IndianRed"))
         )
 
 
