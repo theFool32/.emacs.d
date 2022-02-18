@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Sep  9 01:47:45 2021 (+0800)
+;; Last-Updated: Fri Feb 18 22:22:23 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -147,7 +147,7 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
   (interactive)
   (unless recentf-mode (recentf-mode 1))
   (if (derived-mode-p 'dired-mode)
-      (find-file (selectrum--read "Find recent dirs: "
+      (find-file (completing-read "Find recent dirs: "
                                   (delete-dups
                                    (append (mapcar 'file-name-directory recentf-list)))))
     (consult-recent-file)))

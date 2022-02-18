@@ -210,10 +210,11 @@ Examples:
         (setq completion-styles +completion-styles)
         (setq +completion-styles nil)))
 
-    (add-hook 'company-completion-started-hook #'set-company-completion-style)
+    ;; (add-hook 'company-completion-started-hook #'set-company-completion-style)
     ;; (add-hook 'company-completion-cancelled-hook #'restore-company-completion-style)
     ;; (add-hook 'company-completion-finished-hook #'restore-company-completion-style)
-    (add-hook 'evil-normal-state-entry-hook #'restore-company-completion-style))
+    ;; (add-hook 'evil-normal-state-entry-hook #'restore-company-completion-style))
+    )
   )
 ;; -ComPac
 (use-package company-prescient
