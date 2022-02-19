@@ -79,6 +79,7 @@
     "j" '(:wk "Jump")
     "jj" '(evil-avy-goto-char :wk "Jump to character")
     "jl" '(evil-avy-goto-line :wk "Jump to line")
+    "je" '(+vertico/jump-list :wk "Jump-list")
 
     "s" '(:wk "Search")
     "sb" '(my-consult-line-symbol-at-point :wk "Search buffer")

@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 481
+;;     Update #: 483
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -104,6 +104,52 @@
         (shell-command (concat "open " candidate))
         (abort-recursive-edit))))
   (define-key vertico-map (kbd "C-<return>") 'open-in-external-app)
+
+  (defun +vertico/jump-list (jump)
+    "Go to an entry in evil's (or better-jumper's) jumplist."
+    (interactive
+     (let (buffers)
+       (require 'consult)
+       (unwind-protect
+           (list
+            (consult--read
+             ;; REVIEW Refactor me
+             (nreverse
+              (delete-dups
+               (delq
+                nil (mapcar
+                     (lambda (mark)
+                       (when mark
+                         (cl-destructuring-bind (path pt _id) mark
+                           (let* ((visiting (find-buffer-visiting path))
+                                  (buf (or visiting (find-file-noselect path t)))
+                                  (dir default-directory))
+                             (unless visiting
+                               (push buf buffers))
+                             (with-current-buffer buf
+                               (goto-char pt)
+                               (font-lock-fontify-region
+                                (line-beginning-position) (line-end-position))
+                               (format "%s:%d: %s"
+                                       (car (cl-sort (list (abbreviate-file-name (buffer-file-name buf))
+                                                           (file-relative-name (buffer-file-name buf) dir))
+                                                     #'< :key #'length))
+                                       (line-number-at-pos)
+                                       (string-trim-right (or (thing-at-point 'line) ""))))))))
+                     (cddr (better-jumper-jump-list-struct-ring
+                            (better-jumper-get-jumps (better-jumper--get-current-context))))))))
+             :prompt "jumplist: "
+             :sort nil
+             :require-match t
+             :category 'jump-list))
+         (mapc #'kill-buffer buffers))))
+    (if (not (string-match "^\\([^:]+\\):\\([0-9]+\\): " jump))
+        (user-error "No match")
+      (let ((file (match-string-no-properties 1 jump))
+            (line (match-string-no-properties 2 jump)))
+        (find-file file)
+        (goto-char (point-min))
+        (forward-line (string-to-number line)))))
 
   ;; Configure directory extension.
   (use-package vertico-quick
