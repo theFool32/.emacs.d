@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Feb 18 22:22:23 2022 (+0800)
+;; Last-Updated: Sat Feb 19 22:34:44 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -127,7 +127,7 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
 (defun my-delete-file()
   "Delete file while using current file as default."
   (interactive)
-  (let ((file-name (read-file-name "Delete: " default-directory buffer-file-name)))
+  (let ((file-name (read-file-name "Delete: " default-directory (buffer-file-name))))
     (cond
      ((file-directory-p file-name) (delete-directory file-name t))
      ((file-exists-p file-name) (delete-file file-name))

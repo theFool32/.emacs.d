@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 472
+;;     Update #: 481
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -178,14 +178,11 @@
         register-preview-function #'consult-register-format)
   :config
   (setq consult-preview-key nil)
-  (setq consult-project-root-function #'projectile-project-root)
   (setq consult-narrow-key "<")
   (setq consult-async-input-debounce 0)
   (setq consult-async-input-throttle 0)
   (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer))
 
-  (autoload 'projectile-project-root "projectile")
-  (setq consult-project-root-function #'projectile-project-root)
   (setq consult-preview-key nil)
   (setq consult-narrow-key "<")
   (setq xref-show-xrefs-function #'consult-xref
@@ -201,10 +198,6 @@
                 :hidden   t
                 :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
-
-
-  (with-eval-after-load 'projectile
-    (projectile-load-known-projects))
 
   (defun my-consult-set-evil-search-pattern (&optional condition)
     (let ((re
@@ -282,10 +275,8 @@ When the number of characters in a buffer exceeds this threshold,
   (advice-add #'consult-ripgrep :around #'consult--with-orderless)
   )
 
-(use-package consult-projectile
-  :after projectile
-  :straight (consult-projectile :type git :host gitlab :repo "OlMon/consult-projectile" :branch "master")
-  )
+(use-package consult-project-extra
+  :straight (consult-project-extra :type git :host github :repo "Qkessler/consult-project-extra"))
 
 (use-package orderless
   :demand t

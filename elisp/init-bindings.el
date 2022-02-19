@@ -140,11 +140,10 @@
     "oc" '(cfw:open-org-calendar :wk "Calendar")
 
     "p" '(:wk "Project")
-    "pp" '(projectile-switch-project :wk "Switch project")
-    "pf" '(consult-projectile :wk "Find file in project")
-    "pr" '(projectile-recentf :wk "Recent file in project")
+    "pp" '(project-switch-project :wk "Switch project")
+    "pf" '(consult-project-extra-find :wk "Find file in project")
     "pt" '(magit-todos-list :wk "List project tasks")
-    "pk" '(projectile-kill-buffers :wk "Kill project buffers")
+    "pk" '(project-kill-buffers :wk "Kill project buffers")
 
     "q" '(:wk "Quit")
     ;; "qq" '(kill-emacs :wk "Quit")

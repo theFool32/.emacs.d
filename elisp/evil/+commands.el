@@ -42,9 +42,6 @@
 ;;; Dealing with buffers
 (evil-ex-define-cmd "messages"    #'view-echo-area-messages)
 
-;;; Project navigation
-(evil-ex-define-cmd "a"           #'projectile-find-other-file)
-
 ;;; Project tools
 (evil-ex-define-cmd "er[rors]"    #'flycheck-list-errors)
 
