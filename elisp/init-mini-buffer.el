@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 471
+;;     Update #: 472
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -361,7 +361,7 @@ When the number of characters in a buffer exceeds this threshold,
         ;;; Note that completion-category-overrides is not really an override,
         ;;; but rather prepended to the default completion-styles.
         ;; completion-category-overrides '((file (styles orderless partial-completion))) ;; orderless is tried first
-        completion-category-overrides '((file (styles basic partial-completion)) ;; partial-completion is tried first
+        completion-category-overrides '((file (flex styles basic partial-completion)) ;; partial-completion is tried first
                                         ;; enable initialism by default for symbols
                                         (command (styles +orderless-with-initialism))
                                         (variable (styles +orderless-with-initialism))
