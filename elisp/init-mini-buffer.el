@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 468
+;;     Update #: 471
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -54,19 +54,6 @@
   (require 'init-const))
 
 (autoload 'ffap-file-at-point "ffap")
-;; Copy from selectrum
-(defun +complete--metadata ()
-  "Get completion metadata.
-Demotes any errors to messages."
-  (condition-case-unless-debug err
-      (completion-metadata (minibuffer-contents)
-                           minibuffer-completion-table
-                           minibuffer-completion-predicate)
-    (error (message (error-message-string err)) nil)))
-
-(defun +complete--get-meta (setting)
-  "Get metadata SETTING from completion table."
-  (completion-metadata-get (+complete--metadata) setting))
 
 (add-hook 'completion-at-point-functions
           (defun complete-path-at-point+ ()
@@ -79,103 +66,100 @@ Demotes any errors to messages."
                 (list (match-beginning 0)
                       (match-end 0)
                       #'completion-file-name-table)))) 'append)
-(defun +complete-fido-backward-updir ()
-  "Delete char before or go up directory, like `ido-mode'."
-  (interactive)
-  (if (and (eq (char-before) ?/)
-           (eq (+complete--get-meta 'category) 'file))
-      (save-excursion
-        (goto-char (1- (point)))
-        (when (search-backward "/" (point-min) t)
-          (delete-region (1+ (point)) (point-max))))
-    (call-interactively 'backward-delete-char)))
-
-(defun +complete-fido-delete-char ()
-  "Delete char or maybe call `dired', like `ido-mode'."
-  (interactive)
-  (let ((end (point-max)))
-    (if (or (< (point) end) (not (eq (+complete--get-meta 'category) 'file)))
-        (call-interactively 'delete-char)
-      (dired (file-name-directory (minibuffer-contents)))
-      (exit-minibuffer))))
-
-(defun +complete-get-current-candidate ()
-  (selectrum-get-current-candidate))
-
-(defun +complete-insert-current-candidate ()
-  (selectrum-insert-current-candidate))
 
 (defun +complete-fido-enter-dir ()
   (interactive)
-  (let ((candidate (+complete-get-current-candidate))
+  (let ((candidate (vertico--candidate))
         (current-input (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
     (cond
-     ((and (eq (+complete--get-meta 'category) 'file)
+     ((and (vertico-directory--completing-file-p)
            (string= (car (last (s-split "/" current-input))) ".."))
       (progn
-        (insert "/")
-        (+complete-fido-do-backward-updir)
-        (+complete-fido-do-backward-updir)))
+        (vertico-directory-delete-word 1)))
 
-     ((and (eq (+complete--get-meta 'category) 'file)
+     ((and (vertico-directory--completing-file-p)
            (file-directory-p candidate)
            (not (string= candidate "~/")))
-      (+complete-insert-current-candidate))
+      (vertico-insert))
 
      (t (insert "/")))))
 
-(defun +complete-fido-do-backward-updir ()
-  (interactive)
-  (if (and (eq (char-before) ?/)
-           (eq (+complete--get-meta 'category) 'file))
-      (save-excursion
-        (goto-char (1- (point)))
-        (when (search-backward "/" (point-min) t)
-          (delete-region (1+ (point)) (point-max))))))
 
-
-(use-package selectrum
-  :hook (+self/first-input . selectrum-mode)
-  :bind (:map selectrum-minibuffer-map
-              ("C-q" . selectrum-quick-select)
-              ("M-q" . selectrum-quick-insert))
+(use-package vertico
+  :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory)
+                     :files (:defaults "extensions/vertico-*.el"))
+  ;; :hook (+self/first-input . vertico-mode)
+  :init
+  (vertico-mode)
   :config
-  ;; (setq mini-frame-show-parameters
-  ;;       (lambda ()
-  ;;         (let* ((info (posframe-poshandler-argbuilder))
-  ;;                (posn (posframe-poshandler-point-bottom-left-corner info))
-  ;;                (left (car posn))
-  ;;                (top (cdr posn)))
-  ;;           `((left . ,left)
-  ;;             (top . ,top)
-  ;;             (min-width . 80)
-  ;;             (width . 0.8)))))
-
-  (with-eval-after-load 'general
-    (general-def "C-c r" 'selectrum-repeat)
-    )
-  ;; (setq selectrum-should-sort nil)
-  (with-eval-after-load 'orderless
-    (setq orderless-skip-highlighting (lambda () selectrum-is-active))
-    (setq selectrum-refine-candidates-function #'orderless-filter)
-    (setq selectrum-highlight-candidates-function #'orderless-highlight-matches))
-
-  (define-key selectrum-minibuffer-map (kbd "DEL") '+complete-fido-backward-updir)
-  (define-key selectrum-minibuffer-map (kbd "/") '+complete-fido-enter-dir)
-  (define-key selectrum-minibuffer-map (kbd "C-d") '+complete-fido-delete-char)
-  (define-key selectrum-minibuffer-map (kbd "C-w") '+complete-fido-do-backward-updir)
+  (set-face-background 'vertico-current "#42444a")
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  (setq vertico-cycle nil)
 
   ;; TODO: only for mac os now
   (defun open-in-external-app ()
     (interactive)
     (let ((candidate (+complete-get-current-candidate)))
-      (message candidate)
-      (message (concat "open " candidate))
       (when (eq (+complete--get-meta 'category) 'file)
         (shell-command (concat "open " candidate))
         (abort-recursive-edit))))
-  (define-key selectrum-minibuffer-map (kbd "C-<return>") 'open-in-external-app)
+  (define-key vertico-map (kbd "C-<return>") 'open-in-external-app)
+
+  ;; Configure directory extension.
+  (use-package vertico-quick
+    :after vertico
+    :ensure nil
+    :bind (:map vertico-map
+                ("M-q" . vertico-quick-insert)
+                ("C-q" . vertico-quick-exit)))
+  (use-package vertico-repeat
+    :after vertico
+    :ensure nil
+    :config
+    (add-hook 'minibuffer-setup-hook #'vertico-repeat-save)
+    (with-eval-after-load 'general
+      (general-def "C-c r" 'vertico-repeat)
+      ))
+  (use-package vertico-directory
+    :after vertico
+    :ensure nil
+    ;; More convenient directory navigation commands
+    :bind (:map vertico-map
+                ("RET" . vertico-directory-enter)
+                ("DEL" . vertico-directory-delete-char)
+                ("M-DEL" . vertico-directory-delete-word)
+                ("C-w" . vertico-directory-up)
+                ("/" . +complete-fido-enter-dir))
+    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)
+    )
   )
+
+;; Persist history over Emacs restarts. Vertico sorts by history position.
+(use-package savehist
+  :init
+  (savehist-mode))
+
+;; A few more useful configurations...
+(use-package emacs
+  :init
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; Alternatively try `consult-completing-read-multiple'.
+  (defun crm-indicator (args)
+    (cons (concat "[CRM] " (car args)) (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+        '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
+  ;; Vertico commands are hidden in normal buffers.
+  ;; (setq read-extended-command-predicate
+  ;;       #'command-completion-default-include-p)
+
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers t))
 
 
 (use-package consult
@@ -377,7 +361,7 @@ When the number of characters in a buffer exceeds this threshold,
         ;;; Note that completion-category-overrides is not really an override,
         ;;; but rather prepended to the default completion-styles.
         ;; completion-category-overrides '((file (styles orderless partial-completion))) ;; orderless is tried first
-        completion-category-overrides '((file (styles partial-completion)) ;; partial-completion is tried first
+        completion-category-overrides '((file (styles basic partial-completion)) ;; partial-completion is tried first
                                         ;; enable initialism by default for symbols
                                         (command (styles +orderless-with-initialism))
                                         (variable (styles +orderless-with-initialism))
@@ -388,9 +372,7 @@ When the number of characters in a buffer exceeds this threshold,
 (use-package marginalia
   :hook (+self/first-input . marginalia-mode)
   :config
-  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light))
-  (advice-add #'marginalia-cycle :after
-              (lambda () (when (bound-and-true-p selectrum-mode) (selectrum-exhibit)))))
+  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light)))
 
 (use-package mini-frame
   :hook (after-init . mini-frame-mode)
