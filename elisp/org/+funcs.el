@@ -308,7 +308,7 @@ If on a:
   (setq-default
    ;; Don't monopolize the whole frame just for the agenda
    ;; org-agenda-window-setup 'current-window
-   org-agenda-inhibit-startup t
+   org-agenda-inhibit-startup nil
    org-agenda-skip-unavailable-files t
    ;; Move the agenda to show the previous 3 days and the next 7 days for a bit
    ;; better context instead of just the current week which is a bit confusing
