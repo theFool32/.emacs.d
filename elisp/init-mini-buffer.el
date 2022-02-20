@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 483
+;;     Update #: 496
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -229,8 +229,6 @@
   (setq consult-async-input-throttle 0)
   (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer))
 
-  (setq consult-preview-key nil)
-  (setq consult-narrow-key "<")
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
   (setq consult-find-args "fd --color=never --full-path ARG OPTS")
@@ -322,7 +320,11 @@ When the number of characters in a buffer exceeds this threshold,
   )
 
 (use-package consult-project-extra
-  :straight (consult-project-extra :type git :host github :repo "Qkessler/consult-project-extra"))
+  :straight (consult-project-extra :type git :host github :repo "Qkessler/consult-project-extra")
+  :config
+  ;; WORKAROUND
+  (setq consult-project-buffer-sources consult-project-extra-sources)
+  )
 
 (use-package orderless
   :demand t
@@ -348,13 +350,13 @@ When the number of characters in a buffer exceeds this threshold,
      ((string-suffix-p "$" pattern)
       `(orderless-regexp . ,(concat (substring pattern 0 -1) "[\x100000-\x10FFFD]*$")))
      ;; File extensions
-     ((and
-       ;; Completing filename or eshell
-       (or minibuffer-completing-file-name
-           (derived-mode-p 'eshell-mode))
-       ;; File extension
-       (string-match-p "\\`\\.." pattern))
-      `(orderless-regexp . ,(concat "\\." (substring pattern 1) "[\x100000-\x10FFFD]*$")))
+     ;; ((and
+     ;;   ;; Completing filename or eshell
+     ;;   (or minibuffer-completing-file-name
+     ;;       (derived-mode-p 'eshell-mode))
+     ;;   ;; File extension
+     ;;   (string-match-p "\\`\\.." pattern))
+     ;;  `(orderless-regexp . ,(concat "\\." (substring pattern 1) "[\x100000-\x10FFFD]*$")))
      ;; Ignore single !
      ((string= "!" pattern) `(orderless-literal . ""))
      ;; Prefix and suffix
