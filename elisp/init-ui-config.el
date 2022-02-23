@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Sep 28 15:06:05 2021 (+0800)
+;; Last-Updated: Thu Feb 24 00:06:27 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -82,34 +82,11 @@
 
 (defun my-default-frame-face ()
   (when (display-graphic-p)
-    ;; Set default font
-    ;; (cl-loop for font in '("CaskaydiaCove Nerd Font")
-    ;;          when (font-installed-p font)
-    ;;          return (set-face-attribute 'default nil
-    ;;                                     :font font
-    ;;                                     :height (cond (*sys/mac* 150)
-    ;;                                                   (*sys/win32* 140)
-    ;;                                                   (*sys/linux* 200)
-    ;;                                                   (t 140))))
     (set-face-attribute 'default nil
                         :font "CaskaydiaCove Nerd Font"
                         :height 150)
-
-    ;; Specify font for all unicode characters
-    ;; (cl-loop for font in '("Symbola" "Apple Symbols" "Symbol" "icons-in-terminal")
-    ;;          when (font-installed-p font)
-    ;;          return (set-fontset-font t 'unicode font nil 'prepend))
-    (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
-
-    ;; Specify font for Chinese characters
-    ;; (cl-loop for font in '("Sarasa Mono SC" "Noto Sans CJK SC" "WenQuanYi Micro Hei" "Microsoft Yahei")
-    ;;          when (font-installed-p font)
-    ;;          return (set-fontset-font t '(#x4e00 . #x9fff) font))
-    (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC Nerd")
-
-    ;; (set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend)
     )
-)
+  )
 (add-hook 'after-init-hook #'my-default-frame-face)
 
 

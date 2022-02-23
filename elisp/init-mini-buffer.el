@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 496
+;;     Update #: 507
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -427,7 +427,8 @@ When the number of characters in a buffer exceeds this threshold,
                                      ;; (internal-border-width . 1)
                                      ;; (child-frame-border-width . 1)
                                      (min-width . 80)
-                                     (width . 0.8)))
+                                     (width . 0.8)
+                                     (no-accept-focus . t)))
 
   (setq mini-frame-internal-border-color "gray50")
 
