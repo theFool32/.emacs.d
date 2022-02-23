@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Feb 19 17:49:02 2022 (+0800)
+;; Last-Updated: Thu Feb 24 00:14:20 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -147,14 +147,14 @@
           ("⚑WAITING" . "pink")
           ("☕BREAK" . "gray")
           ("❤LOVE" . (:foreground "VioletRed4"
-                                   ;; :background "#7A586A"
-                                   :weight bold))
+                                  ;; :background "#7A586A"
+                                  :weight bold))
           ("☟NEXT" . (:foreground "DeepSkyBlue"
-                                   ;; :background "#7A586A"
-                                      :weight bold))
+                                  ;; :background "#7A586A"
+                                  :weight bold))
           ("✰IMPORTANT" . (:foreground "greenyellow"
-                                      ;; :background "#7A586A"
-                                      :weight bold))
+                                       ;; :background "#7A586A"
+                                       :weight bold))
           ("✔DONE" . "#008080")
           ("FIXME" . "IndianRed"))
         )
@@ -439,6 +439,10 @@
         org-bars-stars '(:empty "◉"
                                 :invisible "▶"
                                 :visible "▼")))
+
+(use-package valign
+  :hook ((org-mode . valign-mode)
+         (org-agenda-mode . valign-mode)))
 
 ;; -Notification only for mac os
 ;; (when *sys/mac*
