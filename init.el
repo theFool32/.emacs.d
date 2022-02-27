@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Feb 19 22:35:20 2022 (+0800)
+;; Last-Updated: Sun Feb 27 12:17:29 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -122,8 +122,8 @@
 (require 'init-format)
 (require 'init-edit)
 (require 'init-lsp)
-(require 'init-company)
-;; (require 'init-corfu)
+;; (require 'init-company)
+(require 'init-corfu)
 
 ;; Programming
 (require 'init-prog)

@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Nov 17 11:34:31 2021 (+0800)
+;; Last-Updated: Sun Feb 27 12:15:16 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -131,23 +131,6 @@
         ("crefname" "{")))
 
 
-;;;###autoload
-(defun +latex-symbols-company-backend (command &optional arg &rest _ignored)
-  "A wrapper backend for `company-mode' that either uses
-`company-math-symbols-unicode' or `company-math-symbols-latex'. If
-`+latex-enable-unicode-math' is non-nil use the former, otherwise the latter."
-  (if +latex-enable-unicode-math
-      (company-math-symbols-unicode command arg)
-    (company-math-symbols-latex command arg)))
-
-(defvar +latex-enable-unicode-math nil
-  "If non-nil, use `company-math-symbols-unicode' backend in LaTeX-mode,
-  enabling unicode symbols in math regions. This requires the unicode-math latex
-  package to be installed.")
-
-;;
-(defvar +latex--company-backends nil)
-
 
 (use-package reftex
   :after tex
@@ -156,8 +139,6 @@
   (reftex-plug-into-AUCTeX t)
   (reftex-toc-split-windows-fraction 0.3)
   :config
-  ;; set up completion for citations and references
-  (set-company-backend! 'reftex-mode 'company-reftex-labels 'company-reftex-citations)
   )
 
 (use-package bibtex
@@ -223,9 +204,6 @@
   ;; Enable rainbow mode after applying styles to the buffer
   (add-hook 'TeX-update-style-hook #'rainbow-delimiters-mode)
 
-  (when +latex--company-backends
-    (set-company-backend! 'latex-mode +latex--company-backends))
-
   (defun my-TeX-compile ()
     (interactive)
     (TeX-master-file nil nil t)
@@ -258,20 +236,6 @@
             (lambda () (interactive)
               (define-key org-cdlatex-mode-map "`" 'asymbol-insert-text-or-symbol)))
   )
-
-(use-package company-auctex
-  :after (company tex)
-  :init
-  (add-to-list '+latex--company-backends #'company-auctex-environments nil #'eq)
-  (add-to-list '+latex--company-backends #'company-auctex-macros nil #'eq)
-  )
-(use-package company-reftex
-  :after (company tex))
-(use-package company-math
-  :after (company tex)
-  :defer t
-  :init
-  (add-to-list '+latex--company-backends #'+latex-symbols-company-backend nil #'eq))
 ;; -AUCTeXPac
 
 (provide 'init-latex)
