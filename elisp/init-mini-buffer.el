@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 507
+;;     Update #: 515
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -305,12 +305,13 @@ When the number of characters in a buffer exceeds this threshold,
     (interactive (list prefix-arg (when-let ((s (symbol-at-point)))
                                     (symbol-name s))))
     (consult-ripgrep dir initial))
-  (defun consult--orderless-regexp-compiler (input type)
+
+  ;; HACK add `ignore' according to upstream, wihout meaning
+  (defun consult--orderless-regexp-compiler (input type igore)
     (setq input (orderless-pattern-compiler input))
     (cons
      (mapcar (lambda (r) (consult--convert-regexp r type)) input)
      (lambda (str) (orderless--highlight input str))))
-  ;; (setq consult--regexp-compiler #'consult--orderless-regexp-compiler)
   (defun consult--with-orderless (&rest args)
     (minibuffer-with-setup-hook
         (lambda ()
