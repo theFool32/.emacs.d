@@ -8,9 +8,9 @@
 ;; Created: Sat Nov 27 21:36:42 2021 (+0800)
 ;; Version:
 ;; Package-Requires: ()
-;; Last-Updated: Sun Feb 27 12:33:58 2022 (+0800)
+;; Last-Updated: Tue Mar  1 15:46:15 2022 (+0800)
 ;;           By: theFool32
-;;     Update #: 507
+;;     Update #: 524
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -74,8 +74,10 @@
   (:map corfu-map
         ("TAB" . corfu-next)
         ([tab] . corfu-next)
+        ("C-n" . corfu-next)
         ("S-SPC" . corfu-insert-separator)
         ("S-TAB" . corfu-previous)
+        ("C-p" . corfu-previous)
         ([?\r] . newline)
         ([backtab] . corfu-previous))
   :init
@@ -118,6 +120,17 @@
 			             (car corfu--candidates)))
       (seq-intersection (this-command-keys-vector) [?: ?. ?, ?\) ?\] ?\" ?' ? ]))))
   ;; (setq corfu-commit-predicate #'my/corfu-commit-predicate)
+
+  ;; (with-eval-after-load 'general
+  ;;   (general-define-key
+  ;;    :keymaps '(corfu-map evil-insert-state-map)
+  ;;    "C-n" 'corfu-next
+  ;;    "C-p" 'corfu-previous))
+
+  ;; https://github.com/minad/corfu/issues/12#issuecomment-869037519
+  (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
+  (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
+  (evil-make-overriding-map corfu-map)
   )
 
 (use-package emacs
