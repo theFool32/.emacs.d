@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Feb 24 00:06:27 2022 (+0800)
+;; Last-Updated: Tue Mar  1 15:59:21 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -80,14 +80,13 @@
 
 ;;Font
 
-(defun my-default-frame-face ()
-  (when (display-graphic-p)
-    (set-face-attribute 'default nil
-                        :font "CaskaydiaCove Nerd Font"
-                        :height 150)
-    )
-  )
-(add-hook 'after-init-hook #'my-default-frame-face)
+(when (display-graphic-p)
+  (set-face-attribute 'default nil
+                      :font "CaskaydiaCove Nerd Font"
+                      :height 150)
+  (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
+  (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC Nerd")
+  (set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend))
 
 
 (add-to-list 'initial-frame-alist '(fullscreen . fullboth))
