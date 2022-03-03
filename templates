@@ -73,3 +73,4 @@ python-mode
 (pargs "def parse_arguments():" n> "parser = argparse.ArgumentParser(description=\"" p "\")" n> p n> "return parser.parse_args()")
 (sn "self." (s var) " = " (s var))
 (while "while " p ":" n> p)
+(p "print(" p ")" :post (tempel-done))
