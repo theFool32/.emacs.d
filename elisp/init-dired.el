@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:37:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Mar  3 13:14:16 2022 (+0800)
+;; Last-Updated: Thu Mar  3 13:27:03 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dired auto-save
@@ -72,7 +72,7 @@
 
   ;; Colourful dired
   (use-package diredfl
-    :init (diredfl-global-mode 1))
+    :hook (dired-mode . diredfl-mode))
 
 
   (use-package all-the-icons-dired
@@ -90,8 +90,8 @@
   (use-package dired-x
     :straight nil
     :demand
+    :hook (dired-mode . dired-omit-mode)
     :config
-    (add-hook 'dired-mode-hook 'dired-omit-mode)
     (setq dired-omit-files
           (concat dired-omit-files
                   "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
