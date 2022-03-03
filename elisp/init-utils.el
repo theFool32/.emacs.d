@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 36
+;;     Update #: 37
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -48,12 +48,6 @@
 
 (use-package imenu-list
   :commands imenu-list-smart-toggle)
-
-(use-package neotree
-  :commands (neotree-toggle neotree-hide neotree-show)
-  :config
-  (setq neo-autorefresh t)
-  (setq neo-theme 'icons))
 
 (use-package atomic-chrome
   :defer

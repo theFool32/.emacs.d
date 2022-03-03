@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 127
+;;     Update #: 128
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -108,9 +108,6 @@
       (condition-case error
           (progn
             (load persp-frame-file)
-
-            (if (= my-neo-global--window-exists-p 1)
-              (neotree-show))
 
             ;; Handle multiple monitors gracefully
             (when (or (>= (eval (frame-parameter nil 'left)) (display-pixel-width))
