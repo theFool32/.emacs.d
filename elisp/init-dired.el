@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:37:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Sep 28 20:34:23 2021 (+0800)
+;; Last-Updated: Thu Mar  3 12:55:33 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dired auto-save
@@ -63,66 +63,61 @@
   ;; Reuse same dired buffer, to prevent numerous buffers while navigating in dired
   (put 'dired-find-alternate-file 'disabled nil)
 
-  (defun xah-open-in-external-app (&optional @fname)
-    "Open the current file or dired marked files in external app.
-The app is chosen from your OS's preference.
-When called in emacs lisp, if @fname is given, open that.
-URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
-Version 2019-11-04"
-    (interactive)
-    (let* (($file-list
-            (if @fname
-                (progn (list @fname))
-              (if (string-equal major-mode "dired-mode")
-                  (dired-get-marked-files)
-                (list (buffer-file-name)))))
-           ($do-it-p (if (<= (length $file-list) 5)
-                         t
-                       (y-or-n-p "Open more than 5 files? "))))
-      (when $do-it-p
-        (cond
-         ((string-equal system-type "windows-nt")
-          (mapc
-           (lambda ($fpath)
-             (w32-shell-execute "open" $fpath))
-           $file-list))
-         ((string-equal system-type "darwin")
-          (mapc
-           (lambda ($fpath)
-             (shell-command
-              (concat "open " (shell-quote-argument $fpath))))
-           $file-list))
-         ((string-equal system-type "gnu/linux")
-          (mapc
-           (lambda ($fpath) (let ((process-connection-type nil))
-                              (start-process "" nil "xdg-open" $fpath)))
-           $file-list))))))
-
   (with-eval-after-load 'general
     (general-define-key :states '(normal)
                         :keymaps 'dired-mode-map
-                        "C-<return>" 'xah-open-in-external-app
-                        "<return>" 'dired-find-alternate-file
                         "l" 'dired-find-alternate-file
-                        "h" (lambda () (interactive) (find-alternate-file ".."))
-                        "^" (lambda () (interactive) (find-alternate-file "..")))
+                        "h"  'dired-up-directory)
+    )
 
-    ))
+  ;; Colourful dired
+  (use-package diredfl
+    :init (diredfl-global-mode 1))
 
-(use-package all-the-icons-dired
-  :defer t
-  :after dired
-  :hook (dired-mode . all-the-icons-dired-mode))
 
-(use-package dired-hacks
-  :defer t
-  :after dired)
+  (use-package all-the-icons-dired
+    :disabled
+    :defer t
+    :after dired
+    :hook (dired-mode . all-the-icons-dired-mode))
 
-(use-package  dired-git-info
-  :after dired
-  :config
-  (evil-define-key 'normal dired-mode-map ")" 'dired-git-info-mode))
-;; -DiredPackage
+  (use-package dired-git-info
+    :after dired
+    :config
+    (evil-define-key 'normal dired-mode-map ")" 'dired-git-info-mode))
+
+  ;; Extra Dired functionality
+  (use-package dired-x
+    :straight nil
+    :demand
+    :config
+    (add-hook 'dired-mode-hook 'dired-omit-mode)
+    (setq dired-omit-files
+          (concat dired-omit-files
+                  "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
+
+  ;; `find-dired' alternative using `fd'
+  (when (executable-find "fd")
+    (use-package fd-dired))
+
+  (use-package dired-narrow) ;; use `s' for fliter
+  (use-package dired-open
+    :config
+    (setq dired-open-extensions
+          (mapcar (lambda (ext)
+                    (cons ext "open")) '("pdf" "doc" "docx" "ppt" "pptx"))))
+
+  (use-package dirvish  ;; `(' for details.
+    :straight (dirvish :type git :host github :repo "alexluigit/dirvish")
+    :after dired
+    :init
+    (dirvish-override-dired-mode)
+    :config
+    (set-face-attribute 'ansi-color-blue nil :foreground "#FFFFFF")
+    )
+  )
+
+
 
 ;; SaveAllBuffers
 (defun save-all-buffers ()

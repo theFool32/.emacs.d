@@ -34,7 +34,7 @@ emacs-lisp-mode
 (let "(let (" p ")" n> r> ")")
 (command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
 (up "(use-package " p ")")
-(hook "(add-hook " p "-hook " p ")")
+(hook "(add-hook '" p " " p ")")
 
 c-mode :condition (re-search-backward "^\\w*$" (line-beginning-position) 'noerror)
 

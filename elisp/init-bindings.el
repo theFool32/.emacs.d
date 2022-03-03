@@ -124,6 +124,7 @@
     "t" '(:wk "Toggle")
     "tl" '(toggle-truncate-lines :wk "Line wrap")
     "td" '(toggle-debug-on-error :wk "Debug on error")
+    "tt" '(dirvish :wk "Dirvish")
     "ti" '(imenu-list-smart-toggle :wk "Imenu-list")
     "te" '(vterm-posframe-toggle :wk "Shell")
     "tc" '(olivetti-mode :wk "Center")
