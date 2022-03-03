@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:37:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Mar  3 12:55:33 2022 (+0800)
+;; Last-Updated: Thu Mar  3 13:14:16 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dired auto-save
@@ -114,6 +114,14 @@
     (dirvish-override-dired-mode)
     :config
     (set-face-attribute 'ansi-color-blue nil :foreground "#FFFFFF")
+
+    (use-package dirvish-menu
+      :straight nil
+      :config
+      (with-eval-after-load 'general
+        (general-define-key :states '(normal)
+                            :keymaps 'dirvish-mode-map
+                            "?" 'dirvish-menu-all-cmds)))
     )
   )
 
