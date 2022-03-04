@@ -8,9 +8,9 @@
 ;; Created: Sat Nov 27 21:36:42 2021 (+0800)
 ;; Version:
 ;; Package-Requires: ()
-;; Last-Updated: Tue Mar  1 15:46:15 2022 (+0800)
+;; Last-Updated: Fri Mar  4 20:10:41 2022 (+0800)
 ;;           By: theFool32
-;;     Update #: 524
+;;     Update #: 538
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -150,7 +150,8 @@
 
   :hook ((prog-mode . my/set-basic-capf)
          (org-mode . my/set-basic-capf)
-         (lsp-completion-mode . my/set-lsp-capf))
+         (lsp-completion-mode . my/set-lsp-capf)
+         )
   :init
   (setq cape-dict-file "/usr/share/dict/words")
   (defun my/convert-super-capf (arg-capf)
@@ -158,10 +159,11 @@
      #'cape-file
      (cape-capf-buster
       (cape-super-capf arg-capf
-                       #'tempel-complete
-                       #'cape-dabbrev)
+                       #'tempel-complete)
       'equal)
-     ))
+     #'cape-dabbrev
+     )
+    )
 
   (defun my/set-basic-capf ()
     (setq completion-category-defaults nil)
@@ -169,7 +171,10 @@
 
   (defun my/set-lsp-capf ()
     (setq completion-category-defaults nil)
-    (setq-local completion-at-point-functions (my/convert-super-capf #'lsp-completion-at-point)))
+    (setq-local completion-at-point-functions (my/convert-super-capf #'lsp-completion-at-point))
+    ;; (when (derived-mode-p 'latex-mode)
+    ;;   (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion))
+    )
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'tempel-complete)

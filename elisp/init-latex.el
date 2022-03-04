@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Feb 27 12:15:16 2022 (+0800)
+;; Last-Updated: Fri Mar  4 20:06:15 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -139,6 +139,112 @@
   (reftex-plug-into-AUCTeX t)
   (reftex-toc-split-windows-fraction 0.3)
   :config
+
+  (defvar +my/reftex-citation-completion-table nil)
+
+  (defun +my/reftex-find-citation (prefix)
+    (reftex-access-scan-info)
+    (setq +my/reftex-citation-completion-table
+          (cl-letf (((symbol-function 'reftex--query-search-regexps)
+                     (lambda (_) (if (string= prefix "")
+                                (list ".+")
+                              (list (regexp-quote prefix))))))
+            (let* ((bibtype (reftex-bib-or-thebib))
+                   (candidates
+                    (cond
+                     ((eq 'thebib bibtype)
+                      (reftex-extract-bib-entries-from-thebibliography
+                       (reftex-uniquify
+                        (mapcar 'cdr
+                                (reftex-all-assq
+                                 'thebib (symbol-value reftex-docstruct-symbol))))))
+                     ((eq 'bib bibtype)
+                      (reftex-extract-bib-entries (reftex-get-bibfile-list)))
+                     (reftex-default-bibliography
+                      (reftex-extract-bib-entries (reftex-default-bibliography))))))
+              (cl-loop
+               for entry in candidates
+               collect
+               (let ((key (substring-no-properties (car entry)))
+                     (annotate (reftex-format-citation entry "%t")))
+                 (cons
+                  (format "%s -> %s" key annotate)
+                  key)))))
+          )
+    +my/reftex-citation-completion-table)
+
+  (defcustom company-reftex-citations-regexp
+    (rx "\\"
+        ;; List taken from `reftex-cite-format-builtin'
+        (or "autocite"
+            "autocite*"
+            "bibentry"
+            "cite"
+            "cite*"
+            "citeA"
+            "citeaffixed"
+            "citeasnoun"
+            "citeauthor"
+            "citeauthor*"
+            "citeauthory"
+            "citefield"
+            "citeN"
+            "citename"
+            "cites"
+            "citet"
+            "citet*"
+            "citetitle"
+            "citetitle*"
+            "citep"
+            "citeyear"
+            "citeyear*"
+            "footcite"
+            "footfullcite"
+            "fullcite"
+            "fullocite"
+            "nocite"
+            "ocite"
+            "ocites"
+            "parencite"
+            "parencite*"
+            "possessivecite"
+            "shortciteA"
+            "shortciteN"
+            "smartcite"
+            "textcite"
+            "textcite*"
+            "ycite"
+            "ycites")
+        (* (not (any "[{")))
+        (* (seq "[" (* (not (any "]"))) "]"))
+        "{"
+        (* (seq (* (not (any "},"))) ","))
+        (group (* (not (any "},")))))
+    "Regular expression to use when lookng for the citation prefix.
+Group number 1 should be the prefix itself."
+    :type 'string
+    :group 'company-reftex)
+  (defun company-reftex-prefix (regexp)
+    "Return the prefix for matching given REGEXP."
+    (and (derived-mode-p 'latex-mode)
+         reftex-mode
+         (when (looking-back regexp nil)
+           (match-string-no-properties 1))))
+
+  (defun +my/reftex-citation-completion ()
+    (when (company-reftex-prefix company-reftex-citations-regexp)
+      (let ((bounds (bounds-of-thing-at-point 'symbol)))
+        `(,(car bounds) ,(cdr bounds)
+          ,(cape--table-with-properties
+            (cape--cached-table (car bounds) (cdr bounds) #'+my/reftex-find-citation 'substring)
+            :category 'cape-table)
+          :exclusive 'no
+          ;; :annotation-function (lambda (k) (cdr (assoc k table)))
+          :exit-function (lambda (str sta)
+                           (backward-delete-char (length str))
+                           (insert (cdr (assoc str +my/reftex-citation-completion-table)))
+                           )))))
+
   )
 
 (use-package bibtex
@@ -151,7 +257,6 @@
 
 
 (use-package latex
-  :defer t
   :straight auctex
   :mode ("\\.tex\\'" . LaTeX-mode)
   :custom
