@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 15:06:27 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Tue Jan 11 16:19:21 2022 (+0800)
+;; Last-Updated: Fri Mar  4 21:27:56 2022 (+0800)
 ;;           By: theFool32
 ;; URL: URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d which-key

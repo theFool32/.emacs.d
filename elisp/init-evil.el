@@ -78,13 +78,6 @@
   ;; Allows you to click buttons without initiating a selection
   (define-key evil-motion-state-map [down-mouse-1] nil)
 
-  ;; Force *message* buffer into evil-normal-state to use <spc>
-  ;; HACK: donot know why `evil-emacs-state`
-  (with-current-buffer "*Messages*"
-    (evil-emacs-state))
-  (add-hook 'messages-buffer-mode-hook #'(lambda ()
-                                           (evil-emacs-state)))
-
 
   (add-hook 'after-change-major-mode-hook #'(lambda ()
                                               (when (or (derived-mode-p 'fundamental-mode)
@@ -100,7 +93,6 @@
                         "C-l" 'evil-window-right)
     )
 
-  (require 'evil/+commands)
   (require 'evil/+packages)
   )
 

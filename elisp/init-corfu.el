@@ -8,9 +8,9 @@
 ;; Created: Sat Nov 27 21:36:42 2021 (+0800)
 ;; Version:
 ;; Package-Requires: ()
-;; Last-Updated: Fri Mar  4 20:10:41 2022 (+0800)
+;; Last-Updated: Fri Mar  4 21:09:23 2022 (+0800)
 ;;           By: theFool32
-;;     Update #: 538
+;;     Update #: 540
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -63,13 +63,6 @@
   ;; (corfu-scroll-margin 5)        ;; Use scroll margin
   (corfu-on-exact-match 'quit)
 
-  ;; You may want to enable Corfu only for certain modes.
-  ;; :hook ((prog-mode . corfu-mode)
-  ;;        (shell-mode . corfu-mode)
-  ;;        (eshell-mode . corfu-mode))
-
-  ;; Recommended: Enable Corfu globally.
-  ;; This is recommended since dabbrev can be used globally (M-/).
   :bind
   (:map corfu-map
         ("TAB" . corfu-next)
@@ -121,16 +114,18 @@
       (seq-intersection (this-command-keys-vector) [?: ?. ?, ?\) ?\] ?\" ?' ? ]))))
   ;; (setq corfu-commit-predicate #'my/corfu-commit-predicate)
 
-  ;; (with-eval-after-load 'general
-  ;;   (general-define-key
-  ;;    :keymaps '(corfu-map evil-insert-state-map)
-  ;;    "C-n" 'corfu-next
-  ;;    "C-p" 'corfu-previous))
-
   ;; https://github.com/minad/corfu/issues/12#issuecomment-869037519
   (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
   (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
   (evil-make-overriding-map corfu-map)
+
+  (defun corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+    (unless (or (bound-and-true-p mct--active)
+                (bound-and-true-p vertico--input))
+      ;; (setq-local corfu-auto nil) Enable/disable auto completion
+      (corfu-mode 1)))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
   )
 
 (use-package emacs
@@ -152,7 +147,7 @@
          (org-mode . my/set-basic-capf)
          (lsp-completion-mode . my/set-lsp-capf)
          )
-  :init
+  :config
   (setq cape-dict-file "/usr/share/dict/words")
   (defun my/convert-super-capf (arg-capf)
     (list
@@ -172,8 +167,10 @@
   (defun my/set-lsp-capf ()
     (setq completion-category-defaults nil)
     (setq-local completion-at-point-functions (my/convert-super-capf #'lsp-completion-at-point))
-    ;; (when (derived-mode-p 'latex-mode)
-    ;;   (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion))
+
+    ;; HACK
+    (when (derived-mode-p 'latex-mode)
+      (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion))
     )
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
@@ -193,6 +190,7 @@
        "C-k" 'my/tempel-expand-or-next))
     )
 
+  ;; TODO use pure `corfu+cape' instead
   (use-package company-english-helper
     :straight (:host github :repo "manateelazycat/company-english-helper" :depth 1)
     :init

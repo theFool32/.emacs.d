@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 37
+;;     Update #: 39
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -46,15 +46,15 @@
 ;;
 ;;; Code:
 
-(use-package imenu-list
-  :commands imenu-list-smart-toggle)
+(use-package restart-emacs
+  :commands restart-emacs)
 
 (use-package atomic-chrome
   :defer
   :commands (atomic-chrome-start-server)
   :config
   (setq atomic-chrome-url-major-mode-alist
-	'(("overleaf\\.com" . latex-mode))))
+	'(("overleaf\\.com" . LaTeX-mode))))
 
 
 

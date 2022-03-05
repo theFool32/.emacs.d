@@ -128,7 +128,8 @@
 (use-package evil-nerd-commenter
   :commands (evilnc-comment-operator
              evilnc-inner-comment
-             evilnc-outer-commenter))
+             evilnc-outer-commenter
+             evilnc-comment-or-uncomment-lines))
 
 
 ;; for search

@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:37:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Mar  3 13:27:03 2022 (+0800)
+;; Last-Updated: Fri Mar  4 20:18:50 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d dired auto-save
@@ -74,13 +74,6 @@
   (use-package diredfl
     :hook (dired-mode . diredfl-mode))
 
-
-  (use-package all-the-icons-dired
-    :disabled
-    :defer t
-    :after dired
-    :hook (dired-mode . all-the-icons-dired-mode))
-
   (use-package dired-git-info
     :after dired
     :config
@@ -121,15 +114,14 @@
       (with-eval-after-load 'general
         (general-define-key :states '(normal)
                             :keymaps 'dirvish-mode-map
-                            "?" 'dirvish-menu-all-cmds)))
-    )
+                            "?" 'dirvish-menu-all-cmds))))
   )
 
 
 
 ;; SaveAllBuffers
 (defun save-all-buffers ()
-  "Instead of `save-buffer', save all opened buffers by calling `save-some-buffers' with ARG t."
+  "Instead of `save-buffer', save all opened buffers by calling `save-some-bffers' with ARG t."
   (interactive)
   (save-some-buffers t))
 (with-eval-after-load 'general

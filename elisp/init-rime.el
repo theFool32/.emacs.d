@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 91
+;;     Update #: 92
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -84,6 +84,7 @@
 ;; },
 
 (use-package rime
+  :defer t
   :if +self/use-rime
   :init
   (setq rime-librime-root "~/.emacs.d/librime/dist/"

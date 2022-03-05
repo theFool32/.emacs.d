@@ -12,7 +12,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 515
+;;     Update #: 522
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -54,36 +54,6 @@
   (require 'init-const))
 
 (autoload 'ffap-file-at-point "ffap")
-
-(add-hook 'completion-at-point-functions
-          (defun complete-path-at-point+ ()
-            (let ((fn (ffap-file-at-point))
-                  (fap (thing-at-point 'filename)))
-              (when (and (or fn
-                             (equal "/" fap))
-                         (save-excursion
-                           (search-backward fap (line-beginning-position) t)))
-                (list (match-beginning 0)
-                      (match-end 0)
-                      #'completion-file-name-table)))) 'append)
-
-(defun +complete-fido-enter-dir ()
-  (interactive)
-  (let ((candidate (vertico--candidate))
-        (current-input (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
-    (cond
-     ((and (vertico-directory--completing-file-p)
-           (string= (car (last (s-split "/" current-input))) ".."))
-      (progn
-        (vertico-directory-delete-word 1)))
-
-     ((and (vertico-directory--completing-file-p)
-           (file-directory-p candidate)
-           (not (string= candidate "~/")))
-      (vertico-insert))
-
-     (t (insert "/")))))
-
 
 (use-package vertico
   :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory)
@@ -177,6 +147,25 @@
                 ("C-w" . vertico-directory-up)
                 ("/" . +complete-fido-enter-dir))
     :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)
+    :config
+    (defun +complete-fido-enter-dir ()
+      (interactive)
+      (let ((candidate (vertico--candidate))
+            (current-input (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+        (cond
+         ((and (vertico-directory--completing-file-p)
+               (string= (car (last (s-split "/" current-input))) ".."))
+          (progn
+            (vertico-directory-delete-word 1)))
+
+         ((and (vertico-directory--completing-file-p)
+               (file-directory-p candidate)
+               (not (string= candidate "~/")))
+          (vertico-insert))
+
+         (t (insert "/")))))
+
+
     )
   )
 
@@ -321,6 +310,7 @@ When the number of characters in a buffer exceeds this threshold,
   )
 
 (use-package consult-project-extra
+  :after consult
   :straight (consult-project-extra :type git :host github :repo "Qkessler/consult-project-extra")
   :config
   ;; WORKAROUND
@@ -446,6 +436,7 @@ When the number of characters in a buffer exceeds this threshold,
   )
 
 (use-package all-the-icons-completion
+  :after marginalia-mode
   :straight (:host github :repo "iyefrat/all-the-icons-completion")
   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup))
 

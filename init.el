@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Mar  3 14:07:12 2022 (+0800)
+;; Last-Updated: Fri Mar  4 21:31:12 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -79,13 +79,6 @@
 (require 'init-package)
 (require 'init-const)
 ;; (use-package esup)
-;; (use-package benchmark-init
-;;   :straight (benchmark-init :local-repo "/Users/lijie/dev/benchmark-init-el")
-;;   :init
-;;   (benchmark-init/activate)
-;;   :hook
-;;   (after-init . benchmark-init/deactivate))
-
 
 ;; Global Functionalities
 (require 'init-evil)
@@ -96,12 +89,8 @@
 (require 'init-tree-sitter)
 
 (require 'init-which-key)
-(require 'init-popup-kill-ring)
 (require 'init-undo-tree)
-(require 'init-discover-my-major)
 (require 'init-dired)
-(require 'init-buffer)
-(require 'init-header)
 (require 'init-utils)
 (require 'init-bindings)
 
@@ -129,7 +118,6 @@
 
 ;; Miscellaneous
 (require 'init-org)
-(require 'init-restart-emacs)
 (require 'init-ebib)
 (require 'init-rime)
 (require 'init-lookup)

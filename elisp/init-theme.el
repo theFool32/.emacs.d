@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 17:11:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Fri Oct 22 10:07:14 2021 (+0800)
+;; Last-Updated: Fri Mar  4 20:15:54 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d doom-themes doom-modeline
@@ -51,7 +51,6 @@
   ;; flashing mode-line on errors
   ;; (doom-themes-visual-bell-config)
   ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config)
   ;; (doom-themes-treemacs-config)
   (doom-themes-org-config)
   (load-theme 'doom-one t)
