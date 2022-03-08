@@ -186,11 +186,6 @@
 
 (use-package popper
   :defines popper-echo-dispatch-actions
-  :commands popper-group-by-projectile
-  :bind (:map popper-mode-map
-              ("C-h z" . popper-toggle-latest)
-              ("C-<tab>"   . popper-cycle)
-              ("C-M-<tab>" . popper-toggle-type))
   :hook (after-init . popper-mode)
   :init
   (setq popper-reference-buffers

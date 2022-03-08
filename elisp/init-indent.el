@@ -46,9 +46,9 @@
 (setq-default tab-width 4)
 (add-hook 'after-change-major-mode-hook
           (lambda () (if (equal electric-indent-mode 't)
-			 (when (derived-mode-p 'text-mode)
-			   (electric-indent-mode -1))
-                       (electric-indent-mode 1))))
+			        (when (or (derived-mode-p 'text-mode)
+                              (derived-mode-p 'org-mode))
+			          (electric-indent-mode -1)))))
 ;; -IndentConfig
 
 (provide 'init-indent)

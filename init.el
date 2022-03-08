@@ -126,8 +126,8 @@
 
 (add-hook 'after-init-hook
           #'(lambda () (org-agenda nil "n")
-             (evil-window-move-far-left)
-             (evil-window-right 1)))
+              (evil-window-move-far-left)
+              (evil-window-right 1)))
 
 (provide 'init)
 
