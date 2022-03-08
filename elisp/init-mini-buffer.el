@@ -79,7 +79,6 @@
     "Go to an entry in evil's (or better-jumper's) jumplist."
     (interactive
      (let (buffers)
-       (require 'consult)
        (unwind-protect
            (list
             (consult--read
@@ -198,6 +197,7 @@
 
 
 (use-package consult
+  :demand t
   :after orderless
   :straight (:host github :repo "minad/consult")
   :bind (

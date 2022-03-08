@@ -138,17 +138,14 @@
   ;; Bind dedicated completion commands
   :bind (("C-x C-f" . cape-file)
          ("C-x C-e" . cape-english)
-         ("C-x C-k" . cape-keyword)
-         ("C-x C-s" . cape-symbol)
-         ("C-x C-l" . cape-line)
-         ("C-x C-w" . cape-dict))
+         ("C-x C-l" . cape-line))
 
   :hook ((prog-mode . my/set-basic-capf)
          (org-mode . my/set-basic-capf)
-         (lsp-completion-mode . my/set-lsp-capf)
-         )
+         (lsp-completion-mode . my/set-lsp-capf))
   :config
-  (setq cape-dict-file "/usr/share/dict/words")
+  (setq dabbrev-upcase-means-case-search t)
+  (setq case-fold-search nil)
   (defun my/convert-super-capf (arg-capf)
     (list
      #'cape-file
@@ -172,6 +169,10 @@
     (when (derived-mode-p 'latex-mode)
       (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion))
     )
+
+  (defun my/set-text-capf ()
+    (setq-local completion-at-point-functions (append completion-at-point-functions
+                                                      '(cape-english))))
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'tempel-complete)
