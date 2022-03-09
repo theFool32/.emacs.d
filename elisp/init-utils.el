@@ -56,7 +56,8 @@
   (setq atomic-chrome-url-major-mode-alist
 	'(("overleaf\\.com" . LaTeX-mode))))
 
-
+(use-package tramp
+  :straight nil)
 
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

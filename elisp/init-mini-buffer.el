@@ -143,29 +143,8 @@
                 ("RET" . vertico-directory-enter)
                 ("DEL" . vertico-directory-delete-char)
                 ("M-DEL" . vertico-directory-delete-word)
-                ("C-w" . vertico-directory-up)
-                ("/" . +complete-fido-enter-dir))
-    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy)
-    :config
-    (defun +complete-fido-enter-dir ()
-      (interactive)
-      (let ((candidate (vertico--candidate))
-            (current-input (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
-        (cond
-         ((and (vertico-directory--completing-file-p)
-               (string= (car (last (s-split "/" current-input))) ".."))
-          (progn
-            (vertico-directory-delete-word 1)))
-
-         ((and (vertico-directory--completing-file-p)
-               (file-directory-p candidate)
-               (not (string= candidate "~/")))
-          (vertico-insert))
-
-         (t (insert "/")))))
-
-
-    )
+                ("C-w" . vertico-directory-up))
+    :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
   )
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
@@ -220,7 +199,31 @@
 
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
-  (setq consult-find-args "fd --color=never --full-path ARG OPTS")
+
+  ;; consult-fd
+  (defvar consult--fd-command nil)
+  (defun consult--fd-builder (input)
+    (unless consult--fd-command
+      (setq consult--fd-command
+            (if (eq 0 (call-process-shell-command "fdfind"))
+                "fdfind"
+              "fd")))
+    (pcase-let* ((`(,arg . ,opts) (consult--command-split input))
+                 (`(,re . ,hl) (funcall consult--regexp-compiler
+                                        arg 'extended t)))
+      (when re
+        (list :command (append
+                        (list consult--fd-command
+                              "--color=never" "--full-path"
+                              (consult--join-regexps re 'extended))
+                        opts)
+              :highlight hl))))
+
+  (defun consult-fd (&optional dir initial)
+    (interactive "P")
+    (let* ((prompt-dir (consult--directory-prompt "Fd" dir))
+           (default-directory (cdr prompt-dir)))
+      (call-interactively #'find-file (consult--find (car prompt-dir) #'consult--fd-builder initial))))
 
   (autoload 'org-buffer-list "org")
   (defvar org-buffer-source
@@ -384,14 +387,26 @@ When the number of characters in a buffer exceeds this threshold,
   ;; 4. (setq completion-styles '(substring orderless basic))
   ;; Combine substring, orderless and basic.
   ;;
+  ;; FIX for tramp
+  (defun basic-remote-try-completion (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-try-completion string table pred point)))
+
+  (defun basic-remote-all-completions (string table pred point)
+    (and (vertico--remote-p string)
+         (completion-basic-all-completions string table pred point)))
+
+  (add-to-list
+   'completion-styles-alist
+   '(basic-remote basic-remote-try-completion basic-remote-all-completions nil))
+
   (setq completion-styles '(orderless)
         completion-category-defaults nil
         ;;; Enable partial-completion for files.
         ;;; Either give orderless precedence or partial-completion.
         ;;; Note that completion-category-overrides is not really an override,
         ;;; but rather prepended to the default completion-styles.
-        ;; completion-category-overrides '((file (styles orderless partial-completion))) ;; orderless is tried first
-        completion-category-overrides '((file (flex styles basic partial-completion)) ;; partial-completion is tried first
+        completion-category-overrides '((file (styles basic-remote orderless))
                                         ;; enable initialism by default for symbols
                                         (command (styles +orderless-with-initialism))
                                         (variable (styles +orderless-with-initialism))

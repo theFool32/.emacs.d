@@ -70,7 +70,8 @@
     "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :wk "init.el")
     "fp" '((lambda() (interactive)(find-file (read-file-name ".emacs.d: " "~/.emacs.d/elisp/"))) :wk ".emacs.d")
     "fo" '((lambda() (interactive)(find-file +org-capture-file-gtd)) :wk "Org files")
-    "fh" '((lambda() (interactive)(consult-find default-directory)) :wk "Find file here")
+    "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
+    "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/ssh:"))) :wk "Remote")
 
     "fE" '(:wk "File Encoding")
     "fEr" '(revert-buffer-with-coding-system :wk "Revert encoding")
