@@ -287,20 +287,25 @@ Group number 1 should be the prefix itself."
   (general-define-key :states 'normal :keymaps 'LaTeX-mode-map (kbd "zc") #'TeX-fold-env)
   (add-hook 'LaTeX-mode-hook (lambda ()
                                (push
-                                '("latexmk" "latexmk -pdf -pvc -view=none %s" TeX-run-TeX nil t
-                                  :help "Run latexmk on file")
+                                '("latexmk" "latexmk -pdf -pvc -view=none %s" TeX-run-TeX nil t :help "Run latexmk on file")
+                                TeX-command-list)
+                               (push
+                                '("xelatex" "xelatex %s" TeX-run-TeX nil t :help "Run xelatex for CJK")
                                 TeX-command-list)
                                (setq TeX-command-list (delete-dups TeX-command-list))
                                ))
   ;; use Skim as default pdf viewer
   ;; Skim's displayline is used for forward search (from .tex to .pdf)
   ;; option -b highlights the current line; option -g opens Skim in the background
-  (setq TeX-view-program-list
-        '(("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")))
+  ;; (setq TeX-view-program-list
+  ;;       '(
+  ;;         ;; ("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")
+  ;;         )
+  ;;       )
+  ;; (progn
+  ;;   (assq-delete-all 'output-pdf TeX-view-program-selection)
+  ;;   (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer")))
 
-  (progn
-    (assq-delete-all 'output-pdf TeX-view-program-selection)
-    (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer")))
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
   ;; Enable word wrapping
   (add-hook 'TeX-mode-hook #'visual-line-mode)
