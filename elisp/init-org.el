@@ -110,7 +110,7 @@
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           ("m" "Maybe" entry
-           (file +org-capture-file-gtd)
+           (file +org-capture-file-someday)
            "* %?\n%i" :prepend t :kill-buffer t)
           ("i" "Idea" entry
            (file+headline +org-capture-file-idea "Ideas")

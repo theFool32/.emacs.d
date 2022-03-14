@@ -325,6 +325,12 @@ Group number 1 should be the prefix itself."
     "v" '(TeX-view :wk "View"))
   )
 
+(use-package latex-extra
+  :after tex
+  :straight (:host github :repo "Malabarba/latex-extra" :depth 1)
+  :hook (LaTeX-mode . latex-extra-mode)
+  )
+
 (use-package cdlatex
   :after tex
   :hook (LaTeX-mode . cdlatex-mode)
