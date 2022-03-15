@@ -1,0 +1,76 @@
+;; -*- mode: lisp -*-
+
+fundamental-mode ;; Available everywhere
+
+(today (format-time-string "%Y-%m-%d"))
+
+prog-mode
+
+(fixme (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "FIXME ")
+(todo (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "TODO ")
+(bug (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "BUG ")
+(hack (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "HACK ")
+
+latex-mode
+
+(begin "\\begin{" (s env) "}" > n> r> "\\end{" (s env) "}")
+(frac "\\frac{" p "}{" p "}")
+(enumerate "\\begin{enumerate}\n\\item " r> n> "\\end{enumerate}")
+(itemize "\\begin{itemize}\n\\item " r> n> "\\end{itemize}")
+(ali "\\begin{align}" n "\\label{" p "}" n> p n "\\end{align}")
+(eq "\\begin{equation}" n "\\label{" p "}" n> p n "\\end{equation}")
+(e "\\emph{" p "}")
+
+
+lisp-mode emacs-lisp-mode ;; Specify multiple modes
+
+(lambda "(lambda (" p ")" n> r> ")")
+
+emacs-lisp-mode
+
+(lambda "(lambda (" p ")" n> r> ")")
+(var "(defvar " p "\n  \"" p "\")")
+(fun "(defun " p " (" p ")\n  \"" p "\"" n> r> ")")
+(let "(let (" p ")" n> r> ")")
+(command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
+(up "(use-package " p ")")
+(hook "(add-hook '" p " " p ")")
+
+c-mode :condition (re-search-backward "^\\w*$" (line-beginning-position) 'noerror)
+
+(inc "#include <" (p (concat (file-name-base (or (buffer-file-name) (buffer-name))) ".h")) ">")
+(incc "#include \"" (p (concat (file-name-base (or (buffer-file-name) (buffer-name))) ".h")) "\"")
+
+org-mode
+
+(title "#+title: " p n "#+author: Daniel Mendler" n "#+language: en" n n)
+(quote "#+begin_quote" n> r> n> "#+end_quote")
+(center "#+begin_center" n> r> n> "#+end_center")
+(src "#+begin_src " p n> r> n> "#+end_src")
+(elisp "#+begin_src emacs-lisp" n> r> n "#+end_src"
+       :post (progn (tempel-done) (org-edit-src-code)))
+(link "[[" (s link) "][" (s description) "]]")
+(table "|" p "|" p "|" n> "|-+-|" n> "|||")
+
+python-mode
+
+(if "if " p ":" n> p)
+(arg "parser.add_argment(\"-" p "\"" p ")")
+(bang "#!/usr/bin/env python")
+(cm "@classmethod" n> "def " p "(self, " p "):" n> p)
+(cls "class " p ":" n> p)
+(for "for " (s var) " in " (s collection) ":" n> p)
+(from "from " (s lib) " import " (s funcs))
+(f "def " (s fun) "(" (s args) "):" n> p)
+(ifm "if __name__ == '__main__':" n> p)
+(init "def __init__(self, " (s args) "):" n> p)
+(ipdb "__import__(\"ipdb\").set_trace()")
+(lambda "lambda " p ":" p)
+(list "[" p " for " p " in " p "]")
+(main "def main():" n> p)
+(not_impl "raise NotImplementedError")
+(np "import numpy as np" n>)
+(pargs "def parse_arguments():" n> "parser = argparse.ArgumentParser(description=\"" p "\")" n> p n> "return parser.parse_args()")
+(sn "self." (s var) " = " (s var))
+(while "while " p ":" n> p)
+(p "print(" p ")" :post (tempel-done))

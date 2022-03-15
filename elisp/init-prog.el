@@ -59,11 +59,6 @@
     (interactive)
     (devdocs-search (thing-at-point 'symbol))))
 
-(use-package eldoc-box
-  :disabled
-  :diminish
-  :hook (eldoc-mode . eldoc-box-hover-mode))
-
 (use-package xref
   :straight nil
   :init

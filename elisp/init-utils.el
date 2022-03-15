@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 36
+;;     Update #: 39
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -46,23 +46,18 @@
 ;;
 ;;; Code:
 
-(use-package imenu-list
-  :commands imenu-list-smart-toggle)
-
-(use-package neotree
-  :commands (neotree-toggle neotree-hide neotree-show)
-  :config
-  (setq neo-autorefresh t)
-  (setq neo-theme 'icons))
+(use-package restart-emacs
+  :commands restart-emacs)
 
 (use-package atomic-chrome
   :defer
   :commands (atomic-chrome-start-server)
   :config
   (setq atomic-chrome-url-major-mode-alist
-	'(("overleaf\\.com" . latex-mode))))
+	'(("overleaf\\.com" . LaTeX-mode))))
 
-
+(use-package tramp
+  :straight nil)
 
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

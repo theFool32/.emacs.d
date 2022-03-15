@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 5
+;;     Update #: 6
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -113,7 +113,7 @@
   :commands (evil-escape-pre-command-hook)
   :init
   (setq evil-escape-excluded-states '(normal visual multiedit emacs motion)
-        evil-escape-excluded-major-modes '(neotree-mode treemacs-mode vterm-mode)
+        evil-escape-excluded-major-modes '(treemacs-mode vterm-mode)
         evil-escape-key-sequence "jk"
         evil-escape-delay 0.15)
   (evil-define-key* '(insert replace visual operator) 'global "\C-g" #'evil-escape)
@@ -128,7 +128,8 @@
 (use-package evil-nerd-commenter
   :commands (evilnc-comment-operator
              evilnc-inner-comment
-             evilnc-outer-commenter))
+             evilnc-outer-commenter
+             evilnc-comment-or-uncomment-lines))
 
 
 ;; for search

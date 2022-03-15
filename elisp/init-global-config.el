@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 14:01:54 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sun Aug  8 19:57:37 2021 (+0800)
+;; Last-Updated: Fri Mar  4 21:02:17 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -170,24 +170,14 @@ The original function deletes trailing whitespace of the current line."
      (funcall ,fnc)))
 ;; (add-hook 'after-save-hook (lambda () (call-process-shell-command "rc" nil 0)))
 (defun +my-sync-code()
-  (call-process-shell-command "rc" nil 0)
-  )
+  (when (derived-mode-p 'prog-mode)
+    (call-process-shell-command "rc" nil 0)))
 (when +self/use-rc-to-sync
   (advice-add #'save-buffer :after (η #'+my-sync-code)))
 
 ;; _ as part of a word
 (modify-syntax-entry ?_ "w")
 (defalias 'forward-evil-word 'forward-evil-symbol)
-
-(advice-add #'save-buffers-kill-terminal :before
-            (lambda (&optional args)
-              (interactive) (setq client-revert-bufferp (current-buffer))))
-
-(defun client-revert-buffer ()
-  "revert the buffer if client-revert-bufferp is defined"
-  (interactive)
-  (if (boundp 'client-revert-bufferp)
-      (switch-to-buffer client-revert-bufferp)))
 
 ;; Don't ping things that look like domain names.
 (setq ffap-machine-p-known 'reject)
@@ -199,6 +189,8 @@ The original function deletes trailing whitespace of the current line."
   :init
   (setq gcmh-idle-delay 0.5
         gcmh-high-cons-threshold (* 64 1024 1024)))
+
+(setq vc-follow-symlinks t)
 
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

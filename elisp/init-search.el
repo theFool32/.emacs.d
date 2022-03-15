@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 11:01:43 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Aug 14 01:20:33 2021 (+0800)
+;; Last-Updated: Fri Mar  4 21:03:17 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d color-rg rg
@@ -52,14 +52,6 @@
     (if (display-graphic-p)
         (youdao-dictionary-search-at-point-posframe)
       (youdao-dictionary-search-at-point))))
-
-;; Search tools
-;; Writable `grep' buffer
-(use-package wgrep
-  :defer t
-  :init
-  (setq wgrep-auto-save-buffer t
-        wgrep-change-readonly-file t))
 
 ;; ColorRGPac
 (use-package color-rg

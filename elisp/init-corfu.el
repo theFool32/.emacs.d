@@ -8,9 +8,9 @@
 ;; Created: Sat Nov 27 21:36:42 2021 (+0800)
 ;; Version:
 ;; Package-Requires: ()
-;; Last-Updated: Tue Feb 15 18:04:16 2022 (+0800)
+;; Last-Updated: Fri Mar  4 21:09:23 2022 (+0800)
 ;;           By: theFool32
-;;     Update #: 390
+;;     Update #: 540
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -61,20 +61,17 @@
   (corfu-preselect-first nil)    ;; Disable candidate preselection
   ;; (corfu-echo-documentation nil) ;; Disable documentation in the echo area
   ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+  (corfu-on-exact-match 'quit)
 
-  ;; You may want to enable Corfu only for certain modes.
-  ;; :hook ((prog-mode . corfu-mode)
-  ;;        (shell-mode . corfu-mode)
-  ;;        (eshell-mode . corfu-mode))
-
-  ;; Recommended: Enable Corfu globally.
-  ;; This is recommended since dabbrev can be used globally (M-/).
   :bind
   (:map corfu-map
         ("TAB" . corfu-next)
         ([tab] . corfu-next)
-        ("s-SPC" . corfu-insert-separator)
+        ("C-n" . corfu-next)
+        ("S-SPC" . corfu-insert-separator)
         ("S-TAB" . corfu-previous)
+        ("C-p" . corfu-previous)
+        ([?\r] . newline)
         ([backtab] . corfu-previous))
   :init
   (corfu-global-mode)
@@ -116,6 +113,19 @@
 			             (car corfu--candidates)))
       (seq-intersection (this-command-keys-vector) [?: ?. ?, ?\) ?\] ?\" ?' ? ]))))
   ;; (setq corfu-commit-predicate #'my/corfu-commit-predicate)
+
+  ;; https://github.com/minad/corfu/issues/12#issuecomment-869037519
+  (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
+  (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
+  (evil-make-overriding-map corfu-map)
+
+  (defun corfu-enable-always-in-minibuffer ()
+    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
+    (unless (or (bound-and-true-p mct--active)
+                (bound-and-true-p vertico--input))
+      ;; (setq-local corfu-auto nil) Enable/disable auto completion
+      (corfu-mode 1)))
+  (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
   )
 
 (use-package emacs
@@ -126,28 +136,79 @@
 (use-package cape
   :after corfu
   ;; Bind dedicated completion commands
-  ;; :bind (("C-c p p" . completion-at-point) ;; capf
-  ;;        ("C-c p t" . complete-tag)        ;; etags
-  ;;        ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
-  ;;        ("C-c p f" . cape-file)
-  ;;        ("C-c p k" . cape-keyword)
-  ;;        ("C-c p s" . cape-symbol)
-  ;;        ("C-c p a" . cape-abbrev)
-  ;;        ("C-c p i" . cape-ispell)
-  ;;        ("C-c p l" . cape-line)
-  ;;        ("C-c p w" . cape-dict))
-  :init
-  ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-hook 'lsp-completion-mode-hook
-            (lambda ()
-              (fset 'non-greedy-lsp (cape-capf-properties #'lsp-completion-at-point :exclusive 'no))
-              (setq-local completion-at-point-functions (list #'non-greedy-lsp #'cape-file #'cape-tabnine))
-              ))
-  (add-to-list 'completion-at-point-functions #'cape-file)
+  :bind (("C-x C-f" . cape-file)
+         ("C-x C-e" . cape-english)
+         ("C-x C-l" . cape-line))
+
+  :hook ((prog-mode . my/set-basic-capf)
+         (org-mode . my/set-basic-capf)
+         (lsp-completion-mode . my/set-lsp-capf))
+  :config
+  (setq dabbrev-upcase-means-case-search t)
+  (setq case-fold-search nil)
+  (defun my/convert-super-capf (arg-capf)
+    (list
+     #'cape-file
+     (cape-capf-buster
+      (cape-super-capf arg-capf
+                       #'tempel-complete)
+      'equal)
+     #'cape-dabbrev
+     )
+    )
+
+  (defun my/set-basic-capf ()
+    (setq completion-category-defaults nil)
+    (setq-local completion-at-point-functions (my/convert-super-capf (car completion-at-point-functions))))
+
+  (defun my/set-lsp-capf ()
+    (setq completion-category-defaults nil)
+    (setq-local completion-at-point-functions (my/convert-super-capf #'lsp-completion-at-point))
+
+    ;; HACK
+    (when (derived-mode-p 'latex-mode)
+      (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion))
+    )
+
+  (defun my/set-text-capf ()
+    (setq-local completion-at-point-functions (append completion-at-point-functions
+                                                      '(cape-english))))
+
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (fset 'cape-tabnine (cape-company-to-capf #'company-tabnine))
-  (add-to-list 'completion-at-point-functions #'cape-tabnine)
+  (add-to-list 'completion-at-point-functions #'tempel-complete)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+
+  (use-package tempel
+    :init
+    (defun my/tempel-expand-or-next ()
+      (interactive)
+      (if tempel--active
+          (tempel-next 1)
+        (call-interactively #'tempel-expand)))
+    (with-eval-after-load 'general
+      (general-define-key
+       :keymaps '(evil-insert-state-map)
+       "C-k" 'my/tempel-expand-or-next))
+    )
+
+  ;; TODO use pure `corfu+cape' instead
+  (use-package company-english-helper
+    :straight (:host github :repo "manateelazycat/company-english-helper" :depth 1)
+    :init
+    (defvaralias 'company-candidates 'corfu--candidates)
+    (defun company-grab-symbol ()
+      "If point is at the end of a symbol, return it.
+Otherwise, if point is not inside a symbol, return an empty string."
+      (if (looking-at "\\_>")
+          (buffer-substring (point) (save-excursion (skip-syntax-backward "w_")
+                                                    (point)))
+        (unless (and (char-after) (memq (char-syntax (char-after)) '(?w ?_)))
+          "")))
+    (provide 'company))
+  (fset 'cape-english (cape-interactive-capf (cape-company-to-capf #'company-english-helper-search)))
   )
+
+
 
 (use-package kind-icon
   :after corfu
@@ -158,45 +219,37 @@
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
   (setq kind-icon-mapping
         '((array "a" :icon "code-brackets" :face font-lock-type-face)
-    (boolean "b" :icon "circle-half-full" :face font-lock-builtin-face)
-    (class "c" :icon "video-input-component" :face font-lock-type-face) ;
-    (color "#" :icon "palette" :face success) ;
-    (constant "co" :icon "square-circle" :face font-lock-constant-face) ;
-    (constructor "cn" :icon "cube-outline" :face font-lock-function-name-face) ;
-    (enum-member "em" :icon "format-align-right" :face font-lock-builtin-face) ;
-    (enum "e" :icon "server" :face font-lock-builtin-face) ;
-    (event "ev" :icon "zip-box-outline" :face font-lock-warning-face) ;
-    (field "fd" :icon "tag" :face font-lock-variable-name-face) ;
-    (file "f" :icon "file-document-outline" :face font-lock-string-face) ;
-    (folder "d" :icon "folder" :face font-lock-doc-face) ;
-    (interface "if" :icon "share-variant" :face font-lock-type-face) ;
-    (keyword "kw" :icon "image-filter-center-focus" :face font-lock-keyword-face) ;
-    (macro "mc" :icon "lambda" :face font-lock-keyword-face)
-    (method "m" :icon "cube-outline" :face font-lock-function-name-face) ;
-    (function "f" :icon "cube-outline" :face font-lock-function-name-face) ;
-    (module "{" :icon "view-module" :face font-lock-preprocessor-face) ;
-    (numeric "nu" :icon "numeric" :face font-lock-builtin-face)
-    (operator "op" :icon "plus-circle-outline" :face font-lock-comment-delimiter-face) ;
-    (param "pa" :icon "tag" :face default)
-    (property "pr" :icon "wrench" :face font-lock-variable-name-face) ;
-    (reference "rf" :icon "collections-bookmark" :face font-lock-variable-name-face) ;
-    (snippet "S" :icon "format-align-center" :face font-lock-string-face) ;
-    (string "s" :icon "sticker-text-outline" :face font-lock-string-face)
-    (struct "%" :icon "video-input-component" :face font-lock-variable-name-face) ;
-    (text "tx" :icon "format-text" :face shadow)
-    (type-parameter "tp" :icon "format-list-bulleted-type" :face font-lock-type-face)
-    (unit "u" :icon "ruler-square" :face shadow)
-    (value "v" :icon "format-align-right" :face font-lock-builtin-face) ;
-    (variable "va" :icon "tag" :face font-lock-variable-name-face)
-    (t "." :icon "file-find" :face shadow))) ;
-  )
-
-(use-package company-tabnine
-  :straight (:host github :repo "theFool32/company-tabnine" :depth 1)
-  :custom
-  (company-tabnine-max-num-results 3)
-  :hook
-  (kill-emacs . company-tabnine-kill-process)
+          (boolean "b" :icon "circle-half-full" :face font-lock-builtin-face)
+          (class "c" :icon "video-input-component" :face font-lock-type-face) ;
+          (color "#" :icon "palette" :face success) ;
+          (constant "co" :icon "square-circle" :face font-lock-constant-face) ;
+          (constructor "cn" :icon "cube-outline" :face font-lock-function-name-face) ;
+          (enum-member "em" :icon "format-align-right" :face font-lock-builtin-face) ;
+          (enum "e" :icon "server" :face font-lock-builtin-face) ;
+          (event "ev" :icon "zip-box-outline" :face font-lock-warning-face) ;
+          (field "fd" :icon "tag" :face font-lock-variable-name-face) ;
+          (file "f" :icon "file-document-outline" :face font-lock-string-face) ;
+          (folder "d" :icon "folder" :face font-lock-doc-face) ;
+          (interface "if" :icon "share-variant" :face font-lock-type-face) ;
+          (keyword "kw" :icon "image-filter-center-focus" :face font-lock-keyword-face) ;
+          (macro "mc" :icon "lambda" :face font-lock-keyword-face)
+          (method "m" :icon "cube-outline" :face font-lock-function-name-face) ;
+          (function "f" :icon "cube-outline" :face font-lock-function-name-face) ;
+          (module "{" :icon "view-module" :face font-lock-preprocessor-face) ;
+          (numeric "nu" :icon "numeric" :face font-lock-builtin-face)
+          (operator "op" :icon "plus-circle-outline" :face font-lock-comment-delimiter-face) ;
+          (param "pa" :icon "tag" :face default)
+          (property "pr" :icon "wrench" :face font-lock-variable-name-face) ;
+          (reference "rf" :icon "collections-bookmark" :face font-lock-variable-name-face) ;
+          (snippet "S" :icon "format-align-center" :face font-lock-string-face) ;
+          (string "s" :icon "sticker-text-outline" :face font-lock-string-face)
+          (struct "%" :icon "video-input-component" :face font-lock-variable-name-face) ;
+          (text "tx" :icon "format-text" :face shadow)
+          (type-parameter "tp" :icon "format-list-bulleted-type" :face font-lock-type-face)
+          (unit "u" :icon "ruler-square" :face shadow)
+          (value "v" :icon "format-align-right" :face font-lock-builtin-face) ;
+          (variable "va" :icon "tag" :face font-lock-variable-name-face)
+          (t "." :icon "file-find" :face shadow))) ;
   )
 
 (use-package corfu-doc

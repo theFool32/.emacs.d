@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 33
+;;     Update #: 34
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -50,6 +50,7 @@
   (require 'init-const))
 
 (use-package tree-sitter
+  :defer t
   :hook ((python-mode) . tree-sitter-hl-mode))
 
 (use-package tree-sitter-langs

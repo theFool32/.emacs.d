@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 16:12:56 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Feb 24 00:06:27 2022 (+0800)
+;; Last-Updated: Tue Mar  1 15:59:21 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d ui
@@ -80,14 +80,13 @@
 
 ;;Font
 
-(defun my-default-frame-face ()
-  (when (display-graphic-p)
-    (set-face-attribute 'default nil
-                        :font "CaskaydiaCove Nerd Font"
-                        :height 150)
-    )
-  )
-(add-hook 'after-init-hook #'my-default-frame-face)
+(when (display-graphic-p)
+  (set-face-attribute 'default nil
+                      :font "CaskaydiaCove Nerd Font"
+                      :height 150)
+  (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
+  (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC Nerd")
+  (set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend))
 
 
 (add-to-list 'initial-frame-alist '(fullscreen . fullboth))
@@ -184,6 +183,74 @@
   :custom
   (olivetti-body-width 120))
 ;; -ATIPac
+
+(use-package popper
+  :defines popper-echo-dispatch-actions
+  :hook (after-init . popper-mode)
+  :init
+  (setq popper-reference-buffers
+        '("\\*Messages\\*"
+          "Output\\*$" "\\*Pp Eval Output\\*$"
+          "\\*Completions\\*"
+          "\\*Warnings\\*"
+          "\\*Async Shell Command\\*"
+          "\\*Apropos\\*"
+          "\\*Backtrace\\*"
+          "\\*Agenda Commands\\*"
+          "\\*eldoc\\*"
+          ;; "\\*Calendar\\*"              ; FIXME: https://github.com/karthink/popper/issues/29
+
+          bookmark-bmenu-mode
+          compilation-mode
+          help-mode helpful-mode
+          tabulated-list-mode
+          Buffer-menu-mode
+
+          gnus-article-mode devdocs-mode
+          grep-mode occur-mode rg-mode deadgrep-mode ag-mode pt-mode
+          ivy-occur-mode ivy-occur-grep-mode
+          process-menu-mode list-environment-mode cargo-process-mode
+          youdao-dictionary-mode osx-dictionary-mode fanyi-mode
+
+          "^\\*eshell.*\\*$" eshell-mode
+          "^\\*shell.*\\*$"  shell-mode
+          "^\\*term.*\\*$"   term-mode
+
+          "\\*DAP Templates\\*$" dap-server-log-mode
+          "\\*ELP Profiling Restuls\\*" profiler-report-mode
+          "\\*Flycheck errors\\*$" " \\*Flycheck checker\\*$"
+          "\\*Paradox Report\\*$" "\\*package update results\\*$" "\\*Package-Lint\\*$"
+          "\\*[Wo]*Man.*\\*$"
+          "\\*ert\\*$" overseer-buffer-mode
+          "\\*gud-debug\\*$"
+          "\\*lsp-help\\*$" "\\*lsp session\\*$"
+          "\\*quickrun\\*$"
+          "\\*tldr\\*$"
+          "\\*vc-.*\\*$"
+          "^\\*elfeed-entry\\*$"
+          "^\\*macro expansion\\**"
+
+          ;; "\\*Org Select\\*" "\\*Capture\\*" "^CAPTURE-.*\\.org*"
+          "\\*Gofmt Errors\\*$" "\\*Go Test\\*$" godoc-mode
+          "\\*docker-containers\\*" "\\*docker-images\\*" "\\*docker-networks\\*" "\\*docker-volumes\\*"
+          "\\*prolog\\*" inferior-python-mode inf-ruby-mode swift-repl-mode
+          "\\*rustfmt\\*$" rustic-compilation-mode rustic-cargo-clippy-mode
+          rustic-cargo-outdated-mode rustic-cargo-test-moed))
+
+  (setq popper-echo-dispatch-actions t)
+  :config
+  (popper-echo-mode 1)
+  (with-no-warnings
+    (defun popper-close-window-hack (&rest _)
+      "Close popper window via `C-g'."
+      ;; `C-g' can deactivate region
+      (when (and (called-interactively-p 'interactive)
+                 (not (region-active-p))
+                 popper-open-popup-alist)
+        (let ((window (caar popper-open-popup-alist)))
+          (when (window-live-p window)
+            (delete-window window)))))
+    (advice-add #'keyboard-quit :before #'popper-close-window-hack)))
 
 (provide 'init-ui-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

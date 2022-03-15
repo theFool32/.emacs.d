@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Wed Sep  4 16:35:00 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Wed Nov 17 11:34:31 2021 (+0800)
+;; Last-Updated: Fri Mar  4 20:06:15 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d auctex
@@ -131,23 +131,6 @@
         ("crefname" "{")))
 
 
-;;;###autoload
-(defun +latex-symbols-company-backend (command &optional arg &rest _ignored)
-  "A wrapper backend for `company-mode' that either uses
-`company-math-symbols-unicode' or `company-math-symbols-latex'. If
-`+latex-enable-unicode-math' is non-nil use the former, otherwise the latter."
-  (if +latex-enable-unicode-math
-      (company-math-symbols-unicode command arg)
-    (company-math-symbols-latex command arg)))
-
-(defvar +latex-enable-unicode-math nil
-  "If non-nil, use `company-math-symbols-unicode' backend in LaTeX-mode,
-  enabling unicode symbols in math regions. This requires the unicode-math latex
-  package to be installed.")
-
-;;
-(defvar +latex--company-backends nil)
-
 
 (use-package reftex
   :after tex
@@ -156,8 +139,112 @@
   (reftex-plug-into-AUCTeX t)
   (reftex-toc-split-windows-fraction 0.3)
   :config
-  ;; set up completion for citations and references
-  (set-company-backend! 'reftex-mode 'company-reftex-labels 'company-reftex-citations)
+
+  (defvar +my/reftex-citation-completion-table nil)
+
+  (defun +my/reftex-find-citation (prefix)
+    (reftex-access-scan-info)
+    (setq +my/reftex-citation-completion-table
+          (cl-letf (((symbol-function 'reftex--query-search-regexps)
+                     (lambda (_) (if (string= prefix "")
+                                (list ".+")
+                              (list (regexp-quote prefix))))))
+            (let* ((bibtype (reftex-bib-or-thebib))
+                   (candidates
+                    (cond
+                     ((eq 'thebib bibtype)
+                      (reftex-extract-bib-entries-from-thebibliography
+                       (reftex-uniquify
+                        (mapcar 'cdr
+                                (reftex-all-assq
+                                 'thebib (symbol-value reftex-docstruct-symbol))))))
+                     ((eq 'bib bibtype)
+                      (reftex-extract-bib-entries (reftex-get-bibfile-list)))
+                     (reftex-default-bibliography
+                      (reftex-extract-bib-entries (reftex-default-bibliography))))))
+              (cl-loop
+               for entry in candidates
+               collect
+               (let ((key (substring-no-properties (car entry)))
+                     (annotate (reftex-format-citation entry "%t")))
+                 (cons
+                  (format "%s -> %s" key annotate)
+                  key)))))
+          )
+    +my/reftex-citation-completion-table)
+
+  (defcustom company-reftex-citations-regexp
+    (rx "\\"
+        ;; List taken from `reftex-cite-format-builtin'
+        (or "autocite"
+            "autocite*"
+            "bibentry"
+            "cite"
+            "cite*"
+            "citeA"
+            "citeaffixed"
+            "citeasnoun"
+            "citeauthor"
+            "citeauthor*"
+            "citeauthory"
+            "citefield"
+            "citeN"
+            "citename"
+            "cites"
+            "citet"
+            "citet*"
+            "citetitle"
+            "citetitle*"
+            "citep"
+            "citeyear"
+            "citeyear*"
+            "footcite"
+            "footfullcite"
+            "fullcite"
+            "fullocite"
+            "nocite"
+            "ocite"
+            "ocites"
+            "parencite"
+            "parencite*"
+            "possessivecite"
+            "shortciteA"
+            "shortciteN"
+            "smartcite"
+            "textcite"
+            "textcite*"
+            "ycite"
+            "ycites")
+        (* (not (any "[{")))
+        (* (seq "[" (* (not (any "]"))) "]"))
+        "{"
+        (* (seq (* (not (any "},"))) ","))
+        (group (* (not (any "},")))))
+    "Regular expression to use when lookng for the citation prefix.
+Group number 1 should be the prefix itself."
+    :type 'string
+    :group 'company-reftex)
+  (defun company-reftex-prefix (regexp)
+    "Return the prefix for matching given REGEXP."
+    (and (derived-mode-p 'latex-mode)
+         reftex-mode
+         (when (looking-back regexp nil)
+           (match-string-no-properties 1))))
+
+  (defun +my/reftex-citation-completion ()
+    (when (company-reftex-prefix company-reftex-citations-regexp)
+      (let ((bounds (bounds-of-thing-at-point 'symbol)))
+        `(,(car bounds) ,(cdr bounds)
+          ,(cape--table-with-properties
+            (cape--cached-table (car bounds) (cdr bounds) #'+my/reftex-find-citation 'substring)
+            :category 'cape-table)
+          :exclusive 'no
+          ;; :annotation-function (lambda (k) (cdr (assoc k table)))
+          :exit-function (lambda (str sta)
+                           (backward-delete-char (length str))
+                           (insert (cdr (assoc str +my/reftex-citation-completion-table)))
+                           )))))
+
   )
 
 (use-package bibtex
@@ -170,7 +257,6 @@
 
 
 (use-package latex
-  :defer t
   :straight auctex
   :mode ("\\.tex\\'" . LaTeX-mode)
   :custom
@@ -201,20 +287,25 @@
   (general-define-key :states 'normal :keymaps 'LaTeX-mode-map (kbd "zc") #'TeX-fold-env)
   (add-hook 'LaTeX-mode-hook (lambda ()
                                (push
-                                '("latexmk" "latexmk -pdf -pvc -view=none %s" TeX-run-TeX nil t
-                                  :help "Run latexmk on file")
+                                '("latexmk" "latexmk -pdf -pvc -view=none %s" TeX-run-TeX nil t :help "Run latexmk on file")
+                                TeX-command-list)
+                               (push
+                                '("xelatex" "xelatex %s" TeX-run-TeX nil t :help "Run xelatex for CJK")
                                 TeX-command-list)
                                (setq TeX-command-list (delete-dups TeX-command-list))
                                ))
   ;; use Skim as default pdf viewer
   ;; Skim's displayline is used for forward search (from .tex to .pdf)
   ;; option -b highlights the current line; option -g opens Skim in the background
-  (setq TeX-view-program-list
-        '(("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")))
+  ;; (setq TeX-view-program-list
+  ;;       '(
+  ;;         ;; ("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")
+  ;;         )
+  ;;       )
+  ;; (progn
+  ;;   (assq-delete-all 'output-pdf TeX-view-program-selection)
+  ;;   (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer")))
 
-  (progn
-    (assq-delete-all 'output-pdf TeX-view-program-selection)
-    (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer")))
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
   ;; Enable word wrapping
   (add-hook 'TeX-mode-hook #'visual-line-mode)
@@ -222,9 +313,6 @@
   (add-hook 'TeX-mode-hook #'TeX-fold-mode)
   ;; Enable rainbow mode after applying styles to the buffer
   (add-hook 'TeX-update-style-hook #'rainbow-delimiters-mode)
-
-  (when +latex--company-backends
-    (set-company-backend! 'latex-mode +latex--company-backends))
 
   (defun my-TeX-compile ()
     (interactive)
@@ -235,6 +323,12 @@
     "m" '(TeX-master-file-ask :wk "Master file")
     "c" '(my-TeX-compile :wk "Compile")
     "v" '(TeX-view :wk "View"))
+  )
+
+(use-package latex-extra
+  :after tex
+  :straight (:host github :repo "Malabarba/latex-extra" :depth 1)
+  :hook (LaTeX-mode . latex-extra-mode)
   )
 
 (use-package cdlatex
@@ -258,20 +352,6 @@
             (lambda () (interactive)
               (define-key org-cdlatex-mode-map "`" 'asymbol-insert-text-or-symbol)))
   )
-
-(use-package company-auctex
-  :after (company tex)
-  :init
-  (add-to-list '+latex--company-backends #'company-auctex-environments nil #'eq)
-  (add-to-list '+latex--company-backends #'company-auctex-macros nil #'eq)
-  )
-(use-package company-reftex
-  :after (company tex))
-(use-package company-math
-  :after (company tex)
-  :defer t
-  :init
-  (add-to-list '+latex--company-backends #'+latex-symbols-company-backend nil #'eq))
 ;; -AUCTeXPac
 
 (provide 'init-latex)

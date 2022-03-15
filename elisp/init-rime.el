@@ -10,7 +10,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 91
+;;     Update #: 92
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -84,6 +84,7 @@
 ;; },
 
 (use-package rime
+  :defer t
   :if +self/use-rime
   :init
   (setq rime-librime-root "~/.emacs.d/librime/dist/"
@@ -97,9 +98,7 @@
   (rime-disable-predicates
    '(rime-predicate-evil-mode-p
      rime-predicate-after-alphabet-char-p
-     rime-predicate-prog-in-code-p
-     rime-predicate-after-ascii-char-p
-     rime-predicate-space-after-cc-p))
+     rime-predicate-prog-in-code-p))
 
   :config
   (unless rime-emacs-module-header-root

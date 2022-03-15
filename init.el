@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Thu Mar 14 10:15:28 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Feb 19 22:35:20 2022 (+0800)
+;; Last-Updated: Fri Mar  4 21:31:12 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d init
@@ -79,13 +79,6 @@
 (require 'init-package)
 (require 'init-const)
 ;; (use-package esup)
-;; (use-package benchmark-init
-;;   :straight (benchmark-init :local-repo "/Users/lijie/dev/benchmark-init-el")
-;;   :init
-;;   (benchmark-init/activate)
-;;   :hook
-;;   (after-init . benchmark-init/deactivate))
-
 
 ;; Global Functionalities
 (require 'init-evil)
@@ -96,12 +89,8 @@
 (require 'init-tree-sitter)
 
 (require 'init-which-key)
-(require 'init-popup-kill-ring)
 (require 'init-undo-tree)
-(require 'init-discover-my-major)
 (require 'init-dired)
-(require 'init-buffer)
-(require 'init-header)
 (require 'init-utils)
 (require 'init-bindings)
 
@@ -109,21 +98,18 @@
 (require 'init-ui-config)
 (require 'init-pretty-code)
 (require 'init-theme)
-;; (require 'init-dashboard)
 (require 'init-scroll)
 (require 'init-highlight)
 
 ;; General Programming
 (require 'init-magit)
-(require 'init-yasnippet)
 (require 'init-flycheck)
 (require 'init-parens)
 (require 'init-indent)
 (require 'init-format)
 (require 'init-edit)
 (require 'init-lsp)
-(require 'init-company)
-;; (require 'init-corfu)
+(require 'init-corfu)
 
 ;; Programming
 (require 'init-prog)
@@ -132,7 +118,6 @@
 
 ;; Miscellaneous
 (require 'init-org)
-(require 'init-restart-emacs)
 (require 'init-ebib)
 (require 'init-rime)
 (require 'init-lookup)
@@ -141,8 +126,8 @@
 
 (add-hook 'after-init-hook
           #'(lambda () (org-agenda nil "n")
-             (evil-window-move-far-left)
-             (evil-window-right 1)))
+              (evil-window-move-far-left)
+              (evil-window-right 1)))
 
 (provide 'init)
 

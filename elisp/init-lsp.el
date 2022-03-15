@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 10:42:09 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Sep 11 01:32:58 2021 (+0800)
+;; Last-Updated: Sun Feb 27 12:15:55 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d lsp
@@ -77,7 +77,7 @@
   (lsp-modeline-workspace-status-enable nil)
   (lsp-completion-provider :none)
 
-  :hook (((python-mode c-mode c++-mode) . lsp-deferred)
+  :hook (((python-mode c-mode c++-mode LaTeX-mode) . lsp-deferred)
          (lsp-mode . +my-lsp-setup))
   :init
   (defun +my-lsp-setup ()

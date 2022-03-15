@@ -6,7 +6,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Sun Jun  9 17:53:44 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Sat Feb 19 22:34:44 2022 (+0800)
+;; Last-Updated: Fri Mar  4 20:35:31 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d
@@ -52,28 +52,9 @@
 (setq-default minibuffer-prompt-properties '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt))
 ;; -BetterMiniBuffer
 
-;; DisplayLineOverlay
-(defun display-line-overlay+ (pos str &optional face)
-  "Display line at POS as STR with FACE.
-
-FACE defaults to inheriting from default and highlight."
-  (let ((ol (save-excursion
-              (goto-char pos)
-              (make-overlay (line-beginning-position)
-                            (line-end-position)))))
-    (overlay-put ol 'display str)
-    (overlay-put ol 'face
-                 (or face '(:background null :inherit highlight)))
-    ol))
-;; -DisplayLineOverlay
-
 (defun font-installed-p (font-name)
   "Check if font with FONT-NAME is available."
   (find-font (font-spec :name font-name)))
-
-(defun icons-displayable-p ()
-  "Return non-nil if `all-the-icons' is displayable."
-  (require 'all-the-icons nil t))
 
 (defun doom-enlist (exp)
   "Return EXP wrapped in a list, or as-is if already a list."
@@ -111,9 +92,6 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
         (file-to (read-file-name "Move to:" default-directory)))
     (rename-file file-from file-to)
     (when (string= (file-truename file-from) (file-truename (buffer-file-name)))
-      ;; (set-visited-file-name file-to)
-      ;; (rename-buffer file-to)
-      ;; (save-buffer)
       (kill-buffer)
       (find-file file-to))))
 

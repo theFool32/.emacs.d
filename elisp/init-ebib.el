@@ -11,7 +11,7 @@
 ;; Package-Requires: ()
 ;; Last-Updated:
 ;;           By:
-;;     Update #: 286
+;;     Update #: 290
 ;; URL:
 ;; Doc URL:
 ;; Keywords:
@@ -83,11 +83,12 @@
   :bind
   (
    :map ebib-index-mode-map
-   ("?" . ebib-jump-to-entry)
-   ("/" . ebib-swiper)
+   ("/" . ebib-jump-to-entry)
+   ("?" . ebib-swiper)
    ;; ("?" . ebib-search)
    ("D" . ebib-delete-entry-with-file)
    ("s"   . ebib-save-all-databases)
+   ("B"   . ebib-import-ref)
    :map ebib-multiline-mode-map
    ("C-c C-c" . ebib-quit-multiline-buffer-and-save)
    ("C-c C-q" . ebib-cancel-multiline-buffer)

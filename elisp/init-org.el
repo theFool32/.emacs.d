@@ -8,7 +8,7 @@
 ;; Copyright (C) 2019 Mingde (Matthew) Zeng
 ;; Created: Fri Mar 15 11:09:30 2019 (-0400)
 ;; Version: 2.0.0
-;; Last-Updated: Thu Feb 24 00:14:20 2022 (+0800)
+;; Last-Updated: Sun Feb 27 17:19:02 2022 (+0800)
 ;;           By: theFool32
 ;; URL: https://github.com/MatthewZMD/.emacs.d
 ;; Keywords: M-EMACS .emacs.d org toc-org htmlize ox-gfm
@@ -62,9 +62,9 @@
   (org-hide-emphasis-markers t)
   (org-deadline-warning-days 90)
   ;; (org-agenda-span 'day)
-  (org-agenda-span 7)
+  (org-agenda-span 3)
   (org-agenda-start-with-log-mode t)
-  (org-agenda-start-with-clockreport-mode t)
+  (org-agenda-start-with-clockreport-mode nil)
   (org-agenda-start-on-weekday 1)
   (org-export-backends (quote (ascii html icalendar latex md odt)))
   (org-use-speed-commands t)
@@ -110,7 +110,7 @@
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           ("m" "Maybe" entry
-           (file +org-capture-file-gtd)
+           (file +org-capture-file-someday)
            "* %?\n%i" :prepend t :kill-buffer t)
           ("i" "Idea" entry
            (file+headline +org-capture-file-idea "Ideas")
@@ -124,11 +124,10 @@
         '((sequence
            "☞TODO(t)"  ; A task that needs doing & is ready to do
            "PROJ(p)"  ; An ongoing project that cannot be completed in one step
-           "⚔INPROCESS(s)"  ; A task that is in progress
+           "⚔INPROCESS(i)"  ; A task that is in progress
            "⚑WAITING(w)"  ; Something is holding up this task; or it is paused
-           "|"
            "☟NEXT(n)"
-           "✰Important(i)"
+           "|"
            "✔DONE(d)"  ; Task successfully completed
            "✘CANCELED(c@)") ; Task was cancelled, aborted or is no longer applicable
           (sequence
@@ -152,9 +151,6 @@
           ("☟NEXT" . (:foreground "DeepSkyBlue"
                                   ;; :background "#7A586A"
                                   :weight bold))
-          ("✰IMPORTANT" . (:foreground "greenyellow"
-                                       ;; :background "#7A586A"
-                                       :weight bold))
           ("✔DONE" . "#008080")
           ("FIXME" . "IndianRed"))
         )
