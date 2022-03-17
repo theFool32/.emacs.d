@@ -103,6 +103,8 @@
   (use-package dirvish  ;; `(' for details.
     :straight (dirvish :type git :host github :repo "alexluigit/dirvish")
     :after dired
+    :custom
+    (dirvish-attributes '(all-the-icons file-size))
     :init
     (dirvish-override-dired-mode)
     :config
@@ -115,6 +117,8 @@
         (general-define-key :states '(normal)
                             :keymaps 'dirvish-mode-map
                             "?" 'dirvish-menu-all-cmds))))
+    (use-package dirvish-extras
+      :straight nil)
   )
 
 
