@@ -397,6 +397,10 @@
 (use-package org-contrib
   :after org)
 
+(use-package org-habit
+  :straight nil
+  :after org)
+
 (use-package org-superstar
   :disabled
   :after org
