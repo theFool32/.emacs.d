@@ -146,14 +146,16 @@
   :config
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
+  (fset 'cape-tabnine (cape-company-to-capf #'company-tabnine))
   (defun my/convert-super-capf (arg-capf)
     (list
      #'cape-file
      (cape-capf-buster
       (cape-super-capf arg-capf
-                       #'tempel-complete)
+                       #'cape-tabnine
+                       #'tempel-expand)
       'equal)
-     #'cape-dabbrev
+     ;; #'cape-dabbrev
      )
     )
 
@@ -207,6 +209,13 @@ Otherwise, if point is not inside a symbol, return an empty string."
     (provide 'company))
   (fset 'cape-english (cape-interactive-capf (cape-company-to-capf #'company-english-helper-search)))
   )
+
+(use-package company-tabnine
+  :defer 1
+  :after corfu
+  :hook (kill-emacs . company-tabnine-kill-process)
+  :custom
+  (company-tabnine-max-num-results 3))
 
 
 
