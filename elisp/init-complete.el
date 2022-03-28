@@ -264,25 +264,30 @@ Otherwise, if point is not inside a symbol, return an empty string."
 (use-package copilot
   :after corfu
   :straight (:host github :repo "theFool32/copilot.el"
-  ;; :straight (copilot :local-repo "/Users/lijie/dev/copilot.el"
+                   ;; :straight (copilot :local-repo "/Users/lijie/dev/copilot.el"
                    :files ("dist" "copilot.el"))
   :ensure t
   ;; :hook (kill-emacs . copilot--kill-process)
   :config
   (add-hook 'post-command-hook (lambda ()
                                  (copilot-clear-overlay)
-                                 (when (evil-insert-state-p)
+                                 (when (and (evil-insert-state-p)
+                                            (not tempel--active)) ;; diable copilot in tempel
                                    (copilot-complete))))
 
   (add-hook 'evil-insert-state-exit-hook (lambda () (copilot-clear-overlay)))
 
 
   (defun my/copilot-or-tempel-expand-or-next ()
+    "Try tempel expand, if failed, try copilot expand."
     (interactive)
-    (or (copilot-accept-completion)
-        (if tempel--active
-            (tempel-next 1)
-          (call-interactively #'tempel-expand))))
+    (if tempel--active
+        (tempel-next 1)
+      (if (tempel-expand) ;; HACK call `tempel-expand' twice
+          (call-interactively #'tempel-expand)
+        (copilot-accept-completion)
+        ))
+    (copilot-clear-overlay))
 
   (with-eval-after-load 'general
     (general-define-key
