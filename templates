@@ -30,7 +30,7 @@ emacs-lisp-mode
 
 (lambda "(lambda (" p ")" n> r> ")")
 (var "(defvar " p "\n  \"" p "\")")
-(fun "(defun " p " (" p ")\n  \"" p "\"" n> r> ")")
+(f "(defun " p " (" p ")\n  \"" p "\"" n> r> ")")
 (let "(let (" p ")" n> r> ")")
 (command "(defun " p " (" p ")\n  \"" p "\"" n> "(interactive)" n> r> ")")
 (up "(use-package " p ")")

@@ -1,6 +1,6 @@
-;;; init-corfu.el ---
+;;; init-complete.el ---
 ;;
-;; Filename: init-corfu.el
+;; Filename: init-complete.el
 ;; Description:
 ;; Author: John
 ;; Maintainer:
@@ -182,15 +182,6 @@
 
   (use-package tempel
     :init
-    (defun my/tempel-expand-or-next ()
-      (interactive)
-      (if tempel--active
-          (tempel-next 1)
-        (call-interactively #'tempel-expand)))
-    (with-eval-after-load 'general
-      (general-define-key
-       :keymaps '(evil-insert-state-map)
-       "C-k" 'my/tempel-expand-or-next))
     )
 
   ;; TODO use pure `corfu+cape' instead
@@ -269,6 +260,35 @@ Otherwise, if point is not inside a symbol, return an empty string."
               ("M-d" . corfu-doc-toggle))
   )
 
-(provide 'init-corfu)
+(use-package copilot
+  :after corfu
+  :straight (:host github :repo "theFool32/copilot.el"
+  ;; :straight (copilot :local-repo "/Users/lijie/dev/copilot.el"
+                   :files ("dist" "copilot.el"))
+  :ensure t
+  ;; :hook (kill-emacs . copilot--kill-process)
+  :config
+  (add-hook 'post-command-hook (lambda ()
+                                 (copilot-clear-overlay)
+                                 (when (evil-insert-state-p)
+                                   (copilot-complete))))
+
+  (add-hook 'evil-insert-state-exit-hook (lambda () (copilot-clear-overlay)))
+
+
+  (defun my/copilot-or-tempel-expand-or-next ()
+    (interactive)
+    (or (copilot-accept-completion)
+        (if tempel--active
+            (tempel-next 1)
+          (call-interactively #'tempel-expand))))
+
+  (with-eval-after-load 'general
+    (general-define-key
+     :keymaps '(evil-insert-state-map)
+     "C-k" 'my/copilot-or-tempel-expand-or-next))
+  )
+
+(provide 'init-complete)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-corfu.el ends here
+;;; init-complete ends here

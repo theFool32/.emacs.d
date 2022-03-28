@@ -109,7 +109,7 @@
 (require 'init-format)
 (require 'init-edit)
 (require 'init-lsp)
-(require 'init-corfu)
+(require 'init-complete)
 
 ;; Programming
 (require 'init-prog)
