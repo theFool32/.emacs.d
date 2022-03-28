@@ -51,26 +51,12 @@
   ;; Disable readline based native completion
   (setq python-shell-completion-native-enable nil)
   :config
-  (setq python-indent-offset 4)
-  (setq python-shell-interpreter "python3")
 
-  ;; (with-eval-after-load 'lsp-mode
-
-  ;; (setq lsp-pylance-ms-executable "~/bin/pylance.sh")  ;; Use the pyright from vscode instead.
-
-  ;; (lsp-register-client
-  ;;  (make-lsp-client
-  ;;   :new-connection (lsp-stdio-connection (lambda () lsp-pylance-ms-executable)
-  ;;                                         (lambda () (f-exists? lsp-pylance-ms-executable)))
-  ;;   :major-modes '(python-mode)
-  ;;   :server-id 'mspylance
-  ;;   :priority 3
-  ;;   :initialized-fn (lambda (workspace)
-  ;;                     (with-lsp-workspace workspace
-  ;;                       (lsp--set-configuration (lsp-configuration-section "python"))))))
-  ;; )
+  (add-hook 'python-mode-hook (lambda ()
+                                (setq-local tab-width 4)))
 
   (setq python-indent-offset 4
+        python-shell-interpreter "python3"
         importmagic-python-interpreter "python"
         flycheck-python-flake8-executable "flake8")
 
