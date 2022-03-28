@@ -41,6 +41,7 @@
 
 (require 'org/+tables)
 (require 'org/+funcs)
+(require 'init-custom)
 
 ;; OrgPac
 (defvar +org-capture-file-gtd (concat +self/org-base-dir "gtd.org"))
@@ -98,12 +99,13 @@
                              (+org-capture-file-someday :level . 3)
                              (+org-capture-file-tickler :level . 3)))
   (setq org-log-into-drawer t)
-  (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)))
+  (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)
+                        ("habit" . ?h)))
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file +org-capture-file-gtd)
            "* ☞TODO %i%? \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
-          ("w" "Waiting for" entry
+          ("w" "Tickler" entry
            (file +org-capture-file-tickler)
            "* ⚑WAITING %?\n%i" :prepend t :kill-buffer t)
           ("n" "Note" entry
