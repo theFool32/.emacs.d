@@ -181,6 +181,7 @@
   (add-to-list 'completion-at-point-functions #'cape-file)
 
   (use-package tempel
+    :straight (:host github :repo "fritzgrabo/tempel" :branch "eager-templates")
     :init
     )
 
