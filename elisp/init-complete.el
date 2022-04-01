@@ -263,11 +263,9 @@ Otherwise, if point is not inside a symbol, return an empty string."
 
 (use-package copilot
   :after corfu
-  :straight (:host github :repo "theFool32/copilot.el"
-                   ;; :straight (copilot :local-repo "/Users/lijie/dev/copilot.el"
+  :straight (:host github :repo "zerolfx/copilot.el"
                    :files ("dist" "copilot.el"))
   :ensure t
-  ;; :hook (kill-emacs . copilot--kill-process)
   :config
   (add-hook 'post-command-hook (lambda ()
                                  (copilot-clear-overlay)
