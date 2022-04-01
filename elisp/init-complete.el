@@ -270,7 +270,8 @@ Otherwise, if point is not inside a symbol, return an empty string."
   (add-hook 'post-command-hook (lambda ()
                                  (copilot-clear-overlay)
                                  (when (and (evil-insert-state-p)
-                                            (not tempel--active)) ;; diable copilot in tempel
+                                            (not tempel--active) ;; diable copilot in tempel
+                                            (looking-back "[\x00-\xff]")) ;; HACK: enable copilot only for ascii chars
                                    (copilot-complete))))
 
   (add-hook 'evil-insert-state-exit-hook (lambda () (copilot-clear-overlay)))
@@ -281,7 +282,7 @@ Otherwise, if point is not inside a symbol, return an empty string."
     (interactive)
     (if tempel--active
         (tempel-next 1)
-      (if (tempel-expand) ;; HACK call `tempel-expand' twice
+      (if (tempel-expand) ;; HACK: call `tempel-expand' twice
           (call-interactively #'tempel-expand)
         (copilot-accept-completion)
         ))
