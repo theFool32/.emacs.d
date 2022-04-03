@@ -314,21 +314,20 @@ Group number 1 should be the prefix itself."
   ;; Enable rainbow mode after applying styles to the buffer
   (add-hook 'TeX-update-style-hook #'rainbow-delimiters-mode)
 
-  (defun my-TeX-compile ()
-    (interactive)
-    (TeX-master-file nil nil t)
-    (TeX-command-sequence '("BibTeX" "LaTeX" "LaTeX") t))
   (local-leader-def
     :keymaps 'LaTeX-mode-map
     "m" '(TeX-master-file-ask :wk "Master file")
-    "c" '(my-TeX-compile :wk "Compile")
+    "c" '(latex/compile-commands-until-done :wk "Compile")
     "v" '(TeX-view :wk "View"))
   )
 
 (use-package latex-extra
   :after tex
   :straight (:host github :repo "Malabarba/latex-extra" :depth 1)
-  :hook (LaTeX-mode . latex-extra-mode)
+  :hook ((LaTeX-mode . latex-extra-mode)
+         (latex-extra-mode . turn-off-auto-fill))
+  :custom
+  (latex/view-after-compile nil)
   )
 
 (use-package cdlatex

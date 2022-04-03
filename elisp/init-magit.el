@@ -304,6 +304,7 @@ kill all magit buffers for this repo."
              (bury-buffer))
       "Save and bury buffer" :exit t))))
   :config
+  ;; TODO mapping not work for the mode
   ;; (general-define-key :states 'normal
   ;;                     :keymaps 'smerge-mode-map
   ;;                     :prefix ","
