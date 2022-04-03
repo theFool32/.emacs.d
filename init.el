@@ -125,8 +125,8 @@
 (require 'init-persp)
 
 (add-hook 'after-init-hook
-          #'(lambda () (org-agenda nil "n")
-              (evil-window-move-far-left)
+          #'(lambda ()
+              (+my/open-org-agenda)
               (evil-window-right 1)))
 
 (provide 'init)

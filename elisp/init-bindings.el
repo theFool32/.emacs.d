@@ -46,7 +46,7 @@
     "?" '(+consult-ripgrep-at-point :wk "Search symbol here")
     "." '(find-file :wk "Find file")
     ";" '(pp-eval-expression :wk "Evil expression")
-    ":" '((lambda() (interactive "") (org-agenda nil "n")) :wk "Agenda")
+    ":" '(+my/open-org-agenda :wk "Agenda")
     "x" '(org-capture :wk "Org capture")
     "r" '(er/expand-region :wk "expand-region")
 
