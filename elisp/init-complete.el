@@ -267,6 +267,7 @@ Otherwise, if point is not inside a symbol, return an empty string."
                    :files ("dist" "copilot.el"))
   :ensure t
   :config
+  (set-face-foreground 'copilot-overlay-face "red") ;; TODO: find a better color
   (add-hook 'post-command-hook (lambda ()
                                  (copilot-clear-overlay)
                                  (when (and (evil-insert-state-p)

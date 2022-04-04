@@ -6,10 +6,10 @@ fundamental-mode ;; Available everywhere
 
 prog-mode
 
-(fixme (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "FIXME " :eager t)
-(todo (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "TODO " :eager t)
-(bug (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "BUG " :eager t)
-(hack (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "HACK " :eager t)
+(fixme (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "FIXME: " :eager t)
+(todo (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "TODO: " :eager t)
+(bug (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "BUG: " :eager t)
+(hack (if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start) "HACK: " :eager t)
 
 latex-mode
 
