@@ -55,6 +55,7 @@
     "b]" '(next-buffer :wk "Next buffer")
     "bb" '(switch-to-buffer :wk "Switch buffer")
     "bk" '(kill-current-buffer :wk "Kill buffer")
+    "bq" '(evil-quit :wk "evil-quit")
     "bK" '(kill-other-buffers :wk "Kill other buffers")
     "bs" '(basic-save-buffer :wk "Save buffer")
     "bS" '(evil-write-all :wk "Save all buffer")

@@ -268,16 +268,30 @@ Otherwise, if point is not inside a symbol, return an empty string."
   :ensure t
   :config
   (set-face-foreground 'copilot-overlay-face "red") ;; TODO: find a better color
-  (add-hook 'post-command-hook (lambda ()
-                                 (copilot-clear-overlay)
-                                 (when (and (evil-insert-state-p)
-                                            (not tempel--active) ;; diable copilot in tempel
-                                            (not (string= current-input-method "rime")) ;; HACK: enable copilot only for ascii chars
-                                            (looking-back "[\x00-\xff]"))
-                                   (copilot-complete))))
+  (defun +my/copilot-post-hook ()
+    "hook for post-command-hook"
+    (copilot-clear-overlay)
+    (when (and (evil-insert-state-p)
+               (not tempel--active) ;; diable copilot in tempel
+               (not (string= current-input-method "rime")) ;; HACK: enable copilot only for ascii chars
+               (looking-back "[\x00-\xff]"))
+      (copilot-complete)))
+  (defun +my/copilot-exit-hook ()
+    ""
+    (copilot-clear-overlay))
 
-  (add-hook 'evil-insert-state-exit-hook (lambda () (copilot-clear-overlay)))
+  (defun +my/turn-on-copilot ()
+    ""
+    (interactive)
+    (add-hook 'post-command-hook '+my/copilot-post-hook)
+    (add-hook 'evil-insert-state-exit-hook '+my/copilot-exit-hook))
+  (defun +my/turn-off-copilot ()
+    ""
+    (interactive)
+    (remove-hook 'post-command-hook '+my/copilot-post-hook)
+    (remove-hook 'evil-insert-state-exit-hook '+my/copilot-exit-hook))
 
+  (call-interactively '+my/turn-on-copilot)
 
   (defun my/copilot-or-tempel-expand-or-next ()
     "Try tempel expand, if failed, try copilot expand."
