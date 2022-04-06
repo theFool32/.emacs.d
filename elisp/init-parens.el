@@ -48,30 +48,44 @@
   ;; disable <> auto pairing in electric-pair-mode for org-mode
   (add-hook 'org-mode-hook
             #'(lambda ()
-               (setq-local electric-pair-inhibit-predicate
-                           `(lambda (c)
-                              (if (char-equal c ?<) t
-                                (,electric-pair-inhibit-predicate c)))))))
+                (setq-local electric-pair-inhibit-predicate
+                            `(lambda (c)
+                               (if (char-equal c ?<) t
+                                 (,electric-pair-inhibit-predicate c)))))))
 
-(use-package awesome-pair
-  :straight (:host github :repo "manateelazycat/awesome-pair")
-  :hook (prog-mode . awesome-pair-mode)
+(use-package grammatical-edit
+  :straight (:host github :repo "manateelazycat/grammatical-edit")
+  :hook (prog-mode . grammatical-edit-mode)
   :config
-  (define-key awesome-pair-mode-map (kbd "(") 'awesome-pair-open-round)
-  (define-key awesome-pair-mode-map (kbd "[") 'awesome-pair-open-bracket)
-  (define-key awesome-pair-mode-map (kbd "{") 'awesome-pair-open-curly)
-  (define-key awesome-pair-mode-map (kbd ")") 'awesome-pair-close-round)
-  (define-key awesome-pair-mode-map (kbd "]") 'awesome-pair-close-bracket)
-  (define-key awesome-pair-mode-map (kbd "}") 'awesome-pair-close-curly)
+  (define-key grammatical-edit-mode-map (kbd "(") 'grammatical-edit-open-round)
+  (define-key grammatical-edit-mode-map (kbd "[") 'grammatical-edit-open-bracket)
+  (define-key grammatical-edit-mode-map (kbd "{") 'grammatical-edit-open-curly)
+  (define-key grammatical-edit-mode-map (kbd ")") 'grammatical-edit-close-round)
+  (define-key grammatical-edit-mode-map (kbd "]") 'grammatical-edit-close-bracket)
+  (define-key grammatical-edit-mode-map (kbd "}") 'grammatical-edit-close-curly)
+  (define-key grammatical-edit-mode-map (kbd "=") 'grammatical-edit-equal)
 
-  (define-key awesome-pair-mode-map (kbd "%") 'awesome-pair-match-paren)
-  (define-key awesome-pair-mode-map (kbd "\"") 'awesome-pair-double-quote)
+  (define-key grammatical-edit-mode-map (kbd "%") 'grammatical-edit-match-paren)
+  (define-key grammatical-edit-mode-map (kbd "\"") 'grammatical-edit-double-quote)
+  (define-key grammatical-edit-mode-map (kbd "'") 'grammatical-edit-single-quote)
 
-  (define-key awesome-pair-mode-map (kbd "SPC") 'awesome-pair-space)
+  (define-key grammatical-edit-mode-map (kbd "SPC") 'grammatical-edit-space)
+  (define-key grammatical-edit-mode-map (kbd "RET") 'grammatical-edit-newline)
 
-  (define-key awesome-pair-mode-map (kbd "C-k") 'awesome-pair-kill)
-  ;; (define-key awesome-pair-mode-map (kbd "<backspace>") 'awesome-pair-backward-delete)
+  (define-key grammatical-edit-mode-map (kbd "M-o") 'grammatical-edit-backward-delete)
+  (define-key grammatical-edit-mode-map (kbd "C-d") 'grammatical-edit-forward-delete)
+  (define-key grammatical-edit-mode-map (kbd "C-k") 'grammatical-edit-kill)
 
+  (define-key grammatical-edit-mode-map (kbd "M-\"") 'grammatical-edit-wrap-double-quote)
+  (define-key grammatical-edit-mode-map (kbd "M-'") 'grammatical-edit-wrap-single-quote)
+  (define-key grammatical-edit-mode-map (kbd "M-[") 'grammatical-edit-wrap-bracket)
+  (define-key grammatical-edit-mode-map (kbd "M-{") 'grammatical-edit-wrap-curly)
+  (define-key grammatical-edit-mode-map (kbd "M-(") 'grammatical-edit-wrap-round)
+  (define-key grammatical-edit-mode-map (kbd "M-)") 'grammatical-edit-unwrap)
+
+  (define-key grammatical-edit-mode-map (kbd "M-p") 'grammatical-edit-jump-right)
+  (define-key grammatical-edit-mode-map (kbd "M-n") 'grammatical-edit-jump-left)
+  (define-key grammatical-edit-mode-map (kbd "M-:") 'grammatical-edit-jump-out-pair-and-newline)
   )
 
 (provide 'init-parens)
