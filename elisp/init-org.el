@@ -74,6 +74,7 @@
   (org-ellipsis " ▼ ")
   (org-babel-python-command "python3")
   (org-bullets-bullet-list '("#"))
+  (org-agenda-todo-ignore-scheduled 'future)
 
   :config
   ;; TODO: slow
