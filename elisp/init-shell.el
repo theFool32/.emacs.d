@@ -56,6 +56,14 @@
     (setq vterm-always-compile-module t)
     :config
     (evil-define-key 'insert vterm-mode-map (kbd "C-c") 'vterm-send-C-c)
+
+
+    ;; (advice-add 'vterm-send-return :before (lambda ()
+    ;;                                          (vterm-send-string " && printf '\\033[6 q'")))
+
+    ;; https://github.com/akermu/emacs-libvterm#how-can-i-get-the-directory-tracking-in-a-more-understandable-way
+    (add-to-list 'vterm-eval-cmds '("update-pwd" (lambda (path) (setq default-directory path))))
+
     (with-no-warnings
       (defvar vterm-posframe--frame nil)
 
@@ -99,10 +107,6 @@
                    :background-color (face-background 'tooltip nil t)
                    :override-parameters '((cursor-type . 't))
                    :accept-focus t))
-            ;; ;; Blink cursor
-            ;; FIXME: wrong cursor type after `ret'
-            (with-current-buffer buffer
-              (setq-local cursor-type 'box))
             ;; Focus the child frame
             (select-frame-set-input-focus vterm-posframe--frame))))
       )))
