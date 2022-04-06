@@ -74,7 +74,8 @@
 ;; -DisLineNum
 
 ;; DisTimeBat
-(display-time-mode nil)
+(display-time-mode t)
+(setq display-time-format "%m-%d %I:%M")
 ;; (display-battery-mode 1)
 ;; -DisTimeBat
 
