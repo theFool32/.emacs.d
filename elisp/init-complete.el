@@ -146,7 +146,7 @@
   :config
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
-  (fset 'cape-tabnine (cape-company-to-capf #'company-tabnine))
+  (fset 'cape-tabnine (cape-interactive-capf (cape-company-to-capf #'company-tabnine)))
   (defun my/convert-super-capf (arg-capf)
     (list
      #'cape-file
