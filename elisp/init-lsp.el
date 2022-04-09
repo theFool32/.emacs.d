@@ -67,7 +67,7 @@
   (lsp-restart 'auto-restart)
 
   (lsp-eldoc-enable-hover t)
-  (lsp-eldoc-render-all t)
+  (lsp-eldoc-render-all nil)
 
   (read-process-output-max (* 1024 1024))
   (lsp-keep-workspace-alive nil)
@@ -85,6 +85,31 @@
     (lsp-enable-which-key-integration)
     (+lsp-optimization-mode +1))
   )
+
+(use-package lsp-ui
+  :after lsp-mode
+  :custom-face
+  (lsp-ui-doc-background ((t (:background nil))))
+  (lsp-ui-doc-header ((t (:inherit (font-lock-string-face italic)))))
+  :hook (lsp-mode . lsp-ui-mode)
+  :bind
+  (:map lsp-ui-doc-frame-mode-map
+        ("C-g" . lsp-ui-doc-unfocus-frame))
+  :custom
+  (lsp-ui-doc-header nil)
+  (lsp-ui-doc-include-signature t)
+  (lsp-ui-doc-enable nil)
+  (lsp-ui-doc-delay 1)
+  (lsp-ui-doc-border (face-foreground 'default))
+  (lsp-ui-sideline-enable nil)
+  (lsp-ui-sideline-ignore-duplicate t)
+  (lsp-ui-sideline-show-code-actions nil)
+  (lsp-ui-sideline-show-diagnostics nil)
+  (lsp-ui-doc-position 'at-point)
+  :config
+  (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
+  (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
+    (setq mode-line-format nil)))
 ;; -LSPPac
 
 (provide 'init-lsp)
