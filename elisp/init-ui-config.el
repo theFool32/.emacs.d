@@ -199,7 +199,7 @@
           "\\*Backtrace\\*"
           "\\*Agenda Commands\\*"
           "\\*eldoc\\*"
-          ;; "\\*Calendar\\*"              ; FIXME: https://github.com/karthink/popper/issues/29
+          "\\*Calendar\\*"              ; FIXME: https://github.com/karthink/popper/issues/29
 
           bookmark-bmenu-mode
           compilation-mode
