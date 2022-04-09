@@ -120,14 +120,23 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
       (consult-outline)
     (consult-imenu)))
 
+
+(defun +my/presorted-completion-table (completions)
+  "Do not sort the COMPLETIONS"
+  (lambda (string pred action)
+    (if (eq action 'metadata)
+        `(metadata (display-sort-function . ,#'identity))
+      (complete-with-action action completions string pred))))
+
 (defun my-open-recent ()
   "Open recent directory in dired or file otherwise."
   (interactive)
   (unless recentf-mode (recentf-mode 1))
   (if (derived-mode-p 'dired-mode)
       (find-file (completing-read "Find recent dirs: "
+                                  (+my/presorted-completion-table
                                   (delete-dups
-                                   (append (mapcar 'file-name-directory recentf-list)))))
+                                   (append (mapcar 'file-name-directory recentf-list)))))) ;;  TODO: maintain recentf-list for dired-mode
     (consult-recent-file)))
 
 (provide 'init-func)
