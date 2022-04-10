@@ -42,6 +42,8 @@
   :diminish
   :commands format-all-buffer
   ;; :hook ((prog-mode) . format-all-ensure-formatter)
+  :config
+  (setq format-all-formatters '(("Python" black)))
   )
 ;; -FormatAllPac
 
