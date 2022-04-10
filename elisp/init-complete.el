@@ -273,8 +273,7 @@ Otherwise, if point is not inside a symbol, return an empty string."
     (copilot-clear-overlay)
     (when (and (evil-insert-state-p)
                (not tempel--active) ;; diable copilot in tempel
-               (not (string= current-input-method "rime")) ;; HACK: enable copilot only for ascii chars
-               (looking-back "[\x00-\xff]"))
+               (looking-back "[\x00-\xff]")) ;; HACK: enable copilot only for ascii chars
       (copilot-complete)))
   (defun +my/copilot-exit-hook ()
     ""

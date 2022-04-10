@@ -97,7 +97,6 @@
 ;; User Interface Enhancements
 (require 'init-ui-config)
 (require 'init-pretty-code)
-(require 'init-theme)
 (require 'init-scroll)
 (require 'init-highlight)
 

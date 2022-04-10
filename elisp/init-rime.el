@@ -122,6 +122,7 @@
     (activate-input-method default-input-method))
   ;; (add-hook 'text-mode-hook 'activate-default-input-method)
   ;; (add-hook 'org-mode-hook 'activate-default-input-method)
+  ;; (add-hook 'prog-mode-hook 'activate-default-input-method)
   )
 
 (provide 'init-rime)
