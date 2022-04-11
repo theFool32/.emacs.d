@@ -20,7 +20,7 @@
 ;;
 ;;; Commentary:
 ;;
-;;   Copy this file to `init-custom.el', and customize options for yourself. 
+;;   Copy this file to `init-custom.el', and customize options for yourself.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -57,6 +57,9 @@
 
 (defconst +self/use-rime t
   "Should we use `rime'")
+
+(defconst my-lsp 'eglot
+  "Which language server to use, eglot or lsp-mode")
 
 (provide 'init-custom)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

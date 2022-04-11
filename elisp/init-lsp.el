@@ -40,77 +40,118 @@
 (eval-when-compile
   (require 'init-const))
 
-;; LSPPac
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :custom
-  (lsp-keymap-prefix nil)
-  (lsp-enable-indentation nil)
-  ;; (lsp-signature-auto-activate nil)
-  (lsp-modeline-code-actions-enable nil)
-  (lsp-semantic-tokens-enable nil)
-  (lsp-headerline-breadcrumb-enable nil)
+(pcase my-lsp
+  ('eglot
+   (use-package eglot
+     :commands (+eglot-organize-imports)
+     :hook (
+            (eglot-managed-mode . (lambda ()
+                                    (+lsp-optimization-mode)
+                                    (leader-def :keymaps 'override
+                                      "ca" '(eglot-code-actions :wk "Code Actions")
+                                      "cr" '(eglot-rename :wk "Rename symbol")
+                                      "cI" '(eglot-code-action-organize-imports :wk "Organize import")
+                                      "ci" '(consult-imenu :wk "imenu")
+                                      "cJ" '(consult-eglot-symbols :wk "Symbols in project")
+                                      "cd" '(eglot-find-declaration :wk "Jump to definition")
+                                      "cF" '(eglot-find-implementation :wk "Find implementation")
+                                      "cD" '(eglot-find-typeDefinition :wk "Find type definition"))
 
-  (lsp-enable-imenu nil)
-  (lsp-idle-delay 0.5)
-  (lsp-log-io nil)
-  (lsp-enable-folding nil)
-  (lsp-auto-guess-root t)
-  (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
-  (lsp-flycheck-live-reporting nil)
-  (lsp-diagnostic-package :none)
-  (lsp-enable-snippet nil)
-  (lsp-enable-file-watchers nil)
-  (lsp-enable-text-document-color nil)
-  (lsp-enable-symbol-highlighting nil)
-  (lsp-enable-on-type-formatting nil)
-  (lsp-restart 'auto-restart)
+                                    (evil-define-key 'normal 'global
+                                      "K" 'eldoc-doc-buffer)
+                                    ))
+            ((python-mode c-mode c++-mode LaTeX-mode) . eglot-ensure)
+            )
+     :init
+     (require 'lsp/+optimization)
+     :config
+     (setq eglot-sync-connect 1
+           eglot-connect-timeout 10
+           eglot-autoshutdown t
+           eglot-send-changes-idle-time 0.5
+           ;; NOTE We disable eglot-auto-display-help-buffer because :select t in
+           ;;      its popup rule causes eglot to steal focus too often.
+           eglot-auto-display-help-buffer nil)
+     (setq eldoc-echo-area-use-multiline-p nil)
+     (setq eglot-stay-out-of '(flymake))
+     ;; (setq eglot-server-programs (remove '(dart-mode "dart_language_server") eglot-server-programs))
+     (defun +eglot-organize-imports() (call-interactively 'eglot-code-action-organize-imports))
+     (add-to-list 'eglot-server-programs '((latex-mode Tex-latex-mode texmode context-mode texinfo-mode bibtex-mode) "texlab"))
+     )
+   )
+  ('lsp-mode
+   ;; LSPPac
+   (use-package lsp-mode
+     :commands (lsp lsp-deferred)
+     :custom
+     (lsp-keymap-prefix nil)
+     (lsp-enable-indentation nil)
+     ;; (lsp-signature-auto-activate nil)
+     (lsp-modeline-code-actions-enable nil)
+     (lsp-semantic-tokens-enable nil)
+     (lsp-headerline-breadcrumb-enable nil)
 
-  (lsp-eldoc-enable-hover t)
-  (lsp-eldoc-render-all nil)
+     (lsp-enable-imenu nil)
+     (lsp-idle-delay 0.5)
+     (lsp-log-io nil)
+     (lsp-enable-folding nil)
+     (lsp-auto-guess-root t)
+     (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
+     (lsp-flycheck-live-reporting nil)
+     (lsp-diagnostic-package :none)
+     (lsp-enable-snippet nil)
+     (lsp-enable-file-watchers nil)
+     (lsp-enable-text-document-color nil)
+     (lsp-enable-symbol-highlighting nil)
+     (lsp-enable-on-type-formatting nil)
+     (lsp-restart 'auto-restart)
 
-  (read-process-output-max (* 1024 1024))
-  (lsp-keep-workspace-alive nil)
-  (gc-cons-threshold 100000000)
-  (lsp-modeline-code-actions-enable nil)
-  (lsp-modeline-diagnostics-enable nil)
-  (lsp-modeline-workspace-status-enable nil)
-  (lsp-completion-provider :none)
+     (lsp-eldoc-enable-hover t)
+     (lsp-eldoc-render-all nil)
 
-  :hook (((python-mode c-mode c++-mode LaTeX-mode) . lsp-deferred)
-         (lsp-mode . +my-lsp-setup))
-  :init
-  (defun +my-lsp-setup ()
-    (require 'lsp/+optimization)
-    (lsp-enable-which-key-integration)
-    (+lsp-optimization-mode +1))
-  )
+     (read-process-output-max (* 1024 1024))
+     (lsp-keep-workspace-alive nil)
+     (gc-cons-threshold 100000000)
+     (lsp-modeline-code-actions-enable nil)
+     (lsp-modeline-diagnostics-enable nil)
+     (lsp-modeline-workspace-status-enable nil)
+     (lsp-completion-provider :none)
 
-(use-package lsp-ui
-  :after lsp-mode
-  :custom-face
-  (lsp-ui-doc-background ((t (:background nil))))
-  (lsp-ui-doc-header ((t (:inherit (font-lock-string-face italic)))))
-  :hook (lsp-mode . lsp-ui-mode)
-  :bind
-  (:map lsp-ui-doc-frame-mode-map
-        ("C-g" . lsp-ui-doc-unfocus-frame))
-  :custom
-  (lsp-ui-doc-header nil)
-  (lsp-ui-doc-include-signature t)
-  (lsp-ui-doc-enable nil)
-  (lsp-ui-doc-delay 1)
-  (lsp-ui-doc-border (face-foreground 'default))
-  (lsp-ui-sideline-enable nil)
-  (lsp-ui-sideline-ignore-duplicate t)
-  (lsp-ui-sideline-show-code-actions nil)
-  (lsp-ui-sideline-show-diagnostics nil)
-  (lsp-ui-doc-position 'at-point)
-  :config
-  (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
-  (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
-    (setq mode-line-format nil)))
-;; -LSPPac
+     :hook (((python-mode c-mode c++-mode LaTeX-mode) . lsp-deferred)
+            (lsp-mode . +my-lsp-setup))
+     :init
+     (defun +my-lsp-setup ()
+       (require 'lsp/+optimization)
+       (lsp-enable-which-key-integration)
+       (+lsp-optimization-mode +1))
+     )
+
+   (use-package lsp-ui
+     :after lsp-mode
+     :custom-face
+     (lsp-ui-doc-background ((t (:background nil))))
+     (lsp-ui-doc-header ((t (:inherit (font-lock-string-face italic)))))
+     :hook (lsp-mode . lsp-ui-mode)
+     :bind
+     (:map lsp-ui-doc-frame-mode-map
+           ("C-g" . lsp-ui-doc-unfocus-frame))
+     :custom
+     (lsp-ui-doc-header nil)
+     (lsp-ui-doc-include-signature t)
+     (lsp-ui-doc-enable nil)
+     (lsp-ui-doc-delay 1)
+     (lsp-ui-doc-border (face-foreground 'default))
+     (lsp-ui-sideline-enable nil)
+     (lsp-ui-sideline-ignore-duplicate t)
+     (lsp-ui-sideline-show-code-actions nil)
+     (lsp-ui-sideline-show-diagnostics nil)
+     (lsp-ui-doc-position 'at-point)
+     :config
+     (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
+     (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
+       (setq mode-line-format nil)))
+   ;; -LSPPac
+   ))
 
 (provide 'init-lsp)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

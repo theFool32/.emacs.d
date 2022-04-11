@@ -38,7 +38,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'init-flycheck)
   (require 'init-const))
 
 (use-package python

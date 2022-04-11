@@ -142,7 +142,7 @@
 
   :hook ((prog-mode . my/set-basic-capf)
          (org-mode . my/set-basic-capf)
-         (lsp-completion-mode . my/set-lsp-capf))
+         ((lsp-completion-mode eglot-managed-mode). my/set-lsp-capf))
   :config
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
@@ -165,7 +165,10 @@
 
   (defun my/set-lsp-capf ()
     (setq completion-category-defaults nil)
-    (setq-local completion-at-point-functions (my/convert-super-capf #'lsp-completion-at-point))
+    (setq-local completion-at-point-functions (my/convert-super-capf
+                                               (if (eq my-lsp 'eglot)
+                                                   #'eglot-completion-at-point
+                                                 #'lsp-completion-at-point)))
 
     ;; HACK
     (when (derived-mode-p 'latex-mode)
