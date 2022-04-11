@@ -113,7 +113,25 @@ The original function deletes trailing whitespace of the current line."
                      "recentf"
                      "undo-tree-hist"
                      "url"
-                     "COMMIT_EDITMSG\\'")))
+                     "COMMIT_EDITMSG\\'"))
+  :config
+  (defun recentf-track-opened-file ()
+    "Insert the name of the dired or file just opened or written into the recent list."
+    (let ((buff-name (or buffer-file-name (and (derived-mode-p 'dired-mode) default-directory))))
+      (and buff-name
+           (recentf-add-file buff-name)))
+    ;; Must return nil because it is run from `write-file-functions'.
+    nil)
+
+  (defun recentf-track-closed-file ()
+    "Update the recent list when a file or dired buffer is killed.
+That is, remove a non kept file from the recent list."
+    (let ((buff-name (or buffer-file-name (and (derived-mode-p 'dired-mode) default-directory))))
+      (and buff-name
+           (recentf-remove-if-non-kept buff-name))))
+
+  (add-hook 'dired-after-readin-hook 'recentf-track-opened-file) ;;  BUG: not work with dirvish
+  )
 
 ;; When buffer is closed, saves the cursor location
 (save-place-mode 1)

@@ -68,6 +68,7 @@
         ("TAB" . corfu-next)
         ([tab] . corfu-next)
         ("C-n" . corfu-next)
+        ("C-j" . corfu-insert)
         ("S-SPC" . corfu-insert-separator)
         ("S-TAB" . corfu-previous)
         ("C-p" . corfu-previous)
