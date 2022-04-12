@@ -59,7 +59,14 @@
   :straight (:host github :repo "manateelazycat/color-rg")
   :if *rg*
   :init
-  (setq color-rg-mac-load-path-from-shell nil))
+  (setq color-rg-mac-load-path-from-shell nil)
+
+  (defun color-rg-project-root-dir ()
+    (let ((project (project-current)))
+      (if project
+          (project-root project) ;;  HACK: original repo breaks here
+        default-directory)))
+  )
 ;; -ColorRGPac
 
 

@@ -112,7 +112,6 @@
     "el" '((lambda()(interactive)(call-interactively 'flycheck-list-errors) (select-window (get-buffer-window "*Flycheck errors*"))) :wk "List errors")
     "en" '(flycheck-next-error :wk "Next error")
     "ep" '(flycheck-previous-error :wk "Previous error")
-    "ee" '(flycheck-explain-error-at-point :wk "Explain error at point")
     "ev" '(flycheck-verify-setup :wk "Verify setup")
     "es" '(flycheck-select-checker :wk "Select checker")
 
@@ -133,7 +132,6 @@
     "tl" '(toggle-truncate-lines :wk "Line wrap")
     "td" '(toggle-debug-on-error :wk "Debug on error")
     "tt" '(dirvish :wk "Dirvish")
-    "ti" '(imenu-list-smart-toggle :wk "Imenu-list")
     "te" '(vterm-posframe-toggle :wk "Shell")
     "tc" '(olivetti-mode :wk "Center")
 
