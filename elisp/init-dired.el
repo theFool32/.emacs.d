@@ -148,9 +148,10 @@ Version 2019-11-04"
       (with-eval-after-load 'general
         (general-define-key :states '(normal)
                             :keymaps 'dirvish-mode-map
-                            "?" 'dirvish-menu-all-cmds))))
-  (use-package dirvish-extras
-    :straight nil)
+                            "?" 'dirvish-menu-all-cmds)))
+    (use-package dirvish-extras
+      :straight nil)
+    )
   )
 
 

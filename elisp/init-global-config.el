@@ -115,22 +115,21 @@ The original function deletes trailing whitespace of the current line."
                      "url"
                      "COMMIT_EDITMSG\\'"))
   :config
-  (defun recentf-track-opened-file ()
-    "Insert the name of the dired or file just opened or written into the recent list."
-    (let ((buff-name (or buffer-file-name (and (derived-mode-p 'dired-mode) default-directory))))
-      (and buff-name
-           (recentf-add-file buff-name)))
+  (defun recentd-track-opened-file ()
+    "Insert the name of the directory just opened into the recent list."
+    (and (derived-mode-p 'dired-mode) default-directory
+         (recentf-add-file default-directory))
     ;; Must return nil because it is run from `write-file-functions'.
     nil)
 
-  (defun recentf-track-closed-file ()
-    "Update the recent list when a file or dired buffer is killed.
-That is, remove a non kept file from the recent list."
-    (let ((buff-name (or buffer-file-name (and (derived-mode-p 'dired-mode) default-directory))))
-      (and buff-name
-           (recentf-remove-if-non-kept buff-name))))
+  (defun recentd-track-closed-file ()
+    "Update the recent list when a dired buffer is killed.
+That is, remove a non kept dired from the recent list."
+    (and (derived-mode-p 'dired-mode) default-directory
+         (recentf-remove-if-non-kept default-directory)))
 
-  (add-hook 'dired-after-readin-hook 'recentf-track-opened-file) ;;  BUG: not work with dirvish
+  (add-hook 'dired-after-readin-hook 'recentd-track-opened-file)
+  (add-hook 'kill-buffer-hook 'recentd-track-closed-file)
   )
 
 ;; When buffer is closed, saves the cursor location
