@@ -153,7 +153,7 @@
      #'cape-file
      (cape-capf-buster
       (cape-super-capf arg-capf
-                       #'cape-tabnine
+                       ;; #'cape-tabnine
                        #'tempel-expand)
       'equal)
      ;; #'cape-dabbrev

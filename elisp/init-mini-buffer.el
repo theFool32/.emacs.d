@@ -309,6 +309,37 @@ When the number of characters in a buffer exceeds this threshold,
           (setq-local consult--regexp-compiler #'consult--orderless-regexp-compiler))
       (apply args)))
   (advice-add #'consult-ripgrep :around #'consult--with-orderless)
+
+  (defun consult-clock-in (&optional match scope resolve)
+    "Clock into an Org heading."
+    (interactive (list nil nil current-prefix-arg))
+    (require 'org-clock)
+    (org-clock-load)
+    (save-window-excursion
+      (consult-org-heading
+       match
+       (or scope
+           (thread-last org-clock-history
+                        (mapcar 'marker-buffer)
+                        (mapcar 'buffer-file-name)
+                        (delete-dups)
+                        (delq nil))
+           (user-error "No recent clocked tasks")))
+      (org-clock-in nil (when resolve
+                          (org-resolve-clocks)
+                          (org-read-date t t)))))
+
+  (consult-customize consult-clock-in
+                     :prompt "Clock in: "
+                     :preview-key (kbd "M-.")
+                     :group
+                     (lambda (cand transform)
+                       (let* ((marker (get-text-property 0 'consult--candidate cand))
+                              (bname (buffer-name (marker-buffer marker)))
+                              (name (if (member marker org-clock-history)
+                                        "*Recent*"
+                                      bname)))
+                         (if transform (substring cand (1+ (length bname))) name))))
   )
 
 (use-package consult-project-extra

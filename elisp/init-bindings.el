@@ -106,6 +106,8 @@
     "cr" '(lsp-rename :wk "LSP rename")
     "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
     "cm" '(symbol-overlay-put :wk "Mark")
+    "ci" '(consult-clock-in :wk "Clock in") ;;  HACK: not code-related
+    "co" '(org-clock-out :wk "Clock out")
 
     "e" '(:wk "Error")
     "eb" '(flycheck-buffer :wk "Check current buffer")
@@ -129,11 +131,11 @@
 
     "w" '(:wk "Window")
     ;; :sp
-    "wH" '(split-window-vertically :wk "Split window vertically")
-    "-" '(split-window-vertically :wk "Split window vertically")
+    "wH" '(evil-window-split :wk "Split window vertically")
+    "-" '(evil-window-split :wk "Split window vertically")
     ;; :vsp
-    "wv" '(split-window-horizontally :wk "Split window horizontally")
-    "\\" '(split-window-horizontally :wk "Split window horizontally")
+    "wv" '(evil-window-vsplit :wk "Split window horizontally")
+    "\\" '(evil-window-vsplit :wk "Split window horizontally")
     "wj" '(evil-window-down :wk "Focus window down")
     "wk" '(evil-window-up :wk "Focus window up")
     "wh" '(evil-window-left :wk "Focus window left")
