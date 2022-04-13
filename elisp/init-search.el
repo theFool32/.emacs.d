@@ -69,6 +69,16 @@
   )
 ;; -ColorRGPac
 
+(use-package pinyinlib
+  :after orderless
+  :config
+  (defun completion--regex-pinyin (str)
+    (orderless-regexp (pinyinlib-build-regexp-string str)))
+  ;;  TODO: 使用双拼声母
+  ;; 使用拼音缩写
+  (add-to-list 'orderless-matching-styles 'completion--regex-pinyin)
+  )
+
 
 (provide 'init-search)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
