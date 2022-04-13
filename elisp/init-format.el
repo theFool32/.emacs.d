@@ -41,9 +41,9 @@
 (use-package format-all
   :diminish
   :commands format-all-buffer
-  ;; :hook ((prog-mode) . format-all-ensure-formatter)
+  :hook ((prog-mode) . format-all-ensure-formatter)
   :config
-  (setq format-all-formatters '(("Python" black)))
+  (setq format-all-formatters '(("Python" black))) ;;  BUG: doesn't work to set the default formatter
   )
 ;; -FormatAllPac
 
