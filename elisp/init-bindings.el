@@ -127,6 +127,19 @@
     "gf" '(magit-fetch :wk "fetch")
     "gF" '(magit-pull :wk "pull")
 
+    "w" '(:wk "Window")
+    ;; :sp
+    "wH" '(split-window-vertically :wk "Split window vertically")
+    "-" '(split-window-vertically :wk "Split window vertically")
+    ;; :vsp
+    "wv" '(split-window-horizontally :wk "Split window horizontally")
+    "\\" '(split-window-horizontally :wk "Split window horizontally")
+    "wj" '(evil-window-down :wk "Focus window down")
+    "wk" '(evil-window-up :wk "Focus window up")
+    "wh" '(evil-window-left :wk "Focus window left")
+    "wl" '(evil-window-right :wk "Focus window right")
+    "w=" '(balance-windows :wk "balance windows")
+    "wq" '(evil-quit :wk "close window")
 
     "t" '(:wk "Toggle")
     "tl" '(toggle-truncate-lines :wk "Line wrap")

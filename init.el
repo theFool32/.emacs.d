@@ -125,6 +125,7 @@
 
 (add-hook 'after-init-hook
           #'(lambda ()
+              (cfw:open-org-calendar)
               (+my/open-org-agenda)
               (evil-window-right 1)))
 
