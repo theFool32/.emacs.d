@@ -43,7 +43,7 @@
 (pcase my-lsp
   ('eglot
    (use-package eglot
-     :commands (+eglot-organize-imports)
+     :commands (+eglot-organize-imports +eglot-help-at-point)
      :hook (
             (eglot-managed-mode . (lambda ()
                                     (+lsp-optimization-mode)
@@ -58,7 +58,7 @@
                                       "cD" '(eglot-find-typeDefinition :wk "Find type definition"))
 
                                     (evil-define-key 'normal 'global
-                                      "K" 'eldoc-doc-buffer)
+                                      "K" '+eglot-help-at-point)
                                     ))
             ((python-mode c-mode c++-mode LaTeX-mode) . eglot-ensure)
             )
@@ -74,9 +74,41 @@
            eglot-auto-display-help-buffer nil)
      (setq eldoc-echo-area-use-multiline-p nil)
      (setq eglot-stay-out-of '(flymake))
-     ;; (setq eglot-server-programs (remove '(dart-mode "dart_language_server") eglot-server-programs))
+     (setq eglot-ignored-server-capabilities '(:documentHighlightProvider :foldingRangeProvider :colorProvider :codeLensProvider :documentOnTypeFormattingProvider :executeCommandProvider))
      (defun +eglot-organize-imports() (call-interactively 'eglot-code-action-organize-imports))
      (add-to-list 'eglot-server-programs '((latex-mode Tex-latex-mode texmode context-mode texinfo-mode bibtex-mode) "texlab"))
+
+     ;; HACK Eglot removed `eglot-help-at-point' in joaotavora/eglot@a044dec for a
+     ;;      more problematic approach of deferred to eldoc. Here, I've restored it.
+     ;;      Doom's lookup handlers try to open documentation in a separate window
+     ;;      (so they can be copied or kept open), but doing so with an eldoc buffer
+     ;;      is difficult because a) its contents are generated asynchronously,
+     ;;      making them tough to scrape, and b) their contents change frequently
+     ;;      (every time you move your cursor).
+     (defvar +eglot--help-buffer nil)
+     (defun +eglot-lookup-documentation (_identifier)
+       "Request documentation for the thing at point."
+       (eglot--dbind ((Hover) contents range)
+                     (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
+                                      (eglot--TextDocumentPositionParams))
+                     (let ((blurb (and (not (seq-empty-p contents))
+                                       (eglot--hover-info contents range)))
+                           (hint (thing-at-point 'symbol)))
+                       (if blurb
+                           (with-current-buffer
+                               (or (and (buffer-live-p +eglot--help-buffer)
+                                        +eglot--help-buffer)
+                                   (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
+                             (with-help-window (current-buffer)
+                               (rename-buffer (format "*eglot-help for %s*" hint))
+                               (with-current-buffer standard-output (insert blurb))
+                               (setq-local nobreak-char-display nil)))
+                         (display-local-help))))
+       'deferred)
+
+     (defun +eglot-help-at-point()
+       (interactive)
+       (+eglot-lookup-documentation nil))
      )
    )
   ('lsp-mode

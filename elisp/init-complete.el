@@ -48,6 +48,7 @@
 
 (use-package corfu
   ;; Optional customizations
+  :straight (corfu :includes (corfu-indexed corfu-quick) :files (:defaults "extensions/corfu-*.el"))
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
@@ -89,6 +90,12 @@
     (corfu--goto -1)
     (goto-char (cadr completion-in-region--data)))
 
+  (add-to-list 'corfu-auto-commands 'grammatical-edit-open-round)
+  (add-to-list 'corfu-auto-commands 'grammatical-edit-open-bracket)
+  (add-to-list 'corfu-auto-commands 'grammatical-edit-open-curly)
+
+  (advice-add #'keyboard-quit :before #'corfu-quit)
+
   ;; (define-key corfu-map [remap move-beginning-of-line] #'corfu-beginning-of-prompt)
   ;; (define-key corfu-map [remap move-end-of-line] #'corfu-end-of-prompt)
   (add-to-list 'corfu-auto-commands 'end-of-visual-line)
@@ -127,6 +134,11 @@
       ;; (setq-local corfu-auto nil) Enable/disable auto completion
       (corfu-mode 1)))
   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
+
+  (use-package corfu-quick
+    :bind
+    (:map corfu-map
+          ("C-q" . corfu-quick-insert)))
   )
 
 (use-package emacs
@@ -270,31 +282,21 @@ Otherwise, if point is not inside a symbol, return an empty string."
   :straight (:host github :repo "zerolfx/copilot.el"
                    :files ("dist" "copilot.el"))
   :ensure t
+  :hook ((prog-mode text-mode) . copilot-mode)
+  :bind
+  (("C-c n" . copilot-next-completion)
+   ("C-c p" . copilot-previous-completion))
   :config
-  (set-face-foreground 'copilot-overlay-face "red") ;; TODO: find a better color
-  (defun +my/copilot-post-hook ()
-    "hook for post-command-hook"
-    (copilot-clear-overlay)
-    (when (and (evil-insert-state-p)
-               (not tempel--active) ;; diable copilot in tempel
-               (looking-back "[\x00-\xff]")) ;; HACK: enable copilot only for ascii chars
-      (copilot-complete)))
-  (defun +my/copilot-exit-hook ()
-    ""
-    (copilot-clear-overlay))
+  (set-face-foreground 'copilot-overlay-face "pink") ;; TODO: find a better color
 
-  (defun +my/turn-on-copilot ()
-    ""
-    (interactive)
-    (add-hook 'post-command-hook '+my/copilot-post-hook)
-    (add-hook 'evil-insert-state-exit-hook '+my/copilot-exit-hook))
-  (defun +my/turn-off-copilot ()
-    ""
-    (interactive)
-    (remove-hook 'post-command-hook '+my/copilot-post-hook)
-    (remove-hook 'evil-insert-state-exit-hook '+my/copilot-exit-hook))
+  (defun +my/corfu-candidates-p ()
+    (or (not (eq corfu--candidates nil))
+        (derived-mode-p 'minibuffer-mode)
+        tempel--active ;; diable copilot in tempel
+        (not (looking-back "[\x00-\xff]"))))
 
-  (call-interactively '+my/turn-on-copilot)
+  (customize-set-variable 'copilot-enable-predicates '(evil-insert-state-p))
+  (customize-set-variable 'copilot-disable-predicates '(+my/corfu-candidates-p))
 
   (defun my/copilot-or-tempel-expand-or-next ()
     "Try tempel expand, if failed, try copilot expand."
