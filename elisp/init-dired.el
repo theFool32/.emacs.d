@@ -137,6 +137,8 @@ Version 2019-11-04"
     :after dired
     :custom
     (dirvish-attributes '(all-the-icons file-size))
+    (dirvish-side-follow-buffer-file t)
+    (dirvish-enabled-features-on-remote '(extras vc))
     :init
     (dirvish-override-dired-mode)
     :config
