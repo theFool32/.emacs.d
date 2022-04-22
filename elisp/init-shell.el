@@ -63,7 +63,7 @@
     ;;                                          (vterm-send-string " && printf '\\033[6 q'")))
 
     ;; https://github.com/akermu/emacs-libvterm#how-can-i-get-the-directory-tracking-in-a-more-understandable-way
-    (add-to-list 'vterm-eval-cmds '("update-pwd" (lambda (path) (setq default-directory path))))
+    ;; (add-to-list 'vterm-eval-cmds '("update-pwd" (lambda (path) (setq default-directory path))))
 
     (with-no-warnings
       (defvar vterm-posframe--frame nil)
