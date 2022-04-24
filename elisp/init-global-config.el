@@ -204,7 +204,8 @@ That is, remove a non kept dired from the recent list."
 (use-package gcmh
   :hook (+self/first-input . gcmh-mode)
   :init
-  (setq gcmh-idle-delay 0.5
+  (setq gcmh-idle-delay 'auto
+        gcmh-auto-idle-delay-factor 10
         gcmh-high-cons-threshold (* 64 1024 1024)))
 
 (setq vc-follow-symlinks t)
