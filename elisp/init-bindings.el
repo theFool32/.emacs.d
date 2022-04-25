@@ -22,7 +22,7 @@
     :prefix ",")
 
   (local-leader-def
-    "w" 'evil-avy-goto-char
+    "w" 'evil-avy-goto-word-1
     "/" 'evilnc-comment-or-uncomment-lines)
 
   ;; evil mode

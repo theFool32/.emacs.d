@@ -84,8 +84,8 @@
   ;; (org-babel-do-load-languages 'org-babel-load-languages
   ;;                              load-language-list)
 
-  (setq org-clock-persist t
-        org-clock-persist-file (concat +self/org-base-dir "org-clock-save.el"))
+  ;; (setq org-clock-persist t
+  ;;       org-clock-persist-file (concat +self/org-base-dir "org-clock-save.el"))
   (with-eval-after-load 'org
     (org-clock-persistence-insinuate))
 
@@ -389,6 +389,52 @@
       "r" 'org-agenda-refile
       "t" 'org-agenda-todo)
     )
+
+
+  (defun org-clock-merge (arg)
+    "Merge the org CLOCK line with the next CLOCK line.
+
+Requires that the time ranges in two lines overlap, i.e. the
+start time of the first line and the second time of the second
+line are identical.
+
+If the testing fails, move the cursor one line down.
+
+Universal argument ARG overrides the test and merges
+the lines even if the ranges do not overlap."
+
+    (interactive "P")
+    (let* ((org-clock-regexp (concat "CLOCK: " org-ts-regexp3 "--" org-ts-regexp3))
+           (first-line-start (line-beginning-position))
+           (first-line (buffer-substring
+                        (line-beginning-position) (line-end-position)))
+           (first-line-t1 (if (string-match org-clock-regexp first-line)
+                              (match-string 1 first-line)
+                            (progn
+                              (forward-line)
+                              (user-error "The first line must have a valid CLOCK range"))))
+           (first-line-t2 (match-string 9 first-line))
+           (second-line (progn
+                          (forward-line)
+                          (buffer-substring
+                           (line-beginning-position) (line-end-position))))
+           (second-line-t1 (if (string-match org-clock-regexp second-line)
+                               (match-string 1 second-line)
+                             (user-error "The second line must have a valid CLOCK range")))
+           (second-line-t2 (match-string 9 second-line)))
+
+      ;; check if lines should be merged
+      (unless (or arg (equal first-line-t1 second-line-t2))
+        (user-error "Clock ranges not continuous. Override with universal argument"))
+
+      ;; remove the two lines
+      (delete-region first-line-start (line-end-position))
+      ;; indent
+      (org-cycle)
+      ;; insert new time range
+      (insert (concat "CLOCK: [" second-line-t1 "]--[" first-line-t2 "]"))
+      ;; generate duration
+      (org-ctrl-c-ctrl-c)))
   )
 ;; -OrgPac
 
@@ -449,8 +495,10 @@
                                 :visible "▼")))
 
 (use-package valign
-  :hook ((org-mode . valign-mode)
-         (org-agenda-mode . valign-mode)))
+  :after org
+  ;; :hook ((org-mode . valign-mode)
+  ;;        (org-agenda-mode . valign-mode))
+  )
 
 (defun +my/open-org-agenda ()
   "open org agenda in left window"
