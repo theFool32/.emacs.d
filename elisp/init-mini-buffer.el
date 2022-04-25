@@ -310,24 +310,30 @@ When the number of characters in a buffer exceeds this threshold,
       (apply args)))
   (advice-add #'consult-ripgrep :around #'consult--with-orderless)
 
-  (defun consult-clock-in (&optional match scope resolve)
-    "Clock into an Org heading."
-    (interactive (list nil nil current-prefix-arg))
-    (require 'org-clock)
-    (org-clock-load)
+  ;; (defun consult-clock-in (&optional match scope resolve)
+  ;;   "Clock into an Org heading."
+  ;;   (interactive (list nil nil current-prefix-arg))
+  ;;   (require 'org-clock)
+  ;;   (org-clock-load)
+  ;;   (save-window-excursion
+  ;;     (consult-org-heading
+  ;;      match
+  ;;      (or scope
+  ;;          (thread-last org-clock-history
+  ;;                       (mapcar 'marker-buffer)
+  ;;                       (mapcar 'buffer-file-name)
+  ;;                       (delete-dups)
+  ;;                       (delq nil))
+  ;;          (user-error "No recent clocked tasks")))
+  ;;     (org-clock-in nil (when resolve
+  ;;                         (org-resolve-clocks)
+  ;;                         (org-read-date t t)))))
+  (defun consult-clock-in ()
+    "Clock into an Org agenda heading."
+    (interactive)
     (save-window-excursion
-      (consult-org-heading
-       match
-       (or scope
-           (thread-last org-clock-history
-                        (mapcar 'marker-buffer)
-                        (mapcar 'buffer-file-name)
-                        (delete-dups)
-                        (delq nil))
-           (user-error "No recent clocked tasks")))
-      (org-clock-in nil (when resolve
-                          (org-resolve-clocks)
-                          (org-read-date t t)))))
+      (consult-org-agenda)
+      (org-clock-in)))
 
   (consult-customize consult-clock-in
                      :prompt "Clock in: "
