@@ -90,7 +90,8 @@
   (set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend))
 
 
-(add-to-list 'initial-frame-alist '(fullscreen . fullboth))
+;; (add-to-list 'initial-frame-alist '(fullscreen . fullboth))
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (custom-set-variables '(x-select-enable-clipboard t))
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 

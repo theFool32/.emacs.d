@@ -76,7 +76,7 @@
         ([?\r] . newline)
         ([backtab] . corfu-previous))
   :init
-  (corfu-global-mode)
+  (global-corfu-mode)
   :config
   (defun corfu-beginning-of-prompt ()
     "Move to beginning of completion input."
