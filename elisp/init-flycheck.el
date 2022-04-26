@@ -87,6 +87,11 @@
                       "g" '(flyspell-auto-correct-word :wk "Auto correct")
                       "d" '(flyspell-correct-word-before-point :wk "Correct word")))
 
+(use-package flycheck-grammarly
+  ;; use it with `flycheck-grammarly-setup'
+  :after flycheck
+  :straight (:host github :repo "emacs-grammarly/flycheck-grammarly"))
+
 (provide 'init-flycheck)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-flycheck.el ends here
