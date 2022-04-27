@@ -61,7 +61,6 @@
 
   (when (eq my-lsp 'lsp-mode)
     (use-package lsp-pyright
-      ;; :when (eq my-lsp 'lsp-mode)  ;;  BUG: not work
       :after lsp-mode
       :init
       (setq lsp-pyright-multi-root nil)

@@ -136,7 +136,7 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
       (find-file (completing-read "Find recent dirs: "
                                   (+my/presorted-completion-table
                                   (delete-dups
-                                   (append (mapcar 'file-name-directory recentf-list)))))) ;;  TODO: maintain recentf-list for dired-mode
+                                   (append (mapcar 'file-name-directory recentf-list))))))
     (consult-recent-file)))
 
 (provide 'init-func)

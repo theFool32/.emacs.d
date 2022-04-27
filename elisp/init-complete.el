@@ -279,6 +279,7 @@ Otherwise, if point is not inside a symbol, return an empty string."
 
 (use-package copilot
   :after corfu
+  :bind ("M-k" . copilot-accept-completion-by-word) ;;  TODO: which :map should be used?
   :straight (:host github :repo "zerolfx/copilot.el"
                    :files ("dist" "copilot.el"))
   :ensure t
@@ -287,7 +288,7 @@ Otherwise, if point is not inside a symbol, return an empty string."
   (("C-c n" . copilot-next-completion)
    ("C-c p" . copilot-previous-completion))
   :config
-  (set-face-foreground 'copilot-overlay-face "pink") ;; TODO: find a better color
+  (set-face-foreground 'copilot-overlay-face "pink")
 
   (defun +my/corfu-candidates-p ()
     (or (not (eq corfu--candidates nil))
