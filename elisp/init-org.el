@@ -86,6 +86,8 @@
 
   ;; (setq org-clock-persist t
   ;;       org-clock-persist-file (concat +self/org-base-dir "org-clock-save.el"))
+
+  (set-face-attribute 'org-table nil :family "Sarasa Mono SC" :weight 'semi-bold)
   (with-eval-after-load 'org
     (org-clock-persistence-insinuate))
 
