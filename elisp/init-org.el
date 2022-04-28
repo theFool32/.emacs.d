@@ -77,12 +77,24 @@
   (org-agenda-todo-ignore-scheduled 'future)
 
   :config
-  ;; TODO: slow
-  ;; (defvar load-language-list '((emacs-lisp . t)
-  ;;                              (python . t)
-  ;;                              (C . t)))
-  ;; (org-babel-do-load-languages 'org-babel-load-languages
-  ;;                              load-language-list)
+  (with-eval-after-load 'org (setq org-modules '()))
+
+  (defun my/org-babel-execute-src-block (&optional _arg info _params)
+    "Load language if needed"
+    (let* ((lang (nth 0 info))
+           (sym (if (member (downcase lang) '("c" "cpp" "c++")) 'C (intern lang)))
+           (backup-languages org-babel-load-languages)
+           (pair (assoc sym backup-languages)))
+      ;; - `(LANG . nil)' 是有意义的，不宜覆盖，详见 `org-babel-do-load-languages'。
+      ;; - 只加载当前语言，「按需」到底。
+      (unwind-protect
+          (org-babel-do-load-languages 'org-babel-load-languages (list (cons sym t)))
+        (setq-default org-babel-load-languages
+                      (if pair
+                          backup-languages
+                        (append (list (cons sym t)) backup-languages))))))
+
+  (advice-add 'org-babel-execute-src-block :before #'my/org-babel-execute-src-block )
 
   ;; (setq org-clock-persist t
   ;;       org-clock-persist-file (concat +self/org-base-dir "org-clock-save.el"))
@@ -169,9 +181,9 @@
   ;; (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
   (add-hook 'after-change-major-mode-hook
             (lambda () (if (equal show-paren-mode 't)
-    		          (when (derived-mode-p 'org-mode)
-    		            (show-paren-mode -1))
-                    (show-paren-mode 1))))
+    		               (when (derived-mode-p 'org-mode)
+    		                 (show-paren-mode -1))
+                         (show-paren-mode 1))))
 
   ;; https://emacs-china.org/t/topic/2119/15
   (defun my--diary-chinese-anniversary (lunar-month lunar-day &optional year mark)
