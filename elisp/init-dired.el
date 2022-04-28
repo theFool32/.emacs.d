@@ -39,7 +39,6 @@
 
 ;; DiredPackage
 (use-package dired
-  :defer t
   :straight nil
   :custom
   ;; Always delete and copy recursively
@@ -101,60 +100,53 @@ Version 2019-11-04"
                         "h"  'dired-up-directory
                         "C-<return>" 'xah-open-in-external-app)
     )
-
-  ;; Colourful dired
-  (use-package diredfl
-    :hook (dired-mode . diredfl-mode))
-
-  (use-package dired-git-info
-    :after dired
-    :config
-    (evil-define-key 'normal dired-mode-map ")" 'dired-git-info-mode))
-
-  ;; Extra Dired functionality
-  (use-package dired-x
-    :straight nil
-    :demand
-    :hook (dired-mode . dired-omit-mode)
-    :config
-    (setq dired-omit-files
-          (concat dired-omit-files
-                  "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
-
-  ;; `find-dired' alternative using `fd'
-  (when (executable-find "fd")
-    (use-package fd-dired))
-
-  (use-package dired-narrow) ;; use `s' for fliter
-  (use-package dired-open
-    :config
-    (setq dired-open-extensions
-          (mapcar (lambda (ext)
-                    (cons ext "open")) '("pdf" "doc" "docx" "ppt" "pptx"))))
-
-  (use-package dirvish  ;; `(' for details.
-    :straight (dirvish :type git :host github :repo "alexluigit/dirvish")
-    :after dired
-    :custom
-    (dirvish-attributes '(all-the-icons file-size))
-    (dirvish-side-follow-buffer-file t)
-    (dirvish-enabled-features-on-remote '(extras vc))
-    :init
-    (dirvish-override-dired-mode)
-    :config
-    (set-face-attribute 'ansi-color-blue nil :foreground "#FFFFFF")
-
-    (use-package dirvish-menu
-      :straight nil
-      :config
-      (with-eval-after-load 'general
-        (general-define-key :states '(normal)
-                            :keymaps 'dirvish-mode-map
-                            "?" 'dirvish-menu-all-cmds)))
-    (use-package dirvish-extras
-      :straight nil)
-    )
   )
+
+;; Colourful dired
+(use-package diredfl
+  :hook (dired-mode . diredfl-mode))
+
+(use-package dired-git-info
+  :after dired
+  :config
+  (evil-define-key 'normal dired-mode-map ")" 'dired-git-info-mode))
+
+;; Extra Dired functionality
+(use-package dired-x
+  :straight nil
+  :demand
+  :hook (dired-mode . dired-omit-mode)
+  :config
+  (setq dired-omit-files
+        (concat dired-omit-files
+                "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
+
+(use-package fd-dired
+  :if *fd*
+  :after dired)
+
+(use-package dired-narrow
+  :after dired) ;; use `s' for fliter
+(use-package dired-open
+  :after dired
+  :config
+  (setq dired-open-extensions
+        (mapcar (lambda (ext)
+                  (cons ext "open")) '("pdf" "doc" "docx" "ppt" "pptx"))))
+
+(use-package dirvish  ;; `(' for details.
+  :straight (dirvish :type git :host github :repo "alexluigit/dirvish")
+  :hook (+self/first-input . dirvish-override-dired-mode)
+  :after dired
+  :custom
+  (dirvish-attributes '(all-the-icons file-size))
+  (dirvish-side-follow-buffer-file t)
+  (dirvish-enabled-features-on-remote '(extras vc))
+  :config
+  (set-face-attribute 'ansi-color-blue nil :foreground "#FFFFFF")
+
+  (use-package dirvish-extras
+    :straight nil))
 
 
 
@@ -165,8 +157,7 @@ Version 2019-11-04"
   (save-some-buffers t))
 (with-eval-after-load 'general
   (general-def "C-x C-s" nil)
-  (general-def "C-x C-s" 'save-all-buffers)
-  )
+  (general-def "C-x C-s" 'save-all-buffers))
 ;; -SaveAllBuffers
 
 (provide 'init-dired)

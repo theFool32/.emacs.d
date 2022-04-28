@@ -90,11 +90,9 @@
                         "C-h" 'evil-window-left
                         "C-j" 'evil-window-down
                         "C-k" 'evil-window-up
-                        "C-l" 'evil-window-right)
-    )
+                        "C-l" 'evil-window-right))
 
-  (require 'evil/+packages)
-  )
+  (require 'evil/+packages))
 
 ;;
 

@@ -51,9 +51,11 @@
 
 (use-package tree-sitter
   :defer t
+  :commands tree-sitter-hl-mode
   :hook ((python-mode) . tree-sitter-hl-mode))
 
 (use-package tree-sitter-langs
+  :defer t
   :after tree-sitter)
 
 (provide 'init-tree-sitter)

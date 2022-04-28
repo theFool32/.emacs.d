@@ -147,13 +147,13 @@ unreadable. Returns the names of envvars that were changed."
       (executable-find "/usr/local/opt/llvm/bin/clangd"))  ;; macOS
   "Do we have clangd?")
 
-(defconst *pdflatex*
-  (executable-find "pdflatex")
-  "Do we have pdflatex?")
-
 (defconst *rga*
   (executable-find "rga")
   "Do we have rga")
+
+(defconst *fd*
+  (executable-find "fd")
+  "Do we have fd")
 
 ;; -Consts
 

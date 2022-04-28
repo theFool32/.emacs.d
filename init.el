@@ -121,11 +121,11 @@
 (require 'init-rime)
 (require 'init-lookup)
 (require 'init-shell)
-(require 'init-persp)
+;; (require 'init-persp)
 
-(add-hook 'after-init-hook
+(add-hook 'window-setup-hook
           #'(lambda ()
-              (cfw:open-org-calendar)
+              ;; (cfw:open-org-calendar)
               (+my/open-org-agenda)
               (evil-window-right 1)))
 

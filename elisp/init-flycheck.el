@@ -90,6 +90,7 @@
 (use-package flycheck-grammarly
   ;; use it with `flycheck-grammarly-setup'
   :after flycheck
+  :commands flycheck-grammarly-setup
   :straight (:host github :repo "emacs-grammarly/flycheck-grammarly"))
 
 (provide 'init-flycheck)

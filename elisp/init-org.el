@@ -493,10 +493,6 @@ the lines even if the ranges do not overlap."
 	(use-package calfw-cal
 	  :straight (:host github :repo "zemaye/emacs-calfw"))))
 
-(use-package org-gcal
-  :disabled
-  :straight (:host github :repo "kidd/org-gcal.el"))
-
 (use-package org-bars
   :straight (:host github :repo "tonyaldon/org-bars")
   :after org
@@ -509,6 +505,7 @@ the lines even if the ranges do not overlap."
                                 :visible "▼")))
 
 (use-package valign
+  :disabled
   :after org
   ;; :hook ((org-mode . valign-mode)
   ;;        (org-agenda-mode . valign-mode))

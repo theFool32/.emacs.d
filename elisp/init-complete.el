@@ -47,7 +47,6 @@
 ;;; Code:
 
 (use-package corfu
-  ;; Optional customizations
   :straight (corfu :includes (corfu-indexed corfu-quick) :files (:defaults "extensions/corfu-*.el"))
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
@@ -55,14 +54,11 @@
   (corfu-auto-prefix 1)
   (corfu-auto-delay 0.05)
   (corfu-echo-documentation 0.3)
-  ;; (corfu-commit-predicate nil)   ;; Do not commit selected candidates on next input
-  ;; (corfu-quit-at-boundary t)     ;; Automatically quit at word boundary
   (corfu-quit-no-match 'separator)        ;; Automatically quit if there is no match
-  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
   (corfu-preselect-first nil)    ;; Disable candidate preselection
-  ;; (corfu-echo-documentation nil) ;; Disable documentation in the echo area
-  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
   (corfu-on-exact-match 'quit)
+  :init
+  (global-corfu-mode)
 
   :bind
   (:map corfu-map
@@ -75,52 +71,13 @@
         ("C-p" . corfu-previous)
         ([?\r] . newline)
         ([backtab] . corfu-previous))
-  :init
-  (global-corfu-mode)
   :config
-  (defun corfu-beginning-of-prompt ()
-    "Move to beginning of completion input."
-    (interactive)
-    (corfu--goto -1)
-    (goto-char (car completion-in-region--data)))
-
-  (defun corfu-end-of-prompt ()
-    "Move to end of completion input."
-    (interactive)
-    (corfu--goto -1)
-    (goto-char (cadr completion-in-region--data)))
-
   (add-to-list 'corfu-auto-commands 'grammatical-edit-open-round)
   (add-to-list 'corfu-auto-commands 'grammatical-edit-open-bracket)
   (add-to-list 'corfu-auto-commands 'grammatical-edit-open-curly)
 
   (advice-add #'keyboard-quit :before #'corfu-quit)
-
-  ;; (define-key corfu-map [remap move-beginning-of-line] #'corfu-beginning-of-prompt)
-  ;; (define-key corfu-map [remap move-end-of-line] #'corfu-end-of-prompt)
   (add-to-list 'corfu-auto-commands 'end-of-visual-line)
-  (defun my/corfu-commit-predicate ()
-    ;;     "Auto-commit candidates if:
-    ;; 1. A "." is typed, except after a SPACE.
-    ;; 2. A selection was made, aside from entering SPACE.
-    ;; 3. Just one candidate exists, and we continue to non-symbol info.
-    ;; 4. The 1st match is exact."
-    (cond
-     ((seq-contains-p (this-command-keys-vector) ?.)
-      (or (string-empty-p (car corfu--input))
-	      (not (string= (substring (car corfu--input) -1) " "))))
-
-     ((/= corfu--index corfu--preselect) ; a selection was made
-      (not (seq-contains-p (this-command-keys-vector) ? )))
-
-     ((eq corfu--total 1) ;just one candidate
-      (seq-intersection (this-command-keys-vector) [?: ?, ?\) ?\] ?\( ? ]))
-
-     ((and corfu--input ; exact 1st match
-	       (string-equal (substring (car corfu--input) corfu--base)
-			             (car corfu--candidates)))
-      (seq-intersection (this-command-keys-vector) [?: ?. ?, ?\) ?\] ?\" ?' ? ]))))
-  ;; (setq corfu-commit-predicate #'my/corfu-commit-predicate)
 
   ;; https://github.com/minad/corfu/issues/12#issuecomment-869037519
   (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
@@ -146,13 +103,15 @@
   (setq completion-cycle-threshold 3)
   (setq tab-always-indent 'completion))
 
-(use-package cape
+(use-package tempel
   :after corfu
-  ;; Bind dedicated completion commands
+  :straight (:host github :repo "fritzgrabo/tempel" :branch "eager-templates"))
+
+(use-package cape
+  :after (corfu tempel)
   :bind (("C-x C-f" . cape-file)
          ("C-x C-e" . cape-english)
          ("C-x C-l" . cape-line))
-
   :hook ((prog-mode . my/set-basic-capf)
          (org-mode . my/set-basic-capf)
          ((lsp-completion-mode eglot-managed-mode). my/set-lsp-capf))
@@ -169,8 +128,7 @@
                        #'tempel-expand)
       'equal)
      ;; #'cape-dabbrev
-     )
-    )
+     ))
 
   (defun my/set-basic-capf ()
     (setq completion-category-defaults nil)
@@ -182,11 +140,8 @@
                                                (if (eq my-lsp 'eglot)
                                                    #'eglot-completion-at-point
                                                  #'lsp-completion-at-point)))
-
-    ;; HACK
-    (when (derived-mode-p 'latex-mode)
-      (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion))
-    )
+    (when (derived-mode-p 'latex-mode) ;;  HACK: reftex not working in latex-mode
+      (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion)))
 
   (defun my/set-text-capf ()
     (setq-local completion-at-point-functions (append completion-at-point-functions
@@ -194,29 +149,25 @@
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'tempel-complete)
-  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-file))
 
-  (use-package tempel
-    :straight (:host github :repo "fritzgrabo/tempel" :branch "eager-templates")
-    :init
-    )
-
-  ;; TODO use pure `corfu+cape' instead
-  (use-package company-english-helper
-    :straight (:host github :repo "manateelazycat/company-english-helper" :depth 1)
-    :init
-    (defvaralias 'company-candidates 'corfu--candidates)
-    (defun company-grab-symbol ()
-      "If point is at the end of a symbol, return it.
+;; TODO use pure `corfu+cape' instead
+(use-package company-english-helper
+  :commands company-english-helper-search
+  :straight (:host github :repo "manateelazycat/company-english-helper" :depth 1)
+  :init
+  (defvaralias 'company-candidates 'corfu--candidates)
+  (defun company-grab-symbol ()
+    "If point is at the end of a symbol, return it.
 Otherwise, if point is not inside a symbol, return an empty string."
-      (if (looking-at "\\_>")
-          (buffer-substring (point) (save-excursion (skip-syntax-backward "w_")
-                                                    (point)))
-        (unless (and (char-after) (memq (char-syntax (char-after)) '(?w ?_)))
-          "")))
-    (provide 'company))
-  (fset 'cape-english (cape-interactive-capf (cape-company-to-capf #'company-english-helper-search)))
-  )
+    (if (looking-at "\\_>")
+        (buffer-substring (point) (save-excursion (skip-syntax-backward "w_")
+                                                  (point)))
+      (unless (and (char-after) (memq (char-syntax (char-after)) '(?w ?_)))
+        "")))
+  (provide 'company)
+  :config
+  (fset 'cape-english (cape-interactive-capf (cape-company-to-capf #'company-english-helper-search))))
 
 (use-package company-tabnine
   :defer 1
@@ -224,7 +175,6 @@ Otherwise, if point is not inside a symbol, return an empty string."
   :hook (kill-emacs . company-tabnine-kill-process)
   :custom
   (company-tabnine-max-num-results 3))
-
 
 
 (use-package kind-icon
