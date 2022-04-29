@@ -234,6 +234,8 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :name "#+NAME:"
   :src_block "#+begin_src"
   :src_block_end "#+end_src"
+  :src_block "#+begin_latex"
+  :src_block_end "#+end_latex"
   :checkbox      "[ ]"
   :pending       "[-]"
   :checkedbox    "[X]"

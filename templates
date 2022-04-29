@@ -45,9 +45,11 @@ org-mode
 
 (quote "#+begin_quote" n> r> n> "#+end_quote")
 (center "#+begin_center" n> r> n> "#+end_center")
+(latex "#+begin_latex latex\n\\begin{align}" n> r> n> "\\end{align}\n#+end_latex"
+       :post (progn (tempel-done) (org-edit-special) (evil-insert-state)))
 (src "#+begin_src " p n> r> n> "#+end_src")
 (elisp "#+begin_src emacs-lisp" n> r> n "#+end_src"
-       :post (progn (tempel-done) (org-edit-src-code)))
+       :post (progn (tempel-done) (org-edit-src-code) (evil-insert-state)))
 (link "[[" (s link) "][" r "]]")
 (table "|" p "|" r "|" n> "|-+-|" n> "|||")
 
