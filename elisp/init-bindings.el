@@ -78,7 +78,7 @@
                                                                +org-capture-file-note
                                                                +org-capture-file-idea)))) :wk "Org files")
     "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
-    "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/ssh:"))) :wk "Remote")
+    "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
 
     "fE" '(:wk "File Encoding")
     "fEr" '(revert-buffer-with-coding-system :wk "Revert encoding")
