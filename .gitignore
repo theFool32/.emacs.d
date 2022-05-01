@@ -64,3 +64,4 @@ init-custom.el
 .org-generic-id-locations
 org-gcal/
 persist/
+site-lisp

@@ -86,9 +86,10 @@
   ;;                     :font "CaskaydiaCove Nerd Font"
   ;;                     :height 150)
   (add-to-list 'default-frame-alist '(font . "CaskaydiaCove Nerd Font-15"))
-  (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
-  (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC Nerd")
-  (set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend))
+  ;; (set-fontset-font t 'unicode "Apple Color Emoji" nil 'prepend)
+  ;; (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC")
+  ;; (set-fontset-font "fontset-default" 'unicode "Apple Color Emoji" nil 'prepend)
+  )
 
 
 ;; (add-to-list 'initial-frame-alist '(fullscreen . fullboth))

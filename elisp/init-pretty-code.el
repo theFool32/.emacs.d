@@ -236,9 +236,9 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :src_block_end "#+end_src"
   :src_block "#+begin_latex"
   :src_block_end "#+end_latex"
-  :checkbox      "[ ]"
-  :pending       "[-]"
-  :checkedbox    "[X]"
+  ;; :checkbox      "[ ]"
+  ;; :pending       "[-]"
+  ;; :checkedbox    "[X]"
   :list_property "::"
   :em_dash       "---"
   :ellipsis      "..."
@@ -264,10 +264,10 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :results       "#+RESULTS:"
   :property      ":PROPERTIES:"
   :end           ":END:"
-  :priority_a    "[#A]"
-  :priority_b    "[#B]"
-  :priority_c    "[#C]"
-  :priority_d    "[#D]"
+  ;; :priority_a    "[#A]"
+  ;; :priority_b    "[#B]"
+  ;; :priority_c    "[#C]"
+  ;; :priority_d    "[#D]"
   )
 
 (provide 'init-pretty-code)
