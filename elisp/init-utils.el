@@ -60,6 +60,12 @@
   :defer 1
   :straight nil)
 
+(use-package leetcode
+  :straight (:type git :host github :repo "kaiwk/leetcode.el")
+  :commands (leetcode)
+  :config
+  (setq leetcode-prefer-language "python3"))
+
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-utils.el ends here
