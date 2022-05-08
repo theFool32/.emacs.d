@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t -*-
+
 ;;; init-complete.el ---
 ;;
 ;; Filename: init-complete.el
@@ -96,6 +98,96 @@
     :bind
     (:map corfu-map
           ("C-q" . corfu-quick-insert)))
+  (with-eval-after-load 'all-the-icons
+    (defvar kind-all-the-icons--cache nil
+      "The cache of styled and padded label (text or icon).
+An alist.")
+
+    (defun kind-all-the-icons-reset-cache ()
+      "Remove all cached icons from `kind-all-the-icons-mapping'."
+      (interactive)
+      (setq kind-all-the-icons--cache nil))
+
+    (defun kind-all-the-icons--set-default-clear-cache (&rest args)
+      (kind-all-the-icons-reset-cache)
+      (apply #'set-default args))
+
+    (defvar kind-all-the-icons--icons
+      `((unknown . ,(all-the-icons-material "find_in_page" :height 0.8 :v-adjust -0.15))
+        (text . ,(all-the-icons-faicon "text-width" :height 0.8 :v-adjust -0.02))
+        (method . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
+        (function . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
+        (fun . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
+        (constructor . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
+        (ctor . ,(all-the-icons-faicon "cube" :height 0.8 :v-adjust -0.02 :face 'all-the-icons-purple))
+        (field . ,(all-the-icons-octicon "tag" :height 0.85 :v-adjust 0 :face 'all-the-icons-lblue))
+        (variable . ,(all-the-icons-octicon "tag" :height 0.85 :v-adjust 0 :face 'all-the-icons-lblue))
+        (var . ,(all-the-icons-octicon "tag" :height 0.85 :v-adjust 0 :face 'all-the-icons-lblue))
+        (class . ,(all-the-icons-material "settings_input_component" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
+        (interface . ,(all-the-icons-material "share" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
+        (i/f . ,(all-the-icons-material "share" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
+        (module . ,(all-the-icons-material "view_module" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
+        (mod . ,(all-the-icons-material "view_module" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
+        (property . ,(all-the-icons-faicon "wrench" :height 0.8 :v-adjust -0.02))
+        (prop . ,(all-the-icons-faicon "wrench" :height 0.8 :v-adjust -0.02))
+        (unit . ,(all-the-icons-material "settings_system_daydream" :height 0.8 :v-adjust -0.15))
+        (value . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-lblue))
+        (enum . ,(all-the-icons-material "storage" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
+        (keyword . ,(all-the-icons-material "filter_center_focus" :height 0.8 :v-adjust -0.15))
+        (k/w . ,(all-the-icons-material "filter_center_focus" :height 0.8 :v-adjust -0.15))
+        (snippet . ,(all-the-icons-material "format_align_center" :height 0.8 :v-adjust -0.15))
+        (sn . ,(all-the-icons-material "format_align_center" :height 0.8 :v-adjust -0.15))
+        (color . ,(all-the-icons-material "palette" :height 0.8 :v-adjust -0.15))
+        (file . ,(all-the-icons-faicon "file-o" :height 0.8 :v-adjust -0.02))
+        (reference . ,(all-the-icons-material "collections_bookmark" :height 0.8 :v-adjust -0.15))
+        (ref . ,(all-the-icons-material "collections_bookmark" :height 0.8 :v-adjust -0.15))
+        (folder . ,(all-the-icons-faicon "folder-open" :height 0.8 :v-adjust -0.02))
+        (dir . ,(all-the-icons-faicon "folder-open" :height 0.8 :v-adjust -0.02))
+        (enum-member . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15))
+        (enummember . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15))
+        (member . ,(all-the-icons-material "format_align_right" :height 0.8 :v-adjust -0.15))
+        (constant . ,(all-the-icons-faicon "square-o" :height 0.8 :v-adjust -0.1))
+        (const . ,(all-the-icons-faicon "square-o" :height 0.8 :v-adjust -0.1))
+        (struct . ,(all-the-icons-material "settings_input_component" :height 0.8 :v-adjust -0.15 :face 'all-the-icons-orange))
+        (event . ,(all-the-icons-octicon "zap" :height 0.8 :v-adjust 0 :face 'all-the-icons-orange))
+        (operator . ,(all-the-icons-material "control_point" :height 0.8 :v-adjust -0.15))
+        (op . ,(all-the-icons-material "control_point" :height 0.8 :v-adjust -0.15))
+        (type-parameter . ,(all-the-icons-faicon "arrows" :height 0.8 :v-adjust -0.02))
+        (param . ,(all-the-icons-faicon "arrows" :height 0.8 :v-adjust -0.02))
+        (template . ,(all-the-icons-material "format_align_left" :height 0.8 :v-adjust -0.15))
+        (t . ,(all-the-icons-material "find_in_page" :height 0.8 :v-adjust -0.15))))
+
+
+    (defsubst kind-all-the-icons--metadata-get (metadata type-name)
+      (or
+       (plist-get completion-extra-properties (intern (format ":%s" type-name)))
+       (cdr (assq (intern type-name) metadata))))
+
+    (defun kind-all-the-icons-formatted (kind)
+      "Format icon kind with all-the-icons"
+      (or (alist-get kind kind-all-the-icons--cache)
+          (let ((map (assq kind kind-all-the-icons--icons)))
+            (let*  ((icon (if map
+                              (cdr map)
+                            (cdr (assq t kind-all-the-icons--icons))))
+                    (half (/ (default-font-width) 2))
+                    (pad (propertize " " 'display `(space :width (,half))))
+                    (disp (concat pad icon pad)))
+              (setf (alist-get kind kind-all-the-icons--cache) disp)
+              disp))))
+
+    (defun kind-all-the-icons-margin-formatter (metadata)
+      "Return a margin-formatter function which produces kind icons.
+METADATA is the completion metadata supplied by the caller (see
+info node `(elisp)Programmed Completion').  To use, add this
+function to the relevant margin-formatters list."
+      (if-let ((kind-func (kind-all-the-icons--metadata-get metadata "company-kind")))
+          (lambda (cand)
+	        (if-let ((kind (funcall kind-func cand)))
+	            (kind-all-the-icons-formatted kind)
+	          (kind-all-the-icons-formatted t))))) ;; as a backup
+    (add-to-list 'corfu-margin-formatters #'kind-all-the-icons-margin-formatter)
+    )
   )
 
 (use-package emacs
@@ -110,7 +202,7 @@
 (use-package cape
   :after (corfu tempel)
   :bind (("C-x C-f" . cape-file)
-         ("C-x C-e" . cape-english)
+         ;; ("C-x C-e" . cape-english)
          ("C-x C-l" . cape-line))
   :hook ((prog-mode . my/set-basic-capf)
          (org-mode . my/set-basic-capf)
@@ -118,13 +210,12 @@
   :config
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
-  (fset 'cape-tabnine (cape-interactive-capf (cape-company-to-capf #'company-tabnine)))
   (defun my/convert-super-capf (arg-capf)
     (list
      #'cape-file
      (cape-capf-buster
       (cape-super-capf arg-capf
-                       #'cape-tabnine
+                       #'tabnine-completion-at-point
                        #'tempel-expand)
       'equal)
      ;; #'cape-dabbrev
@@ -145,78 +236,27 @@
 
   (defun my/set-text-capf ()
     (setq-local completion-at-point-functions (append completion-at-point-functions
-                                                      '(cape-english))))
+                                                      '(capf-english-helper-search))))
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'tempel-complete)
   (add-to-list 'completion-at-point-functions #'cape-file))
 
-;; TODO use pure `corfu+cape' instead
-(use-package company-english-helper
-  :commands company-english-helper-search
-  :straight (:host github :repo "manateelazycat/company-english-helper" :depth 1)
-  :init
-  (defvaralias 'company-candidates 'corfu--candidates)
-  (defun company-grab-symbol ()
-    "If point is at the end of a symbol, return it.
-Otherwise, if point is not inside a symbol, return an empty string."
-    (if (looking-at "\\_>")
-        (buffer-substring (point) (save-excursion (skip-syntax-backward "w_")
-                                                  (point)))
-      (unless (and (char-after) (memq (char-syntax (char-after)) '(?w ?_)))
-        "")))
-  (provide 'company)
+(use-package capf-english-helper
+  :bind (("C-x C-e" . capf-english-helper-search))
+  :commands (capf-english-helper-search)
+  :defer t
+  :straight (:host github :repo "theFool32/capf-english-helper")
+  ;; :straight (capf-english-helper :local-repo "/Users/lijie/dev/capf-english-helper/")
+  )
+
+(use-package tabnine-capf
+  :after cape
+  :straight (:host github :repo "50ways2sayhard/tabnine-capf" :files ("*.el" "*.sh"))
+  ;; :straight (:local-repo "/Users/lijie/dev/tabnine-capf/")
+  :hook (kill-emacs . tabnine-capf-kill-process)
   :config
-  (fset 'cape-english (cape-interactive-capf (cape-company-to-capf #'company-english-helper-search))))
-
-(use-package company-tabnine
-  :defer 1
-  :after corfu
-  :hook (kill-emacs . company-tabnine-kill-process)
-  :custom
-  (company-tabnine-max-num-results 3))
-
-
-(use-package kind-icon
-  :after corfu
-  :custom
-  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
-  (kind-icon-blend-background nil)
-  :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter)
-  (setq kind-icon-mapping
-        '((array "a" :icon "code-brackets" :face font-lock-type-face)
-          (boolean "b" :icon "circle-half-full" :face font-lock-builtin-face)
-          (class "c" :icon "video-input-component" :face font-lock-type-face) ;
-          (color "#" :icon "palette" :face success) ;
-          (constant "co" :icon "square-circle" :face font-lock-constant-face) ;
-          (constructor "cn" :icon "cube-outline" :face font-lock-function-name-face) ;
-          (enum-member "em" :icon "format-align-right" :face font-lock-builtin-face) ;
-          (enum "e" :icon "server" :face font-lock-builtin-face) ;
-          (event "ev" :icon "zip-box-outline" :face font-lock-warning-face) ;
-          (field "fd" :icon "tag" :face font-lock-variable-name-face) ;
-          (file "f" :icon "file-document-outline" :face font-lock-string-face) ;
-          (folder "d" :icon "folder" :face font-lock-doc-face) ;
-          (interface "if" :icon "share-variant" :face font-lock-type-face) ;
-          (keyword "kw" :icon "image-filter-center-focus" :face font-lock-keyword-face) ;
-          (macro "mc" :icon "lambda" :face font-lock-keyword-face)
-          (method "m" :icon "cube-outline" :face font-lock-function-name-face) ;
-          (function "f" :icon "cube-outline" :face font-lock-function-name-face) ;
-          (module "{" :icon "view-module" :face font-lock-preprocessor-face) ;
-          (numeric "nu" :icon "numeric" :face font-lock-builtin-face)
-          (operator "op" :icon "plus-circle-outline" :face font-lock-comment-delimiter-face) ;
-          (param "pa" :icon "tag" :face default)
-          (property "pr" :icon "wrench" :face font-lock-variable-name-face) ;
-          (reference "rf" :icon "collections-bookmark" :face font-lock-variable-name-face) ;
-          (snippet "S" :icon "format-align-center" :face font-lock-string-face) ;
-          (string "s" :icon "sticker-text-outline" :face font-lock-string-face)
-          (struct "%" :icon "video-input-component" :face font-lock-variable-name-face) ;
-          (text "tx" :icon "format-text" :face shadow)
-          (type-parameter "tp" :icon "format-list-bulleted-type" :face font-lock-type-face)
-          (unit "u" :icon "ruler-square" :face shadow)
-          (value "v" :icon "format-align-right" :face font-lock-builtin-face) ;
-          (variable "va" :icon "tag" :face font-lock-variable-name-face)
-          (t "." :icon "file-find" :face shadow))) ;
+  ;; (add-to-list 'completion-at-point-functions #'tabnine-completion-at-point)
   )
 
 (use-package corfu-doc
