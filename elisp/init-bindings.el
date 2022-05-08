@@ -106,8 +106,6 @@
     "cr" '(lsp-rename :wk "LSP rename")
     "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
     "cm" '(symbol-overlay-put :wk "Mark")
-    "ci" '(consult-clock-in :wk "Clock in") ;;  HACK: not code-related
-    "co" '(org-clock-out :wk "Clock out")
 
     "e" '(:wk "Error")
     "eb" '(flycheck-buffer :wk "Check current buffer")
@@ -160,6 +158,8 @@
     "ob" '(ebib :wk "Ebib")
     "oB" '(ebib-import-ref :wk "Ebib import")
     "oc" '(cfw:open-org-calendar :wk "Calendar")
+    "oi" '(consult-clock-in :wk "Clock in")
+    "oo" '(org-clock-out :wk "Clock out")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
