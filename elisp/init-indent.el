@@ -46,8 +46,7 @@
 (setq-default tab-width 4)
 (add-hook 'after-change-major-mode-hook
           (lambda () (and electric-indent-mode
-			         (or (derived-mode-p 'text-mode)
-                         (derived-mode-p 'fundamental-mode))
+			         (derived-mode-p 'text-mode 'fundamental-mode) ;;  FIXME: still not work for new buffer (e.g., leetcode)
 			         (setq-local electric-indent-mode -1
                                  evil-auto-indent nil))))
 ;; -IndentConfig
