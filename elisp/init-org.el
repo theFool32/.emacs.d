@@ -152,13 +152,7 @@
            "|"
            "✔DONE(d)"  ; Task successfully completed
            "✘CANCELED(c@)") ; Task was cancelled, aborted or is no longer applicable
-          (sequence
-           "✍NOTE(N)"
-           "FIXME(f)"
-           "☕BREAK(b)"
-           "❤Love(l)"
-           "REVIEW(r)"
-           )) ; Task was completed
+          ) ; Task was completed
 
         org-todo-keyword-faces
         '(
@@ -166,15 +160,10 @@
           ("⚔INPROCESS"  . "orangered")
           ("✘CANCELED" . (:foreground "white" :background "#4d4d4d" :weight bold))
           ("⚑WAITING" . "pink")
-          ("☕BREAK" . "gray")
-          ("❤LOVE" . (:foreground "VioletRed4"
-                                  ;; :background "#7A586A"
-                                  :weight bold))
           ("☟NEXT" . (:foreground "DeepSkyBlue"
                                   ;; :background "#7A586A"
                                   :weight bold))
-          ("✔DONE" . "#008080")
-          ("FIXME" . "IndianRed"))
+          ("✔DONE" . "#008080"))
         )
 
 

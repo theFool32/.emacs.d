@@ -45,9 +45,11 @@
 (setq-default indent-line-function 'insert-tab)
 (setq-default tab-width 4)
 (add-hook 'after-change-major-mode-hook
-          (lambda () (if (equal electric-indent-mode 't)
-			        (when (derived-mode-p 'text-mode)
-			          (setq-local electric-indent-mode -1)))))
+          (lambda () (and electric-indent-mode
+			         (or (derived-mode-p 'text-mode)
+                         (derived-mode-p 'fundamental-mode))
+			         (setq-local electric-indent-mode -1
+                                 evil-auto-indent nil))))
 ;; -IndentConfig
 
 (provide 'init-indent)
