@@ -53,7 +53,7 @@
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
-  (corfu-auto-prefix 1)
+  (corfu-auto-prefix 0)
   (corfu-auto-delay 0.05)
   (corfu-echo-documentation 0.3)
   (corfu-quit-no-match 'separator)        ;; Automatically quit if there is no match
@@ -228,9 +228,13 @@ function to the relevant margin-formatters list."
   (defun my/set-lsp-capf ()
     (setq completion-category-defaults nil)
     (setq-local completion-at-point-functions (my/convert-super-capf
-                                               (if (eq my-lsp 'eglot)
-                                                   #'eglot-completion-at-point
-                                                 #'lsp-completion-at-point)))
+                                               (pcase my-lsp
+                                                 ('lsp-bridge
+                                                  #'lsp-bridge-capf)
+                                                 ('eglot
+                                                  #'eglot-completion-at-point)
+                                                 ('lsp-mode
+                                                  #'lsp-completion-at-point))))
     (when (derived-mode-p 'latex-mode) ;;  HACK: reftex not working in latex-mode
       (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion)))
 

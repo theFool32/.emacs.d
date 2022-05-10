@@ -41,6 +41,13 @@
   (require 'init-const))
 
 (pcase my-lsp
+  ('lsp-bridge
+   (use-package lsp-bridge
+     :commands (lsp-bridge-enable)
+     :straight nil
+     :load-path "/Users/lijie/.emacs.d/site-lisp/lsp-bridge/" ;;  TODO: under construction
+     :hook ((python-mode c-mode c++-mode LaTeX-mode) . lsp-bridge-enable)
+     ))
   ('eglot
    (use-package eglot
      :commands (+eglot-organize-imports +eglot-help-at-point)
