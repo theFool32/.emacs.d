@@ -487,7 +487,6 @@ When the number of characters in a buffer exceeds this threshold,
   )
 
 (use-package all-the-icons-completion
-  :after marginalia-mode
   :straight (:host github :repo "iyefrat/all-the-icons-completion")
   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup))
 
