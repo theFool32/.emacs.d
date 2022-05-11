@@ -37,8 +37,6 @@
 ;;
 ;;; Code:
 
-;; TODO: autoload
-
 (load (concat user-emacs-directory "early-init") nil 'nomessage)
 (setq auto-mode-case-fold nil)
 (setq gc-cons-threshold most-positive-fixnum

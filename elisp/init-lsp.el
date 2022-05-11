@@ -43,10 +43,10 @@
 (pcase my-lsp
   ('lsp-bridge
    (use-package lsp-bridge
-     :commands (lsp-bridge-enable)
+     :commands (lsp-bridge-mode)
      :straight nil
      :load-path "/Users/lijie/.emacs.d/site-lisp/lsp-bridge/" ;;  TODO: under construction
-     :hook ((python-mode c-mode c++-mode LaTeX-mode) . lsp-bridge-enable)
+     :hook ((python-mode c-mode c++-mode LaTeX-mode) . lsp-bridge-mode)
      ))
   ('eglot
    (use-package eglot

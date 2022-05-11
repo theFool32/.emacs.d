@@ -49,6 +49,7 @@
 (defvar +org-capture-file-note (concat +self/org-base-dir "notes.org"))
 (defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
 (defvar +org-capture-file-tickler (concat +self/org-base-dir "tickler.org"))
+(defvar +org-capture-file-done (concat +self/org-base-dir "done.org"))
 (use-package org
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h)
@@ -113,7 +114,8 @@
 
   (setq org-log-into-drawer "LOGBOOK")
   (setq org-agenda-files (list +org-capture-file-gtd
-                               +org-capture-file-tickler))
+                               +org-capture-file-tickler
+                               +org-capture-file-done))
   (setq org-refile-use-outline-path 'file)
   (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
                              (+org-capture-file-someday :level . 3)
@@ -170,9 +172,9 @@
   ;; (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
   (add-hook 'after-change-major-mode-hook
             (lambda () (if (equal show-paren-mode 't)
-    		               (when (derived-mode-p 'org-mode)
-    		                 (show-paren-mode -1))
-                         (show-paren-mode 1))))
+    		          (when (derived-mode-p 'org-mode)
+    		            (show-paren-mode -1))
+                    (show-paren-mode 1))))
 
   ;; https://emacs-china.org/t/topic/2119/15
   (defun my--diary-chinese-anniversary (lunar-month lunar-day &optional year mark)
@@ -305,7 +307,7 @@
       "dt" 'org-time-stamp
       "dT" 'org-time-stamp-inactive
 
-      "D" '+org/archive-done-tasks
+      "D" '+my-org/mark-done
 
       "g" '(:wk "goto")
       "gc" 'org-clock-goto
@@ -577,8 +579,23 @@ Optional MODE specifies major mode used for display."
                                         (car (window-text-pixel-size nil (match-beginning 3) (match-end 3)))
                                       0))))))))))))))
 
-
-  )
+  (defun +my-org/mark-done ()
+    ""
+    (interactive)
+    (when (derived-mode-p 'org-mode)
+      (org-back-to-heading)
+      (when-let* ((close-time (org-entry-get (point) "CLOSED")) ;;  HACK: assume all DONE entries have CLOSED time
+                  (close-time (org-time-string-to-time close-time))
+                  (close-time (decode-time close-time))
+                  (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
+        (org-cut-subtree)
+        (with-current-buffer (find-file-noselect +org-capture-file-done)
+          (org-datetree-find-iso-week-create close-time)
+          (org-paste-subtree)
+          (org-next-visible-heading 1)
+          (org-cut-subtree)
+          (save-buffer)
+          (kill-buffer))))))
 
 (defun +my/open-org-agenda ()
   "open org agenda in left window"
