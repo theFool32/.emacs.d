@@ -141,6 +141,15 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
       :history 'file-name-history
       ))))
 
+(defun my-project-root (&optional dir)
+  "Return the project root of dir"
+  (when-let ((default-directory (or dir
+                                    default-directory))
+             (project (project-current)))
+    (expand-file-name (if (fboundp 'project-root)
+                          (project-root project)
+                        (cdr project)))))
+
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-func.el ends here

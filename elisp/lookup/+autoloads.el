@@ -52,15 +52,15 @@
   (if (listp exp) exp (list exp)))
 
 ;;;###autoload
-(defun doom-project-root (&optional dir)
-  "Return the project root of DIR (defaults to `default-directory').
-Returns nil if not in a project."
-  ;; (let ((projectile-project-root
-  ;;        (unless dir (bound-and-true-p projectile-project-root)))
-  ;;       projectile-require-project-root)
-  ;;   (projectile-project-root dir))
-  (project-root dir)
-  )
+(defalias 'doom-project-root #'my-project-root)
+;; (defun doom-project-root (&optional dir)
+;;   (when-let ((default-directory (or dir
+;;                                     default-directory))
+;;              (project (project-current)))
+;;     (expand-file-name (if (fboundp 'project-root)
+;;                           (project-root project)
+;;                         (cdr project)))))
+
 
 ;;;###autoload
 (defun doom-project-p (&optional dir)
@@ -246,27 +246,16 @@ This can be passed nil as its second argument to unset handlers for MODES. e.g.
                         (xref-find-backend)
                         identifier)))
     (when xrefs
-      (let ((marker-ring (ring-copy xref--marker-ring)))
+      (let* ((jumped nil)
+             (xref-after-jump-hook
+              (cons (lambda () (setq jumped t))
+                    xref-after-jump-hook)))
         (funcall (or show-fn #'xref--show-defs)
                  (lambda () xrefs)
                  nil)
         (if (cdr xrefs)
             'deferred
-          ;; xref will modify its marker stack when it finds a result to jump to.
-          ;; Use that to determine success.
-          (not (equal xref--marker-ring marker-ring)))))))
-
-(defun +lookup-dictionary-definition-backend-fn (identifier)
-  "Look up dictionary definition for IDENTIFIER."
-  (when (derived-mode-p 'text-mode)
-    (+lookup/dictionary-definition identifier)
-    'deferred))
-
-(defun +lookup-thesaurus-definition-backend-fn (identifier)
-  "Look up synonyms for IDENTIFIER."
-  (when (derived-mode-p 'text-mode)
-    (+lookup/synonyms identifier)
-    'deferred))
+          jumped)))))
 
 (defun +lookup-xref-definitions-backend-fn (identifier)
   "Non-interactive wrapper for `xref-find-definitions'"

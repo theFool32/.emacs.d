@@ -49,8 +49,7 @@
 (require 'lookup/+autoloads)
 
 (defvar +lookup-definition-functions
-  '(+lookup-dictionary-definition-backend-fn
-    +lookup-xref-definitions-backend-fn
+  '(+lookup-xref-definitions-backend-fn
     +lookup-dumb-jump-backend-fn
     +lookup-project-search-backend-fn
     +lookup-evil-goto-definition-backend-fn)
@@ -79,8 +78,7 @@ argument: the identifier at point. See `set-lookup-handlers!' about adding to
 this list.")
 
 (defvar +lookup-references-functions
-  '(+lookup-thesaurus-definition-backend-fn
-    +lookup-xref-references-backend-fn
+  '(+lookup-xref-references-backend-fn
     +lookup-project-search-backend-fn)
   "Functions for `+lookup/references' to try, before resorting to `dumb-jump'.
 Stops at the first function to return non-nil or change the current

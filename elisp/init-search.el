@@ -59,7 +59,9 @@
   :straight (:host github :repo "manateelazycat/color-rg")
   :if *rg*
   :init
-  (setq color-rg-mac-load-path-from-shell nil))
+  (setq color-rg-mac-load-path-from-shell nil)
+  :config
+  (fset 'color-rg-project-root-dir #'my-project-root))
 ;; -ColorRGPac
 
 (use-package pinyinlib
