@@ -54,7 +54,7 @@
   :commands (atomic-chrome-start-server)
   :config
   (setq atomic-chrome-url-major-mode-alist
-	'(("overleaf\\.com" . LaTeX-mode))))
+	    '(("overleaf\\.com" . LaTeX-mode))))
 
 (use-package tramp
   :defer 1
@@ -65,6 +65,31 @@
   :commands (leetcode)
   :config
   (setq leetcode-prefer-language "python3"))
+
+(use-package project
+  :straight nil
+  :defer
+  :config
+  (defun my/project-files-in-directory (dir)
+    "Use `fd' to list files in DIR."
+    (let* ((default-directory dir)
+           (localdir (file-local-name (expand-file-name dir)))
+           (command (format "fd -H -t f -0 . %s" localdir)))
+      (project--remote-file-names
+       (sort (split-string (shell-command-to-string command) "\0" t)
+             #'string<))))
+
+  (cl-defmethod project-files ((project (head local)) &optional dirs)
+    "Override `project-files' to use `fd' in local projects."
+    (mapcan #'my/project-files-in-directory
+            (or dirs (list (project-root project)))))
+  ;;  FIXME: auto remember project
+  ;(add-hook 'change-major-mode-hook (lambda ()
+  ;                                  (when (fboundp 'project-current)
+  ;                                    (let ((root (my-project-root)))
+  ;                                      (when (not (member root (mapcar #'expand-file-name (project-known-project-roots))))
+  ;                                        (project-remember-project default-directory))))))
+  )
 
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
