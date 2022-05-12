@@ -123,9 +123,9 @@
     "gu" '((lambda() (interactive)(progn (call-interactively 'magit-stage-file) (call-interactively 'magit-commit))) :wk "stage and commit")
     "gb" '(magit-branch-checkout :wk "checkout")
     "gB" '(magit-blame :wk "blame")
-    "gm" '(gitmoji-picker :wk "Gitmoji")
     "gf" '(magit-fetch :wk "fetch")
     "gF" '(magit-pull :wk "pull")
+    "gl" '(magit-log :wk "log")
 
     "w" '(:wk "Window")
     ;; :sp
