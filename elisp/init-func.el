@@ -122,14 +122,15 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
 
 
 (defun my-open-recent ()
-  "Open recent directory in dired or file otherwise."
+  "Open recent directory in Dired or file otherwise."
   (interactive)
   (unless recentf-mode (recentf-mode 1))
   (let* ((candidates (if (derived-mode-p 'dired-mode)
                          (delete-dups
                           (append (mapcar 'file-name-directory recentf-list)))
                        (mapcar #'abbreviate-file-name
-                               (-filter (lambda (filename) (not (file-directory-p filename)))  recentf-list)))))
+                               (-filter (lambda (filename) (not (file-directory-p filename)))
+                                        recentf-list)))))
     (find-file
      (consult--read
       candidates
@@ -142,10 +143,9 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
       ))))
 
 (defun my-project-root (&optional dir)
-  "Return the project root of dir"
-  (when-let ((default-directory (or dir
-                                    default-directory))
-             (project (project-current)))
+  "Return the project root of DIR."
+  (when-let* ((default-directory (or dir default-directory))
+              (project (project-current)))
     (expand-file-name (if (fboundp 'project-root)
                           (project-root project)
                         (cdr project)))))

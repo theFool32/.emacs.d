@@ -83,12 +83,12 @@
     "Override `project-files' to use `fd' in local projects."
     (mapcan #'my/project-files-in-directory
             (or dirs (list (project-root project)))))
-  ;;  FIXME: auto remember project
-  ;(add-hook 'change-major-mode-hook (lambda ()
-  ;                                  (when (fboundp 'project-current)
-  ;                                    (let ((root (my-project-root)))
-  ;                                      (when (not (member root (mapcar #'expand-file-name (project-known-project-roots))))
-  ;                                        (project-remember-project default-directory))))))
+  ;;  HACK: auto remember project
+  (add-hook 'change-major-mode-hook (lambda ()
+                                      (when (and (buffer-file-name)
+                                                 (fboundp 'project-current))
+                                        (when-let ((root (my-project-root)))
+                                          (project-remember-project (project-current))))))
   )
 
 (provide 'init-utils)

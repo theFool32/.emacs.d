@@ -79,6 +79,8 @@
 
   :config
   (with-eval-after-load 'org (setq org-modules '()))
+  (with-eval-after-load 'org-agenda
+    (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3))
 
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
     "Load language if needed"
