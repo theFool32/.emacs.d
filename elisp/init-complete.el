@@ -206,7 +206,7 @@ function to the relevant margin-formatters list."
          ("C-x C-l" . cape-line))
   :hook ((prog-mode . my/set-basic-capf)
          (org-mode . my/set-basic-capf)
-         ((lsp-completion-mode eglot-managed-mode). my/set-lsp-capf))
+         ((lsp-completion-mode eglot-managed-mode lsp-bridge-mode). my/set-lsp-capf))
   :config
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
