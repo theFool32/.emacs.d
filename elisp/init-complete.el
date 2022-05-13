@@ -246,12 +246,11 @@ function to the relevant margin-formatters list."
   (add-to-list 'completion-at-point-functions #'tempel-complete)
   (add-to-list 'completion-at-point-functions #'cape-file))
 
-(use-package capf-english-helper
-  :bind (("C-x C-e" . capf-english-helper-search))
-  :commands (capf-english-helper-search)
+(use-package corfu-english-helper
+  :bind (("C-x C-e" . corfu-english-helper-search))
+  :commands (corfu-english-helper-search)
   :defer t
-  :straight (:host github :repo "theFool32/capf-english-helper")
-  ;; :straight (capf-english-helper :local-repo "/Users/lijie/dev/capf-english-helper/")
+  :straight (:host github :repo "manateelazycat/corfu-english-helper")
   )
 
 (use-package tabnine-capf
