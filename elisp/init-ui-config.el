@@ -46,6 +46,7 @@
 
 (setq fast-but-imprecise-scrolling t)
 (setq redisplay-skip-fontification-on-input t)
+(setq frame-resize-pixelwise t)
 
 ;; TitleBar
 (setq-default frame-title-format '("EMACS" " - %b"))
