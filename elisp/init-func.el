@@ -150,6 +150,13 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
                           (project-root project)
                         (cdr project)))))
 
+(defun my-save-file ()
+  "Save files including org agenda"
+  (interactive)
+  (if (derived-mode-p 'org-agenda-mode)
+      (org-save-all-org-buffers)
+    (save-buffer)))
+
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-func.el ends here
