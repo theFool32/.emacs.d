@@ -223,7 +223,7 @@ function to the relevant margin-formatters list."
 
   (defun my/set-basic-capf ()
     (setq completion-category-defaults nil)
-    (setq-local completion-at-point-functions (my/convert-super-capf (car completion-at-point-functions))))
+    (setq-local completion-at-point-functions (my/convert-super-capf (car (last completion-at-point-functions 2)))))
 
   (defun my/set-lsp-capf ()
     (setq completion-category-defaults nil)
@@ -243,7 +243,6 @@ function to the relevant margin-formatters list."
                                                       '(capf-english-helper-search))))
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'tempel-complete)
   (add-to-list 'completion-at-point-functions #'cape-file))
 
 (use-package corfu-english-helper
@@ -255,10 +254,11 @@ function to the relevant margin-formatters list."
 
 (use-package tabnine-capf
   :after cape
-  :straight (:host github :repo "50ways2sayhard/tabnine-capf" :files ("*.el" "*.sh"))
-  ;; :straight (:local-repo "/Users/lijie/dev/tabnine-capf/")
+  :commands (tabnine-completion-at-point)
+  :straight (:host github :repo "theFool32/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
+  ;; :straight (:local-repo "/Users/lijie/dev/tabnine-capf/" :files ("*.el" "*.sh" "*.py"))
   :hook (kill-emacs . tabnine-capf-kill-process)
-  :config
+  ;; :config
   ;; (add-to-list 'completion-at-point-functions #'tabnine-completion-at-point)
   )
 
