@@ -1,4 +1,5 @@
-;;; org/+funcs.el --- -*- lexical-binding: t -*-
+;; -*- lexical-binding: t -*-
+;;; org/+funcs.el
 ;;
 ;; Filename: +funcs.el
 ;; Description: Org-mode helper
@@ -133,8 +134,8 @@
              in (cl-remove-if-not #'listp org-todo-keywords)
              for keywords =
              (mapcar (lambda (x) (if (string-match "^\\([^(]+\\)(" x)
-                                     (match-string 1 x)
-                                   x))
+                                (match-string 1 x)
+                              x))
                      keyword-spec)
              if (eq type 'sequence)
              if (member keyword keywords)
@@ -415,6 +416,51 @@ If prefix ARG, copy instead of move."
             (concat "\\* " (regexp-opt org-done-keywords) " ") nil t)
       (goto-char (line-beginning-position))
       (org-archive-subtree))))
+
+(with-eval-after-load 'consult
+  (defun +my/retrieval-todo-items ()
+    (require 'consult-org)
+    (consult--read
+     (consult--with-increased-gc
+      (-filter (lambda (item)
+                 (not (member
+                       (car (cdr (get-text-property 0 'consult-org--heading item)))
+                       '(nil "✔DONE" "✘CANCELED"))))
+               (consult-org--headings nil nil 'agenda)))
+     :prompt "Go to heading: "
+     :category 'consult-org-heading
+     :sort nil
+     :require-match t
+     :history '(:input consult-org--history)
+     :narrow (consult-org--narrow)
+     :state (consult--jump-state)
+     :group
+     (lambda (cand transform)
+       (let ((name (buffer-name
+                    (marker-buffer
+                     (get-text-property 0 'consult--candidate cand)))))
+         (if transform cand name)))
+     :lookup #'consult--lookup-candidate))
+
+  (defun consult-clock-in ()
+    "Clock into an Org agenda heading."
+    (interactive)
+    (save-window-excursion
+      (+my/retrieval-todo-items)
+      (org-clock-in)
+      (save-buffer)))
+  (consult-customize consult-clock-in :prompt "Clock in: ")
+
+  (defun consult-mark-done ()
+    "Clock into an Org agenda heading."
+    (interactive)
+    (save-window-excursion
+      (+my/retrieval-todo-items)
+      (org-todo 'done)
+      (save-buffer)))
+  (consult-customize consult-mark-done :prompt "Mark done: ")
+
+  )
 
 (provide 'org/+funcs)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

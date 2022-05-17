@@ -158,6 +158,7 @@
     "ob" '(ebib :wk "Ebib")
     "oB" '(ebib-import-ref :wk "Ebib import")
     "oc" '(cfw:open-org-calendar :wk "Calendar")
+    "od" '(consult-mark-done :wk "Mark done")
     "oi" '(consult-clock-in :wk "Clock in")
     "oo" '(org-clock-out :wk "Clock out")
 
