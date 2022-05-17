@@ -254,13 +254,11 @@ function to the relevant margin-formatters list."
 
 (use-package tabnine-capf
   :after cape
-  :commands (tabnine-completion-at-point)
+  :commands (tabnine-completion-at-point tabnine-capf-start-process)
   :straight (:host github :repo "theFool32/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
-  ;; :straight (:local-repo "/Users/lijie/dev/tabnine-capf/" :files ("*.el" "*.sh" "*.py"))
-  :hook (kill-emacs . tabnine-capf-kill-process)
-  ;; :config
-  ;; (add-to-list 'completion-at-point-functions #'tabnine-completion-at-point)
-  )
+  :hook ((+self/first-input . (lambda () (run-with-idle-timer 2 nil
+                                                         (lambda () (tabnine-capf-start-process)))))
+         (kill-emacs . tabnine-capf-kill-process)))
 
 (use-package corfu-doc
   :after corfu
