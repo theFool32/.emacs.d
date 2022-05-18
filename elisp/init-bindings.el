@@ -160,7 +160,7 @@
     "oc" '(cfw:open-org-calendar :wk "Calendar")
     "od" '(consult-mark-done :wk "Mark done")
     "oi" '(consult-clock-in :wk "Clock in")
-    "oo" '(org-clock-out :wk "Clock out")
+    "oo" '((lambda () (org-clock-out) (org-save-all-org-buffers)) :wk "Clock out")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")

@@ -210,6 +210,25 @@ That is, remove a non kept dired from the recent list."
 
 (setq vc-follow-symlinks t)
 
+
+;; Disable message for some functions
+(defun suppress-message-advice-around (fun &rest args)
+  (let (message-log-max)
+    (with-temp-message (or (current-message) "")
+      (apply fun args))))
+(advice-add 'save-buffer :around 'suppress-message-advice-around)
+
+(defun filter-command-error-function (data context caller)
+  "Ignore the buffer-read-only, beginning-of-line, end-of-line, beginning-of-buffer, end-of-buffer signals; pass the rest to the default handler."
+  (when (not (memq (car data) '(buffer-read-only
+                                beginning-of-line
+                                end-of-line
+                                beginning-of-buffer
+                                end-of-buffer)))
+    (command-error-default-function data context caller)))
+
+(setq command-error-function #'filter-command-error-function)
+
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-global-config.el ends here
