@@ -425,7 +425,7 @@ If prefix ARG, copy instead of move."
       (-filter (lambda (item)
                  (not (member
                        (car (cdr (get-text-property 0 'consult-org--heading item)))
-                       '(nil "✔DONE" "✘CANCELED"))))
+                       '("✔DONE" "✘CANCELED"))))
                (consult-org--headings nil nil 'agenda)))
      :prompt "Go to heading: "
      :category 'consult-org-heading

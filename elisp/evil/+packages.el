@@ -188,6 +188,9 @@
 ;; in/decrease number
 ;; (use-package evil-numbers)
 
+(use-package evil-anzu
+  :after evil)
+
 (provide 'evil/+packages)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
