@@ -83,13 +83,27 @@
     "Override `project-files' to use `fd' in local projects."
     (mapcan #'my/project-files-in-directory
             (or dirs (list (project-root project)))))
+
+  (cl-defmethod project-root ((project (head local)))
+    (nth 1 project))
+  (defun my/project-try-local (dir)
+    "Determine if DIR is a non-Git project."
+    (catch 'ret
+      (let ((pr-flags '((".project" ".projectile")
+                        ("Makefile" "README.org" "README.md"))))
+        (dolist (current-level pr-flags)
+          (dolist (f current-level)
+            (when-let ((root (locate-dominating-file dir f)))
+              (throw 'ret (list 'local root))))))))
+
+  (setq project-find-functions '(project-try-vc my/project-try-local))
+
   ;;  HACK: auto remember project
   (add-hook 'change-major-mode-hook (lambda ()
                                       (when (and (buffer-file-name)
                                                  (fboundp 'project-current))
                                         (when-let ((root (my-project-root)))
-                                          (project-remember-project (project-current))))))
-  )
+                                          (project-remember-project (project-current)))))))
 
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

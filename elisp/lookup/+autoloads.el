@@ -46,20 +46,8 @@
 ;;
 ;;; Code:
 
-(defun doom-enlist (exp)
-  "Return EXP wrapped in a list, or as-is if already a list."
-  (declare (pure t) (side-effect-free t))
-  (if (listp exp) exp (list exp)))
-
 ;;;###autoload
 (defalias 'doom-project-root #'my-project-root)
-;; (defun doom-project-root (&optional dir)
-;;   (when-let ((default-directory (or dir
-;;                                     default-directory))
-;;              (project (project-current)))
-;;     (expand-file-name (if (fboundp 'project-root)
-;;                           (project-root project)
-;;                         (cdr project)))))
 
 
 ;;;###autoload

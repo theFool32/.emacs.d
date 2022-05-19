@@ -111,8 +111,6 @@
   (+org-init-appearance-h)
   (+org-init-agenda-h)
   (+org-init-capture-defaults-h)
-  ;; org screenshot for macos
-  ;; (require 'org/+screenshot)
 
   (setq org-log-into-drawer "LOGBOOK")
   (setq org-agenda-files (list +org-capture-file-gtd
@@ -141,11 +139,7 @@
           ("i" "Idea" entry
            (file+headline +org-capture-file-idea "Ideas")
            "* %u %?\n%i" :prepend t :kill-buffer t)
-          )
-        ;; org-todo-keywords
-        ;; '((sequence "TODO(t!)" "INPROCESS(s!)" "|" "DONE(d!)" "CANCELLED(c!)"))
-        ;; org-agenda-window-setup 'current-window
-        )
+          ))
   (setq org-todo-keywords
         '((sequence
            "☞TODO(t)"  ; A task that needs doing & is ready to do
@@ -167,8 +161,7 @@
           ("☟NEXT" . (:foreground "DeepSkyBlue"
                                   ;; :background "#7A586A"
                                   :weight bold))
-          ("✔DONE" . "#008080"))
-        )
+          ("✔DONE" . "#008080")))
 
 
   ;; (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
