@@ -105,6 +105,14 @@
                                         (when-let ((root (my-project-root)))
                                           (project-remember-project (project-current)))))))
 
+(use-package vundo
+  :straight (:host github :repo "casouri/vundo")
+  :commands vundo
+  :defer t
+  :config
+  (setf (alist-get 'selected-node vundo-glyph-alist) ?X
+        (alist-get 'node vundo-glyph-alist) ?O))
+
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-utils.el ends here

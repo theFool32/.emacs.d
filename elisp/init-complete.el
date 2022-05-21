@@ -197,7 +197,7 @@ function to the relevant margin-formatters list."
 
 (use-package tempel
   :after corfu
-  :straight (:host github :repo "fritzgrabo/tempel" :branch "eager-templates"))
+  :straight (:host github :repo "minad/tempel"))
 
 (use-package cape
   :after (corfu tempel)

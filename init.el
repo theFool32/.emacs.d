@@ -87,7 +87,6 @@
 (require 'init-tree-sitter)
 
 (require 'init-which-key)
-(require 'init-undo-tree)
 (require 'init-dired)
 (require 'init-utils)
 (require 'init-bindings)
