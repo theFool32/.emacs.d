@@ -242,8 +242,7 @@ Group number 1 should be the prefix itself."
           ;; :annotation-function (lambda (k) (cdr (assoc k table)))
           :exit-function (lambda (str sta)
                            (backward-delete-char (length str))
-                           (insert (cdr (assoc str +my/reftex-citation-completion-table)))
-                           )))))
+                           (insert (cdr (assoc str +my/reftex-citation-completion-table))))))))
 
   )
 
@@ -298,13 +297,39 @@ Group number 1 should be the prefix itself."
   ;; Skim's displayline is used for forward search (from .tex to .pdf)
   ;; option -b highlights the current line; option -g opens Skim in the background
   ;; (setq TeX-view-program-list
-  ;;       '(
-  ;;         ;; ("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")
-  ;;         )
-  ;;       )
-  ;; (progn
-  ;;   (assq-delete-all 'output-pdf TeX-view-program-selection)
-  ;;   (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer")))
+  ;;       '(("PDF Viewer" "/Applications/Skim.app/Contents/SharedSupport/displayline -b -g %n %o %b")))
+  ;; (assq-delete-all 'output-pdf TeX-view-program-selection)
+  ;; (add-to-list 'TeX-view-program-selection '(output-pdf "PDF Viewer"))
+
+
+  (defun latex/compile-commands-until-done (clean-first)
+    (interactive "P")
+    (when clean-first (TeX-clean t))
+    (message "Compilation started.")
+    (let* ((initial-buffer (buffer-name))
+           (TeX-process-asynchronous nil)
+           (master-file (TeX-master-file))
+           (next-command (TeX-command-default master-file))
+           (counter 0))
+      (while (and
+              (> counter -1)
+              (not (equal next-command TeX-command-Show)))
+        (message "%d Doing: %s" (cl-incf counter) next-command)
+        (set-buffer initial-buffer)
+        (TeX-command next-command 'TeX-master-file)
+        ;; `TeX-command' occasionally changes current buffer.
+        (set-buffer initial-buffer)
+        (if (null (plist-get TeX-error-report-switches (intern master-file)))
+            (if (string= next-command "BibTeX")
+                (setq next-command "LaTeX")
+              (setq next-command (TeX-command-default master-file)))
+          (setq counter -1)
+          (when (y-or-n-p "Error found. Visit it? ")
+            ;; `TeX-next-error' number of arguments changed at some
+            ;; point.
+            (call-interactively #'TeX-next-error))))
+      (when (>= counter 0) ;;
+        (set-buffer initial-buffer))))
 
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
   ;; Enable word wrapping
@@ -321,28 +346,18 @@ Group number 1 should be the prefix itself."
     "v" '(TeX-view :wk "View"))
   )
 
-(use-package latex-extra
-  :after tex
-  :straight (:host github :repo "Malabarba/latex-extra" :depth 1)
-  :hook ((LaTeX-mode . latex-extra-mode)
-         (latex-extra-mode . turn-off-auto-fill))
-  :custom
-  (latex/view-after-compile nil)
-  )
-
 (use-package cdlatex
   :after tex
   :hook (LaTeX-mode . cdlatex-mode)
   :custom
   (cdlatex-sub-super-scripts-outside-math-mode nil)
   :config
-  (add-to-list 'cdlatex-math-modify-alist-default '(?b "\\bm" nil t t nil))
-  )
+  (add-to-list 'cdlatex-math-modify-alist-default '(?b "\\bm" nil t t nil)))
+
 (use-package asymbol
   :straight (:host github :repo "dwuggh/asymbol" :depth 1)
   :hook (LaTeX-mode . asymbol-mode)
   :init
-  ;; a little customization
   (setq asymbol-help-symbol-linewidth 110
 	    asymbol-help-tag-linewidth 110)
 
