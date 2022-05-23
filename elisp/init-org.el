@@ -491,12 +491,6 @@ the lines even if the ranges do not overlap."
                                 :invisible "▶"
                                 :visible "▼")))
 
-(use-package valign
-  :disabled
-  :after org
-  ;; :hook ((org-mode . valign-mode)
-  ;;        (org-agenda-mode . valign-mode))
-  )
 
 (use-package org-modern
   :straight (:host github :repo "minad/org-modern")

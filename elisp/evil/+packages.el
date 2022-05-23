@@ -184,7 +184,9 @@
 
 ;; indent textobj
 (use-package evil-indent-plus
-  :after evil)
+  :after evil
+  :config
+  (evil-indent-plus-default-bindings))
 ;; in/decrease number
 ;; (use-package evil-numbers)
 
