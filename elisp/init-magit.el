@@ -186,8 +186,7 @@ kill all magit buffers for this repo."
   :after magit
   :hook (magit-mode . turn-on-magit-gitflow)
   :bind (:map magit-status-mode-map
-              ("%" . magit-gitflow-popup))
-  )
+              ("%" . magit-gitflow-popup)))
 
 (use-package smerge-mode
   :straight nil

@@ -53,7 +53,7 @@
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
-  (corfu-auto-prefix 0)
+  (corfu-auto-prefix 1)
   (corfu-auto-delay 0.05)
   (corfu-echo-documentation 0.3)
   (corfu-quit-no-match 'separator)        ;; Automatically quit if there is no match
@@ -202,7 +202,6 @@ function to the relevant margin-formatters list."
 (use-package cape
   :after (corfu tempel)
   :bind (("C-x C-f" . cape-file)
-         ;; ("C-x C-e" . cape-english)
          ("C-x C-l" . cape-line))
   :hook ((prog-mode . my/set-basic-capf)
          (org-mode . my/set-basic-capf)
@@ -249,15 +248,13 @@ function to the relevant margin-formatters list."
   :bind (("C-x C-e" . corfu-english-helper-search))
   :commands (corfu-english-helper-search)
   :defer t
-  :straight (:host github :repo "manateelazycat/corfu-english-helper")
-  )
+  :straight (:host github :repo "manateelazycat/corfu-english-helper"))
 
 (use-package tabnine-capf
   :after cape
   :commands (tabnine-completion-at-point tabnine-capf-start-process)
   :straight (:host github :repo "theFool32/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
-  :hook ((+self/first-input . (lambda () (run-with-idle-timer 2 nil
-                                                         (lambda () (tabnine-capf-start-process)))))
+  :hook ((+self/first-input . (lambda () (run-with-timer 2 nil #'tabnine-capf-start-process)))
          (kill-emacs . tabnine-capf-kill-process)))
 
 (use-package corfu-doc
@@ -269,22 +266,27 @@ function to the relevant margin-formatters list."
 
 (use-package copilot
   :after corfu
-  :bind ("M-k" . copilot-accept-completion-by-word) ;;  TODO: which :map should be used?
-  :straight (:host github :repo "zerolfx/copilot.el"
-                   :files ("dist" "copilot.el"))
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "copilot.el"))
   :ensure t
   :hook ((prog-mode text-mode) . copilot-mode)
   :bind
   (("C-c n" . copilot-next-completion)
-   ("C-c p" . copilot-previous-completion))
+   ("C-c p" . copilot-previous-completion)
+   ("M-k" . copilot-accept-completion-by-word))
   :config
   (set-face-foreground 'copilot-overlay-face "pink")
 
+  (let ((node_path "/usr/local/opt/node@16/bin/node")) ;;  HACK: workaround for node@16
+    (when (file-exists-p node_path)
+      (setq copilot-node-executable node_path)))
+
   (defun +my/corfu-candidates-p ()
-    (or (not (eq corfu--candidates nil))
-        (derived-mode-p 'minibuffer-mode)
-        tempel--active ;; diable copilot in tempel
-        (not (looking-back "[\x00-\xff]"))))
+    (or
+     ;; corfu--candidates
+     (derived-mode-p 'minibuffer-mode)
+     tempel--active ;; diable copilot in tempel
+     ;; (not (looking-back "[\x00-\xff]"))
+     ))
 
   (customize-set-variable 'copilot-enable-predicates '(evil-insert-state-p))
   (customize-set-variable 'copilot-disable-predicates '(+my/corfu-candidates-p))
@@ -296,15 +298,13 @@ function to the relevant margin-formatters list."
         (tempel-next 1)
       (if (tempel-expand) ;; HACK: call `tempel-expand' twice
           (call-interactively #'tempel-expand)
-        (copilot-accept-completion)
-        ))
+        (copilot-accept-completion)))
     (copilot-clear-overlay))
 
   (with-eval-after-load 'general
     (general-define-key
      :keymaps '(evil-insert-state-map)
-     "C-k" 'my/copilot-or-tempel-expand-or-next))
-  )
+     "C-k" 'my/copilot-or-tempel-expand-or-next)))
 
 (provide 'init-complete)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

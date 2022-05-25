@@ -80,9 +80,7 @@
 
 
   (add-hook 'after-change-major-mode-hook #'(lambda ()
-                                              (when (or (derived-mode-p 'fundamental-mode)
-                                                        (derived-mode-p 'text-mode)
-                                                        (derived-mode-p 'snippet-mode))
+                                              (when (derived-mode-p 'fundamental-mode 'text-mode 'snippet-mode)
                                                 (setq-local evil-auto-indent nil))))
 
   (with-eval-after-load 'general
