@@ -217,6 +217,7 @@ function to the relevant margin-formatters list."
                        #'tabnine-completion-at-point
                        #'tempel-expand)
       'equal)
+     #'tmux-capf
      ;; #'cape-dabbrev
      ))
 
@@ -256,6 +257,11 @@ function to the relevant margin-formatters list."
   :straight (:host github :repo "theFool32/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
   :hook ((+self/first-input . (lambda () (run-with-timer 2 nil #'tabnine-capf-start-process)))
          (kill-emacs . tabnine-capf-kill-process)))
+
+(use-package tmux-capf
+  :after cape
+  :commands tmux-capf
+  :straight (:host github :repo "theFool32/tmux-capf" :files ("*.el" "*.sh")))
 
 (use-package corfu-doc
   :after corfu
