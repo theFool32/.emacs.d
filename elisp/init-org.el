@@ -149,7 +149,7 @@
            "☟NEXT(n)"
            "|"
            "✔DONE(d)"  ; Task successfully completed
-           "✘CANCELED(c@)") ; Task was cancelled, aborted or is no longer applicable
+           "✘CANCELED(c)") ; Task was cancelled, aborted or is no longer applicable
           ) ; Task was completed
 
         org-todo-keyword-faces

@@ -177,9 +177,8 @@
   :after evil
   :init
   (setq evil-want-keybinding 'nil)
-  :preface
-  (setq evil-want-keybinding 'nil)
   :config
+  (delete 'corfu evil-collection-mode-list)
   (evil-collection-init))
 
 ;; indent textobj

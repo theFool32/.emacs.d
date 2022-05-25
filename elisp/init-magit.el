@@ -190,65 +190,24 @@ kill all magit buffers for this repo."
   )
 
 (use-package smerge-mode
-  :after general
   :straight nil
+  :commands smerge-mode
   :hook ((find-file . (lambda ()
                         (save-excursion
                           (goto-char (point-min))
                           (when (re-search-forward "^<<<<<<< " nil t)
                             (smerge-mode 1)))))
-         (magit-diff-visit-file . (lambda ()
-                                    (when smerge-mode
-                                      (hydra-smerge/body))))
-         )
-  :pretty-hydra
-  ((:title "Smerge"
-           :color pink :quit-key "q")
-   ("Move"
-    (("n" smerge-next "next")
-     ("p" smerge-prev "previous"))
-    "Keep"
-    (("b" smerge-keep-base "base")
-     ("u" smerge-keep-upper "upper")
-     ("l" smerge-keep-lower "lower")
-     ("a" smerge-keep-all "all")
-     ("RET" smerge-keep-current "current")
-     ("C-m" smerge-keep-current "current"))
-    "Diff"
-    (("<" smerge-diff-base-upper "upper/base")
-     ("=" smerge-diff-upper-lower "upper/lower")
-     (">" smerge-diff-base-lower "upper/lower")
-     ("R" smerge-refine "refine")
-     ("E" smerge-ediff "ediff"))
-    "Other"
-    (("C" smerge-combine-with-next "combine")
-     ("r" smerge-resolve "resolve")
-     ("k" smerge-kill-current "kill")
-     ("ZZ" (lambda ()
-             (interactive)
-             (save-buffer)
-             (bury-buffer))
-      "Save and bury buffer" :exit t))))
+         (smerge-mode . evil-normalize-keymaps))
   :config
-  ;; TODO mapping not work for the mode
-  ;; (general-define-key :states 'normal
-  ;;                     :keymaps 'smerge-mode-map
-  ;;                     :prefix ","
-  ;;                     "n" '(smerge-next :wk "Next conflict")
-  ;;                     "p" '(smerge-prev :wk "Previous conflict")
-  ;;                     "RET" '(smerge-keep-current :wk "Accept current")
-  ;;                     "l" '(smerge-keep-lower :wk "Keep lower")
-  ;;                     "u" '(smerge-keep-upper :wk "Keep upper")
-  ;;                     "m" '(smerge-keep-mine :wk "Keep mine")
-  ;;                     "A" '(smerge-keep-all :wk "Keep all"))
-  (evil-define-key 'normal 'smerge-mode-map ",sn" 'smerge-next)
-  (evil-define-key 'normal 'smerge-mode-map ",sp" 'smerge-prev)
-  (evil-define-key 'normal 'smerge-mode-map ",s," 'smerge-keep-current)
-  (evil-define-key 'normal 'smerge-mode-map ",sl" 'smerge-keep-lower)
-  (evil-define-key 'normal 'smerge-mode-map ",su" 'smerge-keep-upper)
-  (evil-define-key 'normal 'smerge-mode-map ",sm" 'smerge-mine)
-  (evil-define-key 'normal 'smerge-mode-map ",sA" 'smerge-keep-all)
-  )
+  (local-leader-def
+    :keymaps 'smerge-mode-map
+    "n" '(smerge-next :wk "Next conflict")
+    "p" '(smerge-prev :wk "Previous conflict")
+    "RET" '(smerge-keep-current :wk "Accept current")
+    "l" '(smerge-keep-lower :wk "Keep lower")
+    "u" '(smerge-keep-upper :wk "Keep upper")
+    "m" '(smerge-keep-mine :wk "Keep mine")
+    "A" '(smerge-keep-all :wk "Keep all")))
 
 (use-package forge
   :disabled

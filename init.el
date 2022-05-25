@@ -86,7 +86,6 @@
 (require 'init-mini-buffer)
 (require 'init-tree-sitter)
 
-(require 'init-which-key)
 (require 'init-dired)
 (require 'init-utils)
 (require 'init-bindings)

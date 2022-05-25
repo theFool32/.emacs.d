@@ -7,6 +7,15 @@
   (require 'init-func)
   (require 'init-utils))
 
+
+(use-package which-key
+  :diminish
+  :custom
+  (which-key-separator " ")
+  (which-key-prefix-prefix "+")
+  :config
+  (which-key-mode))
+
 ;; Leader def
 (use-package general
   ;; :after evil
