@@ -155,6 +155,8 @@ An alist.")
         (type-parameter . ,(all-the-icons-faicon "arrows" :height 0.8 :v-adjust -0.02))
         (param . ,(all-the-icons-faicon "arrows" :height 0.8 :v-adjust -0.02))
         (template . ,(all-the-icons-material "format_align_left" :height 0.8 :v-adjust -0.15))
+        (tmux . ,(all-the-icons-alltheicon "terminal-alt" :height 0.8 :v-adjust 0))
+        (tabnine . ,(all-the-icons-material "cloud" :height 0.8))
         (t . ,(all-the-icons-material "find_in_page" :height 0.8 :v-adjust -0.15))))
 
 
