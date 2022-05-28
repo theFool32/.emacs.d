@@ -44,10 +44,26 @@
   ('lsp-bridge
    (use-package lsp-bridge
      :commands (lsp-bridge-mode)
-     :straight nil
-     :load-path "/Users/lijie/.emacs.d/site-lisp/lsp-bridge/" ;;  TODO: under construction
-     :hook ((python-mode c-mode c++-mode LaTeX-mode) . lsp-bridge-mode)
-     ))
+     :straight (:host github :repo "theFool32/lsp-bridge" :branch "develop" :files ("*.el" "*.py" "core/*" "langserver/*"))
+     :hook (((python-mode c-mode c++-mode LaTeX-mode) . lsp-bridge-mode)
+            (lsp-bridge-mode . (lambda ()
+                                 (leader-def :keymaps 'override
+                                   "cr" '(lsp-bridge-rename :wk "Rename symbol")
+                                   "cF" '(lsp-bridge-find-impl :wk "Find implementation")
+                                   "cD" '(lsp-bridge-find-references :wk "Find type definition"))
+
+                                 (evil-define-key 'normal 'global
+                                   "K" 'lsp-bridge-lookup-documentation)
+                                 )))
+     :config
+     (add-to-list 'lsp-bridge-enable-popup-predicates
+                  (lambda ()
+                    (and
+                     (< corfu--index 0)
+                     )))
+
+     (add-hook 'lsp-bridge-mode-hook
+               (lambda () (add-hook 'xref-backend-functions #'lsp-bridge-xref-backend nil t)))))
   ('eglot
    (use-package eglot
      :commands (+eglot-organize-imports +eglot-help-at-point)

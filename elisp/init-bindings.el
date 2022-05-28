@@ -110,7 +110,7 @@
     "sy" '(color-rg-search-symbol-in-project :wk "Color-rg Search symbol")
 
     "c" '(:wk "Code")
-    "cD" '(xref-find-references :wk "Jump to implementation")
+    "cD" '(xref-find-references :wk "Find references")
     "cf" '(format-all-buffer :wk "Format buffer")
     "cr" '(lsp-rename :wk "LSP rename")
     "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")

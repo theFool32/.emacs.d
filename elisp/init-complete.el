@@ -284,9 +284,10 @@ function to the relevant margin-formatters list."
   :config
   (set-face-foreground 'copilot-overlay-face "pink")
 
-  (let ((node_path "/usr/local/opt/node@16/bin/node")) ;;  HACK: workaround for node@16
-    (when (file-exists-p node_path)
-      (setq copilot-node-executable node_path)))
+  ;;  HACK: workaround for node@16
+  (cl-loop for node_path in '("/usr/local/opt/node@16/bin/node" "/opt/homebrew/opt/node@16/bin/node")
+           when (file-exists-p node_path)
+           return (setq copilot-node-executable node_path))
 
   (defun +my/corfu-candidates-p ()
     (or
