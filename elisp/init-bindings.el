@@ -50,7 +50,8 @@
 
   (leader-def
     "" nil
-    "<SPC>" '(execute-extended-command :wk "M-x")
+    ;; "<SPC>" '(execute-extended-command :wk "M-x")
+    "<SPC>" '(switch-to-buffer :wk "Switch buffer") ;; maybe `switch-to-buffer' is used more frequently
     "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
     "?" '(+consult-ripgrep-at-point :wk "Search symbol here")
     "." '(find-file :wk "Find file")

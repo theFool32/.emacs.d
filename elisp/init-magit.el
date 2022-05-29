@@ -156,6 +156,19 @@ kill all magit buffers for this repo."
                       :keymaps 'magit-mode-map
                       "q" #'+magit/quit
                       "Q" #'+magit/quit-all)
+
+
+  (defun magit-open-repo ()
+    "open remote repo URL"
+    (interactive)
+    (let ((url (magit-get "remote" "origin" "url")))
+      (progn
+        (browse-url (if (string-match "^http" url)
+                        url
+                      (replace-regexp-in-string "\\(.*\\)@\\(.*\\):\\(.*\\)\\(\\.git?\\)"
+                                                "https://\\2/\\3"
+                                                url)))
+        (message "opening repo %s" url))))
   )
 ;; -MagitPac
 
