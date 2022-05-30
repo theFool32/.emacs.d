@@ -46,32 +46,18 @@
 ;;
 ;;; Code:
 
+;;  TODO: should this be combined with `init-search.el'?
+
 (require 'lookup/+autoloads)
 
 (defvar +lookup-definition-functions
   '(+lookup-xref-definitions-backend-fn
     +lookup-dumb-jump-backend-fn
-    +lookup-project-search-backend-fn
-    +lookup-evil-goto-definition-backend-fn)
+    +lookup-ffap-backend-fn
+    +lookup-project-search-backend-fn)
   "Functions for `+lookup/definition' to try, before resorting to `dumb-jump'.
 Stops at the first function to return non-nil or change the current
 window/point.
-If the argument is interactive (satisfies `commandp'), it is called with
-`call-interactively' (with no arguments). Otherwise, it is called with one
-argument: the identifier at point. See `set-lookup-handlers!' about adding to
-this list.")
-
-(defvar +lookup-implementations-functions ()
-  "Function for `+lookup/implementations' to try. Stops at the first function to
-return non-nil or change the current window/point.
-If the argument is interactive (satisfies `commandp'), it is called with
-`call-interactively' (with no arguments). Otherwise, it is called with one
-argument: the identifier at point. See `set-lookup-handlers!' about adding to
-this list.")
-
-(defvar +lookup-type-definition-functions ()
-  "Functions for `+lookup/type-definition' to try. Stops at the first function to
-return non-nil or change the current window/point.
 If the argument is interactive (satisfies `commandp'), it is called with
 `call-interactively' (with no arguments). Otherwise, it is called with one
 argument: the identifier at point. See `set-lookup-handlers!' about adding to
@@ -87,35 +73,6 @@ If the argument is interactive (satisfies `commandp'), it is called with
 `call-interactively' (with no arguments). Otherwise, it is called with one
 argument: the identifier at point. See `set-lookup-handlers!' about adding to
 this list.")
-
-(defvar +lookup-documentation-functions
-  '(+lookup-online-backend-fn)
-  "Functions for `+lookup/documentation' to try, before resorting to
-`dumb-jump'. Stops at the first function to return non-nil or change the current
-window/point.
-If the argument is interactive (satisfies `commandp'), it is called with
-`call-interactively' (with no arguments). Otherwise, it is called with one
-argument: the identifier at point. See `set-lookup-handlers!' about adding to
-this list.")
-
-(defvar +lookup-file-functions
-  '(+lookup-bug-reference-backend-fn
-    +lookup-ffap-backend-fn)
-  "Function for `+lookup/file' to try, before restoring to `find-file-at-point'.
-Stops at the first function to return non-nil or change the current
-window/point.
-If the argument is interactive (satisfies `commandp'), it is called with
-`call-interactively' (with no arguments). Otherwise, it is called with one
-argument: the identifier at point. See `set-lookup-handlers!' about adding to
-this list.")
-
-(defvar +lookup-dictionary-prefer-offline t
-  "If non-nil, look up dictionaries online.
-Setting this to nil will force it to use offline backends, which may be less
-than perfect, but available without an internet connection.
-Used by `+lookup/dictionary-definition' and `+lookup/synonyms'.
-For `+lookup/dictionary-definition', this is ignored on Mac, where Emacs users
-Dictionary.app behind the scenes to get definitions.")
 
 
 ;;

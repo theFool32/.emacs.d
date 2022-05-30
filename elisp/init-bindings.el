@@ -50,7 +50,8 @@
 
   (leader-def
     "" nil
-    "<SPC>" '(execute-extended-command :wk "M-x")
+    ;; "<SPC>" '(execute-extended-command :wk "M-x")
+    "<SPC>" '(switch-to-buffer :wk "Switch buffer") ;; maybe `switch-to-buffer' is used more frequently
     "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
     "?" '(+consult-ripgrep-at-point :wk "Search symbol here")
     "." '(find-file :wk "Find file")
@@ -110,7 +111,7 @@
     "sy" '(color-rg-search-symbol-in-project :wk "Color-rg Search symbol")
 
     "c" '(:wk "Code")
-    "cD" '(xref-find-references :wk "Jump to implementation")
+    "cD" '(xref-find-references :wk "Find references")
     "cf" '(format-all-buffer :wk "Format buffer")
     "cr" '(lsp-rename :wk "LSP rename")
     "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
