@@ -178,13 +178,13 @@ current buffer."
 (defun +lookup-ffap-backend-fn (identifier)
   (require 'ffap)
   (let ((guess
-         (cond (identifier)
-               ((doom-region-active-p)
+         (cond ((doom-region-active-p)
                 (buffer-substring-no-properties
                  (doom-region-beginning)
                  (doom-region-end)))
                ((ffap-guesser))
-               ((thing-at-point 'filename t)))))
+               ((thing-at-point 'filename t))
+               (identifier))))
     (when (and (stringp guess)
                 (or (file-exists-p guess)
                     (ffap-url-p guess)))
