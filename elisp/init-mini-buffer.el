@@ -409,7 +409,8 @@ When the number of characters in a buffer exceeds this threshold,
                                         ;; enable initialism by default for symbols
                                         (command (styles +orderless-with-initialism))
                                         (variable (styles +orderless-with-initialism))
-                                        (symbol (styles +orderless-with-initialism)))
+                                        (symbol (styles +orderless-with-initialism))
+                                        (elgot (styles +orderless-with-initialism)))
         orderless-component-separator #'orderless-escapable-split-on-space ;; allow escaping space with backslash!
         orderless-style-dispatchers '(+orderless-dispatch)))
 
@@ -448,6 +449,17 @@ When the number of characters in a buffer exceeds this threshold,
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-forward)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-backward))
   )
+
+;; BetterMiniBuffer
+;; (defun abort-minibuffer-using-mouse ()
+;;   "Abort the minibuffer when using the mouse."
+;;   (when (and (>= (recursion-depth) 1) (active-minibuffer-window))
+;;     (abort-recursive-edit)))
+;; (add-hook 'mouse-leave-buffer-hook 'abort-minibuffer-using-mouse)
+
+;; keep the point out of the minibuffer
+(setq-default minibuffer-prompt-properties '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt))
+;; -BetterMiniBuffer
 
 (use-package all-the-icons-completion
   :straight (:host github :repo "iyefrat/all-the-icons-completion")
