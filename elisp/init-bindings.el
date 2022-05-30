@@ -136,6 +136,7 @@
     "gf" '(magit-fetch :wk "fetch")
     "gF" '(magit-pull :wk "pull")
     "gl" '(magit-log :wk "log")
+    "go" '(magit-open-repo :wk "open repo")
 
     "w" '(:wk "Window")
     ;; :sp
