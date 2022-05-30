@@ -54,26 +54,11 @@
   '(+lookup-xref-definitions-backend-fn
     +lookup-dumb-jump-backend-fn
     +lookup-ffap-backend-fn
-    +lookup-project-search-backend-fn)
-  "Functions for `+lookup/definition' to try, before resorting to `dumb-jump'.
-Stops at the first function to return non-nil or change the current
-window/point.
-If the argument is interactive (satisfies `commandp'), it is called with
-`call-interactively' (with no arguments). Otherwise, it is called with one
-argument: the identifier at point. See `set-lookup-handlers!' about adding to
-this list.")
+    +lookup-project-search-backend-fn))
 
 (defvar +lookup-references-functions
   '(+lookup-xref-references-backend-fn
-    +lookup-project-search-backend-fn)
-  "Functions for `+lookup/references' to try, before resorting to `dumb-jump'.
-Stops at the first function to return non-nil or change the current
-window/point.
-If the argument is interactive (satisfies `commandp'), it is called with
-`call-interactively' (with no arguments). Otherwise, it is called with one
-argument: the identifier at point. See `set-lookup-handlers!' about adding to
-this list.")
-
+    +lookup-project-search-backend-fn))
 
 ;;
 ;;; dumb-jump
@@ -88,7 +73,6 @@ this list.")
         dumb-jump-selector 'completing-read)
   (add-hook 'dumb-jump-after-jump-hook #'better-jumper-set-jump))
 
-
 ;;
 ;;; xref
 
@@ -99,7 +83,7 @@ this list.")
 
 (use-package better-jumper
   :hook (+self/first-input . better-jumper-mode)
-  :commands doom-set-jump-a doom-set-jump-maybe-a doom-set-jump-h
+  :commands doom-set-jump-a
   :preface
   ;; REVIEW Suppress byte-compiler warning spawning a *Compile-Log* buffer at
   ;; startup. This can be removed once gilbertw1/better-jumper#2 is merged.
@@ -116,26 +100,6 @@ this list.")
           (better-jumper--jumping t))
       (apply fn args)))
 
-  (defun doom-set-jump-maybe-a (fn &rest args)
-    "Set a jump point if fn returns non-nil."
-    (let ((origin (point-marker))
-          (result
-           (let* ((evil--jumps-jumping t)
-                  (better-jumper--jumping t))
-             (apply fn args))))
-      (unless result
-        (with-current-buffer (marker-buffer origin)
-          (better-jumper-set-jump
-           (if (markerp (car args))
-               (car args)
-             origin))))
-      result))
-
-  (defun doom-set-jump-h ()
-    "Run `better-jumper-set-jump' but return nil, for short-circuiting hooks."
-    (better-jumper-set-jump)
-    nil)
-
   ;; Creates a jump point before killing a buffer. This allows you to undo
   ;; killing a buffer easily (only works with file buffers though; it's not
   ;; possible to resurrect special buffers).
@@ -148,16 +112,7 @@ this list.")
   (advice-add #'imenu :around #'doom-set-jump-a))
 
 (with-eval-after-load 'xref
-  ;; We already have `projectile-find-tag' and `evil-jump-to-tag', no need for
-  ;; xref to be one too.
   (remove-hook 'xref-backend-functions #'etags--xref-backend)
-  ;; ...however, it breaks `projectile-find-tag', unless we put it back.
-  (defun +lookup--projectile-find-tag-a (fn)
-    (let ((xref-backend-functions '(etags--xref-backend t)))
-      (funcall fn)))
-
-  (advice-add #'projectile-find-tag :around #'+lookup--projectile-find-tag-a)
-
   ;; This integration is already built into evil
   ;; Use `better-jumper' instead of xref's marker stack
   (advice-add #'xref-push-marker-stack :around #'doom-set-jump-a)
