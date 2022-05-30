@@ -120,8 +120,6 @@
                                     ))
             ((python-mode c-mode c++-mode LaTeX-mode) . eglot-ensure)
             )
-     :init
-     (require 'lsp/+optimization)
      :config
      (setq eglot-sync-connect 1
            eglot-connect-timeout 10
@@ -212,7 +210,6 @@
             (lsp-mode . +my-lsp-setup))
      :init
      (defun +my-lsp-setup ()
-       (require 'lsp/+optimization)
        (lsp-enable-which-key-integration)
        (+lsp-optimization-mode +1))
      )
