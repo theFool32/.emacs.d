@@ -270,7 +270,9 @@ function to the relevant margin-formatters list."
   :straight (:host github :repo "galeo/corfu-doc")
   :hook (corfu-mode . corfu-doc-mode)
   :bind (:map corfu-map
-              ("M-d" . corfu-doc-toggle)))
+              ("M-d" . corfu-doc-toggle))
+  :custom
+  (corfu-doc-display-within-parent-frame t))
 
 (use-package copilot
   :after corfu

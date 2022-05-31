@@ -500,6 +500,7 @@ the lines even if the ranges do not overlap."
          (org-agenda-finalize . org-modern-agenda))
   :config
   (setq
+   org-modern-timestamp nil
    org-modern-table nil
    org-modern-block nil
    org-modern-keyword nil

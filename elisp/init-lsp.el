@@ -91,6 +91,7 @@
                                    "K" 'lsp-bridge-lookup-documentation)
                                  )))
      :config
+     (setq lsp-bridge-enable-diagnostics nil)
      (add-to-list 'lsp-bridge-completion-popup-predicates
                   (lambda ()
                     (and
