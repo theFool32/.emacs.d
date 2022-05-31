@@ -91,7 +91,7 @@
                                    "K" 'lsp-bridge-lookup-documentation)
                                  )))
      :config
-     (add-to-list 'lsp-bridge-enable-popup-predicates
+     (add-to-list 'lsp-bridge-completion-popup-predicates
                   (lambda ()
                     (and
                      (< corfu--index 0)
