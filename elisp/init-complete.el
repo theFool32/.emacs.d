@@ -220,7 +220,7 @@ function to the relevant margin-formatters list."
                        #'tempel-expand)
       'equal)
      #'tmux-capf
-     ;; #'cape-dabbrev
+     #'cape-dabbrev
      ))
 
   (defun my/set-basic-capf ()
