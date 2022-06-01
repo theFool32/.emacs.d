@@ -583,7 +583,9 @@ Optional MODE specifies major mode used for display."
           (org-datetree-find-iso-week-create close-time)
           (org-paste-subtree)
           (org-next-visible-heading 1)
-          (org-cut-subtree)
+          (when (and (null (nth 2 (org-heading-components)))
+                     (= (nth 0 (org-heading-components)) 3))
+            (org-cut-subtree))
           (save-buffer)
           (kill-buffer))))))
 
