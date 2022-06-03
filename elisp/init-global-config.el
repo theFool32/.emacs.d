@@ -103,6 +103,7 @@ The original function deletes trailing whitespace of the current line."
   (recentf-max-saved-items 200)
   (recentf-exclude `(,(expand-file-name package-user-dir)
                      ,+self/org-base-dir
+                     ,(expand-file-name "~\/.mail\/*")
                      ".cache"
                      ".cask"
                      ".elfeed"

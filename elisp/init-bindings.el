@@ -160,6 +160,7 @@
     "tc" '(olivetti-mode :wk "Center")
 
     "o" '(:wk "Open")
+    "om" '(mu4e :wk "Mail")
     "oy" '(my-youdao-search-at-point :wk "Youdao")
     "oY" '(youdao-dictionary-search-from-input :wk "Youdao from input")
     "oe" '((lambda() (interactive)(if (get-buffer "vterm") (switch-to-buffer "vterm") (call-interactively #'vterm))) :wk "Shell")

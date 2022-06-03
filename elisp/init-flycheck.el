@@ -74,7 +74,7 @@
 ;; -FlyCheckPac
 
 (use-package wucuo
-  :hook (text-mode . wucuo-mode)
+  :hook (LaTeX-mode . wucuo-mode)
   :config
   (setq ispell-program-name "aspell")
   ;; You could add extra option "--camel-case" for since Aspell 0.60.8

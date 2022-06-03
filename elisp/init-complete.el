@@ -74,6 +74,7 @@
         ([?\r] . newline)
         ([backtab] . corfu-previous))
   :config
+  (add-hook 'evil-insert-state-exit-hook 'corfu--popup-hide)
   (add-to-list 'corfu-auto-commands 'grammatical-edit-open-round)
   (add-to-list 'corfu-auto-commands 'grammatical-edit-open-bracket)
   (add-to-list 'corfu-auto-commands 'grammatical-edit-open-curly)
@@ -220,7 +221,7 @@ function to the relevant margin-formatters list."
                        #'tempel-expand)
       'equal)
      #'tmux-capf
-     #'cape-dabbrev
+     ;; #'cape-dabbrev
      ))
 
   (defun my/set-basic-capf ()
@@ -294,6 +295,7 @@ function to the relevant margin-formatters list."
   (defun +my/corfu-candidates-p ()
     (or
      ;; corfu--candidates
+     (evil-normal-state-p)
      (derived-mode-p 'minibuffer-mode)
      tempel--active ;; diable copilot in tempel
      ;; (not (looking-back "[\x00-\xff]"))

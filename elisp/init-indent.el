@@ -47,8 +47,9 @@
 (add-hook 'after-change-major-mode-hook
           (lambda () (and electric-indent-mode
 			         (derived-mode-p 'text-mode 'fundamental-mode) ;;  FIXME: still not work for new buffer (e.g., leetcode)
-			         (setq-local electric-indent-mode -1
-                                 evil-auto-indent nil))))
+			         (setq-local electric-indent-mode nil
+                                 evil-auto-indent nil
+                                 electric-indent-local-mode nil))))
 ;; -IndentConfig
 
 (provide 'init-indent)
