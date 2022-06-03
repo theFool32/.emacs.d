@@ -44,6 +44,7 @@
 
    ;; This enabled the thread like viewing of email similar to gmail's UI.
    mu4e-headers-include-related t
+   mu4e-headers-skip-duplicates t
 
    mu4e-completing-read-function 'completing-read
 
@@ -80,16 +81,24 @@
 
   (setq mu4e-bookmarks
         '( ("flag:unread AND NOT flag:trashed"      "Unread messages"   ?u)
+           ("m:/Gmail/Inbox or m:/Outlook/Inbox or m:/XMU/Inbox" "Inbox" ?i)
            ("date:today..now"  "Today's messages"   ?t)
            ("date:7d..now"  "Last 7 days"           ?w)
            ("mime:image/*"  "Messages with images"  ?p)))
 
-  (setq mu4e-maildir-shortcuts
-        '( ("/Gmail/Inbox" . ?g)
-           ("/Gmail/存档" . ?G)
-           ("/Outlook/Inbox" . ?k)
-           ("/Outlook/存档" . ?K)
-           ))
+  ;; (setq mu4e-maildir-shortcuts
+  ;;       '( ("/Gmail/Inbox" . ?g)
+  ;;          ("/Gmail/存档" . ?G)
+  ;;          ("/Outlook/Inbox" . ?k)
+  ;;          ("/Outlook/存档" . ?K)
+  ;;          ))
+
+  (setq mu4e-headers-fields
+        '((:human-date . 12)
+          (:flags . 6)
+          (:maildir . 25)
+          (:from . 22)
+          (:subject)))
 
 
   ;; 该函数基于当前所在的 maildir 来判定所账户上下文。
@@ -131,18 +140,17 @@
 
   (setq mu4e-query-rewrite-function 'mu4e-goodies~break-cjk-query)
 
+  (require 'org-mu4e)
+  ;;store link to message if in header view, not to header query
+  (setq org-mu4e-link-query-in-headers-mode nil)
+
   (use-package mu4e-alert
     :config
     (mu4e-alert-set-default-style 'notifier)
-    (add-hook 'after-init-hook #'mu4e-alert-enable-notifications)
-    (add-hook 'after-init-hook #'mu4e-alert-enable-mode-line-display)
+    (mu4e-alert-enable-notifications)
+    (mu4e-alert-enable-mode-line-display)
     (setq mu4e-alert-email-notification-types '(count subject))
-    ;; (setq mu4e-alert-interesting-mail-query
-    ;;       (concat
-    ;;        "flag:unread"
-    ;;        " AND NOT flag:trashed"))
     )
-
   )
 
 (provide 'init-mail)

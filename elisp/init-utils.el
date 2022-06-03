@@ -92,10 +92,12 @@
 
   (setq auto-save-disable-predicates
         '((lambda ()
-            (string-suffix-p
-             "gpg"
-             (file-name-extension (buffer-name)) t)))))
-
+            (or
+             (null (buffer-file-name))
+             (string-suffix-p
+              "gpg"
+              (file-name-extension (buffer-name)) t)))))
+  )
 
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
