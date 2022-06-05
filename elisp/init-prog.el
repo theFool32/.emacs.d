@@ -98,7 +98,7 @@
   (defun my/project-try-local (dir)
     "Determine if DIR is a non-Git project."
     (catch 'ret
-      (let ((pr-flags '((".project" ".projectile")
+      (let ((pr-flags '((".project" ".projectile" ".rc_config")
                         ("Makefile" "README.org" "README.md"))))
         (dolist (current-level pr-flags)
           (dolist (f current-level)

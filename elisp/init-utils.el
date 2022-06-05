@@ -83,6 +83,7 @@
         (alist-get 'node vundo-glyph-alist) ?O))
 
 (use-package auto-save
+  :disabled
   :straight (:host github :repo "manateelazycat/auto-save")
   :custom
   (auto-save-silent t)

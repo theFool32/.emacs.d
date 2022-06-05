@@ -21,8 +21,9 @@
    smtpmail-smtp-service 587
    smtpmail-starttls-credentials (expand-file-name "~/.authinfo.gpg")
    smtpmail-stream-type  'starttls
-   mu4e-get-mail-command "offlineimap"
-   mu4e-update-interval 600
+   ;; mu4e-get-mail-command "offlineimap"
+   mu4e-get-mail-command "true"
+   mu4e-update-interval 300
    ;; 回复邮件插入邮件引用信息
    message-citation-line-function 'message-insert-formatted-citation-line
    message-citation-line-format "On %a, %b %d %Y, %f wrote:\n"
@@ -147,9 +148,9 @@
   (use-package mu4e-alert
     :config
     (mu4e-alert-set-default-style 'notifier)
-    (mu4e-alert-enable-notifications)
+    ;; (mu4e-alert-enable-notifications)
     (mu4e-alert-enable-mode-line-display)
-    (setq mu4e-alert-email-notification-types '(count subject))
+    ;; (setq mu4e-alert-email-notification-types '(count subject))
     )
   )
 

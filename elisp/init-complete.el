@@ -74,7 +74,6 @@
         ([?\r] . newline)
         ([backtab] . corfu-previous))
   :config
-  (add-hook 'evil-insert-state-exit-hook 'corfu--popup-hide)
   (add-to-list 'corfu-auto-commands 'grammatical-edit-open-round)
   (add-to-list 'corfu-auto-commands 'grammatical-edit-open-bracket)
   (add-to-list 'corfu-auto-commands 'grammatical-edit-open-curly)

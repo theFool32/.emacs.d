@@ -451,11 +451,11 @@ When the number of characters in a buffer exceeds this threshold,
   )
 
 ;; BetterMiniBuffer
-;; (defun abort-minibuffer-using-mouse ()
-;;   "Abort the minibuffer when using the mouse."
-;;   (when (and (>= (recursion-depth) 1) (active-minibuffer-window))
-;;     (abort-recursive-edit)))
-;; (add-hook 'mouse-leave-buffer-hook 'abort-minibuffer-using-mouse)
+(defun abort-minibuffer-using-mouse ()
+  "Abort the minibuffer when using the mouse."
+  (when (and (>= (recursion-depth) 1) (active-minibuffer-window))
+    (abort-recursive-edit)))
+(add-hook 'mouse-leave-buffer-hook 'abort-minibuffer-using-mouse)
 
 ;; keep the point out of the minibuffer
 (setq-default minibuffer-prompt-properties '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt))
