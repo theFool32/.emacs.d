@@ -50,7 +50,7 @@
   (declare (pure t) (side-effect-free t))
   (if (listp exp) exp (list exp)))
 
-(defun kill-other-buffers ()
+(defun +my/kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
@@ -74,7 +74,7 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
           (random (expt 16 6)) ) )
 
 
-(defun my-rename-file()
+(defun +my/rename-file()
   "Rename file while using current file as default."
   (interactive)
   (let ((file-from (read-file-name "Move from: " default-directory buffer-file-name))
@@ -84,14 +84,14 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
       (kill-buffer)
       (find-file file-to))))
 
-(defun my-copy-file()
+(defun +my/copy-file()
   "Copy file while using current file as default."
   (interactive)
   (copy-file
    (read-file-name "Copy from: " default-directory buffer-file-name)
    (read-file-name "Copy to:" default-directory)))
 
-(defun my-delete-file()
+(defun +my/delete-file()
   "Delete file while using current file as default."
   (interactive)
   (let ((file-name (read-file-name "Delete: " default-directory (buffer-file-name))))
@@ -102,7 +102,7 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
     (unless (file-exists-p (buffer-file-name))
       (kill-current-buffer))))
 
-(defun +my-imenu ()
+(defun +my/imenu ()
   "Consult-outline in `org-mode' unless imenu."
   (interactive)
   (if (derived-mode-p 'org-mode)
@@ -110,7 +110,7 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
     (consult-imenu)))
 
 
-(defun my-open-recent ()
+(defun +my/open-recent ()
   "Open recent directory in Dired or file otherwise."
   (interactive)
   (unless recentf-mode (recentf-mode 1))
@@ -131,7 +131,7 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
       :history 'file-name-history
       ))))
 
-(defun my-project-root (&optional dir)
+(defun +my/project-root (&optional dir)
   "Return the project root of DIR."
   (when-let* ((default-directory (or dir default-directory))
               (project (project-current)))
@@ -139,7 +139,7 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
                           (project-root project)
                         (cdr project)))))
 
-(defun my-save-file ()
+(defun +my/save-file ()
   "Save files including org agenda"
   (interactive)
   (if (derived-mode-p 'org-agenda-mode)

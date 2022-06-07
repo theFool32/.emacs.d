@@ -76,6 +76,10 @@
 (setq byte-compile-warnings '(cl-functions))
 (straight-use-package 'use-package)
 
+(defun +my/check-straight-repos ()
+  (interactive)
+  (find-file (read-file-name "Repos: " "~/.emacs.d/straight/repos/")))
+
 ;; DimPac
 (use-package diminish)
 ;; -DimPac

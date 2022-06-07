@@ -125,10 +125,10 @@ formatting the entry."
                            entry
                            ",\n"))
         (insert "\n}\n\n"))))
-  (defun my-ebib-copy-entry ()
-    "Copy the current entry.
-The entry is copied to the kill ring."
+
+  (defun insert-to-bib ()
     (interactive)
+    (call-interactively 'ebib-jump-to-entry)
     (ebib--execute-when
      (entries
       (let ((key (ebib--get-key-at-point)))
@@ -137,11 +137,7 @@ The entry is copied to the kill ring."
           (kill-new (buffer-substring-no-properties (point-min) (point-max))))
         (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
      (default
-      (beep))))
-  (defun insert-to-bib ()
-    (interactive)
-    (call-interactively 'ebib-jump-to-entry)
-    (call-interactively 'my-ebib-copy-entry)
+      (beep)))
     (yank))
 
   (defun ebib-import-ref (url)

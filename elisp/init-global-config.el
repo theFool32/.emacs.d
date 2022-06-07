@@ -186,12 +186,11 @@ That is, remove a non kept dired from the recent list."
   "Return function that ignores its arguments and invokes FNC."
   `(lambda (&rest _rest)
      (funcall ,fnc)))
-;; (add-hook 'after-save-hook (lambda () (call-process-shell-command "rc" nil 0)))
-(defun +my-sync-code()
-  (when (derived-mode-p 'prog-mode)
-    (call-process-shell-command "rc" nil 0)))
 (when +self/use-rc-to-sync
-  (advice-add #'save-buffer :after (η #'+my-sync-code)))
+  (advice-add #'save-buffer :after (η
+                                    (lambda ()
+                                      (when (derived-mode-p 'prog-mode)
+                                        (call-process-shell-command "rc" nil 0))))))
 
 ;; _ as part of a word
 (modify-syntax-entry ?_ "w")

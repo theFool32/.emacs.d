@@ -234,7 +234,7 @@
                 :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
 
-  (defun my-consult-set-evil-search-pattern (&optional condition)
+  (defun +my/consult-set-evil-search-pattern (&optional condition)
     (let ((re
            (cond
             ((eq condition 'rg) (substring (car consult--grep-history) 1)) ;; HACK: assume the history begins with `#'
@@ -244,11 +244,11 @@
       (setq evil-ex-search-direction 'forward)
       (anzu-mode t)))
 
-  (defun my-consult-line-symbol-at-point ()
+  (defun +my/consult-line-symbol-at-point ()
     (interactive)
     (evil-without-repeat ;; I use evil always
       (consult-line (thing-at-point 'symbol))
-      (my-consult-set-evil-search-pattern)))
+      (+my/consult-set-evil-search-pattern)))
 
   (defcustom noct-consult-ripgrep-or-line-limit 300000
     "Buffer size threshold for `noct-consult-ripgrep-or-line'.
@@ -269,7 +269,7 @@ When the number of characters in a buffer exceeds this threshold,
                   (/ noct-consult-ripgrep-or-line-limit
                      (if (eq major-mode 'org-mode) 4 1))))
           (progn (consult-line)
-                 (my-consult-set-evil-search-pattern))
+                 (+my/consult-set-evil-search-pattern))
         (when (file-writable-p buffer-file-name)
           (save-buffer))
         (let ((consult-ripgrep-args
@@ -290,7 +290,7 @@ When the number of characters in a buffer exceeds this threshold,
                        "-e ARG OPTS "
                        (shell-quote-argument buffer-file-name))))
           (consult-ripgrep)
-          (my-consult-set-evil-search-pattern 'rg)))))
+          (+my/consult-set-evil-search-pattern 'rg)))))
 
   (defun +consult-ripgrep-at-point (&optional dir initial)
     (interactive (list prefix-arg (when-let ((s (symbol-at-point)))

@@ -160,7 +160,7 @@ This backend prefers \"just working\" over accuracy."
 
 (defun +lookup-project-search-backend-fn (identifier)
   (when identifier
-    (+consult-ripgrep-at-point (my-project-root) identifier)
+    (+consult-ripgrep-at-point (+my/project-root) identifier)
     t))
 
 (defun +lookup-evil-goto-definition-backend-fn (_identifier)
