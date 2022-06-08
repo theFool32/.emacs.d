@@ -142,7 +142,11 @@
 ;; (use-package evil-numbers)
 
 (use-package evil-anzu
-  :after evil)
+  :after evil
+  :config
+  (global-anzu-mode)
+  (add-hook 'evil-insert-state-entry-hook #'evil-ex-nohighlight)
+  )
 
 (provide 'evil/+packages)
 
