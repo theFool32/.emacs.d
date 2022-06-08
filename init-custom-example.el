@@ -47,6 +47,8 @@
 ;;; Code:
 
 
+;;  TODO: Rename `+self/'
+
 ;; For ebib
 (defconst +self/ebib-base-dir "")
 ;; For org-mode
@@ -58,8 +60,8 @@
 (defconst +self/use-rime t
   "Should we use `rime'")
 
-(defconst my-lsp 'eglot
-  "Which language server to use, eglot or lsp-mode")
+(defconst my-lsp 'lsp-bridge
+  "Which language server to use, eglot or lsp-bridge")
 
 (provide 'init-custom)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

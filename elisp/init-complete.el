@@ -182,13 +182,7 @@ function to the relevant margin-formatters list."
   (defun my/set-lsp-capf ()
     (setq completion-category-defaults nil)
     (setq-local completion-at-point-functions (my/convert-super-capf
-                                               (pcase my-lsp
-                                                 ('lsp-bridge
-                                                  #'lsp-bridge-capf)
-                                                 ('eglot
-                                                  #'eglot-completion-at-point)
-                                                 ('lsp-mode
-                                                  #'lsp-completion-at-point))))
+                                               'lsp-capf))
     (when (derived-mode-p 'latex-mode) ;;  HACK: reftex not working in latex-mode
       (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion)))
 

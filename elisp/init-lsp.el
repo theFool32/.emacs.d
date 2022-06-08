@@ -4,45 +4,14 @@
   (require 'init-const))
 
 
-(when (or (equal my-lsp 'eglot)
-          (equal my-lsp 'lsp-mode))
-  (defvar +lsp--default-read-process-output-max nil)
-  (defvar +lsp--default-gcmh-high-cons-threshold nil)
-  (defvar +lsp--optimization-init-p nil)
-
-  (define-minor-mode +lsp-optimization-mode
-    "Deploys universal GC and IPC optimizations for `lsp-mode' and `eglot'."
-    :global t
-    :init-value nil
-    (if (not +lsp-optimization-mode)
-        (setq-default read-process-output-max +lsp--default-read-process-output-max
-                      gcmh-high-cons-threshold +lsp--default-gcmh-high-cons-threshold
-                      +lsp--optimization-init-p nil)
-      ;; Only apply these settings once!
-      (unless +lsp--optimization-init-p
-        (setq +lsp--default-read-process-output-max
-              ;; DEPRECATED Remove check when 26 support is dropped
-              (if (boundp 'read-process-output-max)
-                  (default-value 'read-process-output-max))
-              +lsp--default-gcmh-high-cons-threshold
-              (default-value 'gcmh-high-cons-threshold))
-        ;; `read-process-output-max' is only available on recent development
-        ;; builds of Emacs 27 and above.
-        (setq-default read-process-output-max (* 1024 1024))
-        ;; REVIEW LSP causes a lot of allocations, with or without Emacs 27+'s
-        ;;        native JSON library, so we up the GC threshold to stave off
-        ;;        GC-induced slowdowns/freezes. Doom uses `gcmh' to enforce its
-        ;;        GC strategy, so we modify its variables rather than
-        ;;        `gc-cons-threshold' directly.
-        (setq-default gcmh-high-cons-threshold (* 2 +lsp--default-gcmh-high-cons-threshold))
-        (gcmh-set-high-threshold)
-        (setq +lsp--optimization-init-p t)))))
 
 (pcase my-lsp
   ('lsp-bridge
    (use-package lsp-bridge
      :commands (lsp-bridge-mode)
      :straight (:host github :repo "theFool32/lsp-bridge" :branch "develop" :files ("*.el" "*.py" "core/*" "langserver/*"))
+     ;; :straight nil
+     ;; :load-path "~/.emacs.d/site-lisp/lsp-bridge/"
      :hook (((python-mode c-mode c++-mode LaTeX-mode) . lsp-bridge-mode)
             (lsp-bridge-mode . (lambda ()
                                  (leader-def :keymaps 'override
@@ -55,6 +24,7 @@
                                  )))
      :config
      (setq lsp-bridge-enable-diagnostics nil)
+     (fset 'lsp-capf 'lsp-bridge-capf)
      (add-to-list 'lsp-bridge-completion-popup-predicates
                   (lambda ()
                     (and
@@ -84,7 +54,41 @@
                                     ))
             ((python-mode c-mode c++-mode LaTeX-mode) . eglot-ensure)
             )
+     :init
+     (defvar +lsp--default-read-process-output-max nil)
+     (defvar +lsp--default-gcmh-high-cons-threshold nil)
+     (defvar +lsp--optimization-init-p nil)
+
+     (define-minor-mode +lsp-optimization-mode
+       "Deploys universal GC and IPC optimizations for `lsp-mode' and `eglot'."
+       :global t
+       :init-value nil
+       (if (not +lsp-optimization-mode)
+           (setq-default read-process-output-max +lsp--default-read-process-output-max
+                         gcmh-high-cons-threshold +lsp--default-gcmh-high-cons-threshold
+                         +lsp--optimization-init-p nil)
+         ;; Only apply these settings once!
+         (unless +lsp--optimization-init-p
+           (setq +lsp--default-read-process-output-max
+                 ;; DEPRECATED Remove check when 26 support is dropped
+                 (if (boundp 'read-process-output-max)
+                     (default-value 'read-process-output-max))
+                 +lsp--default-gcmh-high-cons-threshold
+                 (default-value 'gcmh-high-cons-threshold))
+           ;; `read-process-output-max' is only available on recent development
+           ;; builds of Emacs 27 and above.
+           (setq-default read-process-output-max (* 1024 1024))
+           ;; REVIEW LSP causes a lot of allocations, with or without Emacs 27+'s
+           ;;        native JSON library, so we up the GC threshold to stave off
+           ;;        GC-induced slowdowns/freezes. Doom uses `gcmh' to enforce its
+           ;;        GC strategy, so we modify its variables rather than
+           ;;        `gc-cons-threshold' directly.
+           (setq-default gcmh-high-cons-threshold (* 2 +lsp--default-gcmh-high-cons-threshold))
+           (gcmh-set-high-threshold)
+           (setq +lsp--optimization-init-p t))))
+
      :config
+     (fset 'lsp-capf 'eglot-completion-at-point)
      (setq eglot-sync-connect 1
            eglot-connect-timeout 10
            eglot-autoshutdown t
@@ -129,81 +133,9 @@
 
      (defun +eglot-help-at-point()
        (interactive)
-       (+eglot-lookup-documentation nil))
-     )
+       (+eglot-lookup-documentation nil)))
    )
-  ('lsp-mode
-   ;; LSPPac
-   (use-package lsp-mode
-     :commands (lsp lsp-deferred)
-     :custom
-     (lsp-keymap-prefix nil)
-     (lsp-enable-indentation nil)
-     ;; (lsp-signature-auto-activate nil)
-     (lsp-modeline-code-actions-enable nil)
-     (lsp-semantic-tokens-enable nil)
-     (lsp-headerline-breadcrumb-enable nil)
-
-     (lsp-enable-imenu nil)
-     (lsp-idle-delay 0.5)
-     (lsp-log-io nil)
-     (lsp-enable-folding nil)
-     (lsp-auto-guess-root t)
-     (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
-     (lsp-flycheck-live-reporting nil)
-     (lsp-diagnostic-package :none)
-     (lsp-enable-snippet nil)
-     (lsp-enable-file-watchers nil)
-     (lsp-enable-text-document-color nil)
-     (lsp-enable-symbol-highlighting nil)
-     (lsp-enable-on-type-formatting nil)
-     (lsp-restart 'auto-restart)
-
-     (lsp-eldoc-enable-hover t)
-     (lsp-eldoc-render-all nil)
-
-     (read-process-output-max (* 1024 1024))
-     (lsp-keep-workspace-alive nil)
-     (gc-cons-threshold 100000000)
-     (lsp-modeline-code-actions-enable nil)
-     (lsp-modeline-diagnostics-enable nil)
-     (lsp-modeline-workspace-status-enable nil)
-     (lsp-completion-provider :none)
-
-     :hook (((python-mode c-mode c++-mode LaTeX-mode) . lsp-deferred)
-            (lsp-mode . +my-lsp-setup))
-     :init
-     (defun +my-lsp-setup ()
-       (lsp-enable-which-key-integration)
-       (+lsp-optimization-mode +1))
-     )
-
-   (use-package lsp-ui
-     :after lsp-mode
-     :custom-face
-     (lsp-ui-doc-background ((t (:background nil))))
-     (lsp-ui-doc-header ((t (:inherit (font-lock-string-face italic)))))
-     :hook (lsp-mode . lsp-ui-mode)
-     :bind
-     (:map lsp-ui-doc-frame-mode-map
-           ("C-g" . lsp-ui-doc-unfocus-frame))
-     :custom
-     (lsp-ui-doc-header nil)
-     (lsp-ui-doc-include-signature t)
-     (lsp-ui-doc-enable nil)
-     (lsp-ui-doc-delay 1)
-     (lsp-ui-doc-border (face-foreground 'default))
-     (lsp-ui-sideline-enable nil)
-     (lsp-ui-sideline-ignore-duplicate t)
-     (lsp-ui-sideline-show-code-actions nil)
-     (lsp-ui-sideline-show-diagnostics nil)
-     (lsp-ui-doc-position 'at-point)
-     :config
-     (advice-add #'keyboard-quit :before #'lsp-ui-doc-hide)
-     (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
-       (setq mode-line-format nil)))
-   ;; -LSPPac
-   ))
+  )
 
 (provide 'init-lsp)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
