@@ -1,52 +1,6 @@
 ;; -*- lexical-binding: t -*-
 
 ;;; init-mini-buffer.el ---
-;;
-;; Filename: init-mini-buffer.el
-;; Description:
-;; Author: theFool32
-;; Maintainer:
-;; Copyright (C) 2020 theFool32
-;; Created: Sun May  2 14:40:03 2021 (+0800)
-;; Version:
-;; Package-Requires: ()
-;; Last-Updated:
-;;           By:
-;;     Update #: 522
-;; URL:
-;; Doc URL:
-;; Keywords:
-;; Compatibility:
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Commentary:
-;;
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Change Log:
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Code:
 
 
 (eval-when-compile
@@ -58,7 +12,7 @@
 (use-package vertico
   :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory)
                      :files (:defaults "extensions/vertico-*.el"))
-  ;; :hook (+self/first-input . vertico-mode)
+  ;; :hook (+my/first-input . vertico-mode)
   :init
   (vertico-mode)
   :config
@@ -66,7 +20,6 @@
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   (setq vertico-cycle nil)
 
-  ;; TODO: only for mac os now
   (defun open-in-external-app ()
     (interactive)
     (let ((candidate (+complete-get-current-candidate)))
@@ -415,7 +368,7 @@ When the number of characters in a buffer exceeds this threshold,
         orderless-style-dispatchers '(+orderless-dispatch)))
 
 (use-package marginalia
-  :hook (+self/first-input . marginalia-mode)
+  :hook (+my/first-input . marginalia-mode)
   :config
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light)))
 

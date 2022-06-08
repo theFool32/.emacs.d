@@ -1,41 +1,4 @@
 ;;; init-dired.el --- -*- lexical-binding: t -*-
-;;
-;; Filename: init-dired.el
-;; Description: Initialize Dired and Related Configurations
-;; Author: Mingde (Matthew) Zeng
-;; Copyright (C) 2019 Mingde (Matthew) Zeng
-;; Created: Thu Mar 14 11:37:00 2019 (-0400)
-;; Version: 2.0.0
-;; Last-Updated: Fri Mar  4 20:18:50 2022 (+0800)
-;;           By: theFool32
-;; URL: https://github.com/MatthewZMD/.emacs.d
-;; Keywords: M-EMACS .emacs.d dired auto-save
-;; Compatibility: emacs-version >= 26.1
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Commentary:
-;;
-;; This initializes dired, disk-usage
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Code:
 
 ;; DiredPackage
 (use-package dired
@@ -136,7 +99,7 @@ Version 2019-11-04"
 
 (use-package dirvish  ;; `(' for details.
   :straight (dirvish :type git :host github :repo "alexluigit/dirvish")
-  :hook (+self/first-input . dirvish-override-dired-mode)
+  :hook (+my/first-input . dirvish-override-dired-mode)
   :after dired
   :custom
   (dirvish-attributes '(all-the-icons file-size))

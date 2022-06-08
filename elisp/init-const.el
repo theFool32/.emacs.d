@@ -1,62 +1,21 @@
 ;;; init-const.el --- -*- lexical-binding: t -*-
-;;
-;; Filename: init-const.el
-;; Description: Initialize Constants
-;; Author: Mingde (Matthew) Zeng
-;; Copyright (C) 2019 Mingde (Matthew) Zeng
-;; Created: Mon Mar 18 14:20:54 2019 (-0400)
-;; Version: 2.0.0
-;; Last-Updated: Fri Sep  3 23:24:04 2021 (+0800)
-;;           By: theFool32
-;; URL: https://github.com/MatthewZMD/.emacs.d
-;; Keywords: M-EMACS .emacs.d constants
-;; Compatibility: emacs-version >= 26.1
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Commentary:
-;;
-;; This initializes constants
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Code:
 
 (eval-when-compile
   (require 'init-custom))
 
 ;; Load env
-(defconst my-env-file (concat user-emacs-directory "env"))
-(when (and (or (display-graphic-p)
-               (daemonp))
-           (file-exists-p my-env-file))
-  (defun my-load-envvars-file (file &optional noerror)
-    "Read and set envvars from FILE.
-If NOERROR is non-nil, don't throw an error if the file doesn't exist or is
-unreadable. Returns the names of envvars that were changed."
-    (if (not (file-readable-p file))
+(let ((my-env-file (concat user-emacs-directory "env")))
+  (when (and (or (display-graphic-p)
+                 (daemonp))
+             (file-exists-p my-env-file))
+    (if (not (file-readable-p my-env-file))
         (unless noerror
-          (signal 'file-error (list "Couldn't read envvar file" file)))
+          (signal 'file-error (list "Couldn't read envvar file" my-env-file)))
       (let (envvars environment)
         (with-temp-buffer
           (save-excursion
             (insert "\n")
-            (insert-file-contents file))
+            (insert-file-contents my-env-file))
           (while (re-search-forward "\n *\\([^#= \n]*\\)=" nil t)
             (push (match-string 1) envvars)
             (push (buffer-substring
@@ -78,9 +37,7 @@ unreadable. Returns the names of envvars that were changed."
                 (if (member "SHELL" envvars)
                     (or (getenv "SHELL") shell-file-name)
                   shell-file-name))
-          envvars))))
-
-  (my-load-envvars-file my-env-file))
+          envvars)))))
 
 ;; UserInfo
 (setq user-full-name "theFool32")

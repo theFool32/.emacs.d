@@ -1,78 +1,12 @@
 ;;; init-func.el --- -*- lexical-binding: t -*-
-;;
-;; Filename: init-func.el
-;; Description: Initialize Functions
-;; Author: Mingde (Matthew) Zeng
-;; Copyright (C) 2019 Mingde (Matthew) Zeng
-;; Created: Sun Jun  9 17:53:44 2019 (-0400)
-;; Version: 2.0.0
-;; Last-Updated: Fri Mar  4 20:35:31 2022 (+0800)
-;;           By: theFool32
-;; URL: https://github.com/MatthewZMD/.emacs.d
-;; Keywords: M-EMACS .emacs.d
-;; Compatibility: emacs-version >= 26.1
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Commentary:
-;;
-;; This file initializes functions
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Code:
 
 (eval-when-compile
   (require 'init-global-config))
-
-
-(defun font-installed-p (font-name)
-  "Check if font with FONT-NAME is available."
-  (find-font (font-spec :name font-name)))
-
-(defun doom-enlist (exp)
-  "Return EXP wrapped in a list, or as-is if already a list."
-  (declare (pure t) (side-effect-free t))
-  (if (listp exp) exp (list exp)))
 
 (defun +my/kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
-
-
-(random t)
-(defun get-random-uuid ()
-  "Insert a random UUID.
-Example of a UUID: 1df63142-a513-c850-31a3-535fc3520c3d
-
-WARNING: this is a simple implementation.  The chance of generating the same UUID is much higher than a robust algorithm.."
-  (interactive)
-
-  (format "%04x%04x-%04x-%04x-%04x-%06x%06x"
-          (random (expt 16 4))
-          (random (expt 16 4))
-          (random (expt 16 4))
-          (random (expt 16 4))
-          (random (expt 16 4))
-          (random (expt 16 6))
-          (random (expt 16 6)) ) )
-
 
 (defun +my/rename-file()
   "Rename file while using current file as default."

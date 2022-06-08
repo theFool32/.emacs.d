@@ -1,41 +1,4 @@
 ;;; init.el --- -*- lexical-binding: t -*-
-;;
-;; Filename: init.el
-;; Description: Initialize M-EMACS
-;; Author: Mingde (Matthew) Zeng
-;; Copyright (C) 2019 Mingde (Matthew) Zeng
-;; Created: Thu Mar 14 10:15:28 2019 (-0400)
-;; Version: 2.0.0
-;; Last-Updated: Fri Mar  4 21:31:12 2022 (+0800)
-;;           By: theFool32
-;; URL: https://github.com/MatthewZMD/.emacs.d
-;; Keywords: M-EMACS .emacs.d init
-;; Compatibility: emacs-version >= 26.1
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Commentary:
-;;
-;; This is the init.el file for M-EMACS
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Code:
 
 (load (concat user-emacs-directory "early-init") nil 'nomessage)
 (setq auto-mode-case-fold nil)
@@ -68,11 +31,13 @@
 (load (expand-file-name "init-custom.el" user-emacs-directory) nil 'nomessage)
 ;; -InitPrivate
 
-(defvar +self/first-input-hook nil)
-(add-hook 'pre-command-hook #'(lambda ()
-                                (when +self/first-input-hook
-                                  (run-hooks '+self/first-input-hook)
-                                  (setq +self/first-input-hook nil))))
+(defvar +my/first-input-hook nil)
+(defun +my/first-input-hook-fun ()
+  (when +my/first-input-hook
+    (run-hooks '+my/first-input-hook)
+    (setq +my/first-input-hook nil))
+  (remove-hook 'pre-command-hook '+my/first-input-hook-fun))
+(add-hook 'pre-command-hook '+my/first-input-hook-fun)
 
 (require 'init-package)
 (require 'init-const)
@@ -101,7 +66,6 @@
 (require 'init-flycheck)
 (require 'init-parens)
 (require 'init-indent)
-(require 'init-format)
 (require 'init-edit)
 (require 'init-lsp)
 (require 'init-complete)

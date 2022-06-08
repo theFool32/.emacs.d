@@ -1,6 +1,4 @@
 ;;; init-bindings.el --- -*- lexical-binding: t -*-
-;;; Commentary:
-;;; Code:
 
 (eval-when-compile
   (require 'init-const)

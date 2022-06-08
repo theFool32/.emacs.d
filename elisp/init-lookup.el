@@ -1,50 +1,5 @@
 ;;; init-lookup.el ---
 ;;
-;; Filename: init-lookup.el
-;; Description:
-;; Author: John
-;; Maintainer:
-;; Copyright (C) 2019 John
-;; Created: Sun Aug  8 12:18:46 2021 (+0800)
-;; Version:
-;; Package-Requires: ()
-;; Last-Updated:
-;;           By:
-;;     Update #: 14
-;; URL:
-;; Doc URL:
-;; Keywords:
-;; Compatibility:
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Commentary:
-;;
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Change Log:
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Code:
 
 ;;  TODO: should this be combined with `init-search.el'?
 
@@ -75,6 +30,17 @@
 
 ;;
 ;;; xref
+(use-package xref
+  :straight nil
+  :init
+  ;; On Emacs 28, `xref-search-program' can be set to `ripgrep'.
+  ;; `project-find-regexp' benefits from that.
+  (when (>= emacs-major-version 28)
+    (setq xref-search-program 'ripgrep)
+    (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+    (setq xref-show-definitions-function #'xref-show-definitions-completing-read))
+  :hook ((xref-after-return xref-after-jump) . recenter))
+
 
 ;; The lookup commands are superior, and will consult xref if there are no
 ;; better backends available.
@@ -82,7 +48,7 @@
 (global-set-key [remap xref-find-references]  #'+lookup/references)
 
 (use-package better-jumper
-  :hook (+self/first-input . better-jumper-mode)
+  :hook (+my/first-input . better-jumper-mode)
   :commands doom-set-jump-a
   :preface
   ;; REVIEW Suppress byte-compiler warning spawning a *Compile-Log* buffer at

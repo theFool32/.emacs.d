@@ -1,53 +1,5 @@
 ;; -*- lexical-binding: t -*-
 
-;;; init-complete.el ---
-;;
-;; Filename: init-complete.el
-;; Description:
-;; Author: John
-;; Maintainer:
-;; Copyright (C) 2019 John
-;; Created: Sat Nov 27 21:36:42 2021 (+0800)
-;; Version:
-;; Package-Requires: ()
-;; Last-Updated: Fri Mar  4 21:09:23 2022 (+0800)
-;;           By: theFool32
-;;     Update #: 540
-;; URL:
-;; Doc URL:
-;; Keywords:
-;; Compatibility:
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Commentary:
-;;
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Change Log:
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;;; Code:
-
 (use-package corfu
   :straight (corfu :includes (corfu-indexed corfu-quick) :files (:defaults "extensions/corfu-*.el"))
   :custom
@@ -257,7 +209,7 @@ function to the relevant margin-formatters list."
   :after cape
   :commands (tabnine-completion-at-point tabnine-capf-start-process)
   :straight (:host github :repo "theFool32/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
-  :hook ((+self/first-input . (lambda () (run-with-timer 2 nil #'tabnine-capf-start-process)))
+  :hook ((+my/first-input . (lambda () (run-with-timer 2 nil #'tabnine-capf-start-process)))
          (kill-emacs . tabnine-capf-kill-process)))
 
 (use-package tmux-capf

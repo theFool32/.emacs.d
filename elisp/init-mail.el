@@ -152,6 +152,18 @@
     (mu4e-alert-enable-mode-line-display)
     ;; (setq mu4e-alert-email-notification-types '(count subject))
     )
+
+
+  (defun open-mail-in-browser (&optional mail)
+    (interactive "sMail:")
+    (pcase mail
+      ("g"
+       (browse-url "https://www.gmail.com"))
+      ("o"
+       (browse-url "https://www.outlook.com"))
+      ("x"
+       (browse-url "https://stu.xmu.edu.cn"))
+      ))
   )
 
 (provide 'init-mail)
