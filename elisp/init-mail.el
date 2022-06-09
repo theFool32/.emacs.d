@@ -163,7 +163,13 @@
        (browse-url "https://www.outlook.com"))
       ("x"
        (browse-url "https://stu.xmu.edu.cn"))
-      ))
+      )
+    ;; (let ((urls '("https://www.gmail.com"
+    ;;               "https://www.outlook.com"
+    ;;               "https://stu.xmu.edu.cn")))
+    ;;   (browse-url (completing-read "Mail:"
+    ;;                                urls)))
+    )
   )
 
 (provide 'init-mail)

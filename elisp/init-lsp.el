@@ -3,8 +3,6 @@
 (eval-when-compile
   (require 'init-const))
 
-
-
 (pcase my-lsp
   ('lsp-bridge
    (use-package lsp-bridge
@@ -23,7 +21,8 @@
                                    "K" 'lsp-bridge-lookup-documentation)
                                  )))
      :config
-     (setq lsp-bridge-enable-diagnostics nil)
+     (setq lsp-bridge-enable-diagnostics nil
+           lsp-bridge-lookup-doc-tooltip-border-width 5)
      (fset 'lsp-capf 'lsp-bridge-capf)
      (add-to-list 'lsp-bridge-completion-popup-predicates
                   (lambda ()
