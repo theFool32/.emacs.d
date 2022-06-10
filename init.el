@@ -10,9 +10,7 @@
             (setq gc-cons-percentage 0.1)))
 
 ;; LoadPath
-(defun update-to-load-path (folder)
-  "Update FOLDER and its subdirectories to `load-path'."
-  (let ((base folder))
+(let ((base (expand-file-name "elisp" user-emacs-directory)))
     (unless (member base load-path)
       (add-to-list 'load-path base))
     (dolist (f (directory-files base))
@@ -21,9 +19,7 @@
                    (not (equal f ".."))
                    (not (equal f ".")))
           (unless (member base load-path)
-            (add-to-list 'load-path name)))))))
-
-(update-to-load-path (expand-file-name "elisp" user-emacs-directory))
+            (add-to-list 'load-path name))))))
 ;; -LoadPath
 
 ;; InitPrivate

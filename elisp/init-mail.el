@@ -13,6 +13,7 @@
   (setenv "XAPIAN_CJK_NGRAM" "true")
 
   (setq
+   mu4e-hide-index-messages t
    mu4e-context-policy 'pick-first
    mu4e-compose-context-policy nil
    mail-user-agent 'mu4e-user-agent
@@ -157,18 +158,14 @@
   (defun open-mail-in-browser (&optional mail)
     (interactive "sMail:")
     (pcase mail
-      ("g"
-       (browse-url "https://www.gmail.com"))
-      ("o"
-       (browse-url "https://www.outlook.com"))
-      ("x"
-       (browse-url "https://stu.xmu.edu.cn"))
+      ("g" (browse-url "https://www.gmail.com"))
+      ("o" (browse-url "https://www.outlook.com"))
+      ("x" (browse-url "https://stu.xmu.edu.cn"))
       )
     ;; (let ((urls '("https://www.gmail.com"
     ;;               "https://www.outlook.com"
     ;;               "https://stu.xmu.edu.cn")))
-    ;;   (browse-url (completing-read "Mail:"
-    ;;                                urls)))
+    ;;   (browse-url (completing-read "Mail:" urls)))
     )
   )
 
