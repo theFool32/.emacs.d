@@ -262,7 +262,6 @@ If on a:
           (?B . warning)
           (?C . success))
         org-startup-indented t
-        org-tags-column -77
         org-use-sub-superscripts '{}
         ))
 

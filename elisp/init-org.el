@@ -20,6 +20,7 @@
   :bind (:map org-mode-map
               ([tab] . org-cycle))
   :custom
+  (org-element-use-cache nil)
   (org-src-preserve-indentation nil)
   (org-edit-src-content-indentation 0)
   (org-capture-bookmark nil) ;; TODO: no bookmark for refile
@@ -353,6 +354,26 @@
       "t" 'org-agenda-todo)
     )
 
+  (defun +my-org/mark-done ()
+    ""
+    (interactive)
+    (when (derived-mode-p 'org-mode)
+      (org-back-to-heading)
+      (when-let* ((close-time (org-entry-get (point) "CLOSED")) ;;  HACK: assume all DONE entries have CLOSED time
+                  (close-time (org-time-string-to-time close-time))
+                  (close-time (decode-time close-time))
+                  (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
+        (org-cut-subtree)
+        (with-current-buffer (find-file-noselect +org-capture-file-done)
+          (org-datetree-find-iso-week-create close-time)
+          (org-paste-subtree)
+          (org-next-visible-heading 1)
+          (when (and (null (nth 2 (org-heading-components)))
+                     (= (nth 0 (org-heading-components)) 3))
+            (org-cut-subtree))
+          (save-buffer)
+          (kill-buffer)))))
+
 
   (defun org-clock-merge (arg)
     "Merge the org CLOCK line with the next CLOCK line.
@@ -418,14 +439,6 @@ the lines even if the ranges do not overlap."
   :straight nil
   :after org)
 
-(use-package org-superstar
-  :disabled
-  :after org
-  :hook (org-mode . org-superstar-mode)
-  :custom
-  (org-superstar-remove-leading-stars t)
-  (org-superstar-special-todo-items t))
-
 (use-package calfw
   :commands (cfw:open-org-calendar)
   :straight (:host github :repo "zemaye/emacs-calfw")
@@ -441,19 +454,6 @@ the lines even if the ranges do not overlap."
 	  :straight (:host github :repo "zemaye/emacs-calfw"))
 	(use-package calfw-cal
 	  :straight (:host github :repo "zemaye/emacs-calfw"))))
-
-(use-package org-bars
-  :disabled
-  :straight (:host github :repo "tonyaldon/org-bars")
-  :after org
-  :hook (org-mode . org-bars-mode)
-  :config
-  (setq org-bars-color-options '(:only-one-color t
-                                                 :bar-color "#4C4A4D")
-        org-bars-stars '(:empty "◉"
-                                :invisible "▶"
-                                :visible "▼")))
-
 
 (use-package org-modern
   :straight (:host github :repo "minad/org-modern")
@@ -475,82 +475,7 @@ the lines even if the ranges do not overlap."
      " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
    org-agenda-current-time-string
    "⭠ now ─────────────────────────────────────────────────")
-
-
-  (setq org-tags-column 0
-        org-auto-align-tags nil)
-
-  ;; avoid unneccesary calculations, I never need it.
-  (defalias 'org-align-tags #'ignore)
-
-  ;; Inspired by Ihor Radchenko’s code at: https://orgmode.org/list/87lfh745ch.fsf@localhost/
-  (add-hook 'org-modern-mode-hook #'aj/org-set-tag-align-keywords)
-  (defun aj/org-set-tag-align-keywords ()
-    (add-to-list 'font-lock-extra-managed-props 'org-tag-aligned)
-    (font-lock-add-keywords nil '((yant/org-align-tags t)) 'append))
-
-  (defun aj/string-pixel-width (string &optional mode)
-    "Calculate pixel width of STRING.
-Optional MODE specifies major mode used for display."
-    (let ((fra face-remapping-alist))
-      (with-temp-buffer
-        (with-silent-modifications
-          (setf (buffer-string) string))
-        (when (fboundp mode)
-          (funcall mode)
-          (font-lock-ensure))
-        (setq-local face-remapping-alist fra)
-        (if (get-buffer-window (current-buffer))
-	        (car (window-text-pixel-size nil (line-beginning-position) (point)))
-          (set-window-buffer nil (current-buffer))
-          (car (window-text-pixel-size nil (line-beginning-position) (point)))))))
-
-
-  (defun yant/org-align-tags (limit &optional force)
-    "Align all the tags in org buffer."
-    (save-match-data
-      (when (eq major-mode 'org-mode)
-        (let ((ellw (aj/string-pixel-width org-ellipsis)))
-	      (while (re-search-forward "^\\*+ \\(.+?\\)\\([ \t]+\\)\\(:\\(?:[^ \n]+:\\)+\\)$" limit t)
-	        (when (and (match-string 2)
-		               (or force
-			               (not (get-text-property (match-beginning 2) 'org-tag-aligned))))
-	          (with-silent-modifications
-                (put-text-property (match-beginning 2) (match-end 2) 'org-tag-aligned t)
-	            (put-text-property
-                 (if (>= 2 (- (match-end 2) (match-beginning 2)))
-				     (match-beginning 2)
-			       ;; multiple whitespaces may mean that we are in process of typing
-			       (1+ (match-beginning 2)))
-			     (match-end 2)
-			     'display
-			     `(space . (:align-to
-                            (- right
-						       (,(+ 3 ;; no idea, but otherwise it is sometimes not enough
-							        ellw
-                                    (if (match-beginning 3)
-                                        (car (window-text-pixel-size nil (match-beginning 3) (match-end 3)))
-                                      0))))))))))))))
-
-  (defun +my-org/mark-done ()
-    ""
-    (interactive)
-    (when (derived-mode-p 'org-mode)
-      (org-back-to-heading)
-      (when-let* ((close-time (org-entry-get (point) "CLOSED")) ;;  HACK: assume all DONE entries have CLOSED time
-                  (close-time (org-time-string-to-time close-time))
-                  (close-time (decode-time close-time))
-                  (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
-        (org-cut-subtree)
-        (with-current-buffer (find-file-noselect +org-capture-file-done)
-          (org-datetree-find-iso-week-create close-time)
-          (org-paste-subtree)
-          (org-next-visible-heading 1)
-          (when (and (null (nth 2 (org-heading-components)))
-                     (= (nth 0 (org-heading-components)) 3))
-            (org-cut-subtree))
-          (save-buffer)
-          (kill-buffer))))))
+  )
 
 (defun +my/open-org-agenda ()
   "open org agenda in left window"
