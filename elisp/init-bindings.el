@@ -34,7 +34,7 @@
 
   ;; evil mode
   (general-def 'normal
-    "/" 'noct-consult-ripgrep-or-line
+    "/" '+my/consult-line
     "gd" 'xref-find-definitions
     "gD" 'xref-find-references)
 

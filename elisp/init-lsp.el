@@ -22,7 +22,7 @@
                                  )))
      :config
      (setq lsp-bridge-enable-diagnostics nil
-           lsp-bridge-lookup-doc-tooltip-border-width 5)
+           lsp-bridge-lookup-doc-tooltip-border-width 2)
      (fset 'lsp-capf 'lsp-bridge-capf)
      (add-to-list 'lsp-bridge-completion-popup-predicates
                   (lambda ()
