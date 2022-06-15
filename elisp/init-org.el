@@ -11,8 +11,14 @@
 (defvar +org-capture-file-idea (concat +self/org-base-dir "ideas.org"))
 (defvar +org-capture-file-note (concat +self/org-base-dir "notes.org"))
 (defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
-(defvar +org-capture-file-tickler (concat +self/org-base-dir "tickler.org"))
 (defvar +org-capture-file-done (concat +self/org-base-dir "done.org"))
+(defvar +org-capture-file-goal (concat +self/org-base-dir "goals.org"))
+
+(defvar +org-files (list +org-capture-file-gtd
+                         +org-capture-file-someday
+                         +org-capture-file-note
+                         +org-capture-file-idea
+                         +org-capture-file-goal))
 (use-package org
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h)
@@ -20,6 +26,7 @@
   :bind (:map org-mode-map
               ([tab] . org-cycle))
   :custom
+  (org-id-link-to-org-use-id t)
   (org-element-use-cache nil)
   (org-src-preserve-indentation nil)
   (org-edit-src-content-indentation 0)
@@ -45,6 +52,21 @@
   (with-eval-after-load 'org (setq org-modules '()))
   (with-eval-after-load 'org-agenda
     (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3))
+
+
+  (setq org-agenda-custom-commands
+        '(("n" "Agenda"
+           ((tags-todo
+	         "ACT_WEEK"
+	         ((org-agenda-files (list +org-capture-file-goal))
+	          (org-agenda-overriding-header "Goals for this week")))
+            (tags-todo
+	         "ACT_MONTH"
+	         ((org-agenda-files (list +org-capture-file-goal))
+	          (org-agenda-overriding-header "Goals for this month")))
+	        (agenda)
+            (alltodo "")
+            ))))
 
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
     "Load language if needed"
@@ -78,26 +100,24 @@
 
   (setq org-log-into-drawer "LOGBOOK")
   (setq org-agenda-files (list +org-capture-file-gtd
-                               +org-capture-file-tickler
                                +org-capture-file-done))
   (setq org-refile-use-outline-path 'file)
   (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
-                             (+org-capture-file-someday :level . 3)
-                             (+org-capture-file-tickler :level . 3)))
+                             (+org-capture-file-someday :level . 3)))
   (setq org-log-into-drawer t)
-  (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("paper" . ?p) ("emacs" . ?e)
-                        ("habit" . ?h)))
+  (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("emacs" . ?e)
+                        ("habit" . ?h) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?w)))
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file +org-capture-file-gtd)
            "* ☞TODO %i%? \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
-          ("w" "Tickler" entry
-           (file +org-capture-file-tickler)
+          ("w" "Watting for" entry
+           (file +org-capture-file-gtd)
            "* ⚑WAITING %?\n%i" :prepend t :kill-buffer t)
           ("n" "Note" entry
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
-          ("m" "Maybe" entry
+          ("s" "Someday maybe" entry
            (file +org-capture-file-someday)
            "* %?\n%i" :prepend t :kill-buffer t)
           ("i" "Idea" entry
@@ -173,7 +193,8 @@
               (overlay-put ov 'line-height line-height)
               (overlay-put ov 'line-spacing (1- line-height))))))))
 
-  (add-hook 'org-agenda-finalize-hook #'my:org-agenda-time-grid-spacing)
+  ;;  FIXME: Not work anymore
+  ;; (add-hook 'org-agenda-finalize-hook #'my:org-agenda-time-grid-spacing)
 
   ;; binding
   (with-eval-after-load 'general
@@ -441,19 +462,14 @@ the lines even if the ranges do not overlap."
 
 (use-package calfw
   :commands (cfw:open-org-calendar)
-  :straight (:host github :repo "zemaye/emacs-calfw")
+  :straight (calfw :includes (calfw-org calfw-cal) :host github :repo "zemaye/emacs-calfw" :files ("*.el"))
   :bind (:map cfw:calendar-mode-map
               ("s" . cfw:show-details-command))
   :custom
   (cfw:display-calendar-holidays nil)
   :config
-  (with-eval-after-load 'calfw
-	(use-package calfw-ical
-	  :straight (:host github :repo "zemaye/emacs-calfw"))
-	(use-package calfw-org
-	  :straight (:host github :repo "zemaye/emacs-calfw"))
-	(use-package calfw-cal
-	  :straight (:host github :repo "zemaye/emacs-calfw"))))
+  (use-package calfw-org
+    :after org))
 
 (use-package org-modern
   :straight (:host github :repo "minad/org-modern")
@@ -482,6 +498,49 @@ the lines even if the ranges do not overlap."
   (interactive)
   (org-agenda nil "n")
   (evil-window-move-far-left))
+
+
+;; -Notification only for mac os
+(when *sys/mac*
+  (add-hook '+my/first-input-hook
+            (lambda ()
+              (run-with-timer 5 nil
+                              (lambda ()
+                                (with-eval-after-load 'org
+                                  (require 'appt)
+
+                                  (setq appt-time-msg-list nil) ;; clear existing appt list
+                                  (setq appt-display-interval '5) ;; warn every 5 minutes from t - appt-message-warning-time
+                                  (setq
+                                   appt-message-warning-time '15 ;; send first warning 15 minutes before appointment
+                                   appt-display-mode-line nil ;; don't show in the modeline
+                                   appt-display-format 'window) ;; pass warnings to the designated window function
+                                  (setq appt-disp-window-function (function ct/appt-display-native))
+
+                                  (appt-activate 1) ;; activate appointment notification
+                                        ; (display-time) ;; Clock in modeline
+
+                                  ;; brew install terminal-notifier
+                                  (defun ct/send-notification (title msg)
+                                    (let ((notifier-path (executable-find "terminal-notifier")))
+                                      (start-process
+                                       "Appointment Alert"
+                                       nil
+                                       notifier-path
+                                       "-message" msg
+                                       "-title" title
+                                       "-sender" "org.gnu.Emacs"
+                                       "-activate" "org.gnu.Emacs")))
+                                  (defun ct/appt-display-native (min-to-app new-time msg)
+                                    (ct/send-notification
+                                     (format "Appointment in %s minutes" min-to-app) ; Title
+                                     (format "%s" msg))) ; Message/detail text
+                                  ;; Agenda-to-appointent hooks
+                                  (org-agenda-to-appt) ;; generate the appt list from org agenda files on emacs launch
+                                  (run-at-time "24:01" 3600 'org-agenda-to-appt) ;; update appt list hourly
+                                  (add-hook 'org-finalize-agenda-hook 'org-agenda-to-appt) ;; update appt list on agenda view
+                                  ))))))
+;; -Notification
 
 (provide 'init-org)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

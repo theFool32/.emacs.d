@@ -24,7 +24,7 @@
    smtpmail-stream-type  'starttls
    ;; mu4e-get-mail-command "offlineimap"
    mu4e-get-mail-command "true"
-   mu4e-update-interval 300
+   mu4e-update-interval nil
    ;; 回复邮件插入邮件引用信息
    message-citation-line-function 'message-insert-formatted-citation-line
    message-citation-line-format "On %a, %b %d %Y, %f wrote:\n"
@@ -147,6 +147,7 @@
   (setq org-mu4e-link-query-in-headers-mode nil)
 
   (use-package mu4e-alert
+    :disabled
     :config
     (mu4e-alert-set-default-style 'notifier)
     ;; (mu4e-alert-enable-notifications)
