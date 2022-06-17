@@ -1,4 +1,4 @@
-;;; init-ebib.el ---
+;;; init-ebib.el --- -*- lexical-binding: t -*-
 
 (require 'init-func)
 
