@@ -93,7 +93,7 @@
     :ensure nil
     ;; More convenient directory navigation commands
     :bind (:map vertico-map
-                ("RET" . vertico-directory-enter)
+                ;; ("RET" . vertico-directory-enter)
                 ("DEL" . vertico-directory-delete-char)
                 ("C-w" . vertico-directory-delete-word))
     :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))

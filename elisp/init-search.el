@@ -30,7 +30,6 @@
   :config
   (fset 'color-rg-project-root-dir #'+my/project-root)
   (evil-make-overriding-map color-rg-mode-map 'normal)
-  ;; force update evil keymaps after git-timemachine-mode loaded
   (add-hook 'color-rg-mode-hook #'evil-normalize-keymaps)
   (defun +my/quit-color-rg ()
     (interactive)

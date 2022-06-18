@@ -78,35 +78,48 @@ Version 2019-11-04"
 (use-package dired-x
   :straight nil
   :demand
-  :hook (dired-mode . dired-omit-mode)
   :config
   (setq dired-omit-files
         (concat dired-omit-files
-                "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*")))
-
-(use-package fd-dired
-  :if *fd*
-  :after dired)
+                "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*"))
+  )
 
 (use-package dired-narrow
   :after dired) ;; use `s' for fliter
-(use-package dired-open
-  :after dired
-  :config
-  (setq dired-open-extensions
-        (mapcar (lambda (ext)
-                  (cons ext "open")) '("pdf" "doc" "docx" "ppt" "pptx"))))
 
 (use-package dirvish  ;; `(' for details.
   :straight (dirvish :type git :host github :repo "alexluigit/dirvish")
-  :hook (+my/first-input . dirvish-override-dired-mode)
+  :hook ((+my/first-input . dirvish-override-dired-mode)
+         (evil-collection-setup . (lambda (&rest a)
+                                    (evil-define-key '(normal) dired-mode-map
+                                      (kbd "C-c f") 'dirvish-fd
+                                      "i" 'wdired-change-to-wdired-mode
+                                      "." 'dired-omit-mode
+                                      (kbd "TAB") 'dirvish-subtree-toggle
+                                      (kbd "M-s") 'dirvish-setup-menu
+                                      (kbd "M-f") 'dirvish-toggle-fullscreen
+                                      "*"   'dirvish-mark-menu
+                                      "f"   'dirvish-file-info-menu
+                                      [remap dired-sort-toggle-or-edit] 'dirvish-quicksort
+                                      [remap dired-do-redisplay] 'dirvish-ls-switches-menu
+                                      [remap dired-summary] 'dirvish-dispatch
+                                      [remap dired-do-copy] 'dirvish-yank-menu
+                                      [remap mode-line-other-buffer] 'dirvish-history-last))))
   :after dired
+
   :custom
+  (dirvish-mode-line-format ; it's ok to place string inside
+   '(:left (sort file-time " " file-size symlink) :right (omit yank index)))
   (dirvish-attributes '(all-the-icons file-size))
   (dirvish-side-follow-buffer-file t)
   (dirvish-enabled-features-on-remote '(extras vc))
   :config
   (set-face-attribute 'ansi-color-blue nil :foreground "#FFFFFF")
+  (setq dired-recursive-deletes 'always)
+  (setq delete-by-moving-to-trash t)
+  (setq dired-dwim-target t)
+  (setq dired-listing-switches
+        "-l --almost-all --human-readable --time-style=long-iso --group-directories-first --no-group")
 
   (use-package dirvish-extras
     :straight nil))
