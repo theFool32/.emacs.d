@@ -151,7 +151,18 @@ function to the relevant margin-formatters list."
 
 (use-package tempel
   :after corfu
-  :straight (:host github :repo "minad/tempel"))
+  :straight (:host github :repo "minad/tempel")
+  :config
+  (defun my/tempel-expand-or-next ()
+    "Try tempel expand, if failed, try copilot expand."
+    (interactive)
+    (if tempel--active
+        (tempel-next 1)
+      (call-interactively #'tempel-expand)))
+  (with-eval-after-load 'general
+    (general-define-key
+     :keymaps '(evil-insert-state-map)
+     "C-k" 'my/tempel-expand-or-next)))
 
 (use-package cape
   :after (corfu tempel)
@@ -166,11 +177,11 @@ function to the relevant margin-formatters list."
   (defun my/convert-super-capf (arg-capf)
     (list
      #'cape-file
-     (cape-capf-buster
-      (cape-super-capf arg-capf
-                       #'tabnine-completion-at-point
-                       #'tempel-expand)
-      'equal)
+     ;; (cape-capf-buster
+      (cape-super-capf
+       arg-capf
+       #'tabnine-completion-at-point)
+      ;; 'equal)
      #'tmux-capf
      ;; #'cape-dabbrev
      ))
@@ -221,6 +232,7 @@ function to the relevant margin-formatters list."
   (corfu-doc-display-within-parent-frame t))
 
 (use-package copilot
+  :disabled
   :after corfu
   :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "copilot.el"))
   :ensure t
