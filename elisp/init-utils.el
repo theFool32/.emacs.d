@@ -100,6 +100,10 @@
               (file-name-extension (buffer-name)) t)))))
   )
 
+(use-package ztree
+  :commands ztree-diff
+  :defer t)
+
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-utils.el ends here
