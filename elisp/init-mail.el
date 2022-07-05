@@ -13,6 +13,7 @@
   (setenv "XAPIAN_CJK_NGRAM" "true")
 
   (setq
+   mu4e-change-filenames-when-moving t
    mu4e-hide-index-messages t
    mu4e-context-policy 'pick-first
    mu4e-compose-context-policy nil
