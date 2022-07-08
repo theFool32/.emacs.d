@@ -109,7 +109,7 @@ FACE defaults to inheriting from default and highlight."
   (diff-hl-insert ((t (:background nil))))
   (diff-hl-delete ((t (:background nil))))
   :hook ((after-init . global-diff-hl-mode)
-         (dired-mode . diff-hl-dired-mode))
+         (dired-mode . diff-hl-dired-mode-unless-remote))
   :init (setq diff-hl-draw-borders nil)
   :config
   ;; Highlight on-the-fly
