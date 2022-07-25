@@ -82,23 +82,18 @@
   (setf (alist-get 'selected-node vundo-glyph-alist) ?X
         (alist-get 'node vundo-glyph-alist) ?O))
 
-(use-package auto-save
-  :disabled
-  :straight (:host github :repo "manateelazycat/auto-save")
-  :custom
-  (auto-save-silent t)
-  (auto-save-delete-trailing-whitespace nil)
+(use-package super-save
+  :diminish
+  :defer 0.5
+  :init
+  (setq auto-save-default nil)
   :config
-  (auto-save-enable)
-
-  (setq auto-save-disable-predicates
-        '((lambda ()
-            (or
-             (null (buffer-file-name))
-             (string-suffix-p
-              "gpg"
-              (file-name-extension (buffer-name)) t)))))
-  )
+  (add-to-list 'super-save-triggers 'switch-window)
+  (add-to-list 'super-save-triggers 'switch-to-buffer)
+  (setq super-save-exclude '(".gpg"))
+  (setq super-save-idle-duration 5)
+  (setq save-silently t)
+  (super-save-mode 1))
 
 (use-package ztree
   :commands ztree-diff
