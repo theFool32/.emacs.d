@@ -1,4 +1,5 @@
 (use-package mu4e
+  ;;  TODO: disable `index' when open `mu4e-main'
   :ensure nil
   :straight nil
   :if (executable-find "mu")
@@ -158,17 +159,15 @@
 
 
   (defun open-mail-in-browser (&optional mail)
-    (interactive "sMail:")
-    (pcase mail
-      ("g" (browse-url "https://www.gmail.com"))
-      ("o" (browse-url "https://www.outlook.com"))
-      ("x" (browse-url "https://stu.xmu.edu.cn"))
-      )
-    ;; (let ((urls '("https://www.gmail.com"
-    ;;               "https://www.outlook.com"
-    ;;               "https://stu.xmu.edu.cn")))
-    ;;   (browse-url (completing-read "Mail:" urls)))
-    )
+    (interactive)
+    (let ((mails '(("Gmail". "https://www.gmail.com")
+                   ("Outlook" . "https://www.outlook.com")
+                   ("XMU" . "https://stu.xmu.edu.cn"))))
+      (browse-url
+       (cdr (assoc (completing-read "Mail:" (mapcar 'car mails)) mails)))))
+  (general-define-key :states '(normal)
+                      :keymaps 'mu4e-main-mode-map
+                      "o" #'open-mail-in-browser)
   )
 
 (provide 'init-mail)
