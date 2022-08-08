@@ -3,6 +3,13 @@
 (eval-when-compile
   (require 'init-global-config))
 
+(use-package paren
+  :hook (after-init . show-paren-mode)
+  :init (setq show-paren-when-point-inside-paren t
+              show-paren-when-point-in-periphery t
+              show-paren-style 'parenthesis
+              show-paren-context-when-offscreen 'overlay))
+
 ;; Automatic parenthesis pairing
 (use-package elec-pair
   :hook (after-init . electric-pair-mode)
