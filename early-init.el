@@ -49,7 +49,7 @@
 
 ;; UnsetFNHA
 (defvar file-name-handler-alist-original file-name-handler-alist)
-(setq file-name-handler-alist nil)
+;; (setq file-name-handler-alist nil)
 ;; -UnsetFNHA
 
 ;; UnsetSRF

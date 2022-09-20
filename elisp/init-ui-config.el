@@ -224,6 +224,7 @@
 
 ;; DoomThemes
 (use-package doom-themes
+  :disabled
   :custom-face
   (cursor ((t (:background "BlanchedAlmond"))))
   :config
@@ -232,9 +233,17 @@
   )
 ;; -DoomThemes
 
+(use-package ef-themes
+  :init
+  (ef-themes-select 'ef-summer)
+  :config
+  )
+
 ;; DoomModeline
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
+  :custom-face
+  (doom-modeline-buffer-modified ((t (:inherit (error bold) :background unspecified))))
   :custom
   ;; Don't compact font caches during GC. Windows Laggy Issue
   (inhibit-compacting-font-caches t)
@@ -245,37 +254,6 @@
   (doom-modeline-height 15)
   (doom-modeline-bar-width 1)
   :config
-  (doom-modeline-def-segment input-method
-    "The current input method."
-    (propertize (cond (current-input-method
-                       (concat (doom-modeline-spc)
-                               current-input-method-title
-                               (doom-modeline-spc)))
-                      ((and (bound-and-true-p evil-local-mode)
-                            (bound-and-true-p evil-input-method))
-                       (concat
-                        (doom-modeline-spc)
-                        (nth 3 (assoc default-input-method input-method-alist))
-                        (doom-modeline-spc)))
-                      (t ""))
-                'face (if (doom-modeline--active)
-                          (if (and (bound-and-true-p rime-mode)
-                                   (equal current-input-method "rime"))
-                              (if (and (rime--should-enable-p)
-                                       (not (rime--should-inline-ascii-p))
-                                       (not (rime--ascii-mode-p)))
-                                  'doom-modeline-input-method
-                                'doom-modeline-input-method-alt)
-                            'doom-modeline-input-method)
-                        'mode-line-inactive)
-                'help-echo (concat
-                            "Current input method: "
-                            current-input-method
-                            "\n\
-mouse-2: Disable input method\n\
-mouse-3: Describe current input method")
-                'mouse-face 'mode-line-highlight
-                'local-map mode-line-input-method-map))
   )
 ;; -DoomModeline
 

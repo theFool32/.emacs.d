@@ -20,6 +20,8 @@
   (auto-revert-use-notify nil)
   (auto-revert-interval 3) ; Auto revert every 3 sec
   :config
+  (setq insert-directory-program "gls" dired-use-ls-dired t)
+  (setq dired-listing-switches "-al --group-directories-first")
   ;; Enable global auto-revert
   (global-auto-revert-mode t)
   ;; Reuse same dired buffer, to prevent numerous buffers while navigating in dired
@@ -94,6 +96,7 @@ Version 2019-11-04"
                                     (evil-define-key '(normal) dired-mode-map
                                       (kbd "C-c f") 'dirvish-fd
                                       "i" 'wdired-change-to-wdired-mode
+                                      "q" 'dirvish-quit
                                       "." 'dired-omit-mode
                                       (kbd "TAB") 'dirvish-subtree-toggle
                                       (kbd "M-s") 'dirvish-setup-menu

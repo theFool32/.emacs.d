@@ -74,4 +74,4 @@ python-mode
 (pargs "def parse_arguments():" n> "parser = argparse.ArgumentParser(description=\"" p "\")" n> r n> "return parser.parse_args()")
 (sn "self." (s var) " = " (s var) n> r)
 (while "while " p ":" n> r)
-(p "print(" p ")")
+(p "print(" q ")")

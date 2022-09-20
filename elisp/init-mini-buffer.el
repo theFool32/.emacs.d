@@ -16,7 +16,7 @@
   :init
   (vertico-mode)
   :config
-  (set-face-background 'vertico-current "#42444a")
+  ;; (set-face-background 'vertico-current "#42444a")
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   (setq vertico-cycle nil)
 
@@ -344,9 +344,9 @@
   (setq mini-frame-create-lazy nil)
   (setq mini-frame-show-parameters `((left . 0.5)
                                      (top . ,(/ (frame-pixel-height) 2))
-                                     (background-mode 'dark)
-                                     (foreground-color . "#bbc2cf")
-                                     (background-color . "#242730")
+                                     ;; (background-mode 'light)
+                                     ;; (foreground-color . "#bbc2cf")
+                                     ;; (background-color . "#242730")
                                      ;; (internal-border-width . 1)
                                      ;; (child-frame-border-width . 1)
                                      (min-width . 80)

@@ -57,6 +57,7 @@
 	    '(("overleaf\\.com" . LaTeX-mode))))
 
 (use-package tramp
+  :disabled
   :defer 1
   :straight nil)
 

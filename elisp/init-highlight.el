@@ -105,9 +105,9 @@ FACE defaults to inheriting from default and highlight."
 ;; Highlight uncommitted changes using VC
 (use-package diff-hl
   :custom-face
-  (diff-hl-change ((t (:foreground ,(face-background 'highlight) :background nil))))
-  (diff-hl-insert ((t (:background nil))))
-  (diff-hl-delete ((t (:background nil))))
+  (diff-hl-change ((t (:foreground ,(face-background 'highlight) :background unspecified))))
+  (diff-hl-insert ((t (:background unspecified))))
+  (diff-hl-delete ((t (:background unspecified))))
   :hook ((after-init . global-diff-hl-mode)
          (dired-mode . diff-hl-dired-mode-unless-remote))
   :init (setq diff-hl-draw-borders nil)

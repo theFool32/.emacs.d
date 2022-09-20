@@ -5,9 +5,10 @@
   :if (executable-find "mu")
   :commands mu4e
   :hook ((after-init . (lambda ()
-                         (run-with-idle-timer 5 nil
+                         (run-with-idle-timer 2 nil
                                               (lambda ()
                                                 (mu4e t)))))
+         (mu4e-headers-mode . hl-line-mode)
          (mu4e-compose-mode . (lambda ()
                                 (electric-indent-local-mode nil))))
   :config
@@ -44,7 +45,7 @@
    ;; This enables unicode chars to be used for things like flags in the message index screens.
    ;; I've disabled it because the font I am using doesn't support this very well. With this
    ;; disabled, regular ascii characters are used instead.
-   mu4e-use-fancy-chars t
+   mu4e-use-fancy-chars nil
 
    ;; This enabled the thread like viewing of email similar to gmail's UI.
    mu4e-headers-include-related t

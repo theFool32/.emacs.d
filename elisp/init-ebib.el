@@ -5,6 +5,7 @@
 (use-package ebib
   :commands ebib
   :straight (ebib :includes (org-ebib) :host github :repo "theFool32/ebib")
+  :hook (ebib-index-mode . hl-line-mode)
   :custom
   (ebib-file-associations '(("pdf" . "open")))
   (ebib-index-window-size 30)
