@@ -94,7 +94,8 @@
   (setq super-save-exclude '(".gpg"))
   (setq super-save-idle-duration 5)
   (setq save-silently t)
-  (super-save-mode 1))
+  (super-save-mode 1)
+  (advice-add 'super-save-command :override 'save-all-buffers))
 
 (use-package ztree
   :commands ztree-diff
