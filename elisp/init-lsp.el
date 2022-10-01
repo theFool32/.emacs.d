@@ -88,6 +88,7 @@
            (setq +lsp--optimization-init-p t))))
 
      :config
+     (use-package consult-eglot)
      (fset 'lsp-capf 'eglot-completion-at-point)
      (setq eglot-sync-connect 1
            eglot-connect-timeout 10

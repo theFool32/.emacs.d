@@ -38,8 +38,10 @@
 ;; -DisLineNum
 
 ;; DisTimeBat
+(setq display-time-format "%m-%d %I:%M"
+      display-time-mail-string ""
+      display-time-default-load-average nil)
 (display-time-mode t)
-(setq display-time-format "%m-%d %I:%M")
 ;; (display-battery-mode 1)
 ;; -DisTimeBat
 
@@ -253,7 +255,7 @@
   (doom-modeline-major-mode-color-icon t)
   (doom-modeline-height 15)
   (doom-modeline-bar-width 1)
-  :config
+  (doom-modeline-time-icon nil)
   )
 ;; -DoomModeline
 
