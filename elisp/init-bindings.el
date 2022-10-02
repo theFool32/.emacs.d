@@ -81,7 +81,7 @@
     ;; "fo" '((lambda() (interactive)(find-file +org-capture-file-gtd)) :wk "Org files")
     "fo" '((lambda() (interactive)(find-file (completing-read "Open org fiels:" +org-files))) :wk "Org files")
     "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
-    "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
+    ;; "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
 
     "fE" '(:wk "File Encoding")
     "fEr" '(revert-buffer-with-coding-system :wk "Revert encoding")

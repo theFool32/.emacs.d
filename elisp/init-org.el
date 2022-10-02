@@ -537,7 +537,7 @@ the lines even if the ranges do not overlap."
                                      (format "%s" msg))) ; Message/detail text
                                   ;; Agenda-to-appointent hooks
                                   (org-agenda-to-appt) ;; generate the appt list from org agenda files on emacs launch
-                                  (run-at-time "24:01" 3600 'org-agenda-to-appt) ;; update appt list hourly
+                                  (run-at-time nil 900 'org-agenda-to-appt) ;; update appt list hourly
                                   (add-hook 'org-finalize-agenda-hook 'org-agenda-to-appt) ;; update appt list on agenda view
                                   ))))))
 ;; -Notification

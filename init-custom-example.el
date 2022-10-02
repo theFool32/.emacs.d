@@ -3,8 +3,6 @@
 ;;   Copy this file to `init-custom.el', and customize options for yourself.
 
 
-;;  TODO: Rename `+self/'
-
 ;; For ebib
 (defconst +self/ebib-base-dir "")
 ;; For org-mode

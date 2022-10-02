@@ -231,51 +231,6 @@ function to the relevant margin-formatters list."
   :custom
   (corfu-doc-display-within-parent-frame t))
 
-(use-package copilot
-  :disabled
-  :after corfu
-  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "copilot.el"))
-  :ensure t
-  :hook ((prog-mode text-mode) . copilot-mode)
-  :bind
-  (("C-c n" . copilot-next-completion)
-   ("C-c p" . copilot-previous-completion)
-   ("M-k" . copilot-accept-completion-by-word))
-  :config
-  (set-face-foreground 'copilot-overlay-face "pink")
-
-  ;;  HACK: workaround for node@16
-  (cl-loop for node_path in '("/usr/local/opt/node@16/bin/node" "/opt/homebrew/opt/node@16/bin/node")
-           when (file-exists-p node_path)
-           return (setq copilot-node-executable node_path))
-
-  (defun +my/corfu-candidates-p ()
-    (or
-     ;; corfu--candidates
-     (evil-normal-state-p)
-     (derived-mode-p 'minibuffer-mode)
-     tempel--active ;; diable copilot in tempel
-     ;; (not (looking-back "[\x00-\xff]"))
-     ))
-
-  (customize-set-variable 'copilot-enable-predicates '(evil-insert-state-p))
-  (customize-set-variable 'copilot-disable-predicates '(+my/corfu-candidates-p))
-
-  (defun my/copilot-or-tempel-expand-or-next ()
-    "Try tempel expand, if failed, try copilot expand."
-    (interactive)
-    (if tempel--active
-        (tempel-next 1)
-      (if (tempel-expand) ;; HACK: call `tempel-expand' twice
-          (call-interactively #'tempel-expand)
-        (copilot-accept-completion)))
-    (copilot-clear-overlay))
-
-  (with-eval-after-load 'general
-    (general-define-key
-     :keymaps '(evil-insert-state-map)
-     "C-k" 'my/copilot-or-tempel-expand-or-next)))
-
 (provide 'init-complete)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-complete ends here

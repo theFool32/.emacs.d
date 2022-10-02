@@ -192,6 +192,9 @@ That is, remove a non kept dired from the recent list."
 
 (setq command-error-function #'filter-command-error-function)
 
+
+(add-hook 'after-change-major-mode-hook #'hexcolour-add-to-font-lock)
+
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-global-config.el ends here
