@@ -9,7 +9,7 @@
      :commands (lsp-bridge-mode)
      :straight (:host github :repo "theFool32/lsp-bridge" :branch "develop" :files ("*.el" "*.py" "core/*" "langserver/*"))
      ;; :straight nil
-     ;; :load-path "~/.emacs.d/site-lisp/lsp-bridge/"
+     ;; :load-path "~/dev/lsp-bridge/"
      :hook (((python-mode c-mode c++-mode LaTeX-mode) . lsp-bridge-mode)
             (lsp-bridge-mode . (lambda ()
                                  (leader-def :keymaps 'override
@@ -20,10 +20,12 @@
                                  (evil-define-key 'normal 'global
                                    "K" 'lsp-bridge-lookup-documentation)
                                  )))
+     :custom
+     (lsp-bridge-enable-diagnostics nil)
+     (lsp-bridge-lookup-doc-tooltip-border-width 2)
+     (lsp-bridge-enable-signature-help nil)
+     (lsp-bridge-enable-show-in-mode-line nil)
      :config
-     (setq lsp-bridge-enable-diagnostics nil
-           lsp-bridge-lookup-doc-tooltip-border-width 2
-           lsp-bridge-enable-signature-help nil)
      (fset 'lsp-capf 'lsp-bridge-capf)
      (add-to-list 'lsp-bridge-completion-popup-predicates
                   (lambda ()

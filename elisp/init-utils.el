@@ -61,20 +61,6 @@
   :defer 1
   :straight nil)
 
-(use-package leetcode
-  :straight (:type git :host github :repo "kaiwk/leetcode.el")
-  :commands (leetcode)
-  :config
-  (setq leetcode-prefer-language "python3")
-  (defun leetcode-quit ()
-    "Kill all leetcode buffers."
-    (interactive)
-    (mapcar
-     (lambda (buff) (kill-buffer buff))
-     (-filter
-      (lambda (buff) (string-prefix-p "*leetcode" (buffer-name buff)))
-      (buffer-list)))))
-
 (use-package vundo
   :straight (:host github :repo "casouri/vundo")
   :commands vundo
