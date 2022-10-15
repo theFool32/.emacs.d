@@ -115,7 +115,7 @@ Version 2019-11-04"
    '(:left (sort file-time " " file-size symlink) :right (omit yank index)))
   (dirvish-attributes '(all-the-icons file-size))
   (dirvish-side-follow-buffer-file t)
-  (dirvish-enabled-features-on-remote '(extras vc))
+  ;; (dirvish-enabled-features-on-remote '(extras vc))
   :config
   (set-face-attribute 'ansi-color-blue nil :foreground "#FFFFFF")
   (setq dired-recursive-deletes 'always)

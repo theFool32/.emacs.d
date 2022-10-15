@@ -57,9 +57,18 @@
 	    '(("overleaf\\.com" . LaTeX-mode))))
 
 (use-package tramp
-  :disabled
   :defer 1
-  :straight nil)
+  :straight nil
+  :config
+  (setq tramp-completion-use-auth-sources nil
+        tramp-verbose 0
+        tramp-chunksize 2000)
+  (setq remote-file-name-inhibit-cache nil)
+  (setq vc-ignore-dir-regexp
+        (format "%s\\|%s"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+  )
 
 (use-package vundo
   :straight (:host github :repo "casouri/vundo")

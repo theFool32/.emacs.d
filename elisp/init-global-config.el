@@ -67,6 +67,7 @@ The original function deletes trailing whitespace of the current line."
   (recentf-exclude `(,(expand-file-name package-user-dir)
                      ,+self/org-base-dir
                      ,(expand-file-name "~\/.mail\/*")
+                     "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:"
                      ".cache"
                      ".cask"
                      ".elfeed"
