@@ -73,9 +73,7 @@
    mu4e-maildir "~/.mail"
    )
 
-  ;; Sometimes html email is just not readable in a text based client, this lets me open the
-  ;; email in my browser.
-  (add-to-list 'mu4e-view-actions '("View in browser" . mu4e-action-view-in-browser) t)
+  (add-to-list 'mu4e-headers-actions '("retag" . mu4e-action-retag-message))
   ;; 使用 shr 渲染当前 buffer
   (require 'shr)
   (defun shr-render-current-buffer ()
@@ -91,16 +89,10 @@
            ("date:7d..now"  "Last 7 days"           ?w)
            ("mime:image/*"  "Messages with images"  ?p)))
 
-  ;; (setq mu4e-maildir-shortcuts
-  ;;       '( ("/Gmail/Inbox" . ?g)
-  ;;          ("/Gmail/存档" . ?G)
-  ;;          ("/Outlook/Inbox" . ?k)
-  ;;          ("/Outlook/存档" . ?K)
-  ;;          ))
-
   (setq mu4e-headers-fields
         '((:human-date . 12)
-          (:flags . 6)
+          (:tags . 6)
+          (:flags . 4)
           (:maildir . 25)
           (:from . 22)
           (:subject)))

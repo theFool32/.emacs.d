@@ -5,8 +5,6 @@
   (require 'init-const))
 
 ;; SudoEditPac
-(use-package sudo-edit
-  :commands (sudo-edit))
 ;; -SudoEditPac
 
 ;; UTF8Coding
@@ -55,47 +53,6 @@ The original function deletes trailing whitespace of the current line."
 (setq mac-option-modifier 'super) ; make opt key do Super
 (setq mac-control-modifier 'control) ; make Control key do Control
 (setq ns-function-modifier 'hyper)  ; make Fn key do Hyper
-
-;; -EditExp
-
-;; History
-(use-package recentf
-  :hook (after-init . recentf-mode)
-  :custom
-  ;; (recentf-auto-cleanup "05:00am")
-  (recentf-max-saved-items 200)
-  (recentf-exclude `(,(expand-file-name package-user-dir)
-                     ,+self/org-base-dir
-                     ,(expand-file-name "~\/.mail\/*")
-                     "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:"
-                     ".cache"
-                     ".cask"
-                     ".elfeed"
-                     "bookmarks"
-                     "cache"
-                     "ido.*"
-                     "persp-confs"
-                     "recentf"
-                     "undo-tree-hist"
-                     "url"
-                     "COMMIT_EDITMSG\\'"))
-  :config
-  (defun recentd-track-opened-file ()
-    "Insert the name of the directory just opened into the recent list."
-    (and (derived-mode-p 'dired-mode) default-directory
-         (recentf-add-file default-directory))
-    ;; Must return nil because it is run from `write-file-functions'.
-    nil)
-
-  (defun recentd-track-closed-file ()
-    "Update the recent list when a dired buffer is killed.
-That is, remove a non kept dired from the recent list."
-    (and (derived-mode-p 'dired-mode) default-directory
-         (recentf-remove-if-non-kept default-directory)))
-
-  (add-hook 'dired-after-readin-hook 'recentd-track-opened-file)
-  (add-hook 'kill-buffer-hook 'recentd-track-closed-file)
-  )
 
 ;; When buffer is closed, saves the cursor location
 (save-place-mode 1)
@@ -163,14 +120,6 @@ That is, remove a non kept dired from the recent list."
 ;; Don't ping things that look like domain names.
 (setq ffap-machine-p-known 'reject)
 (setq command-line-ns-option-alist nil)
-
-
-(use-package gcmh
-  :hook (+my/first-input . gcmh-mode)
-  :init
-  (setq gcmh-idle-delay 'auto
-        gcmh-auto-idle-delay-factor 10
-        gcmh-high-cons-threshold (* 64 1024 1024)))
 
 (setq vc-follow-symlinks t)
 

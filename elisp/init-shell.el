@@ -9,6 +9,8 @@
     :init
     (setq vterm-always-compile-module t)
     (setq vterm-shell "tmux")
+    (setq vterm-timer-delay 0.001
+          process-adaptive-read-buffering nil)
     :config
     (evil-define-key 'insert vterm-mode-map (kbd "C-c") 'vterm-send-C-c)
 

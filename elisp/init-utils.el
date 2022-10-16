@@ -46,6 +46,54 @@
 ;;
 ;;; Code:
 
+(use-package recentf
+  :hook (after-init . recentf-mode)
+  :custom
+  ;; (recentf-auto-cleanup "05:00am")
+  (recentf-max-saved-items 200)
+  (recentf-exclude `(,(expand-file-name package-user-dir)
+                     ,+self/org-base-dir
+                     ,(expand-file-name "~\/.mail\/*")
+                     "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:"
+                     ".cache"
+                     ".cask"
+                     ".elfeed"
+                     "bookmarks"
+                     "cache"
+                     "ido.*"
+                     "persp-confs"
+                     "recentf"
+                     "undo-tree-hist"
+                     "url"
+                     "COMMIT_EDITMSG\\'"))
+  :config
+  (defun recentd-track-opened-file ()
+    "Insert the name of the directory just opened into the recent list."
+    (and (derived-mode-p 'dired-mode) default-directory
+         (recentf-add-file default-directory))
+    ;; Must return nil because it is run from `write-file-functions'.
+    nil)
+
+  (defun recentd-track-closed-file ()
+    "Update the recent list when a dired buffer is killed.
+That is, remove a non kept dired from the recent list."
+    (and (derived-mode-p 'dired-mode) default-directory
+         (recentf-remove-if-non-kept default-directory)))
+
+  (add-hook 'dired-after-readin-hook 'recentd-track-opened-file)
+  (add-hook 'kill-buffer-hook 'recentd-track-closed-file)
+  )
+
+(use-package sudo-edit
+  :commands (sudo-edit))
+
+(use-package gcmh
+  :hook (+my/first-input . gcmh-mode)
+  :init
+  (setq gcmh-idle-delay 'auto
+        gcmh-auto-idle-delay-factor 10
+        gcmh-high-cons-threshold (* 64 1024 1024)))
+
 (use-package restart-emacs
   :commands restart-emacs)
 
@@ -62,13 +110,13 @@
   :config
   (setq tramp-completion-use-auth-sources nil
         tramp-verbose 0
-        tramp-chunksize 2000)
-  (setq remote-file-name-inhibit-cache nil)
-  (setq vc-ignore-dir-regexp
+        tramp-chunksize 2000
+        tramp-use-ssh-controlmaster-options nil)
+  (setq remote-file-name-inhibit-cache nil
+        vc-ignore-dir-regexp
         (format "%s\\|%s"
                 vc-ignore-dir-regexp
-                tramp-file-name-regexp))
-  )
+                tramp-file-name-regexp)))
 
 (use-package vundo
   :straight (:host github :repo "casouri/vundo")
