@@ -5,8 +5,8 @@
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
-  (corfu-auto-prefix 1)
-  (corfu-auto-delay 0.05)
+  (corfu-auto-prefix 0)
+  (corfu-auto-delay 0.01)
   (corfu-echo-documentation 0.3)
   (corfu-quit-no-match 'separator)        ;; Automatically quit if there is no match
   (corfu-preselect-first nil)    ;; Disable candidate preselection
@@ -180,7 +180,7 @@ function to the relevant margin-formatters list."
      ;; (cape-capf-buster
       (cape-super-capf
        arg-capf
-       #'tabnine-completion-at-point)
+       #'tabnine-capf)
       ;; 'equal)
      #'tmux-capf
      ;; #'cape-dabbrev
@@ -212,9 +212,11 @@ function to the relevant margin-formatters list."
 
 (use-package tabnine-capf
   :after cape
-  :commands (tabnine-completion-at-point tabnine-capf-start-process)
+  :commands (tabnine-capf tabnine-capf-start-process)
   :straight (:host github :repo "theFool32/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
-  :hook ((+my/first-input . (lambda () (run-with-timer 2 nil #'tabnine-capf-start-process)))
+  :hook (
+         ;; (+my/first-input . (lambda () (run-with-timer 2 nil #'tabnine-capf-start-process)))
+         (+my/first-input . tabnine-capf-start-process)
          (kill-emacs . tabnine-capf-kill-process)))
 
 (use-package tmux-capf
