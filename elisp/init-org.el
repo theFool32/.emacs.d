@@ -130,7 +130,6 @@
            "PROJ(p)"  ; An ongoing project that cannot be completed in one step
            "⚔INPROCESS(i)"  ; A task that is in progress
            "⚑WAITING(w)"  ; Something is holding up this task; or it is paused
-           "☟NEXT(n)"
            "|"
            "✔DONE(d)"  ; Task successfully completed
            "✘CANCELED(c)") ; Task was cancelled, aborted or is no longer applicable
@@ -140,11 +139,8 @@
         '(
           ("☞TODO" . (:foreground "#ff39a3" :weight bold))
           ("⚔INPROCESS"  . "orangered")
-          ("✘CANCELED" . (:foreground "white" :background "#4d4d4d" :weight bold))
+          ("✘CANCELED" . (:foreground "gray" :weight bold))
           ("⚑WAITING" . "pink")
-          ("☟NEXT" . (:foreground "DeepSkyBlue"
-                                  ;; :background "#7A586A"
-                                  :weight bold))
           ("✔DONE" . "#008080")))
 
 
