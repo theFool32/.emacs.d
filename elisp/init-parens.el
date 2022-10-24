@@ -23,40 +23,57 @@
                                (if (char-equal c ?<) t
                                  (,electric-pair-inhibit-predicate c)))))))
 
-(use-package grammatical-edit
-  :straight (:host github :repo "manateelazycat/grammatical-edit")
-  :hook (prog-mode . grammatical-edit-mode)
-  :config
-  (define-key grammatical-edit-mode-map (kbd "(") 'grammatical-edit-open-round)
-  (define-key grammatical-edit-mode-map (kbd "[") 'grammatical-edit-open-bracket)
-  (define-key grammatical-edit-mode-map (kbd "{") 'grammatical-edit-open-curly)
-  (define-key grammatical-edit-mode-map (kbd ")") 'grammatical-edit-close-round)
-  (define-key grammatical-edit-mode-map (kbd "]") 'grammatical-edit-close-bracket)
-  (define-key grammatical-edit-mode-map (kbd "}") 'grammatical-edit-close-curly)
-  (define-key grammatical-edit-mode-map (kbd "=") 'grammatical-edit-equal)
+(with-eval-after-load 'evil
+  (defun my/evil-paren-range (count beg end type inclusive)
+    "Get minimum range of paren text object.
+COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
+    (let* ((parens '("()" "[]" "{}" "<>"))
+           (quotes '("\"\"" "''"))
+           (pqs (append parens quotes))
+           range
+           found-range)
+      (dolist (p pqs)
+        (ignore-errors
+          (if (member p parens)
+              (setq range (evil-select-paren (aref p 0) (aref p 1) beg end type count inclusive))
+            (setq range (evil-select-quote (aref p 0) beg end type count))))
+        (when range
+          (cond
+           (found-range
+            (when (and
+                   (>= (- (point) (nth 0 range)) -1)
+                   (>= (nth 1 range) (point))
+                   (< (- (nth 1 range) (nth 0 range))
+                      (- (nth 1 found-range) (nth 0 found-range))))
+              (setf (nth 0 found-range) (nth 0 range))
+              (setf (nth 1 found-range) (nth 1 range))))
+           (t
+            (setq found-range range)))))
+      found-range))
+  (evil-define-text-object my/evil-a-paren (count &optional beg end type)
+    "Select a paren."
+    :extend-selection t
+    (my/evil-paren-range count beg end type t))
 
-  (define-key grammatical-edit-mode-map (kbd "%") 'grammatical-edit-match-paren)
-  (define-key grammatical-edit-mode-map (kbd "\"") 'grammatical-edit-double-quote)
-  (define-key grammatical-edit-mode-map (kbd "'") 'grammatical-edit-single-quote)
+  (evil-define-text-object my/evil-inner-paren (count &optional beg end type)
+    "Select 'inner' paren."
+    :extend-selection nil
+    (my/evil-paren-range count beg end type nil))
+  (define-key evil-inner-text-objects-map "g" #'my/evil-inner-paren)
+  (define-key evil-outer-text-objects-map "g" #'my/evil-a-paren)
 
-  (define-key grammatical-edit-mode-map (kbd "SPC") 'grammatical-edit-space)
-  (define-key grammatical-edit-mode-map (kbd "RET") 'grammatical-edit-newline)
-
-  (define-key grammatical-edit-mode-map (kbd "M-o") 'grammatical-edit-backward-delete)
-  (define-key grammatical-edit-mode-map (kbd "C-d") 'grammatical-edit-forward-delete)
-  (define-key grammatical-edit-mode-map (kbd "C-k") 'grammatical-edit-kill)
-
-  (define-key grammatical-edit-mode-map (kbd "M-\"") 'grammatical-edit-wrap-double-quote)
-  (define-key grammatical-edit-mode-map (kbd "M-'") 'grammatical-edit-wrap-single-quote)
-  (define-key grammatical-edit-mode-map (kbd "M-[") 'grammatical-edit-wrap-bracket)
-  (define-key grammatical-edit-mode-map (kbd "M-{") 'grammatical-edit-wrap-curly)
-  (define-key grammatical-edit-mode-map (kbd "M-(") 'grammatical-edit-wrap-round)
-  (define-key grammatical-edit-mode-map (kbd "M-)") 'grammatical-edit-unwrap)
-
-  (define-key grammatical-edit-mode-map (kbd "M-p") 'grammatical-edit-jump-right)
-  (define-key grammatical-edit-mode-map (kbd "M-n") 'grammatical-edit-jump-left)
-  (define-key grammatical-edit-mode-map (kbd "M-:") 'grammatical-edit-jump-out-pair-and-newline)
-  )
+  (defun my/edit-kill ()
+    (interactive)
+    (setq unread-command-events
+          (append (apply 'vconcat (mapcar 'kbd
+                                          (if (member (string ( char-after )) '("(" ")" "[" "]" "{" "}" "<" ">" "\"" "'"))
+                                              '("d" "%")
+                                            '("d" "i" "g")
+                                            ))) nil)))
+  (with-eval-after-load 'general
+    (general-define-key
+     :keymaps '(evil-normal-state-map)
+     "C-k" 'my/edit-kill)))
 
 (provide 'init-parens)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

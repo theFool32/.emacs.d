@@ -210,7 +210,9 @@ function to the relevant margin-formatters list."
   :defer t
   :straight (:host github :repo "manateelazycat/corfu-english-helper"))
 
+;;  TODO: not work well
 (use-package tabnine-capf
+  :disabled
   :after cape
   :commands (tabnine-capf tabnine-capf-start-process)
   :straight (:host github :repo "theFool32/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
@@ -218,6 +220,12 @@ function to the relevant margin-formatters list."
          ;; (+my/first-input . (lambda () (run-with-timer 2 nil #'tabnine-capf-start-process)))
          (+my/first-input . tabnine-capf-start-process)
          (kill-emacs . tabnine-capf-kill-process)))
+
+(use-package company-tabnine
+  :config
+  ;; Do not echo message
+  (defun company-tabnine--meta (candidate) nil)
+  (fset 'tabnine-capf (cape-company-to-capf #'company-tabnine)))
 
 (use-package tmux-capf
   :after cape
