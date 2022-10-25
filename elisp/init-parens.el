@@ -28,10 +28,13 @@
     "Get minimum range of paren text object.
 COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
     (let* ((parens '("()" "[]" "{}" "<>"))
-           (quotes '("\"\"" "''"))
+           (quotes '("\"" "'"))
            (pqs (append parens quotes))
            range
            found-range)
+      ;;  HACK: ' is widely used in lisp
+      (when (derived-mode-p 'emacs-lisp-mode)
+        (setq pqs (butlast pqs)))
       (dolist (p pqs)
         (ignore-errors
           (if (member p parens)
@@ -64,12 +67,19 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
   (defun my/edit-kill ()
     (interactive)
-    (setq unread-command-events
-          (append (apply 'vconcat (mapcar 'kbd
-                                          (if (member (string ( char-after )) '("(" ")" "[" "]" "{" "}" "<" ">" "\"" "'"))
-                                              '("d" "%")
-                                            '("d" "i" "g")
-                                            ))) nil)))
+    (let* ((parens '("(" ")" "[" "]" "{" "}" "<" ">" "\""))
+           (char (string (char-after))))
+      ;;  HACK: ' is widely used in lisp
+      (when (not (derived-mode-p 'emacs-lisp-mode))
+        (push "'" parens))
+      (setq unread-command-events
+            (append (apply 'vconcat (mapcar 'kbd
+                                            ;;  FIXME: not work on the right side of a string
+                                            (if (and (not (nth 3 (syntax-ppss)))
+                                                     (member char parens))
+                                                `("d" "a" ,char)
+                                              '("d" "i" "g")
+                                              ))) nil))))
   (with-eval-after-load 'general
     (general-define-key
      :keymaps '(evil-normal-state-map)
