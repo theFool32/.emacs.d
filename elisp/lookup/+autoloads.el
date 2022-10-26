@@ -140,9 +140,9 @@ current buffer."
                ((thing-at-point 'filename t))
                (identifier))))
     (when (and (stringp guess)
-                (or (file-exists-p guess)
-                    (ffap-url-p guess)))
-           (find-file-at-point guess))))
+               (or (file-exists-p guess)
+                   (ffap-url-p guess)))
+      (find-file-at-point guess))))
 
 ;;
 ;;; Main commands
@@ -224,7 +224,11 @@ in some cases."
          ;; `xref-backend-identifier-at-point' betray the documented purpose of
          ;; the interface. Eglot/nox return a hardcoded string and elpy prepends
          ;; the line number to the symbol.
-         (xref-backend-identifier-at-point (xref-find-backend)))
+         (if (memq (xref-find-backend) '(eglot elpy nox))
+             (thing-at-point 'symbol t)
+           ;; A little smarter than using `symbol-at-point', though in most
+           ;; cases, xref ends up using `symbol-at-point' anyway.
+           (xref-backend-identifier-at-point (xref-find-backend))))
         (prompt
          (read-string (if (stringp prompt) prompt "")))))
 
