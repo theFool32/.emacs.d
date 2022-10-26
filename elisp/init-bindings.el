@@ -112,7 +112,8 @@
 
     "e" '(:wk "Error")
     "eb" '(flycheck-buffer :wk "Check current buffer")
-    "el" '((lambda()(interactive)(call-interactively 'flycheck-list-errors) (select-window (get-buffer-window "*Flycheck errors*"))) :wk "List errors")
+    "el" '(+my/flycheck-list-only-errors :wk "List only errors")
+    "eL" '(flycheck-list-errors :wk "List errors")
     "en" '(flycheck-next-error :wk "Next error")
     "ep" '(flycheck-previous-error :wk "Previous error")
     "ev" '(flycheck-verify-setup :wk "Verify setup")

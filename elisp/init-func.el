@@ -102,6 +102,21 @@
                                       "white" "black"))
                     (:background ,colour)))))))))
 
+
+(defun +my/flycheck-list-only-errors ()
+  "Show the error only list for the current buffer."
+  (interactive)
+  (unless flycheck-mode
+    (user-error "Flycheck mode not enabled"))
+  (unless (get-buffer flycheck-error-list-buffer)
+    (with-current-buffer (get-buffer-create flycheck-error-list-buffer)
+      (flycheck-error-list-mode)))
+  ;; "copy from the flycheck while not reset the filter."
+  (let* ((flycheck-error-list-minimum-level 'error)
+         (source (current-buffer)))
+    (display-buffer flycheck-error-list-buffer)
+    (flycheck-error-list-set-source source)))
+
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-func.el ends here
