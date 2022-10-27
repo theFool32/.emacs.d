@@ -145,6 +145,11 @@ The original function deletes trailing whitespace of the current line."
 
 (add-hook 'after-change-major-mode-hook #'hexcolour-add-to-font-lock)
 
+(add-hook 'after-init-hook (lambda ()
+                             (run-with-idle-timer 5 nil
+                                                  (lambda ()
+                                                    (server-start)))))
+
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-global-config.el ends here
