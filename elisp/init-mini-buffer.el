@@ -152,6 +152,15 @@
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
 
+  ;; consult-imenu
+  (with-eval-after-load 'consult-imenu
+    (add-to-list 'consult-imenu-config '(python-mode :types
+                                                     ((?c "Class"    font-lock-type-face)
+                                                      (?C "Constant"    font-lock-constant-face)
+                                                      (?f "Function"  font-lock-function-name-face)
+                                                      (?m "Method"  font-lock-function-name-face)
+                                                      (?v "Variable"  font-lock-variable-name-face)))))
+
   ;; consult-fd
   (defvar consult--fd-command nil)
   (defun consult--fd-builder (input)
