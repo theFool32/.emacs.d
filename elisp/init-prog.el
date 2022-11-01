@@ -52,6 +52,7 @@
   ;;  HACK: auto remember project
   (add-hook 'change-major-mode-hook (lambda ()
                                       (when (and (buffer-file-name)
+                                                 (not (string-match-p "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:" (buffer-file-name)))
                                                  (not (string-match-p "straight/repos" (buffer-file-name)))
                                                  (fboundp 'project-current))
                                         (when-let ((root (+my/project-root)))

@@ -153,6 +153,7 @@
     "tt" '(dirvish :wk "Dirvish")
     "te" '(vterm-posframe-toggle :wk "Shell")
     "tc" '(olivetti-mode :wk "Center")
+    "ti" '(toggle-indent :wk "Indent")
 
     "o" '(:wk "Open")
     "om" '((lambda () (interactive) (mu4e)) :wk "Mail")
