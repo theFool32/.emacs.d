@@ -132,6 +132,7 @@
     "gF" '(magit-pull :wk "pull")
     "gl" '(magit-log :wk "log")
     "go" '(magit-open-repo :wk "open repo")
+    "gm" '(gitmoji-picker :wk "open repo")
 
     "w" '(:wk "Window")
     ;; :sp
