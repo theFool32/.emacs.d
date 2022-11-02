@@ -146,8 +146,7 @@
 
   ;; (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
   (add-hook 'org-mode-hook (lambda ()
-                             (show-paren-local-mode -1)
-                             (show-paren-mode -1)))
+                             (show-paren-local-mode -1)))
 
   ;; https://emacs-china.org/t/topic/2119/15
   (defun my--diary-chinese-anniversary (lunar-month lunar-day &optional year mark)

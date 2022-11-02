@@ -142,7 +142,7 @@ The original function deletes trailing whitespace of the current line."
 
 (setq command-error-function #'filter-command-error-function)
 
-(dolist (hook '(conf-mode-hook emacs-lisp-mode-hook))
+(dolist (hook '(conf-mode-hook conf-space-mode-hook emacs-lisp-mode-hook))
   (add-hook hook #'hexcolour-add-to-font-lock))
 
 (add-hook 'after-init-hook (lambda ()
