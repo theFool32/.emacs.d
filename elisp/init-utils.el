@@ -54,7 +54,7 @@
   (recentf-exclude `(,(expand-file-name package-user-dir)
                      ,+self/org-base-dir
                      ,(expand-file-name "~\/.mail\/*")
-                     "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:"
+                     ;; "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:"
                      ".cache"
                      ".cask"
                      ".elfeed"
@@ -82,6 +82,20 @@ That is, remove a non kept dired from the recent list."
 
   (add-hook 'dired-after-readin-hook 'recentd-track-opened-file)
   (add-hook 'kill-buffer-hook 'recentd-track-closed-file)
+
+  (defun recentf-keep-tramp-predicate (file)
+    "Return non-nil if FILE should be kept in the recent list.
+It handles the case of remote files as well."
+    (cond
+     ((file-remote-p file))
+     ((file-readable-p file))))
+  (custom-set-variables '(recentf-keep '(recentf-keep-tramp-predicate)))
+
+  (defun do-recentf-cleanup ()
+    "Clean up not existed files for recentf"
+    (interactive)
+    (let ((recentf-keep '(recentf-keep-default-predicate)))
+      (recentf-cleanup)))
   )
 
 (use-package sudo-edit
