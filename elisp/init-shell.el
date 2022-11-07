@@ -13,6 +13,7 @@
           process-adaptive-read-buffering nil)
     :config
     (evil-define-key 'insert vterm-mode-map (kbd "C-c") 'vterm-send-C-c)
+    (evil-define-key 'normal vterm-mode-map (kbd "<escape>") 'vterm-send-escape)
 
 
     ;; (advice-add 'vterm-send-return :before (lambda ()
