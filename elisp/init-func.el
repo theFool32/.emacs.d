@@ -50,9 +50,12 @@
   (unless recentf-mode (recentf-mode 1))
   (let* ((candidates (if (derived-mode-p 'dired-mode)
                          (delete-dups
-                          (append (mapcar 'file-name-directory recentf-list)))
+                          (append (mapcar 'file-name-directory recentf-list))
+                          ;; (append (mapcar (lambda (fname) (string-join (butlast (string-split fname "/")) "/")) recentf-list))
+                          )
                        (mapcar #'abbreviate-file-name
-                               (-filter (lambda (filename) (not (file-directory-p filename)))
+                               ;; (-filter (lambda (filename) (not (file-directory-p filename)))
+                               (-filter (lambda (filename) (not (string= "/" (substring filename -1))))
                                         recentf-list)))))
     (find-file
      (consult--read
@@ -116,6 +119,18 @@
          (source (current-buffer)))
     (display-buffer flycheck-error-list-buffer)
     (flycheck-error-list-set-source source)))
+
+(defvar +my/profiler--started nil)
+(defun +my/profiler-toggle ()
+  "Start ro stop profiler."
+  (interactive)
+  (if +my/profiler--started
+      (progn
+        (profiler-stop)
+        (profiler-report)
+        (setq +my/profiler--started nil))
+    (profiler-start 'cpu+mem)
+    (setq +my/profiler--started t)))
 
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -490,7 +490,10 @@ the lines even if the ranges do not overlap."
   "open org agenda in left window"
   (interactive)
   (org-agenda nil "n")
-  (evil-window-move-far-left))
+  (evil-window-move-far-left)
+  ;;  HACK: kill unneeded org buffer
+  (kill-buffer "done.org")
+  (kill-buffer "goals.org"))
 
 
 ;; -Notification only for mac os

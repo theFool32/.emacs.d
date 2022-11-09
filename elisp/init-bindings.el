@@ -155,6 +155,7 @@
     "te" '(vterm-posframe-toggle :wk "Shell")
     "tc" '(olivetti-mode :wk "Center")
     "ti" '(toggle-indent :wk "Indent")
+    "tp" '(+my/profiler-toggle :wk "Profiler")
 
     "o" '(:wk "Open")
     "om" '((lambda () (interactive) (mu4e)) :wk "Mail")
