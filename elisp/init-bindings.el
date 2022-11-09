@@ -102,6 +102,7 @@
     "sD" '(devdocs-search-at-point :wk "Search devdocs")
     "sP" '(color-rg-search-project :wk "Color-rg Search project")
     "sy" '(color-rg-search-symbol-in-project :wk "Color-rg Search symbol")
+    "sg" '(+my/google-it :wk "Google")
 
     "c" '(:wk "Code")
     "cD" '(xref-find-references :wk "Find references")

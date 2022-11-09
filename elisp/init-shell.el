@@ -8,19 +8,12 @@
     :commands (vterm--internal vterm-posframe-toggle)
     :init
     (setq vterm-always-compile-module t)
-    ;; (setq vterm-shell "tmux")
+    (setq vterm-shell "tmux")
     (setq vterm-timer-delay 0.001
           process-adaptive-read-buffering nil)
     :config
     (evil-define-key 'insert vterm-mode-map (kbd "C-c") 'vterm-send-C-c)
     (evil-define-key 'normal vterm-mode-map (kbd "<escape>") 'vterm-send-escape)
-
-
-    ;; (advice-add 'vterm-send-return :before (lambda ()
-    ;;                                          (vterm-send-string " && printf '\\033[6 q'")))
-
-    ;; https://github.com/akermu/emacs-libvterm#how-can-i-get-the-directory-tracking-in-a-more-understandable-way
-    ;; (add-to-list 'vterm-eval-cmds '("update-pwd" (lambda (path) (setq default-directory path))))
 
     (with-no-warnings
       (defvar vterm-posframe--frame nil)
