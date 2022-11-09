@@ -153,6 +153,7 @@
     "tl" '(toggle-truncate-lines :wk "Line wrap")
     "td" '(toggle-debug-on-error :wk "Debug on error")
     "tt" '(dirvish :wk "Dirvish")
+    "ts" '(dirvish-side :wk "Dirvish side")
     "te" '(vterm-posframe-toggle :wk "Shell")
     "tc" '(olivetti-mode :wk "Center")
     "ti" '(toggle-indent :wk "Indent")

@@ -62,14 +62,14 @@
               persp-auto-resume-time -0.1
               )
   :config
-  (defun persp-resume ()
-    "docstring"
+  (defun +my/persp-resume ()
+    "Resume previous layout"
     (interactive)
     (persp-mode +1)
     (condition-case error
         (persp-load-state-from-file (expand-file-name "persp-auto-save" persp-save-dir))
       (error)
-    )
+      )
     (persp-load-frame))
 
   ;; Save and load frame parameters (size & position)
@@ -155,17 +155,7 @@
   ;; Don't save persp configs in `recentf'
   (with-eval-after-load 'recentf
     (push persp-save-dir recentf-exclude))
-
-  ;; Eshell integration
-  (persp-def-buffer-save/load
-   :mode 'eshell-mode :tag-symbol 'def-eshell-buffer
-   :save-vars '(major-mode default-directory))
-
-  ;; Shell integration
-  (persp-def-buffer-save/load
-   :mode 'shell-mode :tag-symbol 'def-shell-buffer
-   :mode-restore-function (lambda (_) (shell))
-   :save-vars '(major-mode default-directory)))
+  )
 
 
 (provide 'init-persp)

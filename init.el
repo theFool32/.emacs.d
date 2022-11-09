@@ -78,7 +78,7 @@
 (require 'init-lookup)
 (require 'init-shell)
 (require 'init-mail)
-;; (require 'init-persp)
+(require 'init-persp)
 
 (add-hook 'window-setup-hook
           #'(lambda ()
