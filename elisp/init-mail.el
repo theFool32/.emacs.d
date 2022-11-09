@@ -4,10 +4,11 @@
   :straight nil
   :if (executable-find "mu")
   :commands mu4e
-  :hook ((after-init . (lambda ()
-                         (run-with-idle-timer 2 nil
-                                              (lambda ()
-                                                (mu4e t)))))
+  :hook (
+         ;; (after-init . (lambda ()
+         ;;                 (run-with-idle-timer 2 nil
+         ;;                                      (lambda ()
+         ;;                                        (mu4e t)))))
          (mu4e-headers-mode . hl-line-mode)
          (mu4e-compose-mode . (lambda ()
                                 (electric-indent-local-mode nil))))
