@@ -194,6 +194,7 @@
           "\\*[Wo]*Man.*\\*$"
           "\\*ert\\*$" overseer-buffer-mode
           "\\*gud-debug\\*$"
+          "\\*lspce-hover\\*"
           "\\*lsp-help\\*$" "\\*lsp session\\*$"
           "\\*quickrun\\*$"
           "\\*tldr\\*$"

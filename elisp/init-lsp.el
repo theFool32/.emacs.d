@@ -35,6 +35,30 @@
 
      (add-hook 'lsp-bridge-mode-hook
                (lambda () (add-hook 'xref-backend-functions #'lsp-bridge-xref-backend nil t)))))
+  ('lspce
+   (use-package lspce
+     :straight nil
+     :load-path "~/dev/lspce/"
+     :hook (((dart-mode python-mode) . lspce-mode)
+            ((lspce-mode) . (lambda ()
+                              (setq-local corfu-auto-delay 0)
+                              (setq-local corfu-auto-prefix 1)
+                              (leader-def :keymaps 'override
+                                "ca" '(lspce-code-actions :wk "Code Actions")
+                                "cr" '(lspce-rename :wk "Rename symbol")
+                                "ck" '(lspce-help-at-point :wk "Documentation at point")
+                                "cs" '(lspce-signature-at-point :wk "Signature at point")
+                                )
+                                (evil-define-key 'normal 'global
+                                    "K" 'lspce-help-at-point)
+                              )))
+     :config
+     (setq lspce-enable-flymake nil
+           lspce-send-changes-idle-time 0.1
+           lspce-eldoc-enable-signature t)
+     (fset 'lsp-capf 'lspce-completion-at-point)
+     )
+   )
   ('eglot
    (use-package eglot
      :commands (+eglot-organize-imports +eglot-help-at-point)
@@ -117,21 +141,21 @@
      (defun +eglot-lookup-documentation (_identifier)
        "Request documentation for the thing at point."
        (eglot--dbind ((Hover) contents range)
-                     (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
-                                      (eglot--TextDocumentPositionParams))
-                     (let ((blurb (and (not (seq-empty-p contents))
-                                       (eglot--hover-info contents range)))
-                           (hint (thing-at-point 'symbol)))
-                       (if blurb
-                           (with-current-buffer
-                               (or (and (buffer-live-p +eglot--help-buffer)
-                                        +eglot--help-buffer)
-                                   (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
-                             (with-help-window (current-buffer)
-                               (rename-buffer (format "*eglot-help for %s*" hint))
-                               (with-current-buffer standard-output (insert blurb))
-                               (setq-local nobreak-char-display nil)))
-                         (display-local-help))))
+           (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
+                            (eglot--TextDocumentPositionParams))
+         (let ((blurb (and (not (seq-empty-p contents))
+                           (eglot--hover-info contents range)))
+               (hint (thing-at-point 'symbol)))
+           (if blurb
+               (with-current-buffer
+                   (or (and (buffer-live-p +eglot--help-buffer)
+                            +eglot--help-buffer)
+                       (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
+                 (with-help-window (current-buffer)
+                   (rename-buffer (format "*eglot-help for %s*" hint))
+                   (with-current-buffer standard-output (insert blurb))
+                   (setq-local nobreak-char-display nil)))
+             (display-local-help))))
        'deferred)
 
      (defun +eglot-help-at-point()

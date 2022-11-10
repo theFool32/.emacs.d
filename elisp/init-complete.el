@@ -5,8 +5,8 @@
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
-  (corfu-auto-prefix 0)
-  (corfu-auto-delay 0.01)
+  (corfu-auto-prefix 1)
+  (corfu-auto-delay 0)
   (corfu-echo-documentation 0.3)
   (corfu-quit-no-match 'separator)        ;; Automatically quit if there is no match
   (corfu-preselect-first nil)    ;; Disable candidate preselection
@@ -170,7 +170,7 @@ function to the relevant margin-formatters list."
          ("C-x C-l" . cape-line))
   :hook ((prog-mode . my/set-basic-capf)
          (org-mode . my/set-basic-capf)
-         ((lsp-completion-mode eglot-managed-mode lsp-bridge-mode). my/set-lsp-capf))
+         ((lsp-completion-mode eglot-managed-mode lsp-bridge-mode lspce-mode). my/set-lsp-capf))
   :config
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
