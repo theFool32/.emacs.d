@@ -117,24 +117,6 @@
         (error
          (warn "persp frame: %s" (error-message-string error))))))
 
-  (with-no-warnings
-    ;; Don't save if the state is not loaded
-    (defvar persp-state-loaded nil
-      "Whether the state is loaded.")
-
-    (defun my-persp-after-load-state (&rest _)
-      (setq persp-state-loaded t))
-    (advice-add #'persp-load-state-from-file :after #'my-persp-after-load-state)
-    (add-hook 'emacs-startup-hook
-              (lambda ()
-                (add-hook 'find-file-hook #'my-persp-after-load-state)))
-
-    (defun my-persp-asave-on-exit (fn &optional interactive-query opt)
-      (if persp-state-loaded
-          (funcall fn interactive-query opt)
-        t))
-    (advice-add #'persp-asave-on-exit :around #'my-persp-asave-on-exit))
-
   ;; Don't save dead or temporary buffers
   (add-hook 'persp-filter-save-buffers-functions
             (lambda (b)
@@ -155,6 +137,18 @@
   ;; Don't save persp configs in `recentf'
   (with-eval-after-load 'recentf
     (push persp-save-dir recentf-exclude))
+
+  ;;  FIXME: Not work for tab-bar
+  ;; (advice-add #'persp-save-state-to-file :before
+  ;; ;; (advice-add #'persp-asave-on-exit :before
+  ;;             (defun +workspaces-save-tab-bar-data-h (&optional _)
+  ;;               (set-persp-parameter
+  ;;                'tab-bar-tabs (tab-bar-tabs))))
+
+  ;; (advice-add #'persp-load-state-from-file :after
+  ;;             (defun +workspaces-load-tab-bar-data-h (&optional _)
+  ;;               (tab-bar-tabs-set (persp-parameter 'tab-bar-tabs))
+  ;;               (tab-bar--update-tab-bar-lines t)))
   )
 
 

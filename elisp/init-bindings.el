@@ -18,6 +18,20 @@
 (use-package general
   ;; :after evil
   :config
+  (general-create-definer tab-def
+    :states '(normal visual emacs motion)
+    :keymaps 'override
+    :prefix "C-s"
+    )
+
+  (tab-def
+    "" nil
+    "c" '(tab-new :wk "New")
+    "r" '(tab-bar-rename-tab :wk "Rename")
+    "d" '(tab-bar-close-tab :wk "Close")
+    "s" '(tab-bar-select-tab-by-name :wk "Select")
+   )
+
   (general-create-definer leader-def
     :states '(normal visual emacs motion)
     :keymaps 'override
@@ -45,6 +59,7 @@
 
   (general-def "<escape>" 'keyboard-quit)
   (general-def "C-;" 'embrace-commander)
+
 
   (leader-def
     "" nil

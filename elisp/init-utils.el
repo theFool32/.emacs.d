@@ -158,6 +158,27 @@ It handles the case of remote files as well."
   :commands ztree-diff
   :defer t)
 
+(use-package winner
+  :ensure nil
+  :commands (winner-undo winner-redo)
+  :hook (after-init . winner-mode)
+  :init (setq winner-boring-buffers '("*Completions*"
+                                      "*Compile-Log*"
+                                      "*inferior-lisp*"
+                                      "*Fuzzy Completions*"
+                                      "*Apropos*"
+                                      "*Help*"
+                                      "*cvs*"
+                                      "*Buffer List*"
+                                      "*Ibuffer*"
+                                      "*esh command on file*")))
+
+(use-package tab-bar
+  :ensure nil
+  :hook (after-init . tab-bar-mode)
+  :config
+  (setq tab-bar-show nil))
+
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-utils.el ends here
