@@ -102,7 +102,7 @@ It handles the case of remote files as well."
   :commands (sudo-edit))
 
 (use-package gcmh
-  :hook (+my/first-input . gcmh-mode)
+  :hook (emacs-startup . gcmh-mode)
   :init
   (setq gcmh-idle-delay 'auto
         gcmh-auto-idle-delay-factor 10

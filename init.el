@@ -2,12 +2,11 @@
 
 (load (concat user-emacs-directory "early-init") nil 'nomessage)
 (setq auto-mode-case-fold nil)
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.5)
+(setq gc-cons-threshold most-positive-fixnum)
 (add-hook 'emacs-startup-hook
           (lambda ()
             "Recover GC values after startup."
-            (setq gc-cons-percentage 0.1)))
+            (setq gc-cons-threshold 800000)))
 
 ;; LoadPath
 (let ((base (expand-file-name "elisp" user-emacs-directory)))
