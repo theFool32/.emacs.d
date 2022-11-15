@@ -172,23 +172,52 @@ function to the relevant margin-formatters list."
          (org-mode . my/set-basic-capf)
          ((lsp-completion-mode eglot-managed-mode lsp-bridge-mode lspce-mode). my/set-lsp-capf))
   :config
+
+  ;;  TODO: Not test whether it works
+  (defun cape--limited-table (table)
+    (lambda (prefix pred action)
+      (if (eq action t)
+          (let ((count 0) result)
+            (catch 'cape--limit
+              (all-completions prefix table
+                               (lambda (cand)
+                                 (when (or (not pred) (funcall pred cand))
+                                   (if (> count 100)
+                                       (throw 'cape--limit t)
+                                     (cl-incf count)
+                                     (when (symbolp cand)
+                                       (setq cand (symbol-name cand)))
+                                     (push cand result)))
+                                 nil)))
+            result)
+        (complete-with-action action table prefix pred))))
+
+
+  (defun cape-wrap-limited (capf)
+    (pcase (funcall capf)
+      (`(,beg ,end ,table . ,plist)
+       `(,beg ,end ,(cape--limited-table table) ,@plist))))
+
+  (cape--capf-wrapper limited)
+
+
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
   (defun my/convert-super-capf (arg-capf)
     (list
      #'cape-file
      ;; (cape-capf-buster
-      (cape-super-capf
-       arg-capf
-       #'tabnine-capf)
-      ;; 'equal)
+     (cape-super-capf
+      arg-capf
+      #'tabnine-capf)
+     ;; 'equal)
      #'tmux-capf
      ;; #'cape-dabbrev
      ))
 
   (defun my/set-basic-capf ()
     (setq completion-category-defaults nil)
-    (setq-local completion-at-point-functions (my/convert-super-capf (car (last completion-at-point-functions 2)))))
+    (setq-local completion-at-point-functions (my/convert-super-capf (cape-capf-limited (car (last completion-at-point-functions 2))))))
 
   (defun my/set-lsp-capf ()
     (setq completion-category-defaults nil)
@@ -205,16 +234,22 @@ function to the relevant margin-formatters list."
   (add-to-list 'completion-at-point-functions #'cape-file))
 
 (use-package corfu-english-helper
-  :bind (("C-x C-e" . corfu-english-helper-search))
+  :after cape
+  ;; :bind (("C-x C-e" . corfu-english-helper-search))
+  :bind (("C-x C-e" . eng-capf))
   :commands (corfu-english-helper-search)
   :defer t
-  :straight (:host github :repo "manateelazycat/corfu-english-helper"))
+  :straight (:host github :repo "manateelazycat/corfu-english-helper")
+  :config
+  (fset 'eng-capf (cape-interactive-capf (cape-capf-limited #'corfu-english-helper-search)))
+  )
 
 (use-package tabnine-capf
   :after cape
   :commands (tabnine-capf tabnine-capf-start-process)
   :straight (:host github :repo "50ways2sayhard/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
-  :hook ((kill-emacs . tabnine-capf-kill-process))
+  :hook ((kill-emacs . tabnine-capf-kill-process)
+         (emacs-startup . tabnine-capf-start-process))
   :config
   (defalias 'tabnine-capf 'tabnine-completion-at-point))
 

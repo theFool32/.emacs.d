@@ -1,7 +1,7 @@
 ;;; init-pretty-code.el ---
 
 ;; PreSym
-(global-prettify-symbols-mode 1)
+;; (global-prettify-symbols-mode 1)
 ;; -PreSym
 
 ;;;###autoload
@@ -134,7 +134,7 @@ correct width of the symbols instead of the width measured by `char-width'."
             len (1- len)))
     (cons (car ligature-alist) acc)))
 
-(defvar +pretty-code-enabled-modes t
+(defvar +pretty-code-enabled-modes '(org-mode)
   "List of major modes in which `prettify-symbols-mode' should be enabled.
 If t, enable it everywhere. If the first element is 'not, enable it in any mode
 besides what is listed.")
@@ -165,27 +165,27 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 (add-hook 'after-change-major-mode-hook #'+pretty-code-init-pretty-symbols-h)
 
 ;; for Python-mode
-(set-pretty-symbols! 'python-mode
-  :>= ">="
-  :<= "<="
-  ;; Functional
-  :def "def"
-  :lambda "lambda"
-  ;; Types
-  :null "None"
-  :true "True"
-  :false "False"
-  :int "int"
-  :str "str"
-  :float "float"
-  :bool "bool"
-  :tuple "tuple"
-  ;; Flow
-  :not "not"
-  :in "in" :not-in "not in"
-  :and "and" :or "or"
-  :for "for"
-  :return "return" :yield "yield")
+;; (set-pretty-symbols! 'python-mode
+;;   :>= ">="
+;;   :<= "<="
+;;   ;; Functional
+;;   :def "def"
+;;   :lambda "lambda"
+;;   ;; Types
+;;   :null "None"
+;;   :true "True"
+;;   :false "False"
+;;   :int "int"
+;;   :str "str"
+;;   :float "float"
+;;   :bool "bool"
+;;   :tuple "tuple"
+;;   ;; Flow
+;;   :not "not"
+;;   :in "in" :not-in "not in"
+;;   :and "and" :or "or"
+;;   :for "for"
+;;   :return "return" :yield "yield")
 
 (set-pretty-symbols! 'emacs-lisp-mode
   :lambda "lambda")

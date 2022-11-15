@@ -64,7 +64,7 @@
   :init (setq diff-hl-draw-borders nil)
   :config
   ;; Highlight on-the-fly
-  (diff-hl-flydiff-mode 1)
+  ;; (diff-hl-flydiff-mode 1)
 
   ;; Set fringe style
   (setq-default fringes-outside-margins t)
@@ -77,19 +77,9 @@
       '(center t)))
   (setq diff-hl-fringe-bmp-function #'my-diff-hl-fringe-bmp-function)
 
-  (unless (display-graphic-p)
-    (setq diff-hl-margin-symbols-alist
-          '((insert . " ") (delete . " ") (change . " ")
-            (unknown . " ") (ignored . " ")))
-    ;; Fall back to the display margin since the fringe is unavailable in tty
-    (diff-hl-margin-mode 1)
-    ;; Avoid restoring `diff-hl-margin-mode'
-    (with-eval-after-load 'desktop
-      (add-to-list 'desktop-minor-mode-table
-                   '(diff-hl-margin-mode nil))))
-
   ;; Integration with magit
   (with-eval-after-load 'magit
+    (add-hook 'magit-pre-refresh-hook #'diff-hl-magit-pre-refresh)
     (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))
 
 ;; Highlight some operations

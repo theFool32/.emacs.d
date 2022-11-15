@@ -48,7 +48,7 @@
   :custom
   (rime-show-candidate 'posframe)
   (rime-posframe-properties (list :font "sarasa ui sc"
-                                  :internal-border-width 10))
+                                  :internal-border-width 2))
   (rime-disable-predicates
    '(rime-predicate-evil-mode-p
      ;; rime-predicate-after-alphabet-char-p
