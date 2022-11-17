@@ -188,6 +188,7 @@
     "od" '(consult-mark-done :wk "Mark done")
     "oi" '(consult-clock-in :wk "Clock in")
     "oo" '((lambda () (interactive)(org-clock-out) (org-save-all-org-buffers)) :wk "Clock out")
+    "op" '(org-pomodoro :wk "Pomodoro")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")

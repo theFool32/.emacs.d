@@ -495,6 +495,53 @@ the lines even if the ranges do not overlap."
   (kill-buffer "done.org")
   (kill-buffer "goals.org"))
 
+(use-package org-pomodoro
+  :after org
+  :config
+  (setq alert-default-style 'notifier)
+
+  (defun org-pomodoro (&optional arg)
+    "Start a new pomodoro or stop the current one.
+When no timer is running for `org-pomodoro` a new pomodoro is started and
+the current task is clocked in.  Otherwise EMACS will ask whether we´d like to
+kill the current timer, this may be a break or a running pomodoro."
+    (interactive "P")
+
+    (when (and org-pomodoro-last-clock-in
+               org-pomodoro-expiry-time
+               (org-pomodoro-expires-p)
+               (y-or-n-p "Reset pomodoro count? "))
+      (setq org-pomodoro-count 0))
+    (setq org-pomodoro-last-clock-in (current-time))
+
+    (cond
+     ;; possibly break from overtime
+     ((and (org-pomodoro-active-p) (eq org-pomodoro-state :overtime))
+      (org-pomodoro-finished))
+     ;; Maybe kill running pomodoro
+     ((org-pomodoro-active-p)
+      (if (or (not org-pomodoro-ask-upon-killing)
+              (y-or-n-p "There is already a running timer.  Would you like to stop it? "))
+          (org-pomodoro-kill)
+        (message "Alright, keep up the good work!")))
+     ;; or start and clock in pomodoro
+     (t
+      (cond
+       ((equal arg '(4))
+        (let ((current-prefix-arg '(4)))
+          (call-interactively 'org-clock-in)))
+       ((equal arg '(16))
+        (call-interactively 'org-clock-in-last))
+       ((memq major-mode (list 'org-mode 'org-journal-mode))
+        (call-interactively 'org-clock-in))
+       ((eq major-mode 'org-agenda-mode)
+        (org-with-point-at (org-get-at-bol 'org-hd-marker)
+          (call-interactively 'org-clock-in)))
+       (t (let ((current-prefix-arg '(4)))
+            (call-interactively 'consult-clock-in))))
+      (org-pomodoro-start :pomodoro))))
+  )
+
 
 ;; -Notification only for mac os
 (when *sys/mac*

@@ -248,8 +248,7 @@ function to the relevant margin-formatters list."
   :after cape
   :commands (tabnine-capf tabnine-capf-start-process)
   :straight (:host github :repo "50ways2sayhard/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
-  :hook ((kill-emacs . tabnine-capf-kill-process)
-         (emacs-startup . tabnine-capf-start-process))
+  :hook ((kill-emacs . tabnine-capf-kill-process))
   :config
   (defalias 'tabnine-capf 'tabnine-completion-at-point))
 
