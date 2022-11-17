@@ -44,7 +44,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
           (cond
            (found-range
             (when (and
-                   (>= (- (point) (nth 0 range)) -1)
+                   (<= (nth 0 range) (point))
                    (>= (nth 1 range) (point))
                    (< (- (nth 1 range) (nth 0 range))
                       (- (nth 1 found-range) (nth 0 found-range))))
