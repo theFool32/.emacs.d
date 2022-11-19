@@ -39,24 +39,47 @@
    (use-package lspce
      :straight nil
      :load-path "~/dev/lspce/"
-     :hook (((dart-mode python-mode) . lspce-mode)
+     :hook (((python-mode LaTeX-mode) . lspce-mode)
             ((lspce-mode) . (lambda ()
-                              (setq-local corfu-auto-delay 0)
-                              (setq-local corfu-auto-prefix 1)
                               (leader-def :keymaps 'override
                                 "ca" '(lspce-code-actions :wk "Code Actions")
                                 "cr" '(lspce-rename :wk "Rename symbol")
                                 "ck" '(lspce-help-at-point :wk "Documentation at point")
                                 "cs" '(lspce-signature-at-point :wk "Signature at point")
                                 )
-                                (evil-define-key 'normal 'global
-                                    "K" 'lspce-help-at-point)
+                              (evil-define-key 'normal 'global
+                                "K" 'lspce-help-at-point)
+                              (setq imenu-create-index-function #'lspce-imenu-create)
                               )))
      :config
      (setq lspce-enable-flymake nil
            lspce-send-changes-idle-time 0.1
            lspce-eldoc-enable-signature t)
      (fset 'lsp-capf 'lspce-completion-at-point)
+
+     (defun lspce-imenu-create ()
+       (mapcar
+        (lambda (obj)
+          (cons
+           (cdr (assoc (car obj) lspce--symbol-kind-names))
+           (mapcar
+            (lambda (obj)
+              (let ((content
+                     (cons (gethash "name" obj)
+                           (lspce--lsp-position-to-point
+                            (gethash "start"
+                                     (gethash "range"
+                                              (gethash "location"
+                                                       obj))))))
+                    (container (gethash "containerName" obj)))
+                (if container
+                    (list container content)
+                  content)))
+            (cdr obj))))
+
+        (seq-group-by
+         (lambda (obj) (gethash "kind" obj))
+         (lspce--request "textDocument/documentSymbol" (list :textDocument (lspce--textDocumentIdenfitier (lspce--uri)))))))
      )
    )
   ('eglot
