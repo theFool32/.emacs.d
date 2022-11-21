@@ -13,12 +13,14 @@
 (defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
 (defvar +org-capture-file-done (concat +self/org-base-dir "done.org"))
 (defvar +org-capture-file-goal (concat +self/org-base-dir "goals.org"))
+(defvar +org-capture-file-routine (concat +self/org-base-dir "routine.org"))
 
 (defvar +org-files (list +org-capture-file-gtd
                          +org-capture-file-someday
                          +org-capture-file-note
                          +org-capture-file-idea
-                         +org-capture-file-goal))
+                         +org-capture-file-goal
+                         +org-capture-file-routine))
 (use-package org
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h)
@@ -26,7 +28,7 @@
   :bind (:map org-mode-map
               ([tab] . org-cycle))
   :custom
-  (org-id-link-to-org-use-id t)
+  ;; (org-id-link-to-org-use-id t)
   (org-element-use-cache nil)
   (org-src-preserve-indentation nil)
   (org-edit-src-content-indentation 0)
@@ -100,7 +102,8 @@
 
   (setq org-log-into-drawer "LOGBOOK")
   (setq org-agenda-files (list +org-capture-file-gtd
-                               +org-capture-file-done))
+                               +org-capture-file-done
+                               +org-capture-file-routine))
   (setq org-refile-use-outline-path 'file)
   (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
                              (+org-capture-file-someday :level . 3)))
@@ -141,7 +144,20 @@
           ("⚔INPROCESS"  . "orangered")
           ("✘CANCELED" . (:foreground "gray" :weight bold))
           ("⚑WAITING" . "pink")
-          ("✔DONE" . "#008080")))
+          ("✔DONE" . (:foreground "#008080" :strike-through t))))
+
+  (custom-set-faces
+   '(org-done ((t (:strike-through t))))
+   '(org-headline-done ((t (:strike-through t)))))
+
+  (defface org-checkbox-done-text
+    '((t (:strike-through t)))
+    "Face for the text part of a checked org-mode checkbox.")
+  (font-lock-add-keywords
+   'org-mode
+   `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)"
+      1 'org-checkbox-done-text prepend))
+   'append)
 
 
   ;; (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
@@ -508,7 +524,7 @@ kill the current timer, this may be a break or a running pomodoro."
         (call-interactively 'org-clock-in))
        ((eq major-mode 'org-agenda-mode)
         (org-with-point-at (org-get-at-bol 'org-hd-marker)
-          (call-interactively 'org-clock-in)))
+                           (call-interactively 'org-clock-in)))
        (t (let ((current-prefix-arg '(4)))
             (call-interactively 'consult-clock-in))))
       (org-pomodoro-start :pomodoro))))
