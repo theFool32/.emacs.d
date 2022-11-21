@@ -50,7 +50,7 @@
   (general-def 'normal
     "/" '+my/consult-line
     "gd" 'xref-find-definitions
-    "gD" 'xref-find-references)
+    "gr" 'xref-find-references)
 
   ;; Navigation
   (general-def 'insert
@@ -120,9 +120,7 @@
     "sg" '(+my/google-it :wk "Google")
 
     "c" '(:wk "Code")
-    "cD" '(xref-find-references :wk "Find references")
     "cf" '(format-all-buffer :wk "Format buffer")
-    "cr" '(lsp-rename :wk "LSP rename")
     "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
     "cm" '(symbol-overlay-put :wk "Mark")
 

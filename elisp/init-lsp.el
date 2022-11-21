@@ -45,8 +45,7 @@
                                 "ca" '(lspce-code-actions :wk "Code Actions")
                                 "cr" '(lspce-rename :wk "Rename symbol")
                                 "ck" '(lspce-help-at-point :wk "Documentation at point")
-                                "cs" '(lspce-signature-at-point :wk "Signature at point")
-                                )
+                                "cs" '(lspce-signature-at-point :wk "Signature at point"))
                               (evil-define-key 'normal 'global
                                 "K" 'lspce-help-at-point)
                               (add-function :before-until (local 'imenu-create-index-function)
@@ -71,6 +70,7 @@
            lspce-eldoc-enable-signature t)
      (fset 'lsp-capf 'lspce-completion-at-point)
      (add-to-list 'lspce-server-programs '("latex" "texlab"))
+     (setq eldoc-echo-area-use-multiline-p nil)
 
      (defun lspce-imenu-create ()
        (cl-labels
@@ -120,7 +120,6 @@
                                       "ca" '(eglot-code-actions :wk "Code Actions")
                                       "cr" '(eglot-rename :wk "Rename symbol")
                                       "cI" '(eglot-code-action-organize-imports :wk "Organize import")
-                                      "ci" '(consult-imenu :wk "imenu")
                                       "cJ" '(consult-eglot-symbols :wk "Symbols in project")
                                       "cd" '(eglot-find-declaration :wk "Jump to definition")
                                       "cF" '(eglot-find-implementation :wk "Find implementation")
