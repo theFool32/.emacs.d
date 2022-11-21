@@ -49,13 +49,15 @@
                                 )
                               (evil-define-key 'normal 'global
                                 "K" 'lspce-help-at-point)
-                              (setq imenu-create-index-function #'lspce-imenu-create)
+                              (add-function :before-until (local 'imenu-create-index-function)
+                                            #'lspce-imenu-create)
                               )))
      :config
      (setq lspce-enable-flymake nil
            lspce-send-changes-idle-time 0.1
            lspce-eldoc-enable-signature t)
      (fset 'lsp-capf 'lspce-completion-at-point)
+     (add-to-list 'lspce-server-programs '("latex" "texlab"))
 
      (defun lspce-imenu-create ()
        (mapcar

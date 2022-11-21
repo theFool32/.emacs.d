@@ -65,3 +65,4 @@ init-custom.el
 org-gcal/
 persist/
 site-lisp
+image-dired
