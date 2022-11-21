@@ -52,6 +52,19 @@
                               (add-function :before-until (local 'imenu-create-index-function)
                                             #'lspce-imenu-create)
                               )))
+     :init
+     (advice-add #'lspce--clientCapabilities :around
+                 (lambda (fn)
+                   (let ((l (funcall fn)))
+                     (plist-put (plist-get l :textDocument)
+                                :documentSymbol
+                                (list
+                                 :dynamicRegistration :json-false
+                                 :hierarchicalDocumentSymbolSupport t
+                                 :symbolKind `(:valueSet
+                                               [,@(mapcar
+                                                   #'car lspce--symbol-kind-names)])))
+                     l)))
      :config
      (setq lspce-enable-flymake nil
            lspce-send-changes-idle-time 0.1
@@ -60,30 +73,43 @@
      (add-to-list 'lspce-server-programs '("latex" "texlab"))
 
      (defun lspce-imenu-create ()
-       (mapcar
-        (lambda (obj)
-          (cons
-           (cdr (assoc (car obj) lspce--symbol-kind-names))
-           (mapcar
-            (lambda (obj)
-              (let ((content
-                     (cons (gethash "name" obj)
-                           (lspce--lsp-position-to-point
-                            (gethash "start"
-                                     (gethash "range"
-                                              (gethash "location"
-                                                       obj))))))
-                    (container (gethash "containerName" obj)))
-                (if container
-                    (list container content)
-                  content)))
-            (cdr obj))))
+       (cl-labels
+           ((unfurl (obj)
+              (if-let ((children (gethash "children" obj))
+                       (name (gethash "name" obj)))
+                  (cons obj
+                        (mapcar (lambda (c)
+                                  (puthash
+                                   "containerName"
+                                   (let ((existing (gethash "containerName" c)))
+                                     (if existing (format "%s::%s" name existing)
+                                       name)) c) c)
+                                (mapcan #'unfurl children)))
+                (list obj))))
+         (mapcar
+          (lambda (obj)
+            (cons
+             (cdr (assoc (car obj) lspce--symbol-kind-names))
+             (mapcar
+              (lambda (obj)
+                (let ((content
+                       (cons (gethash "name" obj)
+                             (lspce--lsp-position-to-point
+                              (gethash "start"
+                                       (if-let ((range (gethash "selectionRange" obj)))
+                                           range
+                                         (gethash "range" (gethash "location" obj)))))))
+                      (container (gethash "containerName" obj)))
+                  (if container (list container content)
+                    content)))
+              (cdr obj))))
 
-        (seq-group-by
-         (lambda (obj) (gethash "kind" obj))
-         (lspce--request "textDocument/documentSymbol" (list :textDocument (lspce--textDocumentIdenfitier (lspce--uri)))))))
-     )
-   )
+          (seq-group-by
+           (lambda (obj) (gethash "kind" obj))
+           (mapcan #'unfurl
+                   (lspce--request "textDocument/documentSymbol" (list :textDocument (lspce--textDocumentIdenfitier (lspce--uri)))))))))
+
+     ))
   ('eglot
    (use-package eglot
      :commands (+eglot-organize-imports +eglot-help-at-point)
@@ -166,21 +192,21 @@
      (defun +eglot-lookup-documentation (_identifier)
        "Request documentation for the thing at point."
        (eglot--dbind ((Hover) contents range)
-           (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
-                            (eglot--TextDocumentPositionParams))
-         (let ((blurb (and (not (seq-empty-p contents))
-                           (eglot--hover-info contents range)))
-               (hint (thing-at-point 'symbol)))
-           (if blurb
-               (with-current-buffer
-                   (or (and (buffer-live-p +eglot--help-buffer)
-                            +eglot--help-buffer)
-                       (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
-                 (with-help-window (current-buffer)
-                   (rename-buffer (format "*eglot-help for %s*" hint))
-                   (with-current-buffer standard-output (insert blurb))
-                   (setq-local nobreak-char-display nil)))
-             (display-local-help))))
+                     (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
+                                      (eglot--TextDocumentPositionParams))
+                     (let ((blurb (and (not (seq-empty-p contents))
+                                       (eglot--hover-info contents range)))
+                           (hint (thing-at-point 'symbol)))
+                       (if blurb
+                           (with-current-buffer
+                               (or (and (buffer-live-p +eglot--help-buffer)
+                                        +eglot--help-buffer)
+                                   (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
+                             (with-help-window (current-buffer)
+                               (rename-buffer (format "*eglot-help for %s*" hint))
+                               (with-current-buffer standard-output (insert blurb))
+                               (setq-local nobreak-char-display nil)))
+                         (display-local-help))))
        'deferred)
 
      (defun +eglot-help-at-point()
