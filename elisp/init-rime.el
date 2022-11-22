@@ -42,7 +42,7 @@
   :if +self/use-rime
   :init
   (setq rime-librime-root "~/.emacs.d/librime/dist/"
-        rime-user-data-dir "~/Library/Rime"
+        rime-user-data-dir "~/.emacs.d/Rime/"
         default-input-method "rime")
 
   :custom
@@ -60,23 +60,6 @@
 
   (define-key rime-mode-map (kbd "M-j") 'rime-force-enable)
   (define-key rime-mode-map (kbd "M-k") 'rime-inline-ascii)
-
-  (defun +my/rime-sync ()
-    ;; HACK: force emacs-rime to use userdb.
-    ;; I am not sure if it is safe as the deploy may delete the old userdb.
-    (interactive)
-    (when rime--lib-loaded
-      (let ((lock-name (concat rime-user-data-dir "/luna_pinyin.userdb/LOCK")))
-        (when (file-exists-p lock-name)
-          (delete-file lock-name)
-          (rime-deploy)))))
-
-  ;; (defun activate-default-input-method ()
-  ;;   (interactive)
-  ;;   (activate-input-method default-input-method))
-  ;; (add-hook 'text-mode-hook 'activate-default-input-method)
-  ;; (add-hook 'org-mode-hook 'activate-default-input-method)
-  ;; (add-hook 'prog-mode-hook 'activate-default-input-method)
   )
 
 (provide 'init-rime)
