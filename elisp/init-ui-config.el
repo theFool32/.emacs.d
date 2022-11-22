@@ -235,6 +235,15 @@
   :init
   (ef-themes-select 'ef-summer)
   :config
+  (with-eval-after-load 'org
+    (setq org-todo-keyword-faces
+          `(("TODO" . (:foreground ,(ef-themes-with-colors red-cooler) :weight bold))
+            ("INPROCESS"  . ,(ef-themes-with-colors blue-cooler))
+            ("PROJ"  . ,(ef-themes-with-colors cyan-cooler))
+            ("WAITING" . ,(ef-themes-with-colors green-faint))
+            ("DONE" . (:foreground ,(ef-themes-with-colors fg-alt) :strike-through t))
+            ("CANCELED" . (:foreground ,(ef-themes-with-colors fg-dim) :weight bold :strike-through t))))
+    )
   )
 
 ;; DoomModeline
