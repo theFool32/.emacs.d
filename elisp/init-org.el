@@ -113,10 +113,10 @@
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file +org-capture-file-gtd)
-           "* ☞TODO %i%? \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
+           "* TODO %i%? \n:LOGBOOK: \n:CREATED: %U \n:END:" :prepend t :kill-buffer t)
           ("w" "Watting for" entry
            (file +org-capture-file-gtd)
-           "* ⚑WAITING %?\n%i" :prepend t :kill-buffer t)
+           "* WAITING %?\n%i" :prepend t :kill-buffer t)
           ("n" "Note" entry
            (file+headline +org-capture-file-note "Notes")
            "* %u %?\n%i" :prepend t :kill-buffer t)
