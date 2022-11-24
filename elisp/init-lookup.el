@@ -33,12 +33,9 @@
 (use-package xref
   :straight nil
   :init
-  ;; On Emacs 28, `xref-search-program' can be set to `ripgrep'.
-  ;; `project-find-regexp' benefits from that.
-  (when (>= emacs-major-version 28)
-    (setq xref-search-program 'ripgrep)
-    (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
-    (setq xref-show-definitions-function #'xref-show-definitions-completing-read))
+  (setq xref-search-program 'ripgrep)
+  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
   :hook ((xref-after-return xref-after-jump) . recenter))
 
 
@@ -66,16 +63,13 @@
           (better-jumper--jumping t))
       (apply fn args)))
 
-  ;; Creates a jump point before killing a buffer. This allows you to undo
-  ;; killing a buffer easily (only works with file buffers though; it's not
-  ;; possible to resurrect special buffers).
-  ;;
-  ;; I'm not advising `kill-buffer' because I only want this to affect
-  ;; interactively killed buffers.
-  (advice-add #'kill-current-buffer :around #'doom-set-jump-a)
-
-  ;; Create a jump point before jumping with imenu.
-  (advice-add #'imenu :around #'doom-set-jump-a))
+  (mapcar
+   (lambda (fn)
+     (advice-add fn :around #'doom-set-jump-a))
+   (list #'kill-current-buffer #'+my/imenu #'+my/consult-line
+         #'find-file #'+my/consult-line-symbol-at-point #'consult-fd #'consult-ripgrep
+         #'+consult-ripgrep-at-point))
+  )
 
 (with-eval-after-load 'xref
   (remove-hook 'xref-backend-functions #'etags--xref-backend)

@@ -12,6 +12,7 @@
   :init
   ;; Disable readline based native completion
   (setq python-shell-completion-native-enable nil)
+  (setq python-indent-guess-indent-offset-verbose nil)
   :config
 
   (add-hook 'python-mode-hook (lambda ()

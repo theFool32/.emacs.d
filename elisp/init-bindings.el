@@ -85,7 +85,6 @@
 
     "f" '(:wk "Files")
     "ff" '(find-file :wk "Find file")
-    "fz" '(consult-dir :wk "Consult-dir")
     "fr" '(+my/open-recent :wk "Recent file")
     "fs" '(+my/save-file :wk "Save file")
     "fd" '(dired-jump :wk "Current directory")
@@ -98,6 +97,8 @@
     "fo" '((lambda() (interactive)(find-file (completing-read "Open org fiels:" +org-files))) :wk "Org files")
     "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
     "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
+
+    "z" '(consult-dir :wk "z.lua")
 
     "fE" '(:wk "File Encoding")
     "fEr" '(revert-buffer-with-coding-system :wk "Revert encoding")
