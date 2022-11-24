@@ -140,8 +140,53 @@ function to the relevant margin-formatters list."
 	        (if-let ((kind (funcall kind-func cand)))
 	            (kind-all-the-icons-formatted kind)
 	          (kind-all-the-icons-formatted t))))) ;; as a backup
-    (add-to-list 'corfu-margin-formatters #'kind-all-the-icons-margin-formatter)
-    )
+    (add-to-list 'corfu-margin-formatters #'kind-all-the-icons-margin-formatter))
+
+
+  ;; allow evil-repeat
+  ;; https://github.com/minad/corfu/pull/225
+  (defun corfu--unread-this-command-keys ()
+    (when (> (length (this-command-keys)) 0)
+      (setq unread-command-events (nconc
+                                   (listify-key-sequence (this-command-keys))
+                                   unread-command-events))
+      (clear-this-command-keys t)))
+
+  (defun corfu--pre-command ()
+    "Insert selected candidate unless command is marked to continue completion."
+    (when corfu--preview-ov
+      (delete-overlay corfu--preview-ov)
+      (setq corfu--preview-ov nil))
+    (corfu--echo-cancel corfu--echo-message)
+    ;; Ensure that state is initialized before next Corfu command
+    (when (and (symbolp this-command) (string-prefix-p "corfu-" (symbol-name this-command)))
+      (corfu--update))
+    (when (and (eq corfu-preview-current 'insert)
+               (/= corfu--index corfu--preselect)
+               ;; See the comment about `overriding-local-map' in `corfu--post-command'.
+               (not (or overriding-terminal-local-map
+                        (corfu--match-symbol-p corfu-continue-commands this-command))))
+      (corfu--unread-this-command-keys)
+      (setq this-command 'corfu-insert-exact)))
+
+  (defun corfu-insert-exact ()
+    "Insert current candidate with the `exact' status.
+Quit if no candidate is selected."
+    (interactive)
+    (if (>= corfu--index 0)
+        (corfu--insert 'exact)
+      (corfu-quit)))
+
+  (mapc #'evil-declare-ignore-repeat
+        '(corfu-next
+          corfu-previous
+          corfu-first
+          corfu-last))
+
+  (mapc #'evil-declare-change-repeat
+        '(corfu-insert
+          corfu-insert-exact
+          corfu-complete))
   )
 
 (use-package emacs
