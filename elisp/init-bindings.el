@@ -85,6 +85,7 @@
 
     "f" '(:wk "Files")
     "ff" '(find-file :wk "Find file")
+    "fz" '(consult-dir :wk "Consult-dir")
     "fr" '(+my/open-recent :wk "Recent file")
     "fs" '(+my/save-file :wk "Save file")
     "fd" '(dired-jump :wk "Current directory")

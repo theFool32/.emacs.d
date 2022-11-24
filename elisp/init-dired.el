@@ -3,6 +3,9 @@
 ;; DiredPackage
 (use-package dired
   :straight nil
+  :bind
+  (:map dired-mode-map
+        ("C-q" . evil-avy-goto-line))
   :custom
   ;; Always delete and copy recursively
   (dired-recursive-deletes 'always)

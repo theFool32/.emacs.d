@@ -13,11 +13,12 @@
   :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory)
                      :files (:defaults "extensions/vertico-*.el"))
   ;; :hook (+my/first-input . vertico-mode)
+  :bind
+  (:map vertico-map
+        ("C-<return>" . open-in-external-app))
   :init
   (vertico-mode)
   :config
-  ;; (set-face-background 'vertico-current "#42444a")
-  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
   (setq vertico-cycle nil)
 
   (defun open-in-external-app ()
@@ -26,7 +27,6 @@
       (when (eq (+complete--get-meta 'category) 'file)
         (shell-command (concat "open " candidate))
         (abort-recursive-edit))))
-  (define-key vertico-map (kbd "C-<return>") 'open-in-external-app)
 
   (defun +vertico/jump-list (jump)
     "Go to an entry in evil's (or better-jumper's) jumplist."
@@ -138,15 +138,13 @@
          ("M-g o" . consult-outline)
          ("M-g h" . consult-org-heading)
          ("M-g a" . consult-org-agenda)
+         ("<help> a" . consult-apropos)
+         ("M-s m" . consult-multi-occur)
          )
   :init
-  (setq register-preview-delay 0
-        register-preview-function #'consult-register-format)
   :config
   (setq consult-preview-key nil)
   (setq consult-narrow-key "<")
-  (setq consult-async-input-debounce 0)
-  (setq consult-async-input-throttle 0)
   (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer))
 
   (setq xref-show-xrefs-function #'consult-xref
@@ -160,31 +158,6 @@
                                                       (?f "Function"  font-lock-function-name-face)
                                                       (?m "Method"  font-lock-function-name-face)
                                                       (?v "Variable"  font-lock-variable-name-face)))))
-
-  ;; consult-fd
-  (defvar consult--fd-command nil)
-  (defun consult--fd-builder (input)
-    (unless consult--fd-command
-      (setq consult--fd-command
-            (if (eq 0 (call-process-shell-command "fdfind"))
-                "fdfind"
-              "fd")))
-    (pcase-let* ((`(,arg . ,opts) (consult--command-split input))
-                 (`(,re . ,hl) (funcall consult--regexp-compiler
-                                        arg 'extended t)))
-      (when re
-        (list :command (append
-                        (list consult--fd-command
-                              "--color=never" "--full-path"
-                              (consult--join-regexps re 'extended))
-                        opts)
-              :highlight hl))))
-
-  (defun consult-fd (&optional dir initial)
-    (interactive "P")
-    (let* ((prompt-dir (consult--directory-prompt "Fd" dir))
-           (default-directory (cdr prompt-dir)))
-      (call-interactively #'find-file (consult--find (car prompt-dir) #'consult--fd-builder initial))))
 
   (autoload 'org-buffer-list "org")
   (defvar org-buffer-source
@@ -239,6 +212,30 @@
           (setq-local consult--regexp-compiler #'consult--orderless-regexp-compiler))
       (apply args)))
   (advice-add #'consult-ripgrep :around #'consult--with-orderless)
+
+  (defvar consult--fd-command nil)
+  (defun consult--fd-builder (input)
+    (unless consult--fd-command
+      (setq consult--fd-command
+            (if (eq 0 (call-process-shell-command "fdfind"))
+                "fdfind"
+              "fd")))
+    (pcase-let* ((`(,arg . ,opts) (consult--command-split input))
+                 (`(,re . ,hl) (funcall consult--regexp-compiler
+                                        arg 'extended t)))
+      (when re
+        (list :command (append
+                        (list consult--fd-command
+                              "--color=never" "--full-path"
+                              (consult--join-regexps re 'extended))
+                        opts)
+              :highlight hl))))
+
+  (defun consult-fd (&optional dir initial)
+    (interactive "P")
+    (let* ((prompt-dir (consult--directory-prompt "Fd" dir))
+           (default-directory (cdr prompt-dir)))
+      (find-file (consult--find (car prompt-dir) #'consult--fd-builder initial))))
   )
 
 (use-package consult-project-extra
@@ -248,6 +245,23 @@
   ;; WORKAROUND
   (setq consult-project-buffer-sources consult-project-extra-sources)
   )
+
+(use-package consult-flycheck
+  :after (consult flycheck))
+
+(use-package consult-dir
+  :ensure t
+  :after consult
+  :bind (("C-x C-d" . consult-dir)
+         :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file)))
+
+(use-package consult-git-log-grep
+  :straight (:host github :repo "ghosty141/consult-git-log-grep")
+  :custom
+  (consult-git-log-grep-open-function #'magit-show-commit))
+
 
 (use-package orderless
   :demand t
@@ -272,14 +286,6 @@
      ;; Ensure that $ works with Consult commands, which add disambiguation suffixes
      ((string-suffix-p "$" pattern)
       `(orderless-regexp . ,(concat (substring pattern 0 -1) "[\x100000-\x10FFFD]*$")))
-     ;; File extensions
-     ;; ((and
-     ;;   ;; Completing filename or eshell
-     ;;   (or minibuffer-completing-file-name
-     ;;       (derived-mode-p 'eshell-mode))
-     ;;   ;; File extension
-     ;;   (string-match-p "\\`\\.." pattern))
-     ;;  `(orderless-regexp . ,(concat "\\." (substring pattern 1) "[\x100000-\x10FFFD]*$")))
      ;; Ignore single !
      ((string= "!" pattern) `(orderless-literal . ""))
      ;; Prefix and suffix
@@ -292,30 +298,6 @@
   (orderless-define-completion-style +orderless-with-initialism
     (orderless-matching-styles '(orderless-initialism orderless-literal orderless-regexp)))
 
-  ;; You may want to combine the `orderless` style with `substring` and/or `basic`.
-  ;; There are many details to consider, but the following configurations all work well.
-  ;; Personally I (@minad) use option 3 currently. Also note that you may want to configure
-  ;; special styles for special completion categories, e.g., partial-completion for files.
-  ;;
-  ;; 1. (setq completion-styles '(orderless))
-  ;; This configuration results in a very coherent completion experience,
-  ;; since orderless is used always and exclusively. But it may not work
-  ;; in all scenarios. Prefix expansion with TAB is not possible.
-  ;;
-  ;; 2. (setq completion-styles '(substring orderless))
-  ;; By trying substring before orderless, TAB expansion is possible.
-  ;; The downside is that you can observe the switch from substring to orderless
-  ;; during completion, less coherent.
-  ;;
-  ;; 3. (setq completion-styles '(orderless basic))
-  ;; Certain dynamic completion tables (completion-table-dynamic)
-  ;; do not work properly with orderless. One can add basic as a fallback.
-  ;; Basic will only be used when orderless fails, which happens only for
-  ;; these special tables.
-  ;;
-  ;; 4. (setq completion-styles '(substring orderless basic))
-  ;; Combine substring, orderless and basic.
-  ;;
   ;; FIX for tramp
   (defun basic-remote-try-completion (string table pred point)
     (and (vertico--remote-p string)
