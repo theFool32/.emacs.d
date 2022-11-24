@@ -255,7 +255,24 @@
   :bind (("C-x C-d" . consult-dir)
          :map vertico-map
          ("C-x C-d" . consult-dir)
-         ("C-x C-j" . consult-dir-jump-file)))
+         ("C-x C-j" . consult-dir-jump-file))
+  :config
+  (defun consult-dir--zlua-dirs ()
+    "Return list of fasd dirs."
+    (mapcan
+     (lambda (str) (last (split-string str " ")))
+     (split-string (shell-command-to-string "z -l") "\n" t)))
+  (defvar consult-dir--source-zlua
+    `(:name     "z.lua dirs"
+                :narrow   ?z
+                :category file
+                :face     consult-file
+                :history  file-name-history
+                :enabled  ,(lambda () t)  ;;  FIXME: check whether z.lua is installed
+                :items    ,#'consult-dir--zlua-dirs)
+    "Fasd directory source for `consult-dir'.")
+  (add-to-list 'consult-dir-sources 'consult-dir--source-zlua t)
+  )
 
 (use-package consult-git-log-grep
   :straight (:host github :repo "ghosty141/consult-git-log-grep")
