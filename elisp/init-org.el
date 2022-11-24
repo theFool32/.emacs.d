@@ -21,7 +21,9 @@
                          +org-capture-file-idea
                          +org-capture-file-goal
                          +org-capture-file-routine))
+
 (use-package org
+  :commands (+my/open-org-agenda)
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h)
          (org-mode . org-num-mode))
@@ -51,10 +53,10 @@
   (org-agenda-todo-ignore-scheduled 'future)
 
   :config
+  ;; agenda
   (with-eval-after-load 'org (setq org-modules '()))
   (with-eval-after-load 'org-agenda
     (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3))
-
 
   (setq org-agenda-custom-commands
         '(("n" "Agenda"
@@ -67,9 +69,9 @@
 	         ((org-agenda-files (list +org-capture-file-goal))
 	          (org-agenda-overriding-header "Goals for this month")))
 	        (agenda)
-            (alltodo "")
-            ))))
+            (alltodo "")))))
 
+  ;; babel
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
     "Load language if needed"
     (let* ((lang (nth 0 info))
@@ -87,27 +89,38 @@
 
   (advice-add 'org-babel-execute-src-block :before #'my/org-babel-execute-src-block )
 
-  ;; (setq org-clock-persist t
-  ;;       org-clock-persist-file (concat +self/org-base-dir "org-clock-save.el"))
-
-  (set-face-attribute 'org-table nil :family "Sarasa Mono SC" :weight 'semi-bold)
-  (with-eval-after-load 'org
-    (org-clock-persistence-insinuate))
-
+  ;; ui
+  ;; (set-face-attribute 'org-table nil :family "Sarasa Mono SC" :weight 'semi-bold)
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
-
   (+org-init-appearance-h)
   (+org-init-agenda-h)
   (+org-init-capture-defaults-h)
 
+  (custom-set-faces
+   '(org-done ((t (:strike-through t))))
+   '(org-headline-done ((t (:strike-through t)))))
+
+  (defface org-checkbox-done-text
+    '((t (:strike-through t)))
+    "Face for the text part of a checked org-mode checkbox.")
+  (font-lock-add-keywords
+   'org-mode
+   `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)"
+      1 'org-checkbox-done-text prepend))
+   'append)
+
+
+  ;; log
   (setq org-log-into-drawer "LOGBOOK")
+  (setq org-log-into-drawer t)
   (setq org-agenda-files (list +org-capture-file-gtd
                                +org-capture-file-done
                                +org-capture-file-routine))
+
+  ;; misc
   (setq org-refile-use-outline-path 'file)
   (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
                              (+org-capture-file-someday :level . 3)))
-  (setq org-log-into-drawer t)
   (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("emacs" . ?e)
                         ("habit" . ?h) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?w)))
   (setq org-capture-templates
@@ -138,23 +151,17 @@
            "CANCELED(c)") ; Task was cancelled, aborted or is no longer applicable
           ))
 
-  (custom-set-faces
-   '(org-done ((t (:strike-through t))))
-   '(org-headline-done ((t (:strike-through t)))))
-
-  (defface org-checkbox-done-text
-    '((t (:strike-through t)))
-    "Face for the text part of a checked org-mode checkbox.")
-  (font-lock-add-keywords
-   'org-mode
-   `(("^[ \t]*\\(?:[-+*]\\|[0-9]+[).]\\)[ \t]+\\(\\(?:\\[@\\(?:start:\\)?[0-9]+\\][ \t]*\\)?\\[\\(?:X\\|\\([0-9]+\\)/\\2\\)\\][^\n]*\n\\)"
-      1 'org-checkbox-done-text prepend))
-   'append)
+  ;; HACK: fix folded org headings
+  ;; https://github.com/minad/consult/issues/563#issuecomment-1186612641
+  (defun org-show-entry-consult-a (fn &rest args)
+    (when-let ((pos (apply fn args)))
+      (when (derived-mode-p 'org-mode)
+        (org-fold-show-entry))))
+  (advice-add 'consult-outline :around #'org-show-entry-consult-a)
 
 
   ;; (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
-  (add-hook 'org-mode-hook (lambda ()
-                             (show-paren-local-mode -1)))
+  (add-hook 'org-mode-hook (lambda () (show-paren-local-mode -1)))
 
   ;; https://emacs-china.org/t/topic/2119/15
   (defun my--diary-chinese-anniversary (lunar-month lunar-day &optional year mark)
@@ -348,6 +355,15 @@
       "t" 'org-agenda-todo)
     )
 
+  ;; functions
+(defun +my/open-org-agenda ()
+    "open org agenda in left window"
+    (interactive)
+    (org-agenda nil "n")
+    (evil-window-move-far-left)
+    (kill-buffer "done.org")
+    (kill-buffer "goals.org")
+    (kill-buffer "routine.org"))
   (defun +my-org/mark-done ()
     ""
     (interactive)
@@ -466,14 +482,6 @@ the lines even if the ranges do not overlap."
    "⭠ now ─────────────────────────────────────────────────")
   )
 
-(defun +my/open-org-agenda ()
-  "open org agenda in left window"
-  (interactive)
-  (org-agenda nil "n")
-  (evil-window-move-far-left)
-  ;;  HACK: kill unneeded org buffer
-  (kill-buffer "done.org")
-  (kill-buffer "goals.org"))
 
 (use-package org-pomodoro
   :after org
@@ -516,7 +524,7 @@ kill the current timer, this may be a break or a running pomodoro."
         (call-interactively 'org-clock-in))
        ((eq major-mode 'org-agenda-mode)
         (org-with-point-at (org-get-at-bol 'org-hd-marker)
-                           (call-interactively 'org-clock-in)))
+          (call-interactively 'org-clock-in)))
        (t (let ((current-prefix-arg '(4)))
             (call-interactively 'consult-clock-in))))
       (org-pomodoro-start :pomodoro))))
