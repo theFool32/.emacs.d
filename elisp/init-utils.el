@@ -179,6 +179,19 @@ It handles the case of remote files as well."
   :config
   (setq tab-bar-show nil))
 
+
+(use-package openwith
+  :config
+  (setq openwith-associations
+        (list
+         (list (openwith-make-extension-regexp
+                '("pdf"))
+               "open"
+               '(file))
+         ))
+
+  (openwith-mode))
+
 (provide 'init-utils)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-utils.el ends here

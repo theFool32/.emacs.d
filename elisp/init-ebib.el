@@ -38,6 +38,7 @@
         ;; ("?" . ebib-search)
         ("D" . ebib-delete-entry-with-file)
         ("s"   . ebib-save-all-databases)
+        ("S"   . +my/search-pdf)
         ("B"   . ebib-import-ref)
         :map ebib-multiline-mode-map
         ("C-c C-c" . ebib-quit-multiline-buffer-and-save)
@@ -50,6 +51,11 @@
     (interactive)
     (progn (consult-line) (ebib--update-entry-buffer)))
 
+  ;;  TODO: search only the current pdf
+  ;;  TODO: split the files and the contents
+  (defun +my/search-pdf ()
+    (interactive)
+    (consult-ripgrep (concat +self/ebib-base-dir "/pdfs") ""))
 
   (random t)
   (defun get-random-uuid ()
@@ -67,7 +73,6 @@ WARNING: this is a simple implementation.  The chance of generating the same UUI
             (random (expt 16 4))
             (random (expt 16 6))
             (random (expt 16 6))))
-
 
 
   (defun my-ebib--format-entry (key db &optional timestamp sort)

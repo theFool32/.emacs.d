@@ -218,6 +218,10 @@
       (consult-line)
       (+my/consult-set-evil-search-pattern)))
 
+  (setq consult-ripgrep-args
+        "rga --null --line-buffered --color=never --max-columns=1000 --path-separator /\
+   --smart-case --no-heading --line-number .")
+
   (defun +consult-ripgrep-at-point (&optional dir initial)
     (interactive (list prefix-arg (when-let ((s (symbol-at-point)))
                                     (symbol-name s))))
