@@ -234,12 +234,12 @@
 
 (use-package ef-themes
   :init
-  (ef-themes-select 'ef-summer)
+  (ef-themes-select 'ef-trio-light)
   :config
   (with-eval-after-load 'org
     (setq org-todo-keyword-faces
           `(("TODO" . (:foreground ,(ef-themes-with-colors red-cooler) :weight bold))
-            ("INPROCESS"  . ,(ef-themes-with-colors blue-cooler))
+            ("INPROCESS"  . ,(ef-themes-with-colors yellow-warmer))
             ("PROJ"  . ,(ef-themes-with-colors cyan-cooler))
             ("WAITING" . ,(ef-themes-with-colors green-faint))
             ("DONE" . (:foreground ,(ef-themes-with-colors fg-alt) :strike-through t))
