@@ -275,6 +275,8 @@
   )
 
 (use-package consult-git-log-grep
+  :after consult
+  :commands consult-git-log-grep
   :straight (:host github :repo "ghosty141/consult-git-log-grep")
   :custom
   (consult-git-log-grep-open-function #'magit-show-commit))

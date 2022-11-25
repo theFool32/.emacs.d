@@ -64,9 +64,10 @@
 ;; ATIPac
 (use-package all-the-icons
   :if (display-graphic-p)
-  :init (unless (or *sys/win32*
-                    (find-font (font-spec :name "all-the-icons")))
-          (all-the-icons-install-fonts t))
+  ;;  HACK: no need for everytime check
+  ;; :init (unless (or *sys/win32*
+  ;;                   (find-font (font-spec :name "all-the-icons")))
+  ;;         (all-the-icons-install-fonts t))
   :config
   (defun all-the-icons-reset ()
     "Reset (unmemoize/memoize) the icons."

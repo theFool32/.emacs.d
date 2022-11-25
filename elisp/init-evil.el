@@ -51,7 +51,8 @@
                         "C-k" 'evil-window-up
                         "C-l" 'evil-window-right))
 
-  (require 'evil/+packages))
+  (require 'evil/+packages)
+  )
 
 
 (provide 'init-evil)

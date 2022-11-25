@@ -59,7 +59,8 @@
   (diff-hl-change ((t (:foreground ,(face-background 'highlight) :background unspecified))))
   (diff-hl-insert ((t (:background unspecified))))
   (diff-hl-delete ((t (:background unspecified))))
-  :hook ((after-init . global-diff-hl-mode)
+  :hook ((find-file . diff-hl-mode)
+         (vc-dir-mode . diff-hl-dir-mode)
          (dired-mode . diff-hl-dired-mode-unless-remote))
   :init (setq diff-hl-draw-borders nil)
   :config

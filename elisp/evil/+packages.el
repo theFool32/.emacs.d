@@ -18,6 +18,7 @@
 
 (use-package evil-embrace
   :after evil
+  :commands embrace-add-pair embrace-add-pair-regexp
   :config
   (require 'evil/+embrace)
 
@@ -25,7 +26,6 @@
   (add-hook 'org-mode-hook 'embrace-org-mode-hook)
   (add-hook 'emacs-lisp-mode-hook 'embrace-emacs-lisp-mode-hook)
   (add-hook 'c++-mode-hook '+evil-embrace-angle-bracket-modes-hook-h)
-
 
   (with-eval-after-load 'evil-surround
     (evil-embrace-enable-evil-surround-integration))
@@ -42,8 +42,6 @@
                     :left-regexp "([^ ]+ \"
                     :right-regexp \")"))
           embrace--pairs-list))
-
-
 
   (defun +evil-embrace-angle-bracket-modes-hook-h ()
     (let ((var (make-local-variable 'evil-embrace-evil-surround-keys)))
@@ -62,10 +60,11 @@
 
 (use-package evil-escape
   :after evil
+  :hook (+my/first-input-hook . evil-escape-mode)
   :commands (evil-escape-pre-command-hook)
   :init
   (setq evil-escape-excluded-states '(normal visual multiedit emacs motion)
-        evil-escape-excluded-major-modes '(treemacs-mode vterm-mode)
+        evil-escape-excluded-major-modes '(vterm-mode)
         evil-escape-key-sequence "jk"
         evil-escape-delay 0.15)
   (evil-define-key* '(insert replace visual operator) 'global "\C-g" #'evil-escape)
@@ -103,6 +102,10 @@
 
 (use-package evil-surround
   :after evil
+  :commands (global-evil-surround-mode
+             evil-surround-edit
+             evil-Surround-edit
+             evil-surround-region)
   :config (global-evil-surround-mode 1))
 
 
@@ -143,8 +146,8 @@
 
 (use-package evil-anzu
   :after evil
+  :hook (+my/first-input-hook global-anzu-mode)
   :config
-  (global-anzu-mode)
   (add-hook 'evil-insert-state-entry-hook #'evil-ex-nohighlight)
   )
 

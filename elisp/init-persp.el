@@ -48,30 +48,29 @@
 
 ;; Windows/buffers sets shared among frames + save/load.
 
+
 (use-package persp-mode
   :diminish
   :defines (recentf-exclude)
-  :commands (get-current-persp persp-contain-buffer-p)
-  :hook ((after-init . persp-mode)
-         ;; (persp-mode . persp-load-frame)
+  :commands (get-current-persp persp-contain-buffer-p persp-save-frame)
+  :hook ((+my/first-input-hook . persp-mode)
          (kill-emacs . persp-save-frame))
-  :init (setq persp-keymap-prefix (kbd "C-x p")
-              persp-nil-name "default"
-              persp-set-last-persp-for-new-frames nil
-              persp-kill-foreign-buffer-behaviour 'kill
-              persp-auto-resume-time -0.1
-              )
-  :config
+  :init
+  (setq persp-keymap-prefix (kbd "C-x p")
+        persp-nil-name "default"
+        persp-set-last-persp-for-new-frames nil
+        persp-kill-foreign-buffer-behaviour 'kill
+        persp-auto-resume-time -0.1
+        )
   (defun +my/persp-resume ()
     "Resume previous layout"
     (interactive)
     (persp-mode +1)
     (condition-case error
         (persp-load-state-from-file (expand-file-name "persp-auto-save" persp-save-dir))
-      (error)
-      )
+      (error))
     (persp-load-frame))
-
+  :config
   ;; Save and load frame parameters (size & position)
   (defvar persp-frame-file (expand-file-name "persp-frame" persp-save-dir)
     "File of saving frame parameters.")

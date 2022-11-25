@@ -59,7 +59,7 @@
 
   (general-def "<escape>" 'keyboard-quit)
   (general-def "C-;" 'embrace-commander)
-
+  (general-def "C-<tab>" 'tab-next)
 
   (leader-def
     "" nil

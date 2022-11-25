@@ -356,7 +356,7 @@
     )
 
   ;; functions
-(defun +my/open-org-agenda ()
+  (defun +my/open-org-agenda ()
     "open org agenda in left window"
     (interactive)
     (org-agenda nil "n")
@@ -365,7 +365,6 @@
     (kill-buffer "goals.org")
     (kill-buffer "routine.org"))
   (defun +my-org/mark-done ()
-    ""
     (interactive)
     (when (derived-mode-p 'org-mode)
       (org-back-to-heading)

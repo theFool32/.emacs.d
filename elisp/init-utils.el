@@ -175,7 +175,8 @@ It handles the case of remote files as well."
 
 (use-package tab-bar
   :ensure nil
-  :hook (after-init . tab-bar-mode)
+  :commands (tab-new tab-bar-rename-tab tab-bar-close-tab tab-bar-select-tab-by-name)
+  ;; :hook (after-init . tab-bar-mode)
   :config
   (setq tab-bar-show nil))
 
