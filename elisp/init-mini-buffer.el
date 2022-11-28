@@ -288,9 +288,10 @@
   :config
   (defun consult-dir--zlua-dirs ()
     "Return list of fasd dirs."
-    (mapcan
-     (lambda (str) (last (split-string str " ")))
-     (split-string (shell-command-to-string "z -l") "\n" t)))
+    (reverse
+     (mapcar
+      (lambda (str) (format "%s/" (car (last (split-string str " ")))))
+      (split-string (shell-command-to-string "z -l | tail -n 50") "\n" t))))
   (defvar consult-dir--source-zlua
     `(:name     "z.lua dirs"
                 :narrow   ?z
@@ -300,7 +301,8 @@
                 :enabled  ,(lambda () t)  ;;  FIXME: check whether z.lua is installed
                 :items    ,#'consult-dir--zlua-dirs)
     "Fasd directory source for `consult-dir'.")
-  (add-to-list 'consult-dir-sources 'consult-dir--source-zlua t)
+  ;; (add-to-list 'consult-dir-sources 'consult-dir--source-zlua t)
+  (setq consult-dir-sources '(consult-dir--source-recentf consult-dir--source-zlua consult-dir--source-project))
   )
 
 (use-package consult-git-log-grep
