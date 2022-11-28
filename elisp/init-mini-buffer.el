@@ -9,6 +9,26 @@
 
 (autoload 'ffap-file-at-point "ffap")
 
+(use-package embark
+  :ensure t
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
+  :config
+
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none))))
+  )
+(use-package embark-consult
+  :ensure t ; only
+  :after consult)
+
 (use-package vertico
   :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory)
                      :files (:defaults "extensions/vertico-*.el"))
@@ -20,6 +40,15 @@
   (vertico-mode)
   :config
   (setq vertico-cycle nil)
+
+  (defun +vertico-restrict-to-matches ()
+    (interactive)
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (insert " ")
+      (add-text-properties (minibuffer-prompt-end) (point-max)
+                           '(invisible t read-only t cursor-intangible t rear-nonsticky t))))
+  (define-key vertico-map (kbd "S-SPC") #'+vertico-restrict-to-matches)
 
   (defun open-in-external-app ()
     (interactive)
@@ -354,15 +383,11 @@
   :hook (after-init . mini-frame-mode)
   :commands (mini-frame-mode)
   :config
+  (setq mini-frame-detach-on-hide nil)
   (setq resize-mini-frames t)
   (setq mini-frame-create-lazy nil)
   (setq mini-frame-show-parameters `((left . 0.5)
                                      (top . ,(/ (frame-pixel-height) 2))
-                                     ;; (background-mode 'light)
-                                     ;; (foreground-color . "#bbc2cf")
-                                     ;; (background-color . "#242730")
-                                     ;; (internal-border-width . 1)
-                                     ;; (child-frame-border-width . 1)
                                      (min-width . 80)
                                      (width . 0.8)
                                      (no-accept-focus . t)))
@@ -380,17 +405,6 @@
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-forward)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-backward))
   )
-
-;; BetterMiniBuffer
-(defun abort-minibuffer-using-mouse ()
-  "Abort the minibuffer when using the mouse."
-  (when (and (>= (recursion-depth) 1) (active-minibuffer-window))
-    (abort-recursive-edit)))
-(add-hook 'mouse-leave-buffer-hook 'abort-minibuffer-using-mouse)
-
-;; keep the point out of the minibuffer
-(setq-default minibuffer-prompt-properties '(read-only t point-entered minibuffer-avoid-prompt face minibuffer-prompt))
-;; -BetterMiniBuffer
 
 (use-package all-the-icons-completion
   :straight (:host github :repo "iyefrat/all-the-icons-completion")
