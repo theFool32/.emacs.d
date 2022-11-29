@@ -10,24 +10,48 @@
 (autoload 'ffap-file-at-point "ffap")
 
 (use-package embark
+  :straight (embark :files (:defaults "*.el"))
   :ensure t
+  :after general
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
-   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("M-." . embark-dwim)
    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-
+  :custom
+  (embark-cycle-key ".")
+  (embark-help-key "?")
   :init
   (setq prefix-help-command #'embark-prefix-help-command)
   :config
+  ;;  HACK: bind will be override by evil
+  (general-define-key :states '(normal insert visual emacs)
+                      "C-." 'embark-act
+                      "M-." 'embark-dwim
+                      "C-h B" 'embark-bindings)
 
+  (setq embark-candidate-collectors
+        (cl-substitute 'embark-sorted-minibuffer-candidates
+                       'embark-minibuffer-candidates
+                       embark-candidate-collectors))
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
-                 (window-parameters (mode-line-format . none))))
-  )
+                 (window-parameters (mode-line-format . none)))))
+
+
 (use-package embark-consult
   :ensure t ; only
   :after consult)
+
+(defun +complete--get-meta (setting)
+  "Get metadata SETTING from completion table."
+  (completion-metadata-get
+   (condition-case-unless-debug err
+       (completion-metadata (minibuffer-contents)
+                            minibuffer-completion-table
+                            minibuffer-completion-predicate)
+     (error (message (error-message-string err)) nil))
+   setting))
 
 (use-package vertico
   :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory)
@@ -52,7 +76,7 @@
 
   (defun open-in-external-app ()
     (interactive)
-    (let ((candidate (+complete-get-current-candidate)))
+    (let ((candidate (vertico--candidate)))
       (when (eq (+complete--get-meta 'category) 'file)
         (shell-command (concat "open " candidate))
         (abort-recursive-edit))))
