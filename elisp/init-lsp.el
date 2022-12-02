@@ -72,6 +72,20 @@
      (add-to-list 'lspce-server-programs '("latex" "texlab"))
      (setq eldoc-echo-area-use-multiline-p nil)
 
+
+     ;;  HACK: https://github.com/emacs-lsp/lsp-pyright/issues/13
+     (defun lspce--server-program-python (fn &rest args)
+       (let ((program (apply fn args)))
+         (when (string= (car args) "python")
+           (setf (nth 1 program)
+                 (format "--stdio --node-ipc --cancellationReceive=file:%s"
+                         (string-join
+                          (mapcar
+                           (lambda (_) (format "%02x" (random 256)))
+                           (make-list 21 nil))))))
+         program))
+     (advice-add 'lspce--server-program :around 'lspce--server-program-python)
+
      (defun lspce-imenu-create ()
        (cl-labels
            ((unfurl (obj)
