@@ -78,7 +78,7 @@
        (let ((program (apply fn args)))
          (when (string= (car args) "python")
            (setf (nth 1 program)
-                 (format "--stdio --node-ipc --cancellationReceive=file:%s"
+                 (format "--stdio --cancellationReceive=file:%s"
                          (string-join
                           (mapcar
                            (lambda (_) (format "%02x" (random 256)))

@@ -1,12 +1,12 @@
 ;; -*- lexical-binding: t -*-
 
 (use-package corfu
-  :straight (corfu :includes (corfu-indexed corfu-quick) :files (:defaults "extensions/corfu-*.el"))
+  :straight (corfu :includes (corfu-indexed corfu-quick corfu-popupinfo corfu-history) :files (:defaults "extensions/corfu-*.el"))
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
   (corfu-auto-prefix 1)
-  (corfu-auto-delay 0)
+  (corfu-auto-delay 0.01)
   (corfu-echo-documentation 0.3)
   (corfu-quit-no-match 'separator)        ;; Automatically quit if there is no match
   (corfu-preselect-first nil)    ;; Disable candidate preselection
@@ -50,6 +50,17 @@
     :bind
     (:map corfu-map
           ("C-q" . corfu-quick-insert)))
+
+  (use-package corfu-popupinfo
+    :config
+    (setq corfu-popupinfo-delay '(0.5 . 0.3))
+    :hook (corfu-mode . corfu-popupinfo-mode))
+
+  (use-package corfu-history
+    :config
+    (corfu-history-mode))
+
+  ;; kind ui
   (with-eval-after-load 'all-the-icons
     (defvar kind-all-the-icons--cache nil
       "The cache of styled and padded label (text or icon).
@@ -157,7 +168,6 @@ function to the relevant margin-formatters list."
     (when corfu--preview-ov
       (delete-overlay corfu--preview-ov)
       (setq corfu--preview-ov nil))
-    (corfu--echo-cancel corfu--echo-message)
     ;; Ensure that state is initialized before next Corfu command
     (when (and (symbolp this-command) (string-prefix-p "corfu-" (symbol-name this-command)))
       (corfu--update))
@@ -301,15 +311,6 @@ Quit if no candidate is selected."
   :after cape
   :commands tmux-capf
   :straight (:host github :repo "theFool32/tmux-capf" :files ("*.el" "*.sh")))
-
-(use-package corfu-doc
-  :after corfu
-  :straight (:host github :repo "galeo/corfu-doc")
-  :hook (corfu-mode . corfu-doc-mode)
-  :bind (:map corfu-map
-              ("M-d" . corfu-doc-toggle))
-  :custom
-  (corfu-doc-display-within-parent-frame t))
 
 (provide 'init-complete)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

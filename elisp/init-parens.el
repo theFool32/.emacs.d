@@ -78,7 +78,9 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                             (if (and (not (nth 3 (syntax-ppss)))
                                                      (member char parens))
                                                 `("d" "a" ,char)
-                                              '("d" "i" "g")
+                                              ;; '("d" "i" "g")
+                                              ;;  HACK: Don't know why dig not works
+                                              '("v" "i" "g" "x")
                                               ))) nil))))
   (with-eval-after-load 'general
     (general-define-key
