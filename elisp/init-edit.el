@@ -327,6 +327,7 @@ begin and end of the block surrounding point."
          '((t)))))
 (use-package vimish-fold)
 (use-package evil-vimish-fold
+  :after evil
   :bind
   (([remap evil-toggle-fold]   . #'+fold/toggle)
    ([remap evil-close-fold]    . #'+fold/close)
@@ -339,7 +340,11 @@ begin and end of the block surrounding point."
                                         evil-vimish-fold/create evil-vimish-fold/create-line)
   :config
   (vimish-fold-global-mode +1))
-;; (use-package ts-fold)
+
+(use-package ts-fold
+  :disabled
+  :after tree-sitter
+  :straight (ts-fold :type git :host github :repo "emacs-tree-sitter/ts-fold"))
 ;; end of fold
 
 (provide 'init-edit)
