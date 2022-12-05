@@ -4,37 +4,6 @@
   (require 'init-const))
 
 (pcase my-lsp
-  ('lsp-bridge
-   (use-package lsp-bridge
-     :commands (lsp-bridge-mode)
-     :straight (:host github :repo "theFool32/lsp-bridge" :branch "develop" :files ("*.el" "*.py" "core/*" "langserver/*"))
-     ;; :straight nil
-     ;; :load-path "~/dev/lsp-bridge/"
-     :hook (((python-mode c-mode c++-mode LaTeX-mode) . lsp-bridge-mode)
-            (lsp-bridge-mode . (lambda ()
-                                 (leader-def :keymaps 'override
-                                   "cr" '(lsp-bridge-rename :wk "Rename symbol")
-                                   "cF" '(lsp-bridge-find-impl :wk "Find implementation")
-                                   "cD" '(lsp-bridge-find-references :wk "Find type definition"))
-
-                                 (evil-define-key 'normal 'global
-                                   "K" 'lsp-bridge-lookup-documentation)
-                                 )))
-     :custom
-     (lsp-bridge-enable-diagnostics nil)
-     (lsp-bridge-lookup-doc-tooltip-border-width 2)
-     (lsp-bridge-enable-signature-help nil)
-     (lsp-bridge-enable-show-in-mode-line nil)
-     :config
-     (fset 'lsp-capf 'lsp-bridge-capf)
-     (add-to-list 'lsp-bridge-completion-popup-predicates
-                  (lambda ()
-                    (and
-                     (< corfu--index 0)
-                     )))
-
-     (add-hook 'lsp-bridge-mode-hook
-               (lambda () (add-hook 'xref-backend-functions #'lsp-bridge-xref-backend nil t)))))
   ('lspce
    (use-package lspce
      :straight nil
