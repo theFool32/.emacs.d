@@ -12,6 +12,8 @@
          (mu4e-headers-mode . hl-line-mode)
          (mu4e-compose-mode . (lambda ()
                                 (electric-indent-local-mode nil))))
+  :init
+  (provide 'html2text)
   :config
   (setenv "XAPIAN_CJK_NGRAM" "true")
 
@@ -32,56 +34,33 @@
    ;; 回复邮件插入邮件引用信息
    message-citation-line-function 'message-insert-formatted-citation-line
    message-citation-line-format "On %a, %b %d %Y, %f wrote:\n"
-
-   ;; 启用 inline iamge 显示并定义显示图片最大宽度
    mu4e-view-show-images t
    mu4e-view-image-max-width 800
-
-   ;; 自动包含邮件签名
    mu4e-compose-signature-auto-include t
-
-   ;; 禁止回复给自己
    mu4e-compose-dont-reply-to-self t
-
-   ;; This enables unicode chars to be used for things like flags in the message index screens.
-   ;; I've disabled it because the font I am using doesn't support this very well. With this
-   ;; disabled, regular ascii characters are used instead.
    mu4e-use-fancy-chars nil
-
-   ;; This enabled the thread like viewing of email similar to gmail's UI.
    mu4e-headers-include-related t
    mu4e-headers-skip-duplicates t
-
    mu4e-completing-read-function 'completing-read
-
    message-kill-buffer-on-exit t
-
    mu4e-confirm-quit nil
-
-   ;; mu4e sets up visual-line-mode and also fill (M-q to do the right thing
-   ;; each paragraph is a single long line; at sending, emacs will add the
-   ;; special line continuation characters.
    mu4e-compose-format-flowed t
-
-
-   ;; show full addresses in view message (instead of just names
-   ;; toggle per name with M-RET
    mu4e-view-show-addresses t
 
    ;; 根据 from 邮件头使用正确的账户上下文发送 Email.
    message-sendmail-envelope-from 'header
 
    mu4e-maildir "~/.mail"
+
+   mu4e-headers-thread-single-orphan-prefix '("─>" . "─▶")
+   mu4e-headers-thread-orphan-prefix        '("┬>" . "┬▶ ")
+   mu4e-headers-thread-connection-prefix    '("│ " . "│ ")
+   mu4e-headers-thread-first-child-prefix   '("├>" . "├▶")
+   mu4e-headers-thread-child-prefix         '("├>" . "├▶")
+   mu4e-headers-thread-last-child-prefix    '("└>" . "╰▶")
    )
 
   (add-to-list 'mu4e-headers-actions '("retag" . mu4e-action-retag-message))
-  ;; 使用 shr 渲染当前 buffer
-  (require 'shr)
-  (defun shr-render-current-buffer ()
-    "Render the selected region."
-    (shr-render-region (point-min) (point-max)))
-  (setq mu4e-html2text-command 'shr-render-current-buffer)
-
 
   (setq mu4e-bookmarks
         '( ("flag:unread AND NOT flag:trashed"      "Unread messages"   ?u)
@@ -109,6 +88,7 @@
         ;; Not a list, check rx
         (string-match rx (mu4e-message-field msg :maildir)))))
 
+  ;; 中文搜索
   (defun mu4e-goodies~break-cjk-word (word)
     "Break CJK word into list of bi-grams like: 我爱你 -> 我爱 爱你"
     (if (or (<= (length word) 2)
@@ -128,29 +108,13 @@
                 (setq br-word (concat br-word (concat (car char-list) (cadr char-list)) " "))
                 (setq char-list (cdr char-list)))
               br-word))))))
-
   (defun mu4e-goodies~break-cjk-query (expr)
     "Break CJK strings into bi-grams in query."
     (let ((word-list (split-string expr " " t))
           (new ""))
       (dolist (word word-list new)
         (setq new (concat new (mu4e-goodies~break-cjk-word word) " ")))))
-
   (setq mu4e-query-rewrite-function 'mu4e-goodies~break-cjk-query)
-
-  (require 'org-mu4e)
-  ;;store link to message if in header view, not to header query
-  (setq org-mu4e-link-query-in-headers-mode nil)
-
-  (use-package mu4e-alert
-    :disabled
-    :config
-    (mu4e-alert-set-default-style 'notifier)
-    ;; (mu4e-alert-enable-notifications)
-    (mu4e-alert-enable-mode-line-display)
-    ;; (setq mu4e-alert-email-notification-types '(count subject))
-    )
-
 
   (defun open-mail-in-browser (&optional mail)
     (interactive)
