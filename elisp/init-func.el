@@ -33,6 +33,7 @@
      ((file-directory-p file-name) (delete-directory file-name t))
      ((file-exists-p file-name) (delete-file file-name))
      (t (message "Not found!")))
+    ;;  FIXME: assume the current buffer is the deleted file
     (unless (file-exists-p (buffer-file-name))
       (kill-current-buffer))))
 
