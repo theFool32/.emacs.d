@@ -283,9 +283,10 @@ Group number 1 should be the prefix itself."
         ;; `TeX-command' occasionally changes current buffer.
         (set-buffer initial-buffer)
         (if (null (plist-get TeX-error-report-switches (intern master-file)))
-            (if (string= next-command "BibTeX")
-                (setq next-command "LaTeX")
-              (setq next-command (TeX-command-default master-file)))
+            ;; (if (string= next-command "BibTeX")
+            ;;     (setq next-command "LaTeX")
+              ;; (setq next-command (TeX-command-default master-file)))
+              (setq next-command (TeX-command-default master-file))
           (setq counter -1)
           (when (y-or-n-p "Error found. Visit it? ")
             ;; `TeX-next-error' number of arguments changed at some

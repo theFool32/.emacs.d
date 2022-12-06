@@ -31,6 +31,7 @@
               ([tab] . org-cycle))
   :custom
   ;; (org-id-link-to-org-use-id t)
+  (org-element--cache-self-verify nil)
   (org-element-use-cache nil)
   (org-src-preserve-indentation nil)
   (org-edit-src-content-indentation 0)
