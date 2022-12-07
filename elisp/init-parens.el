@@ -27,7 +27,8 @@
   (defun my/evil-paren-range (count beg end type inclusive)
     "Get minimum range of paren text object.
 COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
-    (let* ((parens '("()" "[]" "{}" "<>"))
+    (let* ((cur_point (point))
+           (parens '("()" "[]" "{}" "<>"))
            (quotes '("\"" "'"))
            (pqs (append parens quotes))
            range
