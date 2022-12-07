@@ -40,12 +40,12 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
           (if (member p parens)
               (setq range (evil-select-paren (aref p 0) (aref p 1) beg end type count inclusive))
             (setq range (evil-select-quote (aref p 0) beg end type count))))
-        (when range
+        (when (and range
+                   (<= (nth 0 range) cur_point)
+                   (>= (nth 1 range) cur_point))
           (cond
            (found-range
             (when (and
-                   (<= (nth 0 range) (point))
-                   (>= (nth 1 range) (point))
                    (< (- (nth 1 range) (nth 0 range))
                       (- (nth 1 found-range) (nth 0 found-range))))
               (setf (nth 0 found-range) (nth 0 range))
