@@ -540,7 +540,6 @@ kill the current timer, this may be a break or a running pomodoro."
                                 (with-eval-after-load 'org
                                   (require 'appt)
 
-                                  (setq appt-time-msg-list nil) ;; clear existing appt list
                                   (setq appt-display-interval '5) ;; warn every 5 minutes from t - appt-message-warning-time
                                   (setq
                                    appt-message-warning-time '15 ;; send first warning 15 minutes before appointment
@@ -567,8 +566,10 @@ kill the current timer, this may be a break or a running pomodoro."
                                      (format "Appointment in %s minutes" min-to-app) ; Title
                                      (format "%s" msg))) ; Message/detail text
                                   ;; Agenda-to-appointent hooks
-                                  (org-agenda-to-appt) ;; generate the appt list from org agenda files on emacs launch
-                                  (run-at-time nil 900 'org-agenda-to-appt) ;; update appt list hourly
+                                  (run-at-time nil 900
+                                               (lambda ()
+                                                 (setq appt-time-msg-list nil)
+                                                 (org-agenda-to-appt)))
                                   (add-hook 'org-finalize-agenda-hook 'org-agenda-to-appt) ;; update appt list on agenda view
                                   ))))))
 ;; -Notification
