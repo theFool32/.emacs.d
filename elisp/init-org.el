@@ -450,7 +450,7 @@ the lines even if the ranges do not overlap."
   :after org)
 
 (use-package calfw
-  :commands (cfw:open-org-calendar)
+  :commands (cfw:open-org-calendar cfw:open-org-week-calendar)
   :straight (calfw :includes (calfw-org calfw-cal) :host github :repo "zemaye/emacs-calfw" :files ("*.el"))
   :bind (:map cfw:calendar-mode-map
               ("s" . cfw:show-details-command))
@@ -458,7 +458,22 @@ the lines even if the ranges do not overlap."
   (cfw:display-calendar-holidays nil)
   :config
   (use-package calfw-org
-    :after org))
+    :after org)
+
+  (defun cfw:open-org-week-calendar ()
+    "Open an org schedule calendar in the new buffer."
+    (interactive)
+    (save-excursion
+      (let* ((source1 (cfw:org-create-source))
+             (curr-keymap (if cfw:org-overwrite-default-keybinding cfw:org-custom-map cfw:org-schedule-map))
+             (cp (cfw:create-calendar-component-buffer
+                  :view 'week
+                  :contents-sources (list source1)
+                  :custom-map curr-keymap
+                  :sorter 'cfw:org-schedule-sorter)))
+        (switch-to-buffer (cfw:cp-get-buffer cp))
+        (when (not org-todo-keywords-for-agenda)
+          (message "Warn : open org-agenda buffer first."))))))
 
 (use-package org-modern
   :straight (:host github :repo "minad/org-modern")
