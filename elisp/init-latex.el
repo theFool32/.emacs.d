@@ -316,7 +316,9 @@ Group number 1 should be the prefix itself."
   :custom
   (cdlatex-sub-super-scripts-outside-math-mode nil)
   :config
-  (add-to-list 'cdlatex-math-modify-alist-default '(?b "\\bm" nil t t nil)))
+  (add-to-list 'cdlatex-math-modify-alist-default '(?b "\\bm" nil t t nil))
+  (add-to-list 'cdlatex-math-modify-alist-default '(?B "\\mathbb" nil t t nil))
+  )
 
 (use-package asymbol
   :straight (:host github :repo "dwuggh/asymbol" :depth 1)
