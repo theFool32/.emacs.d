@@ -53,7 +53,7 @@
 
   (use-package corfu-popupinfo
     :config
-    (setq corfu-popupinfo-delay '(0.5 . 0.3))
+    (setq corfu-popupinfo-delay '(0.2 . 0.1))
     :hook (corfu-mode . corfu-popupinfo-mode))
 
   (use-package corfu-history

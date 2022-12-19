@@ -222,17 +222,6 @@
     (advice-add #'keyboard-quit :before #'popper-close-window-hack)))
 
 
-;; DoomThemes
-(use-package doom-themes
-  :disabled
-  :custom-face
-  (cursor ((t (:background "BlanchedAlmond"))))
-  :config
-  (doom-themes-org-config)
-  (load-theme 'doom-one t)
-  )
-;; -DoomThemes
-
 (use-package ef-themes
   :init
   (ef-themes-select 'ef-trio-light)

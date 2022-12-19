@@ -201,10 +201,6 @@ kill all magit buffers for this repo."
     "m" '(smerge-keep-mine :wk "Keep mine")
     "A" '(smerge-keep-all :wk "Keep all")))
 
-(use-package forge
-  :disabled
-  :after magit)
-
 (defvar gitmoji--all-emoji
   '(("增加新特性" . "feat:")
     ("bug 修复" . "fix:")

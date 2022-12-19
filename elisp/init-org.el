@@ -25,8 +25,7 @@
 (use-package org
   :commands (+my/open-org-agenda)
   :hook ((org-mode . org-indent-mode)
-         (org-mode . +org-enable-auto-update-cookies-h)
-         (org-mode . org-num-mode))
+         (org-mode . +org-enable-auto-update-cookies-h))
   :bind (:map org-mode-map
               ([tab] . org-cycle))
   :custom
@@ -474,29 +473,6 @@ the lines even if the ranges do not overlap."
         (switch-to-buffer (cfw:cp-get-buffer cp))
         (when (not org-todo-keywords-for-agenda)
           (message "Warn : open org-agenda buffer first."))))))
-
-(use-package org-modern
-  :straight (:host github :repo "minad/org-modern")
-  :defer t
-  :after org
-  :hook ((org-mode . org-modern-mode)
-         (org-agenda-finalize . org-modern-agenda))
-  :config
-  (setq
-   org-modern-timestamp nil
-   org-modern-table nil
-   org-modern-block nil
-   org-modern-keyword nil
-   org-modern-todo nil ;;  TODO: no better way to define fine faces
-   org-agenda-block-separator ?─
-   org-agenda-time-grid
-   '((daily today require-timed)
-     (800 1000 1200 1400 1600 1800 2000)
-     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-   org-agenda-current-time-string
-   "⭠ now ─────────────────────────────────────────────────")
-  )
-
 
 (use-package org-pomodoro
   :after org
