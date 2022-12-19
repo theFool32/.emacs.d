@@ -145,6 +145,7 @@
 ;; (use-package evil-numbers)
 
 (use-package evil-anzu
+  :demand t
   :after evil
   :hook (+my/first-input-hook global-anzu-mode)
   :config
@@ -210,7 +211,7 @@
   :after evil
   :config
   (global-evil-mc-mode)
-  (global-set-key (kbd "M-<mouse-1>") 'evil-mc-toggle-cursor-on-click)
+  (global-set-key (kbd "s-<mouse-1>") 'evil-mc-toggle-cursor-on-click)
   )
 
 (provide 'evil/+packages)
