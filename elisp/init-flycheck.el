@@ -37,6 +37,7 @@
 ;; -FlyCheckPac
 
 (use-package wucuo
+  ;;  FIXME: flyspell mode will override C-; for embrace-commander
   :hook (LaTeX-mode . wucuo-mode)
   :config
   (setq ispell-program-name "aspell")
@@ -49,12 +50,6 @@
                       :prefix ","
                       "g" '(flyspell-auto-correct-word :wk "Auto correct")
                       "d" '(flyspell-correct-word-before-point :wk "Correct word")))
-
-(use-package flycheck-grammarly
-  ;; use it with `flycheck-grammarly-setup'
-  :after flycheck
-  :commands flycheck-grammarly-setup
-  :straight (:host github :repo "emacs-grammarly/flycheck-grammarly"))
 
 (provide 'init-flycheck)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

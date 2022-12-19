@@ -205,6 +205,14 @@
                                                  (evil-textobj-tree-sitter-goto-textobj "class.outer" t t)))
   )
 
+(use-package evil-mc
+  ;;  FIXME: still not easy to use, need finetune
+  :after evil
+  :config
+  (global-evil-mc-mode)
+  (global-set-key (kbd "M-<mouse-1>") 'evil-mc-toggle-cursor-on-click)
+  )
+
 (provide 'evil/+packages)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
