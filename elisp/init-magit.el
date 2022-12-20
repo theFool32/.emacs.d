@@ -225,6 +225,19 @@ kill all magit buffers for this repo."
     (insert (cdr (assoc (completing-read "Choose a gitmoji " candidates) candidates)))
     (evil-insert-state)))
 
+(use-package blamer
+  :straight (:host github :repo "artawower/blamer.el")
+  :bind (("s-i" . blamer-show-posframe-commit-info))
+  :commands (blamer-show-posframe-commit-info)
+  :custom
+  (blamer-idle-time 0.3)
+  (blamer-min-offset 70)
+  :custom-face
+  (blamer-face ((t :foreground "#7a88cf"
+                    :background nil
+                    :height 140
+                    :italic t))))
+
 
 (provide 'init-magit)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

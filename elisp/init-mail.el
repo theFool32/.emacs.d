@@ -60,8 +60,6 @@
    mu4e-headers-thread-last-child-prefix    '("└>" . "╰▶")
    )
 
-  (add-to-list 'mu4e-headers-actions '("retag" . mu4e-action-retag-message))
-
   (setq mu4e-bookmarks
         '( ("flag:unread AND NOT flag:trashed"      "Unread messages"   ?u)
            ("m:/Gmail/Inbox or m:/Outlook/Inbox or m:/XMU/Inbox" "Inbox" ?i)
@@ -71,7 +69,6 @@
 
   (setq mu4e-headers-fields
         '((:human-date . 12)
-          (:tags . 6)
           (:flags . 4)
           (:maildir . 25)
           (:from . 22)

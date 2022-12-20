@@ -48,7 +48,10 @@
 ;;Font
 
 (when (display-graphic-p)
-  (add-to-list 'default-frame-alist '(font . "CaskaydiaCove Nerd Font-14"))
+  ;; (add-to-list 'default-frame-alist '(font . "CaskaydiaCove Nerd Font-14"))
+  (set-face-attribute 'default nil
+                      :font "CaskaydiaCove Nerd Font"
+                      :height 140)
   (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC")
   )
 

@@ -173,6 +173,7 @@
     "tc" '(olivetti-mode :wk "Center")
     "ti" '(toggle-indent :wk "Indent")
     "tp" '(+my/profiler-toggle :wk "Profiler")
+    "tb" '(blamer-mode :wk "Blame")
 
     "o" '(:wk "Open")
     "om" '((lambda () (interactive) (mu4e)) :wk "Mail")
