@@ -162,6 +162,7 @@ kill all magit buffers for this repo."
 
 ;; Walk through git revisions of a file
 (use-package git-timemachine
+  :straight (:host codeberg :repo "pidu/git-timemachine")
   :after magit
   :custom-face
   (git-timemachine-minibuffer-author-face ((t (:inherit success))))
