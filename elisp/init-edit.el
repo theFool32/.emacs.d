@@ -347,6 +347,12 @@ begin and end of the block surrounding point."
   :straight (ts-fold :type git :host github :repo "emacs-tree-sitter/ts-fold"))
 ;; end of fold
 
+
+(use-package avy
+  :diminish
+  :demand t
+  :commands (avy-goto-char avy-goto-line))
+
 (provide 'init-edit)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-edit.el ends here
