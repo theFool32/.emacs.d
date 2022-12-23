@@ -210,7 +210,15 @@
                                                       (?C "Constant"    font-lock-constant-face)
                                                       (?f "Function"  font-lock-function-name-face)
                                                       (?m "Method"  font-lock-function-name-face)
-                                                      (?v "Variable"  font-lock-variable-name-face)))))
+                                                      (?v "Variable"  font-lock-variable-name-face))))
+    (add-to-list 'consult-imenu-config '(latex-mode :types
+                                                     ((?c "Class"    font-lock-type-face)
+                                                      (?C "Constant"    font-lock-constant-face)
+                                                      (?f "Function"  font-lock-function-name-face)
+                                                      (?m "Method"  font-lock-function-name-face)
+                                                      (?M "Module"  font-lock-type-face)
+                                                      (?v "Variable"  font-lock-variable-name-face))))
+    )
 
   (autoload 'org-buffer-list "org")
   (defvar org-buffer-source
