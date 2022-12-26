@@ -17,6 +17,25 @@
         (youdao-dictionary-search-at-point-posframe)
       (youdao-dictionary-search-at-point))))
 
+(use-package multi-translate
+  :straight (:host github :repo "twlz0ne/multi-translate.el")
+  :commands (multi-translate multi-translate-at-point multi-translate-yank-at-point)
+  :custom
+  (multi-translate-sentence-backends '(google))
+  (multi-translate-word-backends '(bing youdao))
+  :config
+  (defun multi-translate-yank-at-point (arg)
+    "Used temporarily for thesis"
+    (interactive "P")
+    (let* ((bounds (if (region-active-p)
+                       (cons (region-beginning) (region-end))
+                     (bounds-of-thing-at-point 'word)))
+           (text (string-trim (buffer-substring-no-properties (car bounds) (cdr bounds)))))
+      (kill-new (multi-translate--google-translation "en" "zh-CN" text))
+      (evil-normal-state)
+      (message "Translate Done")))
+  )
+
 ;; ColorRGPac
 (use-package color-rg
   :commands (color-rg-search-input color-rg-search-project color-rg-search-symbol-in-project)
