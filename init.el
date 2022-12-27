@@ -59,7 +59,7 @@
 
 ;; General Programming
 (require 'init-magit)
-(require 'init-flycheck)
+(require 'init-check)
 (require 'init-parens)
 (require 'init-indent)
 (require 'init-edit)

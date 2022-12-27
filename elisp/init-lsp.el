@@ -95,7 +95,7 @@
      ))
   ('eglot
    (use-package eglot
-     :commands (+eglot-organize-imports +eglot-help-at-point)
+     :commands (+eglot-help-at-point)
      :hook (
             (eglot-managed-mode . (lambda ()
                                     (+lsp-optimization-mode)
@@ -152,15 +152,13 @@
      (setq eglot-sync-connect 1
            eglot-connect-timeout 10
            eglot-autoshutdown t
-           eglot-send-changes-idle-time 0.5
+           eglot-send-changes-idle-time 0
            eglot-events-buffer-size 0
            ;; NOTE We disable eglot-auto-display-help-buffer because :select t in
            ;;      its popup rule causes eglot to steal focus too often.
            eglot-auto-display-help-buffer nil)
      (setq eldoc-echo-area-use-multiline-p nil)
-     (setq eglot-stay-out-of '(flymake))
      (setq eglot-ignored-server-capabilities '(:documentHighlightProvider :foldingRangeProvider :colorProvider :codeLensProvider :documentOnTypeFormattingProvider :executeCommandProvider))
-     (defun +eglot-organize-imports() (call-interactively 'eglot-code-action-organize-imports))
      (add-to-list 'eglot-server-programs '((latex-mode Tex-latex-mode texmode context-mode texinfo-mode bibtex-mode) "texlab"))
 
      ;; HACK Eglot removed `eglot-help-at-point' in joaotavora/eglot@a044dec for a

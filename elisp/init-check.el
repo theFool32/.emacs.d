@@ -1,10 +1,11 @@
-;;; init-flycheck.el --- -*- lexical-binding: t -*-
+;;; init-check.el --- -*- lexical-binding: t -*-
 
 (eval-when-compile
   (require 'init-const))
 
 ;; FlyCheckPac
 (use-package flycheck
+  :disabled
   :defer t
   :diminish
   :hook ((prog-mode markdown-mode LaTeX-mode) . flycheck-mode)
@@ -32,9 +33,35 @@
     (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
       [16 48 112 240 112 48 16] nil nil 'center))
   (setq flycheck-check-syntax-automatically '(save))
-
   )
 ;; -FlyCheckPac
+
+;; flymake
+(use-package flymake
+  :ensure nil
+  :hook ((prog-mode markdown-mode LaTeX-mode) . flymake-mode)
+  :config
+  (setq flymake-no-changes-timeout nil)
+  ;; (setq-local flymake-diagnostic-functions nil)
+  (setq flymake-fringe-indicator-position 'right-fringe)
+
+  (use-package flymake-flycheck
+    :after flymake
+    :diminish
+    :config
+    (with-eval-after-load 'flycheck
+      (setq-default flycheck-disabled-checkers
+                    (append (default-value 'flycheck-disabled-checkers)
+                            '(emacs-lisp emacs-lisp-checkdoc emacs-lisp-package))))
+    (defun sanityinc/enable-flymake-flycheck ()
+      (setq-local flymake-diagnostic-functions
+                  (append flymake-diagnostic-functions
+                          (flymake-flycheck-all-chained-diagnostic-functions))))
+    (add-hook 'flymake-mode-hook 'sanityinc/enable-flymake-flycheck))
+  (use-package flymake-posframe
+    :straight (:host github :repo "articuluxe/flymake-posframe" :branch "feature/eglot")
+    :hook (flymake-mode . flymake-posframe-mode))
+  )
 
 (use-package wucuo
   ;;  FIXME: flyspell mode will override C-; for embrace-commander
@@ -51,6 +78,6 @@
                       "g" '(flyspell-auto-correct-word :wk "Auto correct")
                       "d" '(flyspell-correct-word-before-point :wk "Correct word")))
 
-(provide 'init-flycheck)
+(provide 'init-check)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-flycheck.el ends here
+;;; init-check.el ends here

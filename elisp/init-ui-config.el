@@ -201,6 +201,7 @@
           "\\*vc-.*\\*$"
           "^\\*elfeed-entry\\*$"
           "^\\*macro expansion\\**"
+          "\\*Flymake diagnostics .*\\*$"
 
           ;; "\\*Org Select\\*" "\\*Capture\\*" "^CAPTURE-.*\\.org*"
           "\\*Gofmt Errors\\*$" "\\*Go Test\\*$" godoc-mode
