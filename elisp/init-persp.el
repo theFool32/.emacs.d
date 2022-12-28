@@ -52,9 +52,8 @@
 (use-package persp-mode
   :diminish
   :defines (recentf-exclude)
-  :commands (get-current-persp persp-contain-buffer-p persp-save-frame)
-  :hook ((+my/first-input-hook . persp-mode)
-         (kill-emacs . persp-save-frame))
+  :commands (get-current-persp persp-contain-buffer-p)
+  :hook ((+my/first-input-hook . persp-mode))
   :init
   (setq persp-keymap-prefix (kbd "C-x p")
         persp-nil-name "default"
@@ -68,54 +67,8 @@
     (persp-mode +1)
     (condition-case error
         (persp-load-state-from-file (expand-file-name "persp-auto-save" persp-save-dir))
-      (error))
-    (persp-load-frame))
+      (error)))
   :config
-  ;; Save and load frame parameters (size & position)
-  (defvar persp-frame-file (expand-file-name "persp-frame" persp-save-dir)
-    "File of saving frame parameters.")
-
-  (defun persp-save-frame ()
-    "Save the current frame parameters to file."
-    (interactive)
-    (when (and (display-graphic-p) persp-mode)
-      (condition-case error
-          (with-temp-buffer
-            (erase-buffer)
-            (insert
-             ";;; -*- mode: emacs-lisp; coding: utf-8-unix -*-\n"
-             ";;; This is the previous frame parameters.\n"
-             ";;; Last generated " (current-time-string) ".\n"
-             "(setq initial-frame-alist\n"
-             (format "      '((top . %d)\n" (eval (frame-parameter nil 'top)))
-             (format "        (left . %d)\n" (eval (frame-parameter nil 'left)))
-             (format "        (width . %d)\n" (eval (frame-parameter nil 'width)))
-             (format "        (height . %d)\n" (eval (frame-parameter nil 'height)))
-             (format "        (fullscreen . %s))\n" (frame-parameter nil 'fullscreen))
-             (format "      my-neo-global--window-exists-p %d \n" (if (and (fboundp 'neo-global--window-exists-p) (neo-global--window-exists-p)) 1 0))
-             (format ")\n")
-             )
-            (write-file persp-frame-file))
-        (error
-         (warn "persp frame: %s" (error-message-string error))))))
-
-  (defun persp-load-frame ()
-    "Load frame with the previous frame's geometry."
-    (interactive)
-    (when (and (display-graphic-p)
-               persp-mode)
-      (condition-case error
-          (progn
-            (load persp-frame-file)
-
-            ;; Handle multiple monitors gracefully
-            (when (or (>= (eval (frame-parameter nil 'left)) (display-pixel-width))
-                      (>= (eval (frame-parameter nil 'top)) (display-pixel-height)))
-              (set-frame-parameter nil 'left 0)
-              (set-frame-parameter nil 'top 0)))
-        (error
-         (warn "persp frame: %s" (error-message-string error))))))
-
   ;; Don't save dead or temporary buffers
   (add-hook 'persp-filter-save-buffers-functions
             (lambda (b)
@@ -137,17 +90,16 @@
   (with-eval-after-load 'recentf
     (push persp-save-dir recentf-exclude))
 
-  ;;  FIXME: Not work for tab-bar
-  ;; (advice-add #'persp-save-state-to-file :before
-  ;; ;; (advice-add #'persp-asave-on-exit :before
-  ;;             (defun +workspaces-save-tab-bar-data-h (&optional _)
-  ;;               (set-persp-parameter
-  ;;                'tab-bar-tabs (tab-bar-tabs))))
+  (advice-add #'persp-save-state-to-file :before
+              (lambda (&optional _)
+                (set-persp-parameter
+                 'tab-bar-tabs
+                 (frameset-filter-tabs (tab-bar-tabs) nil nil t))))
 
-  ;; (advice-add #'persp-load-state-from-file :after
-  ;;             (defun +workspaces-load-tab-bar-data-h (&optional _)
-  ;;               (tab-bar-tabs-set (persp-parameter 'tab-bar-tabs))
-  ;;               (tab-bar--update-tab-bar-lines t)))
+  (advice-add #'persp-load-state-from-file :after
+              (lambda (&optional _)
+                (tab-bar-tabs-set (persp-parameter 'tab-bar-tabs))
+                (tab-bar--update-tab-bar-lines t)))
   )
 
 
