@@ -64,8 +64,7 @@
          (dired-mode . diff-hl-dired-mode-unless-remote))
   :init (setq diff-hl-draw-borders nil)
   :config
-  ;; Highlight on-the-fly
-  ;; (diff-hl-flydiff-mode 1)
+  (add-hook 'after-change-major-mode-hook 'diff-hl-update-once)
 
   ;; Set fringe style
   (setq-default fringes-outside-margins t)
