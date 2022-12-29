@@ -44,23 +44,10 @@
   (setq flymake-no-changes-timeout nil)
   ;; (setq-local flymake-diagnostic-functions nil)
   (setq flymake-fringe-indicator-position 'right-fringe)
-
-  (use-package flymake-flycheck
-    :after flymake
-    :diminish
-    :config
-    (with-eval-after-load 'flycheck
-      (setq-default flycheck-disabled-checkers
-                    (append (default-value 'flycheck-disabled-checkers)
-                            '(emacs-lisp emacs-lisp-checkdoc emacs-lisp-package))))
-    (defun sanityinc/enable-flymake-flycheck ()
-      (setq-local flymake-diagnostic-functions
-                  (append flymake-diagnostic-functions
-                          (flymake-flycheck-all-chained-diagnostic-functions))))
-    (add-hook 'flymake-mode-hook 'sanityinc/enable-flymake-flycheck))
   (use-package flymake-posframe
     :straight (:host github :repo "articuluxe/flymake-posframe" :branch "feature/eglot")
     :hook (flymake-mode . flymake-posframe-mode))
+  ;;  TODO: use `flymake-flycheck' or `flymake-collection' to enhance backends
   )
 
 (use-package wucuo

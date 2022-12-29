@@ -268,6 +268,7 @@ Quit if no candidate is selected."
      ;; 'equal)
      #'tmux-capf
      ;; #'cape-dabbrev
+     #'eng-capf
      ))
 
   (defun my/set-basic-capf ()
