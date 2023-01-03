@@ -54,6 +54,7 @@
   (use-package corfu-popupinfo
     :config
     (setq corfu-popupinfo-delay '(0.2 . 0.1))
+    (set-face-attribute 'corfu-popupinfo nil :height 140)
     :hook (corfu-mode . corfu-popupinfo-mode))
 
   (use-package corfu-history
