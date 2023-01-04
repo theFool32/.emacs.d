@@ -54,7 +54,6 @@
 ;; User Interface Enhancements
 (require 'init-ui-config)
 (require 'init-pretty-code)
-(require 'init-scroll)
 (require 'init-highlight)
 
 ;; General Programming

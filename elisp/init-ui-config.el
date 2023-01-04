@@ -10,6 +10,22 @@
 (setq fast-but-imprecise-scrolling t)
 (setq redisplay-skip-fontification-on-input t)
 
+;; SmoothScroll
+;; Vertical Scroll
+(setq scroll-step 1)
+(setq scroll-margin 1)
+(setq scroll-conservatively 101)
+(setq scroll-up-aggressively 0.01)
+(setq scroll-down-aggressively 0.01)
+(setq auto-window-vscroll nil)
+(setq fast-but-imprecise-scrolling nil)
+(setq mouse-wheel-scroll-amount '(2 ((shift) . 1)))
+(setq mouse-wheel-progressive-speed t)
+;; Horizontal Scroll
+(setq hscroll-step 1)
+(setq hscroll-margin 1)
+;; -SmoothScroll
+
 ;; TitleBar
 (setq-default frame-title-format '("EMACS" " - %b"))
 ;; -TitleBar
