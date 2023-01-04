@@ -353,6 +353,9 @@ begin and end of the block surrounding point."
   :demand t
   :commands (avy-goto-char avy-goto-line))
 
+
+(use-package wgrep)
+
 (provide 'init-edit)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-edit.el ends here

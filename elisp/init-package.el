@@ -38,6 +38,8 @@
 (setq byte-compile-warnings '(cl-functions))
 (straight-use-package 'use-package)
 
+(add-to-list 'straight-built-in-pseudo-packages 'eglot)
+
 (defun +my/check-straight-repos ()
   (interactive)
   (find-file (read-file-name "Repos: " "~/.emacs.d/straight/repos/")))

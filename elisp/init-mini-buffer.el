@@ -414,6 +414,7 @@
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light)))
 
 (use-package mini-frame
+  ;;  FIXME: not work with `embark export'
   :hook (after-init . mini-frame-mode)
   :commands (mini-frame-mode)
   :config
