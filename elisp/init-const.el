@@ -63,54 +63,13 @@
   (eq system-type 'darwin)
   "Are we running on a Mac system?")
 
-(defconst *sys/mac_arm*
-  (and *sys/mac* (string-prefix-p "aarch" system-configuration))
-  "Are we running on a Arm Mac system?")
-
-(defconst *sys/root*
-  (string-equal "root" (getenv "USER"))
-  "Are you a ROOT user?")
-
 (defconst *rg*
   (executable-find "rg")
   "Do we have ripgrep?")
 
-(defconst *find*
-  (executable-find "find")
-  "Do we have GNU find?")
-
-(defconst *python*
-  (executable-find "python")
-  "Do we have python?")
-
-(defconst *python3*
-  (executable-find "python3")
-  "Do we have python3?")
-
-(defconst *gcc*
-  (executable-find "gcc")
-  "Do we have gcc?")
-
 (defconst *git*
   (executable-find "git")
   "Do we have git?")
-
-(defconst *pdflatex*
-  (executable-find "pdflatex")
-  "Do we have pdflatex?")
-
-(defconst *clangd*
-  (or (executable-find "clangd")  ;; usually
-      (executable-find "/usr/local/opt/llvm/bin/clangd"))  ;; macOS
-  "Do we have clangd?")
-
-(defconst *rga*
-  (executable-find "rga")
-  "Do we have rga")
-
-(defconst *fd*
-  (executable-find "fd")
-  "Do we have fd")
 
 ;; -Consts
 

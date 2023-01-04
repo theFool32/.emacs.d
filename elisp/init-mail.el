@@ -1,15 +1,10 @@
 (use-package mu4e
   ;;  TODO: disable `index' when open `mu4e-main'
-  :ensure nil
-  :straight nil
+  ;;  FIXME: specific path with homebrew
+  :straight (:local-repo "/opt/homebrew/Cellar/mu/1.8.13/share/emacs/site-lisp/mu/mu4e/" :pre-build ())
   :if (executable-find "mu")
   :commands mu4e
-  :hook (
-         ;; (after-init . (lambda ()
-         ;;                 (run-with-idle-timer 2 nil
-         ;;                                      (lambda ()
-         ;;                                        (mu4e t)))))
-         (mu4e-headers-mode . hl-line-mode)
+  :hook ((mu4e-headers-mode . hl-line-mode)
          (mu4e-compose-mode . (lambda ()
                                 (electric-indent-local-mode nil))))
   :init
