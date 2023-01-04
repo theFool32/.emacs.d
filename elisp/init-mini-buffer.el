@@ -212,12 +212,12 @@
                                                       (?m "Method"  font-lock-function-name-face)
                                                       (?v "Variable"  font-lock-variable-name-face))))
     (add-to-list 'consult-imenu-config '(latex-mode :types
-                                                     ((?c "Class"    font-lock-type-face)
-                                                      (?C "Constant"    font-lock-constant-face)
-                                                      (?f "Function"  font-lock-function-name-face)
-                                                      (?m "Method"  font-lock-function-name-face)
-                                                      (?M "Module"  font-lock-type-face)
-                                                      (?v "Variable"  font-lock-variable-name-face))))
+                                                    ((?c "Class"    font-lock-type-face)
+                                                     (?C "Constant"    font-lock-constant-face)
+                                                     (?f "Function"  font-lock-function-name-face)
+                                                     (?m "Method"  font-lock-function-name-face)
+                                                     (?M "Module"  font-lock-type-face)
+                                                     (?v "Variable"  font-lock-variable-name-face))))
     )
 
   (autoload 'org-buffer-list "org")
@@ -415,6 +415,7 @@
 
 (use-package mini-frame
   ;;  FIXME: not work with `embark export'
+  :disabled
   :hook (after-init . mini-frame-mode)
   :commands (mini-frame-mode)
   :config
@@ -439,6 +440,17 @@
     (add-to-list 'mini-frame-ignore-commands 'pp-eval-expression)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-forward)
     (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-backward))
+  )
+
+(use-package vertico-posframe
+  :hook (after-init . vertico-posframe-mode)
+  :config
+  (setq vertico-posframe-parameters
+        '((min-width . 80)
+          (min-height . 15)
+          (left-fringe . 8)
+          (right-fringe . 8)))
+  (evil-set-initial-state 'minibuffer-mode 'emacs)
   )
 
 (use-package all-the-icons-completion
