@@ -21,12 +21,10 @@
   (load-prefer-newer t)
   ;; Detect external file changes and auto refresh file
   (auto-revert-use-notify nil)
-  (auto-revert-interval 3) ; Auto revert every 3 sec
   :config
   (setq insert-directory-program "gls" dired-use-ls-dired t)
   (setq dired-listing-switches "-al --group-directories-first")
   ;; Enable global auto-revert
-  (global-auto-revert-mode t)
   ;; Reuse same dired buffer, to prevent numerous buffers while navigating in dired
   (put 'dired-find-alternate-file 'disabled nil)
 

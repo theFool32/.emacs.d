@@ -9,7 +9,6 @@
 
 (setq fast-but-imprecise-scrolling t)
 (setq redisplay-skip-fontification-on-input t)
-(setq frame-resize-pixelwise t)
 
 ;; TitleBar
 (setq-default frame-title-format '("EMACS" " - %b"))
@@ -18,15 +17,6 @@
 ;; YorN
 (fset 'yes-or-no-p 'y-or-n-p)
 ;; -YorN
-
-;; StartupScreen
-(setq inhibit-startup-screen t
-      inhibit-startup-message t
-      inhibit-startup-echo-area-message user-login-name
-      inhibit-default-init t
-      initial-major-mode 'fundamental-mode
-      initial-scratch-message nil)
-;; -StartupScreen
 
 ;; DisLineNum
 (add-hook 'text-mode-hook #'display-line-numbers-mode)
@@ -54,12 +44,6 @@
                       :height 140)
   (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC")
   )
-
-
-;; (add-to-list 'initial-frame-alist '(fullscreen . fullboth))
-(add-to-list 'initial-frame-alist '(fullscreen . maximized))
-(custom-set-variables '(x-select-enable-clipboard t))
-(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 
 (setq split-width-threshold 0
       split-height-threshold nil)
