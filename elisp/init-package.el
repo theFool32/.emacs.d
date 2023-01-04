@@ -36,9 +36,10 @@
       use-package-expand-minimally t
       use-package-compute-statistics nil)
 (setq byte-compile-warnings '(cl-functions))
-(straight-use-package 'use-package)
 
 (add-to-list 'straight-built-in-pseudo-packages 'eglot)
+(add-to-list 'straight-built-in-pseudo-packages 'tramp)
+(add-to-list 'straight-built-in-pseudo-packages 'use-package)
 
 (defun +my/check-straight-repos ()
   (interactive)

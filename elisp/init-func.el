@@ -8,35 +8,6 @@
   (interactive)
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
 
-(defun +my/rename-file()
-  "Rename file while using current file as default."
-  (interactive)
-  (let ((file-from (read-file-name "Move from: " default-directory buffer-file-name))
-        (file-to (read-file-name "Move to:" default-directory)))
-    (rename-file file-from file-to)
-    (when (string= (file-truename file-from) (file-truename (buffer-file-name)))
-      (kill-buffer)
-      (find-file file-to))))
-
-(defun +my/copy-file()
-  "Copy file while using current file as default."
-  (interactive)
-  (copy-file
-   (read-file-name "Copy from: " default-directory buffer-file-name)
-   (read-file-name "Copy to:" default-directory)))
-
-(defun +my/delete-file()
-  "Delete file while using current file as default."
-  (interactive)
-  (let ((file-name (read-file-name "Delete: " default-directory (buffer-file-name))))
-    (cond
-     ((file-directory-p file-name) (delete-directory file-name t))
-     ((file-exists-p file-name) (delete-file file-name))
-     (t (message "Not found!")))
-    ;;  FIXME: assume the current buffer is the deleted file
-    (unless (file-exists-p (buffer-file-name))
-      (kill-current-buffer))))
-
 (defun +my/imenu ()
   "Consult-outline in `org-mode' unless imenu."
   (interactive)
@@ -106,20 +77,6 @@
                                       "white" "black"))
                     (:background ,colour)))))))))
 
-
-(defun +my/flycheck-list-only-errors ()
-  "Show the error only list for the current buffer."
-  (interactive)
-  (unless flycheck-mode
-    (user-error "Flycheck mode not enabled"))
-  (unless (get-buffer flycheck-error-list-buffer)
-    (with-current-buffer (get-buffer-create flycheck-error-list-buffer)
-      (flycheck-error-list-mode)))
-  ;; "copy from the flycheck while not reset the filter."
-  (let* ((flycheck-error-list-minimum-level 'error)
-         (source (current-buffer)))
-    (display-buffer flycheck-error-list-buffer)
-    (flycheck-error-list-set-source source)))
 
 (defvar +my/profiler--started nil)
 (defun +my/profiler-toggle ()

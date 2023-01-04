@@ -36,7 +36,45 @@
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
-                 (window-parameters (mode-line-format . none)))))
+                 (window-parameters (mode-line-format . none))))
+  (defun embark-which-key-indicator ()
+    "An embark indicator that displays keymaps using which-key.
+The which-key help message will show the type and value of the
+current target followed by an ellipsis if there are further
+targets."
+    (lambda (&optional keymap targets prefix)
+      (if (null keymap)
+          (which-key--hide-popup-ignore-command)
+        (which-key--show-keymap
+         (if (eq (plist-get (car targets) :type) 'embark-become)
+             "Become"
+           (format "Act on %s '%s'%s"
+                   (plist-get (car targets) :type)
+                   (embark--truncate-target (plist-get (car targets) :target))
+                   (if (cdr targets) "…" "")))
+         (if prefix
+             (pcase (lookup-key keymap prefix 'accept-default)
+               ((and (pred keymapp) km) km)
+               (_ (key-binding prefix 'accept-default)))
+           keymap)
+         nil nil t (lambda (binding)
+                     (not (string-suffix-p "-argument" (cdr binding))))))))
+
+  (setq embark-indicators
+        '(embark-which-key-indicator
+          embark-highlight-indicator
+          embark-isearch-highlight-indicator))
+
+  (defun embark-hide-which-key-indicator (fn &rest args)
+    "Hide the which-key indicator immediately when using the completing-read prompter."
+    (which-key--hide-popup-ignore-command)
+    (let ((embark-indicators
+           (remq #'embark-which-key-indicator embark-indicators)))
+      (apply fn args)))
+
+  (advice-add #'embark-completing-read-prompter
+              :around #'embark-hide-which-key-indicator)
+  )
 
 
 (use-package embark-consult
@@ -412,35 +450,6 @@
   :hook (+my/first-input . marginalia-mode)
   :config
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light)))
-
-(use-package mini-frame
-  ;;  FIXME: not work with `embark export'
-  :disabled
-  :hook (after-init . mini-frame-mode)
-  :commands (mini-frame-mode)
-  :config
-  (setq mini-frame-detach-on-hide nil)
-  (setq resize-mini-frames t)
-  (setq mini-frame-create-lazy nil)
-  (setq mini-frame-show-parameters `((left . 0.5)
-                                     (top . ,(/ (frame-pixel-height) 2))
-                                     (min-width . 80)
-                                     (width . 0.8)
-                                     (no-accept-focus . t)))
-
-  (setq mini-frame-internal-border-color "gray50")
-
-  (when (and (not noninteractive) (require 'mini-frame nil t)) ;batch 模式下miniframe 有问题
-    (add-to-list 'mini-frame-ignore-functions 'y-or-n-p)
-    (add-to-list 'mini-frame-ignore-functions 'yes-or-no-p)
-    (add-to-list 'mini-frame-ignore-commands 'evil-ex)
-    (add-to-list 'mini-frame-ignore-commands 'org-time-stamp)
-    (add-to-list 'mini-frame-ignore-commands 'org-deadline)
-    (add-to-list 'mini-frame-ignore-commands 'org-schedule)
-    (add-to-list 'mini-frame-ignore-commands 'pp-eval-expression)
-    (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-forward)
-    (add-to-list 'mini-frame-ignore-commands 'evil-ex-search-backward))
-  )
 
 (use-package vertico-posframe
   :hook (after-init . vertico-posframe-mode)

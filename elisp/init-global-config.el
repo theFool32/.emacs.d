@@ -4,9 +4,6 @@
   (require 'init-custom)
   (require 'init-const))
 
-;; SudoEditPac
-;; -SudoEditPac
-
 ;; UTF8Coding
 (unless *sys/win32*
   (set-selection-coding-system 'utf-8)
@@ -21,7 +18,6 @@
   (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)))
 ;; -UTF8Coding
 
-;; EditExp
 ;; Remove useless whitespace before saving a file
 (defun delete-trailing-whitespace-except-current-line ()
   "An alternative to `delete-trailing-whitespace'.
