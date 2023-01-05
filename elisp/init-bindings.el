@@ -88,6 +88,7 @@
     "fr" '(+my/open-recent :wk "Recent file")
     "fs" '(+my/save-file :wk "Save file")
     "fd" '(dired-jump :wk "Current directory")
+    "fR" '(+my/rename-file :wk "Rename file")
     "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :wk "init.el")
     "fp" '((lambda() (interactive)(find-file (read-file-name ".emacs.d: " "~/.emacs.d/elisp/"))) :wk ".emacs.d")
     ;; "fo" '((lambda() (interactive)(find-file +org-capture-file-gtd)) :wk "Org files")

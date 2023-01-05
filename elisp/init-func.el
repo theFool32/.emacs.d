@@ -15,6 +15,15 @@
       (consult-outline)
     (consult-imenu)))
 
+(defun +my/rename-file()
+  "Rename file while using current file as default."
+  (interactive)
+  (let ((file-from (read-file-name "Move from: " default-directory buffer-file-name))
+        (file-to (read-file-name "Move to:" default-directory)))
+    (rename-file file-from file-to)
+    (when (string= (file-truename file-from) (file-truename (buffer-file-name)))
+      (kill-buffer)
+      (find-file file-to))))
 
 (defun +my/open-recent ()
   "Open recent directory in Dired or file otherwise."
