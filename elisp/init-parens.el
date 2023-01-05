@@ -75,7 +75,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
         (push "'" parens))
       (setq unread-command-events
             (append (apply 'vconcat (mapcar 'kbd
-                                            ;;  FIXME: not work on the right side of a string
                                             (if (and (not (nth 3 (syntax-ppss)))
                                                      (member char parens))
                                                 `("d" "a" ,char)
