@@ -16,7 +16,10 @@
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("M-." . embark-dwim)
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+   ("C-h B" . embark-bindings) ;; alternative for `describe-bindings'
+   :map embark-file-map
+   ("r" . +my/rename-file)
+   )
   :custom
   (embark-cycle-key ".")
   (embark-help-key "?")
