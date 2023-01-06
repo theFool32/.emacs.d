@@ -3,7 +3,7 @@
 
 (use-package evil-embrace
   :after evil
-  :commands embrace-add-pair embrace-add-pair-regexp
+  :commands (embrace-add-pair embrace-add-pair-regexp)
   :config
   (require 'evil/+embrace)
 
@@ -45,7 +45,7 @@
 
 (use-package evil-escape
   :after evil
-  :hook (+my/first-input-hook . evil-escape-mode)
+  :hook (+my/first-input . evil-escape-mode)
   :commands (evil-escape-pre-command-hook)
   :init
   (setq evil-escape-excluded-states '(normal visual multiedit emacs motion)
@@ -97,8 +97,7 @@
 ;; for visualization like substitute
 (use-package evil-traces
   :after evil-ex
-  :config
-  (evil-traces-mode))
+  :hook (+my/first-input . evil-traces-mode))
 
 
 ;; Allows you to use the selection for * and #
@@ -114,31 +113,34 @@
 
 
 (use-package evil-collection
+  :defer nil
   :after evil
   :init
-  (setq evil-want-keybinding 'nil)
+  (setq evil-want-keybinding nil)
   :config
+  ;;  HACK: evil-collection-mode-list not available
+  (require 'evil-collection)
   (delete 'corfu evil-collection-mode-list)
   (evil-collection-init))
 
 ;; indent textobj
 (use-package evil-indent-plus
   :after evil
-  :config
-  (evil-indent-plus-default-bindings))
+  :hook (+my/first-input . evil-indent-plus-default-bindings)
+  :commands (evil-indent-plus-default-bindings))
 ;; in/decrease number
 ;; (use-package evil-numbers)
 
 (use-package evil-anzu
   :demand t
   :after evil
-  :hook (+my/first-input-hook global-anzu-mode)
+  :hook (+my/first-input . global-anzu-mode)
   :config
   (add-hook 'evil-insert-state-entry-hook #'evil-ex-nohighlight)
   )
 
 (use-package evil-textobj-tree-sitter
-  :after tree-sitter
+  :after (tree-sitter evil)
   :straight (evil-textobj-tree-sitter :type git
                                       :host github
                                       :repo "meain/evil-textobj-tree-sitter"
@@ -194,8 +196,8 @@
 (use-package evil-mc
   ;;  FIXME: still not easy to use, need finetune
   :after evil
+  :hook (+my/first-input . global-evil-mc-mode)
   :config
-  (global-evil-mc-mode)
   (global-set-key (kbd "s-<mouse-1>") 'evil-mc-toggle-cursor-on-click)
   )
 

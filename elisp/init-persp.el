@@ -4,7 +4,7 @@
   :diminish
   :defines (recentf-exclude)
   :commands (get-current-persp persp-contain-buffer-p)
-  :hook ((+my/first-input-hook . persp-mode))
+  :hook (+my/first-input . persp-mode)
   :init
   (setq persp-keymap-prefix (kbd "C-x p")
         persp-nil-name "default"

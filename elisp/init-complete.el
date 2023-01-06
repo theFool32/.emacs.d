@@ -2,6 +2,7 @@
 
 (use-package corfu
   :straight (corfu :includes (corfu-indexed corfu-quick corfu-popupinfo corfu-history) :files (:defaults "extensions/corfu-*.el"))
+  ;; :hook (+my/first-input . global-corfu-mode)
   :custom
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
@@ -9,11 +10,10 @@
   (corfu-auto-delay 0.01)
   (corfu-echo-documentation 0.3)
   (corfu-quit-no-match 'separator)        ;; Automatically quit if there is no match
-  (corfu-preselect-first nil)    ;; Disable candidate preselection
   (corfu-on-exact-match 'quit)
+  (corfu-preselect 'prompt) ;; Always preselect the prompt
   :init
   (global-corfu-mode)
-
   :bind
   (:map corfu-map
         ("TAB" . corfu-next)
@@ -26,10 +26,6 @@
         ([?\r] . newline)
         ([backtab] . corfu-previous))
   :config
-  (add-to-list 'corfu-auto-commands 'grammatical-edit-open-round)
-  (add-to-list 'corfu-auto-commands 'grammatical-edit-open-bracket)
-  (add-to-list 'corfu-auto-commands 'grammatical-edit-open-curly)
-
   (advice-add #'keyboard-quit :before #'corfu-quit)
   (add-to-list 'corfu-auto-commands 'end-of-visual-line)
 
@@ -207,6 +203,7 @@ Quit if no candidate is selected."
 
 (use-package tempel
   :after corfu
+  :after-call +my/first-input-hook-fun
   :straight (:host github :repo "minad/tempel")
   :config
   (defun my/tempel-expand-or-next ()

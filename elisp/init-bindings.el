@@ -7,12 +7,14 @@
 
 
 (use-package which-key
+  :hook (+my/first-input . which-key-mode)
   :diminish
   :custom
   (which-key-separator " ")
   (which-key-prefix-prefix "+")
-  :config
-  (which-key-mode))
+  ;; :config
+  ;; (which-key-mode)
+  )
 
 ;; Leader def
 (use-package general

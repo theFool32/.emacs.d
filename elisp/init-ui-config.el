@@ -243,7 +243,7 @@
 
 ;; DoomModeline
 (use-package doom-modeline
-  :hook (after-init . doom-modeline-mode)
+  :hook (window-setup . doom-modeline-mode)
   :custom-face
   (doom-modeline-buffer-modified ((t (:inherit (error bold) :background unspecified))))
   :custom

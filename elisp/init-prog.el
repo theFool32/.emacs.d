@@ -19,7 +19,7 @@
 
 (use-package project
   :straight nil
-  :defer
+  :after-call +my/first-input-hook-fun
   :config
   (defun my/project-files-in-directory (dir)
     "Use `fd' to list files in DIR."

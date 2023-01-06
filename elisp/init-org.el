@@ -456,9 +456,7 @@ the lines even if the ranges do not overlap."
   :custom
   (cfw:display-calendar-holidays nil)
   :config
-  (use-package calfw-org
-    :after org)
-
+  (require 'calfw-org)
   (defun cfw:open-org-week-calendar ()
     "Open an org schedule calendar in the new buffer."
     (interactive)

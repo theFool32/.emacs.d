@@ -2,6 +2,7 @@
 
 ;; DiredPackage
 (use-package dired
+  :after-call +my/first-input-hook-fun
   :straight nil
   :bind
   (:map dired-mode-map
@@ -80,7 +81,7 @@ Version 2019-11-04"
 ;; Extra Dired functionality
 (use-package dired-x
   :straight nil
-  :demand
+  :after dired
   :config
   (setq dired-omit-files
         (concat dired-omit-files

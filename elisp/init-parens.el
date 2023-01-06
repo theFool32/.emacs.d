@@ -12,7 +12,7 @@
 
 ;; Automatic parenthesis pairing
 (use-package elec-pair
-  :hook (after-init . electric-pair-mode)
+  :hook (+my/first-input . electric-pair-mode)
   :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
   :config
   ;; disable <> auto pairing in electric-pair-mode for org-mode

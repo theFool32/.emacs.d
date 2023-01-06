@@ -11,7 +11,7 @@
 
 (use-package embark
   :straight (embark :files (:defaults "*.el"))
-  :ensure t
+  :after-call +my/first-input-hook-fun
   :after general
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
@@ -97,14 +97,13 @@ targets."
 (use-package vertico
   :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory)
                      :files (:defaults "extensions/vertico-*.el"))
-  ;; :hook (+my/first-input . vertico-mode)
+  :hook (+my/first-input . vertico-mode)
   :bind
   (:map vertico-map
         ("C-<return>" . open-in-external-app))
-  :init
-  (vertico-mode)
   :config
-  (setq vertico-cycle nil)
+  (setq vertico-cycle nil
+        vertico-preselect 'first)
 
   (defun +vertico-restrict-to-matches ()
     (interactive)
@@ -343,9 +342,6 @@ targets."
   (setq consult-project-buffer-sources consult-project-extra-sources)
   )
 
-(use-package consult-flycheck
-  :after (consult flycheck))
-
 (use-package consult-dir
   :ensure t
   :after consult
@@ -382,7 +378,7 @@ targets."
 
 
 (use-package orderless
-  :demand t
+  :after-call +my/first-input-hook-fun
   :config
   (defvar +orderless-dispatch-alist
     '((?% . char-fold-to-regexp)

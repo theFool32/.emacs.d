@@ -38,7 +38,7 @@
 ;; },
 
 (use-package rime
-  :defer t
+  :after-call +my/first-input-hook-fun
   :if +self/use-rime
   :init
   (setq rime-librime-root "~/.emacs.d/librime/dist/"
@@ -51,7 +51,7 @@
                                   :internal-border-width 2))
   :config
   (unless rime-emacs-module-header-root
-    (setq rime-emacs-module-header-root "/opt/homebrew/opt/emacs-plus@29/include"))
+    (setq rime-emacs-module-header-root "/Applications/Emacs.app/Contents/Resources/include/"))
 
   (define-key rime-mode-map (kbd "M-j") 'rime-force-enable)
   (define-key rime-mode-map (kbd "M-k") 'rime-inline-ascii)

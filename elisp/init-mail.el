@@ -1,7 +1,7 @@
+(defvar mu-path (format "%s%s" (string-trim-right (shell-command-to-string "brew --prefix mu")) "/share/emacs/site-lisp/mu/mu4e"))
 (use-package mu4e
-  ;;  TODO: disable `index' when open `mu4e-main'
-  ;;  FIXME: specific path with homebrew
-  :straight (:local-repo "/opt/homebrew/Cellar/mu/1.8.13/share/emacs/site-lisp/mu/mu4e/" :pre-build ())
+  :straight nil
+  :load-path mu-path
   :if (executable-find "mu")
   :commands mu4e
   :hook ((mu4e-headers-mode . hl-line-mode)
