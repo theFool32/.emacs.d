@@ -93,7 +93,7 @@
     "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :wk "init.el")
     "fp" '((lambda() (interactive)(find-file (read-file-name ".emacs.d: " "~/.emacs.d/elisp/"))) :wk ".emacs.d")
     ;; "fo" '((lambda() (interactive)(find-file +org-capture-file-gtd)) :wk "Org files")
-    "fo" '((lambda() (interactive)(find-file (completing-read "Open org fiels:" +org-files))) :wk "Org files")
+    "fo" '((lambda() (interactive)(find-file (completing-read "Open org files:" +org-files))) :wk "Org files")
     "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
     "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
 
