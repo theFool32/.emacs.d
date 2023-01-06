@@ -320,6 +320,23 @@ begin and end of the block surrounding point."
 
 (use-package wgrep)
 
+(use-package jieba
+  ;;  FIXME: used only for thesis
+  :delight
+  :after (evil)
+  :straight (:host github :repo "mkvoya/jieba.el" :files ("*"))
+  :init  ; We need to enable jieba during init so that it can construct the jieba in background, rather than when autoloading the functions.
+  (jieba-mode)
+  (defun mk/forward-word()
+    "mk's better forward-word."
+    (interactive)
+    (let ((char (char-after)))
+      (if (memq char (string-to-list " \n\r\\"))
+          (re-search-forward "\\\s+")
+        (jieba-forward-word))))
+  (define-key evil-motion-state-map (kbd "w") #'mk/forward-word)
+  (define-key evil-motion-state-map (kbd "b") #'jieba-backward-word))
+
 (provide 'init-edit)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-edit.el ends here

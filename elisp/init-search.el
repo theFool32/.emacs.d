@@ -25,6 +25,7 @@
   (multi-translate-word-backends '(bing youdao))
   :config
   (defun multi-translate-yank-at-point (arg)
+    ;;  FIXME: for thesis
     "Used temporarily for thesis"
     (interactive "P")
     (let* ((bounds (if (region-active-p)

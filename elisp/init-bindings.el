@@ -191,7 +191,7 @@
     "oo" '((lambda () (interactive)(org-clock-out) (org-save-all-org-buffers)) :wk "Clock out")
     "op" '(org-pomodoro :wk "Pomodoro")
     "ou" '(browse-url :wk "Url")
-    "y" '(multi-translate-yank-at-point :wk "Yank translate")
+    "y" '(multi-translate-yank-at-point :wk "Yank translate") ;;  FIXME: for thesis
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
