@@ -60,6 +60,7 @@
 
 (use-package pinyinlib
   :after orderless
+  :after-call +my/first-input-hook-fun
   :config
   (defun completion--regex-pinyin (str)
     (orderless-regexp (pinyinlib-build-regexp-string str)))
