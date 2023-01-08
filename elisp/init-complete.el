@@ -54,8 +54,7 @@
     :hook (corfu-mode . corfu-popupinfo-mode))
 
   (use-package corfu-history
-    :config
-    (corfu-history-mode))
+    :hook (corfu-mode . corfu-history-mode))
 
   ;; kind ui
   (with-eval-after-load 'all-the-icons

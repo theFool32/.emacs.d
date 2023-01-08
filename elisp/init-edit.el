@@ -314,7 +314,6 @@ begin and end of the block surrounding point."
 
 (use-package avy
   :diminish
-  :demand t
   :commands (avy-goto-char avy-goto-line))
 
 

@@ -11,10 +11,7 @@
   :diminish
   :custom
   (which-key-separator " ")
-  (which-key-prefix-prefix "+")
-  ;; :config
-  ;; (which-key-mode)
-  )
+  (which-key-prefix-prefix "+"))
 
 ;; Leader def
 (use-package general

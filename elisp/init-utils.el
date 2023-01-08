@@ -114,6 +114,7 @@ It handles the case of remote files as well."
   (advice-add 'super-save-command :override 'save-all-buffers))
 
 (use-package ztree
+  :disabled
   :commands ztree-diff
   :defer t)
 

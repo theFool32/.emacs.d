@@ -97,7 +97,7 @@ targets."
 (use-package vertico
   :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory)
                      :files (:defaults "extensions/vertico-*.el"))
-  :hook (+my/first-input . vertico-mode)
+  :hook (window-setup . vertico-mode)
   :bind
   (:map vertico-map
         ("C-<return>" . open-in-external-app))
@@ -446,14 +446,15 @@ targets."
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light)))
 
 (use-package vertico-posframe
-  :hook (after-init . vertico-posframe-mode)
+  :hook (vertico-mode . vertico-posframe-mode)
   :config
+  ;;  FIXME: esc esc esc -> c-g to exit for the first time
+  ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
   (setq vertico-posframe-parameters
         '((min-width . 80)
           (min-height . 15)
           (left-fringe . 8)
           (right-fringe . 8)))
-  (evil-set-initial-state 'minibuffer-mode 'emacs)
   )
 
 (use-package all-the-icons-completion

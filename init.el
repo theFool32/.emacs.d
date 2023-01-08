@@ -1,5 +1,7 @@
 ;;; init.el --- -*- lexical-binding: t -*-
 
+(defvar +my/start-time (current-time))
+
 (setq auto-mode-case-fold nil)
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.5)
@@ -80,9 +82,8 @@
 
 (add-hook 'window-setup-hook
           #'(lambda ()
-              ;; (cfw:open-org-calendar)
               (+my/open-org-agenda)
-              (evil-window-right 1)))
+              (message "Start in %s s" (float-time (time-subtract (current-time) +my/start-time)))))
 
 (provide 'init)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

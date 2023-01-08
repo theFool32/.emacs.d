@@ -174,6 +174,7 @@
             "shortciteA"
             "shortciteN"
             "smartcite"
+            "supercite"
             "textcite"
             "textcite*"
             "ycite"

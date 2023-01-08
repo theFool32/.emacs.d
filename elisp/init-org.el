@@ -25,51 +25,32 @@
 (use-package org
   :commands (+my/open-org-agenda)
   :hook ((org-mode . org-indent-mode)
-         (org-mode . +org-enable-auto-update-cookies-h))
+         (org-mode . +org-enable-auto-update-cookies-h)
+         (org-mode . (lambda () (show-paren-local-mode -1))))
   :bind (:map org-mode-map
               ([tab] . org-cycle))
-  :custom
-  ;; (org-id-link-to-org-use-id t)
-  (org-element--cache-self-verify nil)
-  (org-element-use-cache nil)
-  (org-src-preserve-indentation nil)
-  (org-edit-src-content-indentation 0)
-  (org-capture-bookmark nil) ;; TODO: no bookmark for refile
-  (org-log-done 'time)
-  (org-hide-emphasis-markers t)
-  (org-deadline-warning-days 90)
-  ;; (org-agenda-span 'day)
-  (org-agenda-span 3)
-  (org-agenda-start-with-log-mode t)
-  (org-agenda-start-with-clockreport-mode nil)
-  (org-agenda-start-on-weekday 1)
-  (org-export-backends (quote (ascii html icalendar latex md odt)))
-  (org-use-speed-commands t)
-  (org-confirm-babel-evaluate 'nil)
-  (org-directory (expand-file-name +self/org-base-dir))
-  (org-ellipsis " ▼ ")
-  (org-babel-python-command "python3")
-  (org-bullets-bullet-list '("#"))
-  (org-agenda-todo-ignore-scheduled 'future)
+  :init
+  (setq
+   ;; (org-id-link-to-org-use-id t)
+   org-element--cache-self-verify nil
+   org-element-use-cache nil
+   org-src-preserve-indentation nil
+   org-edit-src-content-indentation 0
+   org-capture-bookmark nil ;; TODO: no bookmark for refile
+   org-log-done 'time
+   org-hide-emphasis-markers t
+   org-deadline-warning-days 90
+   org-export-backends (quote (ascii html icalendar latex md odt))
+   org-use-speed-commands t
+   org-confirm-babel-evaluate 'nil
+   org-directory (expand-file-name +self/org-base-dir)
+   org-ellipsis " ▼ "
+   org-babel-python-command "python3"
+   org-bullets-bullet-list '("#")
+   )
 
   :config
-  ;; agenda
-  (with-eval-after-load 'org (setq org-modules '()))
-  (with-eval-after-load 'org-agenda
-    (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3))
-
-  (setq org-agenda-custom-commands
-        '(("n" "Agenda"
-           ((tags-todo
-	         "ACT_WEEK"
-	         ((org-agenda-files (list +org-capture-file-goal))
-	          (org-agenda-overriding-header "Goals for this week")))
-            (tags-todo
-	         "ACT_MONTH"
-	         ((org-agenda-files (list +org-capture-file-goal))
-	          (org-agenda-overriding-header "Goals for this month")))
-	        (agenda)
-            (alltodo "")))))
+  (setq org-modules '())
 
   ;; babel
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
@@ -86,14 +67,12 @@
                       (if pair
                           backup-languages
                         (append (list (cons sym t)) backup-languages))))))
-
   (advice-add 'org-babel-execute-src-block :before #'my/org-babel-execute-src-block )
 
   ;; ui
   ;; (set-face-attribute 'org-table nil :family "Sarasa Mono SC" :weight 'semi-bold)
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
   (+org-init-appearance-h)
-  (+org-init-agenda-h)
   (+org-init-capture-defaults-h)
 
   (custom-set-faces
@@ -109,13 +88,9 @@
       1 'org-checkbox-done-text prepend))
    'append)
 
-
   ;; log
   (setq org-log-into-drawer "LOGBOOK")
   (setq org-log-into-drawer t)
-  (setq org-agenda-files (list +org-capture-file-gtd
-                               +org-capture-file-done
-                               +org-capture-file-routine))
 
   ;; misc
   (setq org-refile-use-outline-path 'file)
@@ -158,10 +133,6 @@
       (when (derived-mode-p 'org-mode)
         (org-fold-show-entry))))
   (advice-add 'consult-outline :around #'org-show-entry-consult-a)
-
-
-  ;; (add-hook 'org-mode-hook #'+org-enable-auto-reformat-tables-h)
-  (add-hook 'org-mode-hook (lambda () (show-paren-local-mode -1)))
 
   ;; https://emacs-china.org/t/topic/2119/15
   (defun my--diary-chinese-anniversary (lunar-month lunar-day &optional year mark)
@@ -330,29 +301,6 @@
       "zR" 'org-download-rename-last-file
       "zs" 'org-download-screenshot
       )
-
-    (local-leader-def
-      :keymaps 'org-agenda-mode-map
-      "d" '(:wk "date/deadline")
-      "dd" 'org-agenda-deadline
-      "ds" 'org-agenda-schedule
-
-      "c" '(:wk "clock")
-      "cc" 'org-agenda-clock-cancel
-      "cg" 'org-agenda-clock-goto
-      "ci" 'org-agenda-clock-in
-      "co" 'org-agenda-clock-out
-      "cr" 'org-agenda-clockreport-mode
-      "cs" 'org-agenda-show-clocking-issues
-
-      "p" '(:wk "priority")
-      "pd" 'org-agenda-priority-down
-      "pp" 'org-agenda-priority
-      "pu" 'org-agenda-priority-up
-
-      "q" 'org-agenda-set-tags
-      "r" 'org-agenda-refile
-      "t" 'org-agenda-todo)
     )
 
   ;; functions
@@ -360,7 +308,6 @@
     "open org agenda in left window"
     (interactive)
     (org-agenda nil "n")
-    (evil-window-move-far-left)
     (kill-buffer "done.org")
     (kill-buffer "goals.org")
     (kill-buffer "routine.org"))
@@ -428,8 +375,109 @@ the lines even if the ranges do not overlap."
       (insert (concat "CLOCK: [" second-line-t1 "]--[" first-line-t2 "]"))
       ;; generate duration
       (org-ctrl-c-ctrl-c)))
+
+  (use-package org-agenda
+    :straight nil
+    :ensure nil
+    :bind
+    (:map org-agenda-mode-map
+          ("q" . winner-undo))
+    :init
+    (setq org-agenda-files (list +org-capture-file-gtd
+                                 +org-capture-file-done
+                                 +org-capture-file-routine)
+
+          org-agenda-window-setup 'only-window
+          org-agenda-span 3
+          org-agenda-start-with-log-mode t
+          org-agenda-start-with-clockreport-mode nil
+          org-agenda-start-on-weekday 1
+          org-agenda-todo-ignore-scheduled 'future
+          )
+    :config
+    (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
+    (setq org-agenda-custom-commands
+          '(("n" "Agenda"
+             ((tags-todo
+	           "ACT_WEEK"
+	           ((org-agenda-files (list +org-capture-file-goal))
+	            (org-agenda-overriding-header "Goals for this week")))
+              (tags-todo
+	           "ACT_MONTH"
+	           ((org-agenda-files (list +org-capture-file-goal))
+	            (org-agenda-overriding-header "Goals for this month")))
+	          (agenda)
+              (alltodo "")))))
+    (evil-set-initial-state 'org-agenda-mode 'motion)
+    (setq-default
+     ;; Don't monopolize the whole frame just for the agenda
+     ;; org-agenda-window-setup 'current-window
+     org-agenda-inhibit-startup nil
+     org-agenda-skip-unavailable-files t)
+    (with-eval-after-load 'general
+      (local-leader-def
+        :keymaps 'org-agenda-mode-map
+        "d" '(:wk "date/deadline")
+        "dd" 'org-agenda-deadline
+        "ds" 'org-agenda-schedule
+
+        "c" '(:wk "clock")
+        "cc" 'org-agenda-clock-cancel
+        "cg" 'org-agenda-clock-goto
+        "ci" 'org-agenda-clock-in
+        "co" 'org-agenda-clock-out
+        "cr" 'org-agenda-clockreport-mode
+        "cs" 'org-agenda-show-clocking-issues
+
+        "p" '(:wk "priority")
+        "pd" 'org-agenda-priority-down
+        "pp" 'org-agenda-priority
+        "pu" 'org-agenda-priority-up
+
+        "q" 'org-agenda-set-tags
+        "r" 'org-agenda-refile
+        "t" 'org-agenda-todo)
+      )
+
+    (run-with-timer 15 nil
+                    (lambda ()
+                      (with-eval-after-load 'org
+                        (require 'appt)
+
+                        (setq appt-display-interval '5) ;; warn every 5 minutes from t - appt-message-warning-time
+                        (setq
+                         appt-message-warning-time '15 ;; send first warning 15 minutes before appointment
+                         appt-display-mode-line nil ;; don't show in the modeline
+                         appt-display-format 'window) ;; pass warnings to the designated window function
+                        (setq appt-disp-window-function (function ct/appt-display-native))
+
+                        (appt-activate 1) ;; activate appointment notification
+
+                        ;; brew install terminal-notifier
+                        (defun ct/send-notification (title msg)
+                          (let ((notifier-path (executable-find "terminal-notifier")))
+                            (start-process
+                             "Appointment Alert"
+                             nil
+                             notifier-path
+                             "-message" msg
+                             "-title" title
+                             "-sender" "org.gnu.Emacs"
+                             "-activate" "org.gnu.Emacs")))
+                        (defun ct/appt-display-native (min-to-app new-time msg)
+                          (ct/send-notification
+                           (format "Appointment in %s minutes" min-to-app) ; Title
+                           (format "%s" msg))) ; Message/detail text
+                        ;; Agenda-to-appointent hooks
+                        (run-at-time nil 900
+                                     (lambda ()
+                                       (setq appt-time-msg-list nil)
+                                       (org-agenda-to-appt)))
+                        (add-hook 'org-finalize-agenda-hook 'org-agenda-to-appt) ;; update appt list on agenda view
+                        )))
+    )
   )
-;; -OrgPac
+;; ;; -OrgPac
 
 (use-package org-download
   :commands (org-download-clipboard org-download-delete org-download-image org-download-yank org-download-edit org-download-rename-at-point org-download-rename-last-file org-download-screenshot)
@@ -474,6 +522,7 @@ the lines even if the ranges do not overlap."
 
 (use-package org-pomodoro
   :after org
+  :commands org-pomodoro
   :config
   (setq alert-default-style 'notifier)
 
@@ -518,50 +567,6 @@ kill the current timer, this may be a break or a running pomodoro."
             (call-interactively 'consult-clock-in))))
       (org-pomodoro-start :pomodoro))))
   )
-
-
-;; -Notification only for mac os
-(when *sys/mac*
-  (add-hook '+my/first-input-hook
-            (lambda ()
-              (run-with-timer 5 nil
-                              (lambda ()
-                                (with-eval-after-load 'org
-                                  (require 'appt)
-
-                                  (setq appt-display-interval '5) ;; warn every 5 minutes from t - appt-message-warning-time
-                                  (setq
-                                   appt-message-warning-time '15 ;; send first warning 15 minutes before appointment
-                                   appt-display-mode-line nil ;; don't show in the modeline
-                                   appt-display-format 'window) ;; pass warnings to the designated window function
-                                  (setq appt-disp-window-function (function ct/appt-display-native))
-
-                                  (appt-activate 1) ;; activate appointment notification
-                                        ; (display-time) ;; Clock in modeline
-
-                                  ;; brew install terminal-notifier
-                                  (defun ct/send-notification (title msg)
-                                    (let ((notifier-path (executable-find "terminal-notifier")))
-                                      (start-process
-                                       "Appointment Alert"
-                                       nil
-                                       notifier-path
-                                       "-message" msg
-                                       "-title" title
-                                       "-sender" "org.gnu.Emacs"
-                                       "-activate" "org.gnu.Emacs")))
-                                  (defun ct/appt-display-native (min-to-app new-time msg)
-                                    (ct/send-notification
-                                     (format "Appointment in %s minutes" min-to-app) ; Title
-                                     (format "%s" msg))) ; Message/detail text
-                                  ;; Agenda-to-appointent hooks
-                                  (run-at-time nil 900
-                                               (lambda ()
-                                                 (setq appt-time-msg-list nil)
-                                                 (org-agenda-to-appt)))
-                                  (add-hook 'org-finalize-agenda-hook 'org-agenda-to-appt) ;; update appt list on agenda view
-                                  ))))))
-;; -Notification
 
 (provide 'init-org)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

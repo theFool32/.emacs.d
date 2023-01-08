@@ -38,7 +38,7 @@
 ;; },
 
 (use-package rime
-  :after-call +my/first-input-hook-fun
+  :after-call toggle-input-method
   :if +self/use-rime
   :init
   (setq rime-librime-root "~/.emacs.d/librime/dist/"

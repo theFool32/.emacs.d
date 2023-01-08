@@ -266,24 +266,6 @@ If on a:
         ))
 
 ;;;###autoload
-(defun +org-init-agenda-h ()
-  (evil-set-initial-state 'org-agenda-mode 'motion)
-  (unless org-agenda-files
-    (setq org-agenda-files (list org-directory)))
-  (setq-default
-   ;; Don't monopolize the whole frame just for the agenda
-   ;; org-agenda-window-setup 'current-window
-   org-agenda-inhibit-startup nil
-   org-agenda-skip-unavailable-files t
-   ;; Move the agenda to show the previous 3 days and the next 7 days for a bit
-   ;; better context instead of just the current week which is a bit confusing
-   ;; on, for example, a sunday
-   ;; org-agenda-span 10
-   ;; org-agenda-start-on-weekday nil
-   ;; org-agenda-start-day "-3d"
-   ))
-
-;;;###autoload
 (defun +org-init-capture-defaults-h()
   ;; enter insert state for org-capture
   (add-hook 'org-capture-mode-hook #'evil-insert-state)
