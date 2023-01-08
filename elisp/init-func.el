@@ -66,7 +66,7 @@
 
 
 (defun hexcolour-luminance (color)
-  "Calculate the luminance of a color string (e.g. \"#ffaa00\", \"blue\").
+  "Calculate the luminance of a COLOR string (e.g. \"#ffaa00\", \"blue\").
   This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
   (let* ((values (x-color-values color))
          (r (car values))
@@ -101,13 +101,24 @@
 
 
 (defun +my/google-it (&optional word)
-  "Google it"
+  "Google WORD"
   (interactive (list
                 (if (use-region-p)
                     (buffer-substring-no-properties (region-beginning)
                                                     (region-end))
                   (thing-at-point 'symbol))))
   (browse-url (concat "https://www.google.com/search?q=" word)))
+
+(defun +my/replace (&optional word)
+  "Make it eary to use `:%s' to replace WORD."
+  (interactive (list
+                (if (use-region-p)
+                    (buffer-substring-no-properties (region-beginning) (region-end))
+                  (thing-at-point 'symbol))))
+  ;;  HACK: replace `/' with `\/'
+  (let ((word (replace-regexp-in-string "/" "\\\\/" word)))
+    (evil-ex (concat "%s/" word "/" word))))
+
 
 (provide 'init-func)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

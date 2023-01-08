@@ -73,6 +73,7 @@ REST and STATE."
 (add-to-list 'straight-built-in-pseudo-packages 'use-package)
 (add-to-list 'straight-built-in-pseudo-packages 'project)
 (add-to-list 'straight-built-in-pseudo-packages 'org)
+(add-to-list 'straight-built-in-pseudo-packages 'xref)
 ;; -Straight
 
 (defun +my/check-straight-repos ()

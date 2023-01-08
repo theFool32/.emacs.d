@@ -71,6 +71,7 @@
     ":" '(+my/open-org-agenda :wk "Agenda")
     "x" '(org-capture :wk "Org capture")
     "r" '(er/expand-region :wk "expand-region")
+    "k" '(+my/replace :wk "Replace") ;;  FIXME: more semantic key
 
     "b" '(:wk "Buffer")
     "b[" '(previous-buffer :wk "Previous buffer")
