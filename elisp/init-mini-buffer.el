@@ -448,7 +448,7 @@ targets."
 (use-package vertico-posframe
   :hook (vertico-mode . vertico-posframe-mode)
   :init
-  ;;  FIXME: esc esc esc -> c-g to exit for the first time
+  ;;  FIXME: weird behavior on the first time
   (setq vertico-posframe-parameters
         '((min-width . 80)
           (min-height . 15)

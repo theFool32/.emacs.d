@@ -294,7 +294,8 @@ Group number 1 should be the prefix itself."
             ;; point.
             (call-interactively #'TeX-next-error))))
       (when (>= counter 0) ;;
-        (set-buffer initial-buffer))))
+        (set-buffer initial-buffer)
+        (TeX-view))))
 
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
   ;; Enable word wrapping

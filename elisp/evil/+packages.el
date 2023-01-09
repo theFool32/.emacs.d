@@ -119,7 +119,7 @@
   (setq evil-want-keybinding nil)
   :config
   ;;  TODO: init when loading specific package
-  (let ((modes '(atomic-chrome calc calendar consult devdocs diff-hl diff-mode dired doc-view edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine gnus grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section magit-todos markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler python reftex replace rtags sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread tide timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired wgrep which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
+  (let ((modes '(atomic-chrome calc calendar consult devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine gnus grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section magit-todos markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler python reftex replace rtags sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread tide timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired wgrep which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
     (evil-collection-init modes))
   )
 
