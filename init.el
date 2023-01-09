@@ -2,7 +2,6 @@
 
 (defvar +my/start-time (current-time))
 
-(setq auto-mode-case-fold nil)
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.5)
 (add-hook 'emacs-startup-hook

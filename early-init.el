@@ -23,9 +23,24 @@
       inhibit-default-init t
       initial-major-mode 'fundamental-mode
       initial-scratch-message nil
+      inhibit-compacting-font-caches t
 
       frame-inhibit-implied-resize t
       frame-resize-pixelwise t
+
+      load-prefer-newer nil
+      auto-mode-case-fold nil
+
+      bidi-display-reordering 'left-to-right
+      bidi-paragraph-direction 'left-to-right
+      cursor-in-non-selected-windows nil
+      highlight-nonselected-windows nil
+
+      fast-but-imprecise-scrolling t
+      ffap-machine-p-known 'reject
+      redisplay-skip-fontification-on-input t
+
+      idle-update-delay 1.0
       )
 
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))

@@ -447,9 +447,8 @@ targets."
 
 (use-package vertico-posframe
   :hook (vertico-mode . vertico-posframe-mode)
-  :config
+  :init
   ;;  FIXME: esc esc esc -> c-g to exit for the first time
-  ;; (evil-set-initial-state 'minibuffer-mode 'emacs)
   (setq vertico-posframe-parameters
         '((min-width . 80)
           (min-height . 15)

@@ -3,13 +3,6 @@
 (eval-when-compile
   (require 'init-const))
 
-(setq idle-update-delay 1.0)
-(setq-default cursor-in-non-selected-windows nil)
-(setq highlight-nonselected-windows nil)
-
-(setq fast-but-imprecise-scrolling t)
-(setq redisplay-skip-fontification-on-input t)
-
 ;; SmoothScroll
 ;; Vertical Scroll
 (setq scroll-step 1)
@@ -18,7 +11,6 @@
 (setq scroll-up-aggressively 0.01)
 (setq scroll-down-aggressively 0.01)
 (setq auto-window-vscroll nil)
-(setq fast-but-imprecise-scrolling nil)
 (setq mouse-wheel-scroll-amount '(2 ((shift) . 1)))
 (setq mouse-wheel-progressive-speed t)
 ;; Horizontal Scroll
@@ -66,6 +58,7 @@
 
 ;; ATIPac
 (use-package all-the-icons
+  :demand t
   :if (display-graphic-p)
   ;;  HACK: no need for everytime check
   ;; :init (unless (or *sys/win32*
@@ -156,7 +149,7 @@
 
 (use-package popper
   :defines popper-echo-dispatch-actions
-  :hook (after-init . popper-mode)
+  :hook (window-setup . popper-mode)
   :init
   (setq popper-reference-buffers
         '("\\*Messages\\*"
@@ -247,8 +240,6 @@
   :custom-face
   (doom-modeline-buffer-modified ((t (:inherit (error bold) :background unspecified))))
   :custom
-  ;; Don't compact font caches during GC. Windows Laggy Issue
-  (inhibit-compacting-font-caches t)
   (doom-modeline-unicode-fallback t)
   (doom-modeline-icon t)
   (doom-modeline-env-version t)

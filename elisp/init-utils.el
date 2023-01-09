@@ -1,10 +1,5 @@
 ;;; init-utils.el ---
 
-;;  HACK: fix defun* macro
-(use-package unicode-escape
-  :defer t
-  :straight (:host github :repo "JimMoen/unicode-escape.el" :branch "fix-defun-macro"))
-
 (use-package recentf
   :hook (after-init . recentf-mode)
   :custom

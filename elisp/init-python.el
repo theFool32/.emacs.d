@@ -24,13 +24,8 @@
         flycheck-python-flake8-executable "flake8")
 
   (use-package py-isort
-    :init
-    (defun +python/python-sort-imports ()
-      (when (derived-mode-p 'python-mode)
-        (py-isort-before-save)))
-    :config
-    (add-hook 'before-save-hook #'+python/python-sort-imports)
-    )
+    :hook (python-mode . (lambda ()
+                           (add-hook 'before-save-hook #'py-isort-before-save))))
   )
 
 (provide 'init-python)

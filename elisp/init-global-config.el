@@ -113,7 +113,6 @@ The original function deletes trailing whitespace of the current line."
 (defalias 'forward-evil-word 'forward-evil-symbol)
 
 ;; Don't ping things that look like domain names.
-(setq ffap-machine-p-known 'reject)
 (setq command-line-ns-option-alist nil)
 
 (setq vc-follow-symlinks t)
