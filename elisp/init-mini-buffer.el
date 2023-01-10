@@ -233,7 +233,6 @@ targets."
   :config
   (setq consult-preview-key nil)
   (setq consult-narrow-key "<")
-  ;; (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-project-recent-file))
 
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
@@ -263,7 +262,7 @@ targets."
                 :state    ,#'consult--buffer-state
                 :hidden   t
                 :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
-  (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
+  (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-project-recent-file org-buffer-source))
 
   (defun +my/consult-set-evil-search-pattern (&optional condition)
     (let ((re
@@ -332,6 +331,14 @@ targets."
     (let* ((prompt-dir (consult--directory-prompt "Fd" dir))
            (default-directory (cdr prompt-dir)))
       (find-file (consult--find (car prompt-dir) #'consult--fd-builder initial))))
+  )
+
+(use-package consult-project-extra
+  :after consult
+  :straight (consult-project-extra :type git :host github :repo "Qkessler/consult-project-extra")
+  :config
+  ;; WORKAROUND
+  (setq consult-project-buffer-sources consult-project-extra-sources)
   )
 
 (use-package consult-dir
