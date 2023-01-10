@@ -103,8 +103,9 @@ It handles the case of remote files as well."
   (add-to-list 'super-save-triggers 'switch-window)
   (add-to-list 'super-save-triggers 'switch-to-buffer)
   (setq super-save-exclude '(".gpg"))
-  (setq super-save-idle-duration 5)
+  (setq super-save-idle-duration 3)
   (setq save-silently t)
+  (setq super-save-auto-save-when-idle t)
   (super-save-mode 1)
   (advice-add 'super-save-command :override 'save-all-buffers))
 
