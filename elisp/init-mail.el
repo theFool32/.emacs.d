@@ -1,4 +1,5 @@
-(defvar mu-path (format "%s%s" (string-trim-right (shell-command-to-string "brew --prefix mu")) "/share/emacs/site-lisp/mu/mu4e"))
+;; (defvar mu-path (format "%s%s" (string-trim-right (shell-command-to-string "brew --prefix mu")) "/share/emacs/site-lisp/mu/mu4e"))
+(defvar mu-path (format "%s%s" (getenv "MU_PATH") "/share/emacs/site-lisp/mu/mu4e"))
 (use-package mu4e
   :straight nil
   :load-path mu-path

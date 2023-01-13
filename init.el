@@ -39,6 +39,13 @@
 (require 'init-const)
 ;; (use-package esup)
 
+(use-package benchmark-init
+  :disabled
+  :demand t
+  :config
+  ;; To disable collection of benchmark data after init is done.
+  (add-hook 'after-init-hook 'benchmark-init/deactivate))
+
 ;; Global Functionalities
 (require 'init-evil)
 (require 'init-func)
