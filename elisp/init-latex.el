@@ -268,6 +268,7 @@ Group number 1 should be the prefix itself."
 
   (defun latex/compile-commands-until-done (clean-first)
     (interactive "P")
+    (save-buffer)
     (when clean-first (TeX-clean t))
     (message "Compilation started.")
     (let* ((initial-buffer (buffer-name))

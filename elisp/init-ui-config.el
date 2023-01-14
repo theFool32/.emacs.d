@@ -221,6 +221,9 @@
 
 (use-package ef-themes
   :init
+  ;;  HACK: do not load unused themes
+  (dolist (theme '(ef-winter ef-tritanopia-dark ef-trio-dark ef-night ef-duo-dark ef-deuteranopia-dark ef-dark ef-cherie ef-bio ef-autumn ef-tritanopia-light ef-summer ef-spring ef-light ef-frost ef-duo-light ef-deuteranopia-light ef-day ef-cyprus ef-trio-light))
+    (add-to-list 'custom-known-themes theme))
   (ef-themes-select 'ef-trio-light)
   :config
   (with-eval-after-load 'org
