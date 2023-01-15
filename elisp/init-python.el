@@ -25,7 +25,7 @@
 
   (use-package py-isort
     :hook (python-mode . (lambda ()
-                           (add-hook 'before-save-hook #'py-isort-before-save))))
+                           (add-hook 'before-save-hook #'py-isort-before-save nil t))))
   )
 
 (provide 'init-python)
