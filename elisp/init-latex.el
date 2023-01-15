@@ -303,8 +303,6 @@ Group number 1 should be the prefix itself."
   (add-hook 'TeX-mode-hook #'visual-line-mode)
   ;; Fold TeX macros
   (add-hook 'TeX-mode-hook #'TeX-fold-mode)
-  ;; Enable rainbow mode after applying styles to the buffer
-  (add-hook 'TeX-update-style-hook #'rainbow-delimiters-mode)
 
   (local-leader-def
     :keymaps 'LaTeX-mode-map
