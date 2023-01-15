@@ -9,7 +9,12 @@
       '((vertical-scroll-bars . nil)
         (menu-bar-lines . 0)
         (tool-bar-lines . 0)
-        (ns-transparent-titlebar . t))
+
+        (undecorated . t);会导致所有边框全部消失无法拖动调整窗口大小 需要加上后面两句
+        (drag-internal-border . 1)
+        (internal-border-width . 5)
+        ;; (ns-transparent-titlebar . t)
+        )
 
       mode-line-format nil
       byte-compile-warnings nil
