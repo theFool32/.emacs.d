@@ -211,7 +211,6 @@ REST and STATE."
 (setq use-package-keywords (use-package-list-insert :after-call use-package-keywords :after))
 (defalias 'use-package-normalize/:after-call #'use-package-normalize-symlist)
 
-(use-package diminish)
 #+end_src
 
 ** Straight
@@ -1188,7 +1187,7 @@ in some cases."
   )
 
 (use-package avy
-  :diminish
+
   :commands (avy-goto-char avy-goto-line))
 
 (use-package wgrep)
@@ -2116,7 +2115,7 @@ It handles the case of remote files as well."
         (alist-get 'node vundo-glyph-alist) ?O))
 
 (use-package super-save
-  :diminish
+
   :defer 0.5
   :init
   (setq auto-save-default nil)
@@ -2158,7 +2157,7 @@ It handles the case of remote files as well."
 ** Persp
 #+begin_src emacs-lisp
 (use-package persp-mode
-  :diminish
+
   :defines (recentf-exclude)
   :commands (get-current-persp persp-contain-buffer-p)
   :hook (+my/first-input . persp-mode)
@@ -3530,7 +3529,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 
 ;; Highlight symbols
 (use-package symbol-overlay
-  :diminish
+
   :functions (turn-off-symbol-overlay turn-on-symbol-overlay)
   :custom-face (symbol-overlay-default-face ((t (:inherit (region bold)))))
   :hook ((prog-mode . symbol-overlay-mode)
@@ -3606,7 +3605,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 
 ;; Highlight some operations
 (use-package volatile-highlights
-  :diminish
+
   :hook (+my/first-input . volatile-highlights-mode)
   :config
   (vhl/define-extension 'evil 'evil-paste-after 'evil-paste-before
@@ -3965,7 +3964,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 
 (use-package format-all
-  :diminish
+
   :commands format-all-buffer
   :hook ((prog-mode) . format-all-ensure-formatter)
   )
@@ -5642,7 +5641,7 @@ begin and end of the block surrounding point."
 #+begin_src emacs-lisp
 (use-package which-key
   :hook (+my/first-input . which-key-mode)
-  :diminish
+
   :custom
   (which-key-separator " ")
   (which-key-prefix-prefix "+"))
