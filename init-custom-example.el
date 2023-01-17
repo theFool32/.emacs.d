@@ -14,9 +14,6 @@
 (defconst +self/use-rime t
   "Should we use `rime'")
 
-(defconst my-lsp 'lsp-bridge
-  "Which language server to use, eglot or lsp-bridge")
-
 (provide 'init-custom)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-custom-example.el ends here
