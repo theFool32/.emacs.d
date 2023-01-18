@@ -404,6 +404,9 @@ The original function deletes trailing whitespace of the current line."
 (dolist (hook '(conf-mode-hook conf-space-mode-hook emacs-lisp-mode-hook))
   (add-hook hook #'hexcolour-add-to-font-lock))
 
+(setq-default which-func-modes '(emacs-lisp-mode python-mode org-mode LaTeX-mode))
+(which-function-mode +1)
+
 (add-hook 'after-init-hook (lambda ()
                              (run-with-idle-timer 5 nil
                                                   (lambda ()
@@ -4794,7 +4797,7 @@ If prefix ARG, copy instead of move."
   :commands (+my/open-org-agenda)
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h)
-         (org-mode . (lambda () (show-paren-local-mode -1))))
+         (org-mode . (lambda () (show-paren-local-mode -1) (eldoc-mode -1))))
   :bind (:map org-mode-map
               ([tab] . org-cycle))
   :init
@@ -4816,7 +4819,7 @@ If prefix ARG, copy instead of move."
    org-bullets-bullet-list '("#")
 
    org-indirect-buffer-display 'current-window
-   org-eldoc-breadcrumb-separator " → "
+   ;; org-eldoc-breadcrumb-separator " → "
    org-enforce-todo-dependencies t
    org-entities-user
    '(("flat"  "\\flat" nil "" "" "266D" "♭")
