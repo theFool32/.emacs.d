@@ -5667,7 +5667,7 @@ begin and end of the block surrounding point."
 
 ;; Leader def
 (use-package general
-  ;; :after evil
+  :after evil
   :config
   (general-create-definer tab-def
     :states '(normal visual emacs motion)
@@ -5696,6 +5696,10 @@ begin and end of the block surrounding point."
   (local-leader-def
     "w" 'evil-avy-goto-word-1
     "/" 'evilnc-comment-or-uncomment-lines)
+
+  (general-evil-define-key 'normal
+    '(python-mode-map LaTeX-mode-map emacs-lisp-mode-map)
+    "<tab>" '+fold/toggle)
 
   ;; evil mode
   (general-def 'normal
