@@ -404,7 +404,7 @@ The original function deletes trailing whitespace of the current line."
 (dolist (hook '(conf-mode-hook conf-space-mode-hook emacs-lisp-mode-hook))
   (add-hook hook #'hexcolour-add-to-font-lock))
 
-(setq-default which-func-modes '(emacs-lisp-mode python-mode org-mode LaTeX-mode))
+(setq-default which-func-modes '(emacs-lisp-mode python-mode org-mode latex-mode))
 (which-function-mode +1)
 
 (add-hook 'after-init-hook (lambda ()
@@ -861,6 +861,23 @@ The original function deletes trailing whitespace of the current line."
       (kill-new (multi-translate--google-translation "en" "zh-CN" text))
       (evil-normal-state)
       (message "Translate Done")))
+
+  (defun multi-translate-yank-at-point-and-paste-to-right (arg)
+    ;;  FIXME: for thesis
+    "Used temporarily for thesis"
+    (interactive "P")
+    (let* ((bounds (if (region-active-p)
+                       (cons (region-beginning) (region-end))
+                     (bounds-of-thing-at-point 'word)))
+           (text (string-trim (buffer-substring-no-properties (car bounds) (cdr bounds)))))
+      (kill-new (multi-translate--google-translation "en" "zh-CN" text))
+      (evil-normal-state)
+      (evil-window-right 1)
+      (end-of-buffer)
+      (evil-paste-after 1)
+      (evil-window-left 1)
+      (message "Translate Done")))
+
   )
 #+end_src
 ** Look up
@@ -4218,6 +4235,7 @@ Group number 1 should be the prefix itself."
 (use-package latex
   :straight auctex
   :mode ("\\.tex\\'" . LaTeX-mode)
+  :hook (LaTeX-mode . outline-minor-mode)
   :custom
   (TeX-insert-braces nil)
   (TeX-parse-self t) ; parse on load
@@ -4242,8 +4260,6 @@ Group number 1 should be the prefix itself."
   (LaTeX-fill-break-at-separators nil)
 
   :config
-  (general-define-key :states 'normal :keymaps 'LaTeX-mode-map (kbd "zo") #'TeX-fold-clearout-item)
-  (general-define-key :states 'normal :keymaps 'LaTeX-mode-map (kbd "zc") #'TeX-fold-env)
   (add-hook 'LaTeX-mode-hook (lambda ()
                                (push
                                 '("latexmk" "latexmk -pdf -pvc -view=none %s" TeX-run-TeX nil t :help "Run latexmk on file")
@@ -5824,6 +5840,7 @@ begin and end of the block surrounding point."
     "op" '(org-pomodoro :wk "Pomodoro")
     "ou" '(browse-url :wk "Url")
     "y" '(multi-translate-yank-at-point :wk "Yank translate") ;;  FIXME: for thesis
+    "Y" '(multi-translate-yank-at-point-and-paste-to-right :wk "Yank translate and paste") ;;  FIXME: for thesis
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
