@@ -440,6 +440,16 @@ The original function deletes trailing whitespace of the current line."
       (find-file file-to))))
 
 ;;;###autoload
+(defun +my/delete-file ()
+  "Put current buffer file to top."
+  (interactive)
+  (delete-file
+   (read-file-name "Delete: " default-directory buffer-file-name))
+  (unless (file-exists-p (buffer-file-name))
+    (kill-current-buffer)))
+
+
+;;;###autoload
 (defun +my/open-recent ()
   "Open recent directory in Dired or file otherwise."
   (interactive)
@@ -537,8 +547,8 @@ The original function deletes trailing whitespace of the current line."
                 (if (use-region-p)
                     (buffer-substring-no-properties (region-beginning) (region-end))
                   (thing-at-point 'symbol))))
-  ;;  HACK: replace `/' with `\/'
-  (let ((word (replace-regexp-in-string "/" "\\\\/" word)))
+  (let* ((word (replace-regexp-in-string "\\\\" "\\\\\\\\" word))
+        (word (replace-regexp-in-string "/" "\\\\/" word)))
     (evil-ex (concat "%s/" word "/" word))))
 #+end_src
 * Evil
@@ -1252,9 +1262,11 @@ in some cases."
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("M-." . embark-dwim)
+   ("C-/" . embark-export)
    ("C-h B" . embark-bindings) ;; alternative for `describe-bindings'
    :map embark-file-map
    ("r" . +my/rename-file)
+   ("d" . +my/delete-file)
    )
   :custom
   (embark-cycle-key ".")
@@ -1466,7 +1478,7 @@ targets."
          )
   :init
   :config
-  (setq consult-preview-key nil)
+  (setq consult-preview-key (kbd "M-."))
   (setq consult-narrow-key "<")
 
   (setq xref-show-xrefs-function #'consult-xref
@@ -1603,9 +1615,6 @@ targets."
 (use-package consult-project-extra
   :after consult
   :straight (consult-project-extra :type git :host github :repo "Qkessler/consult-project-extra")
-  :config
-  ;; WORKAROUND
-  (setq consult-project-buffer-sources consult-project-extra-sources)
   )
 
 (use-package consult-dir
@@ -1714,7 +1723,7 @@ targets."
 (use-package vertico-posframe
   :hook (vertico-mode . vertico-posframe-mode)
   :init
-  ;;  FIXME: weird behavior on the first time
+  ;;  BUG: weird behavior on the first time
   (setq vertico-posframe-parameters
         '((min-width . 80)
           (min-height . 15)
@@ -3118,10 +3127,7 @@ karabiner: shift for emacs-rime
 (use-package all-the-icons
   :demand t
   :if (display-graphic-p)
-  ;;  HACK: no need for everytime check
-  ;; :init (unless (or *sys/win32*
-  ;;                   (find-font (font-spec :name "all-the-icons")))
-  ;;         (all-the-icons-install-fonts t))
+  ;; :init (all-the-icons-install-fonts t)
   :config
   (defun all-the-icons-reset ()
     "Reset (unmemoize/memoize) the icons."
@@ -3973,7 +3979,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
   (setq project-find-functions '(project-try-vc my/project-try-local))
 
-  ;;  HACK: auto remember project
+  ;;  auto remember project
   (add-hook 'change-major-mode-hook (lambda ()
                                       (when (and (buffer-file-name)
                                                  (not (string-match-p "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:" (buffer-file-name)))
@@ -4932,14 +4938,6 @@ If prefix ARG, copy instead of move."
            "CANCELED(c)") ; Task was cancelled, aborted or is no longer applicable
           ))
 
-  ;; HACK: fix folded org headings
-  ;; https://github.com/minad/consult/issues/563#issuecomment-1186612641
-  (defun org-show-entry-consult-a (fn &rest args)
-    (when-let ((pos (apply fn args)))
-      (when (derived-mode-p 'org-mode)
-        (org-fold-show-entry))))
-  (advice-add 'consult-outline :around #'org-show-entry-consult-a)
-
   ;; https://emacs-china.org/t/topic/2119/15
   (defun my--diary-chinese-anniversary (lunar-month lunar-day &optional year mark)
     (require 'cal-china)
@@ -5122,7 +5120,7 @@ If prefix ARG, copy instead of move."
     (interactive)
     (when (derived-mode-p 'org-mode)
       (org-back-to-heading)
-      (when-let* ((close-time (org-entry-get (point) "CLOSED")) ;;  HACK: assume all DONE entries have CLOSED time
+      (when-let* ((close-time (org-entry-get (point) "CLOSED"))
                   (close-time (org-time-string-to-time close-time))
                   (close-time (decode-time close-time))
                   (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
@@ -5734,6 +5732,7 @@ begin and end of the block surrounding point."
     "b]" '(next-buffer :wk "Next buffer")
     "bb" '(switch-to-buffer :wk "Switch buffer")
     "bk" '(kill-current-buffer :wk "Kill buffer")
+    "bd" '((lambda () (interactive) (kill-current-buffer) (evil-quit)) :wk "Kill and close")
     "bq" '(evil-quit :wk "evil-quit")
     "bK" '(+my/kill-other-buffers :wk "Kill other buffers")
     "bs" '(basic-save-buffer :wk "Save buffer")
