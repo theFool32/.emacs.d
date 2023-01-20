@@ -2163,6 +2163,12 @@ It handles the case of remote files as well."
   ;; :hook (after-init . tab-bar-mode)
   :config
   (setq tab-bar-show nil))
+
+(use-package ace-window
+  :commands ace-window
+  :config
+  (set-face-attribute 'aw-leading-char-face nil :height 400)
+  )
 #+end_src
 ** Persp
 #+begin_src emacs-lisp
@@ -5781,17 +5787,17 @@ begin and end of the block surrounding point."
 
     "w" '(:wk "Window")
     ;; :sp
-    "wH" '(evil-window-split :wk "Split window vertically")
     "-" '(evil-window-split :wk "Split window vertically")
     ;; :vsp
-    "wv" '(evil-window-vsplit :wk "Split window horizontally")
     "\\" '(evil-window-vsplit :wk "Split window horizontally")
     "wj" '(evil-window-down :wk "Focus window down")
     "wk" '(evil-window-up :wk "Focus window up")
     "wh" '(evil-window-left :wk "Focus window left")
     "wl" '(evil-window-right :wk "Focus window right")
     "w=" '(balance-windows :wk "balance windows")
-    "wq" '(evil-quit :wk "close window")
+    "wu" '(winner-undo :wk "Undo window")
+    "wr" '(winner-redo :wk "Redo window")
+    "ws" '(ace-window :wk "Select window")
 
     "t" '(:wk "Toggle")
     "tl" '(toggle-truncate-lines :wk "Line wrap")
