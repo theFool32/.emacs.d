@@ -1124,25 +1124,6 @@ in some cases."
 #+end_src
 
 #+begin_src emacs-lisp
-(use-package color-rg
-  :commands (color-rg-search-input color-rg-search-project color-rg-search-symbol-in-project)
-  :straight (:host github :repo "manateelazycat/color-rg")
-  :if *rg*
-  :bind
-  (:map color-rg-mode-map
-        ("q" . +my/quit-color-rg))
-  :init
-  (setq color-rg-mac-load-path-from-shell nil)
-  :config
-  (fset 'color-rg-project-root-dir #'+my/project-root)
-  (evil-make-overriding-map color-rg-mode-map 'normal)
-  (add-hook 'color-rg-mode-hook #'evil-normalize-keymaps)
-  (defun +my/quit-color-rg ()
-    (interactive)
-    (kill-current-buffer)
-    (evil-quit))
-  )
-
 (defvar +lookup-definition-functions
   '(+lookup-xref-definitions-backend-fn
     +lookup-dumb-jump-backend-fn
@@ -5767,8 +5748,6 @@ begin and end of the block surrounding point."
     "sh" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
     "sd" '(devdocs-lookup-at-point :wk "Search devdocs")
     "sD" '(devdocs-search-at-point :wk "Search devdocs")
-    "sP" '(color-rg-search-project :wk "Color-rg Search project")
-    "sy" '(color-rg-search-symbol-in-project :wk "Color-rg Search symbol")
     "sg" '(+my/google-it :wk "Google")
 
     "c" '(:wk "Code")
