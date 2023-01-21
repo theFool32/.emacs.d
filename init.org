@@ -651,9 +651,6 @@ The original function deletes trailing whitespace of the current line."
   (add-hook 'emacs-lisp-mode-hook 'embrace-emacs-lisp-mode-hook)
   (add-hook 'c++-mode-hook '+evil-embrace-angle-bracket-modes-hook-h)
 
-  (with-eval-after-load 'evil-surround
-    (evil-embrace-enable-evil-surround-integration))
-
   (defun +evil-embrace-latex-mode-hook-h ()
     (embrace-add-pair-regexp ?l "\\[a-z]+{\" \"}" #'+evil--embrace-latex))
 
@@ -722,16 +719,6 @@ The original function deletes trailing whitespace of the current line."
   :config
   (evil-snipe-mode +1)
   (evil-snipe-override-mode +1))
-
-
-(use-package evil-surround
-  :after evil
-  :commands (global-evil-surround-mode
-             evil-surround-edit
-             evil-Surround-edit
-             evil-surround-region)
-  :config (global-evil-surround-mode 1))
-
 
 ;; for visualization like substitute
 (use-package evil-traces
@@ -1248,6 +1235,10 @@ in some cases."
    :map embark-file-map
    ("r" . +my/rename-file)
    ("d" . +my/delete-file)
+   :map embark-identifier-map
+   (";" . embrace-commander)
+   :map embark-region-map
+   (";" . embrace-commander)
    )
   :custom
   (embark-cycle-key ".")
@@ -1326,9 +1317,6 @@ targets."
 (use-package vertico
   :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory) :files (:defaults "extensions/vertico-*.el"))
   :hook (window-setup . vertico-mode)
-  :bind
-  (:map vertico-map
-        ("C-<return>" . open-in-external-app))
   :config
   (setq vertico-cycle nil
         vertico-preselect 'first)
@@ -1341,13 +1329,6 @@ targets."
       (add-text-properties (minibuffer-prompt-end) (point-max)
                            '(invisible t read-only t cursor-intangible t rear-nonsticky t))))
   (define-key vertico-map (kbd "S-SPC") #'+vertico-restrict-to-matches)
-
-  (defun open-in-external-app ()
-    (interactive)
-    (let ((candidate (vertico--candidate)))
-      (when (eq (+complete--get-meta 'category) 'file)
-        (shell-command (concat "open " candidate))
-        (abort-recursive-edit))))
 
   (defun +vertico/jump-list (jump)
     "Go to an entry in evil's (or better-jumper's) jumplist."
@@ -2257,43 +2238,11 @@ It handles the case of remote files as well."
   ;; Reuse same dired buffer, to prevent numerous buffers while navigating in dired
   (put 'dired-find-alternate-file 'disabled nil)
 
-  (defun xah-open-in-external-app (&optional @fname)
-    "Open the current file or dired marked files in external app.
-The app is chosen from your OS's preference.
-When called in emacs lisp, if @fname is given, open that.
-URL `http://ergoemacs.org/emacs/emacs_dired_open_file_in_ext_apps.html'
-Version 2019-11-04"
-    (interactive)
-    (let* (($file-list
-            (if @fname
-                (progn (list @fname))
-              (if (derived-mode-p major-mode 'dired-mode)
-                  (dired-get-marked-files)
-                (list (buffer-file-name)))))
-           ($do-it-p (if (<= (length $file-list) 5)
-                         t
-                       (y-or-n-p "Open more than 5 files? "))))
-      (when $do-it-p
-        (cond
-         ((string-equal system-type "darwin")
-          (mapc
-           (lambda ($fpath)
-             (message "%s" $fpath)
-             (shell-command
-              (concat "open " (shell-quote-argument $fpath))))
-           $file-list))
-         ((string-equal system-type "gnu/linux")
-          (mapc
-           (lambda ($fpath) (let ((process-connection-type nil))
-                              (start-process "" nil "xdg-open" $fpath)))
-           $file-list))))))
-
   (with-eval-after-load 'general
     (general-define-key :states '(normal)
                         :keymaps 'dired-mode-map
                         "l" 'dired-find-alternate-file
-                        "h"  'dired-up-directory
-                        "C-<return>" 'xah-open-in-external-app)
+                        "h"  'dired-up-directory)
     )
   )
 
@@ -2625,7 +2574,6 @@ kill all magit buffers for this repo."
   )
 
 (use-package wucuo
-  ;;  FIXME: flyspell mode will override C-; for embrace-commander
   :hook (LaTeX-mode . wucuo-mode)
   :config
   (setq ispell-program-name "aspell")
@@ -5698,7 +5646,6 @@ begin and end of the block surrounding point."
     "C-e" 'end-of-line)
 
   (general-def "<escape>" 'keyboard-quit)
-  (general-def "C-;" 'embrace-commander)
   (general-def "C-<tab>" 'tab-next)
 
   (leader-def
