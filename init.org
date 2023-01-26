@@ -56,7 +56,6 @@
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (custom-set-variables '(x-select-enable-clipboard t))
 
-
 ;; Automatically reread from disk if the underlying file changes
 (setq auto-revert-interval 3
       auto-revert-check-vc-info t)
@@ -1304,16 +1303,6 @@ targets."
   :ensure t ; only
   :after consult)
 
-(defun +complete--get-meta (setting)
-  "Get metadata SETTING from completion table."
-  (completion-metadata-get
-   (condition-case-unless-debug err
-       (completion-metadata (minibuffer-contents)
-                            minibuffer-completion-table
-                            minibuffer-completion-predicate)
-     (error (message (error-message-string err)) nil))
-   setting))
-
 (use-package vertico
   :straight (vertico :includes (vertico-quick vertico-repeat vertico-directory) :files (:defaults "extensions/vertico-*.el"))
   :hook (window-setup . vertico-mode)
@@ -1375,7 +1364,6 @@ targets."
         (goto-char (point-min))
         (forward-line (string-to-number line)))))
 
-  ;; Configure directory extension.
   (use-package vertico-quick
     :after vertico
     :ensure nil
@@ -1414,11 +1402,6 @@ targets."
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-
-  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
-  ;; Vertico commands are hidden in normal buffers.
-  ;; (setq read-extended-command-predicate
-  ;;       #'command-completion-default-include-p)
 
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t))
@@ -2210,6 +2193,7 @@ It handles the case of remote files as well."
 ** Dired
 #+begin_src emacs-lisp
 ;; DiredPackage
+;;  TODO: can we bring `quick look' in finder to dired?
 (use-package dired
   :after-call +my/first-input-hook-fun
   :straight nil
@@ -3024,9 +3008,12 @@ karabiner: shift for emacs-rime
 (setq-default frame-title-format '("EMACS" " - %b"))
 ;; -TitleBar
 
+
 ;; YorN
 (fset 'yes-or-no-p 'y-or-n-p)
 ;; -YorN
+
+(menu-bar-mode 0)
 
 ;; DisLineNum
 (add-hook 'text-mode-hook #'display-line-numbers-mode)
@@ -4909,12 +4896,8 @@ If prefix ARG, copy instead of move."
 
       "A" 'org-archive-subtree
       "e" 'org-export-dispatch
-      "f" 'org-footnote-new
-      "h" 'org-toggle-heading
-      "i" 'org-toggle-item
+      "f" 'org-set-property
       "I" 'org-toggle-inline-images
-      "n" 'org-store-link
-      "o" 'org-set-property
       "q" 'org-set-tags-command
       "t" 'org-todo
       "T" 'org-todo-list
@@ -5614,6 +5597,11 @@ begin and end of the block surrounding point."
     "r" '(tab-bar-rename-tab :wk "Rename")
     "d" '(tab-bar-close-tab :wk "Close")
     "s" '(tab-bar-select-tab-by-name :wk "Select")
+    "1" '((lambda () (interactive) (tab-bar-select-tab 1)) :wk "Select 1")
+    "2" '((lambda () (interactive) (tab-bar-select-tab 2)) :wk "Select 2")
+    "3" '((lambda () (interactive) (tab-bar-select-tab 3)) :wk "Select 3")
+    "4" '((lambda () (interactive) (tab-bar-select-tab 4)) :wk "Select 4")
+    "5" '((lambda () (interactive) (tab-bar-select-tab 5)) :wk "Select 5")
    )
 
   (general-create-definer leader-def
@@ -5637,6 +5625,7 @@ begin and end of the block surrounding point."
   ;; evil mode
   (general-def 'normal
     "/" '+my/consult-line
+    "?" '+my/consult-line-symbol-at-point
     "gd" 'xref-find-definitions
     "gr" 'xref-find-references)
 
@@ -5745,6 +5734,7 @@ begin and end of the block surrounding point."
     "wu" '(winner-undo :wk "Undo window")
     "wr" '(winner-redo :wk "Redo window")
     "ws" '(ace-window :wk "Select window")
+    "wo" '(delete-other-windows :wk "Maximize window")
 
     "t" '(:wk "Toggle")
     "tl" '(toggle-truncate-lines :wk "Line wrap")
