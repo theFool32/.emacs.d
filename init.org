@@ -3789,6 +3789,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (setq major-mode-remap-alist
         '((javascript-mode . js-ts-mode)
           (js-mode . js-ts-mode)
+          (yaml-mode . yaml-ts-mode)
           ;; (python-mode . python-ts-mode)
           (js-json-mode . json-ts-mode)
           (sh-mode . bash-ts-mode)))
@@ -4281,10 +4282,6 @@ Group number 1 should be the prefix itself."
         (TeX-view))))
 
   (setcar (cdr (assoc "Check" TeX-command-list)) "chktex -v6 -H %s")
-  ;; Enable word wrapping
-  (add-hook 'TeX-mode-hook #'visual-line-mode)
-  ;; Fold TeX macros
-  (add-hook 'TeX-mode-hook #'TeX-fold-mode)
 
   (local-leader-def
     :keymaps 'LaTeX-mode-map
@@ -5459,14 +5456,14 @@ Targets `vimmish-fold', `hideshow', `ts-fold' and `outline' folds."
   (interactive
    (list (if current-prefix-arg (prefix-numeric-value current-prefix-arg))))
   (save-excursion
-      (progn
-        (when (featurep 'vimish-fold)
-          (vimish-fold-refold-all))
-        (+fold--ensure-hideshow-mode)
-        (hs-life-goes-on
-         (if (integerp level)
-             (hs-hide-level-recursive (1- level) (point-min) (point-max))
-           (hs-hide-all))))))
+    (progn
+      (when (featurep 'vimish-fold)
+        (vimish-fold-refold-all))
+      (+fold--ensure-hideshow-mode)
+      (hs-life-goes-on
+       (if (integerp level)
+           (hs-hide-level-recursive (1- level) (point-min) (point-max))
+         (hs-hide-all))))))
 
 ;;;###autoload
 (defun +fold/next (count)
@@ -5584,7 +5581,11 @@ begin and end of the block surrounding point."
   :config
   (setq hs-special-modes-alist
         (append
-         '((latex-mode
+         '((yaml-ts-mode "\\s-*\\_<\\(?:[^:]+\\)\\_>"
+                      ""
+                      "#"
+                      +fold-hideshow-forward-block-by-indent-fn nil)
+           (latex-mode
             ;; LaTeX-find-matching-end needs to be inside the env
             ("\\\\begin{[a-zA-Z*]+}\\(\\)" 1)
             "\\\\end{[a-zA-Z*]+}"
@@ -5663,7 +5664,7 @@ begin and end of the block surrounding point."
     "/" 'evilnc-comment-or-uncomment-lines)
 
   (general-evil-define-key 'normal
-    '(python-mode-map LaTeX-mode-map emacs-lisp-mode-map)
+    '(python-mode-map LaTeX-mode-map emacs-lisp-mode-map yaml-ts-mode-map)
     "<tab>" '+fold/toggle)
 
   ;; evil mode
