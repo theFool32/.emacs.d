@@ -2808,6 +2808,19 @@ karabiner: shift for emacs-rime
     (evil-define-key 'insert vterm-mode-map (kbd "C-c") 'vterm-send-C-c)
     (evil-define-key 'normal vterm-mode-map (kbd "<escape>") 'vterm-send-escape)
 
+    (defun +my/smart-switch-to-vterm-tab ()
+      "Switch to vterm tab if exists, otherwise create a new vterm tab."
+      (interactive)
+      (let ((vterm-buffer-name "vterm-tab"))
+        (if (get-buffer vterm-buffer-name)
+            (progn
+              (tab-bar-select-tab-by-name "vterm")
+              (switch-to-buffer vterm-buffer-name))
+          (tab-new)
+          (tab-bar-rename-tab "vterm")
+          (call-interactively #'vterm)
+          (delete-other-windows))))
+
     (with-no-warnings
       (defvar vterm-posframe--frame nil)
 
@@ -2817,17 +2830,18 @@ karabiner: shift for emacs-rime
 
       (defun get-vterm-buffer ()
         "Return vterm buffer."
-        (let ((buffer (get-buffer "vterm")))
+        (let ((buffer (get-buffer "vterm-posframe")))
           (if buffer
               buffer
-            (vterm--internal #'ignore))))
+            (vterm--internal #'ignore "vterm-posframe"))))
 
       (defun vterm-posframe-toggle ()
         "Toggle `vterm' child frame."
         (interactive)
-        (let ((buffer (get-vterm-buffer))
-              (width  (max 80 (/ (frame-width) 2)))
-              (height (/ (frame-height) 2)))
+        (let* ((vterm-posframe-buffer-name "vterm-posframe")
+               (buffer (or (get-buffer vterm-posframe-buffer-name) (vterm--internal #'ignore vterm-posframe-buffer-name)))
+               (width  (max 80 (/ (frame-width) 2)))
+               (height (/ (frame-height) 2)))
           (if (and vterm-posframe--frame
                    (frame-live-p vterm-posframe--frame)
                    (frame-visible-p vterm-posframe--frame))
@@ -4750,6 +4764,7 @@ If prefix ARG, copy instead of move."
               ([tab] . org-cycle))
   :init
   (setq
+   org-src-window-setup 'current-window
    org-element--cache-self-verify nil
    org-element-use-cache nil
    org-src-preserve-indentation nil
@@ -5601,6 +5616,7 @@ begin and end of the block surrounding point."
     "r" '(tab-bar-rename-tab :wk "Rename")
     "d" '(tab-bar-close-tab :wk "Close")
     "s" '(tab-bar-select-tab-by-name :wk "Select")
+    "t" '(+my/smart-switch-to-vterm-tab :wk "Vterm")
     "1" '((lambda () (interactive) (tab-bar-select-tab 1)) :wk "Select 1")
     "2" '((lambda () (interactive) (tab-bar-select-tab 2)) :wk "Select 2")
     "3" '((lambda () (interactive) (tab-bar-select-tab 3)) :wk "Select 3")
