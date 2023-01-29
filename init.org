@@ -549,10 +549,10 @@ The original function deletes trailing whitespace of the current line."
          (word (replace-regexp-in-string "/" "\\\\/" word)))
     (evil-ex (concat "%s/" word "/" word))))
 
-(defun +my/open-in-osx-finder ()
-  (interactive)
-  (let* ((file (read-file-name "Open:" default-directory buffer-file-name))
-         (file (expand-file-name file))
+(defun +my/open-in-osx-finder (file)
+  "Open FILE in `Finder'"
+  (interactive "GFile: ")
+  (let* ((file (expand-file-name file))
          (script (concat
 	              "set thePath to POSIX file \"" file "\"\n"
 	              "tell application \"Finder\"\n"
@@ -560,6 +560,15 @@ The original function deletes trailing whitespace of the current line."
 	              " reveal thePath \n"
 	              "end tell\n")))
     (start-process "osascript-getinfo" nil "osascript" "-e" script)))
+
+(defun +my/quick-look (&optional file)
+  "Open FILE with quick look"
+  (interactive
+   (list
+    (if (derived-mode-p 'dired-mode)
+        (car (dired-get-marked-files))
+      (read-file-name "File:" default-directory buffer-file-name))))
+  (call-process-shell-command (concat "qlmanage -p " (expand-file-name file))))
 #+end_src
 * Evil
 #+begin_src emacs-lisp
@@ -1246,6 +1255,7 @@ in some cases."
    ("r" . +my/rename-file)
    ("d" . +my/delete-file)
    ("X" . +my/open-in-osx-finder)
+   ("SPC" . +my/quick-look)
    :map embark-identifier-map
    (";" . embrace-commander)
    :map embark-region-map
@@ -2237,8 +2247,9 @@ It handles the case of remote files as well."
   (with-eval-after-load 'general
     (general-define-key :states '(normal)
                         :keymaps 'dired-mode-map
+                        "'" '+my/quick-look
                         "l" 'dired-find-alternate-file
-                        "h"  'dired-up-directory)
+                        "h" 'dired-up-directory)
     )
   )
 
