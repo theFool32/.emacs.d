@@ -168,7 +168,6 @@
 #+end_src
 
 * Package Manager
-
 ** Use-package =after-call=
 #+begin_src emacs-lisp
 (defvar +use-package--deferred-pkgs '(t))
@@ -2234,11 +2233,6 @@ It handles the case of remote files as well."
 (use-package diredfl
   :hook (dired-mode . diredfl-mode))
 
-(use-package dired-git-info
-  :after dired
-  :config
-  (evil-define-key 'normal dired-mode-map ")" 'dired-git-info-mode))
-
 ;; Extra Dired functionality
 (use-package dired-x
   :straight nil
@@ -2249,9 +2243,6 @@ It handles the case of remote files as well."
                 "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*"))
   )
 
-(use-package dired-narrow
-  :after dired) ;; use `s' for fliter
-
 (use-package dirvish  ;; `(' for details.
   :straight (dirvish :type git :host github :repo "alexluigit/dirvish")
   :hook ((+my/first-input . dirvish-override-dired-mode)
@@ -2261,6 +2252,7 @@ It handles the case of remote files as well."
                                       "i" 'wdired-change-to-wdired-mode
                                       "q" 'dirvish-quit
                                       "." 'dired-omit-mode
+                                      "s" 'dirvish-narrow ;;use `revert-buffer' (gr) to restore
                                       (kbd "TAB") 'dirvish-subtree-toggle
                                       (kbd "M-s") 'dirvish-setup-menu
                                       (kbd "M-f") 'dirvish-toggle-fullscreen
@@ -2276,7 +2268,7 @@ It handles the case of remote files as well."
   :custom
   (dirvish-mode-line-format ; it's ok to place string inside
    '(:left (sort file-time " " file-size symlink) :right (omit yank index)))
-  (dirvish-attributes '(all-the-icons file-size))
+  (dirvish-attributes '(all-the-icons file-size vc-state git-msg))
   (dirvish-side-follow-buffer-file t)
   ;; (dirvish-enabled-features-on-remote '(extras vc))
   :config
@@ -3733,16 +3725,28 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :if (treesit-available-p)
   :straight (:type built-in)
   :init
+  ;; WORKAROUND: set source alist manually
   (setq treesit-language-source-alist
-        '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
-          (css . ("https://github.com/tree-sitter/tree-sitter-css"))
-          (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-          (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-          (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src"))
-          (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
-          ))
+        '((bash       . ("https://github.com/tree-sitter/tree-sitter-bash.git"))
+          (c          . ("https://github.com/tree-sitter/tree-sitter-c.git"))
+          (cmake      . ("https://github.com/uyha/tree-sitter-cmake.git"))
+          (cpp        . ("https://github.com/tree-sitter/tree-sitter-cpp.git"))
+          (csharp     . ("https://github.com/tree-sitter/tree-sitter-c-sharp.git"))
+          (css        . ("https://github.com/tree-sitter/tree-sitter-css.git"))
+          (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile.git"))
+          (go         . ("https://github.com/tree-sitter/tree-sitter-go.git"))
+          (gomod      . ("https://github.com/camdencheek/tree-sitter-go-mod.git"))
+          (html       . ("https://github.com/tree-sitter/tree-sitter-html.git"))
+          (java       . ("https://github.com/tree-sitter/tree-sitter-java.git"))
+          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript.git"))
+          (json       . ("https://github.com/tree-sitter/tree-sitter-json.git"))
+          (python     . ("https://github.com/tree-sitter/tree-sitter-python.git"))
+          (ruby       . ("https://github.com/tree-sitter/tree-sitter-ruby.git"))
+          (rust       . ("https://github.com/tree-sitter/tree-sitter-rust.git"))
+          (toml       . ("https://github.com/tree-sitter/tree-sitter-toml.git"))
+          (tsx        . ("https://github.com/tree-sitter/tree-sitter-typescript.git" nil "tsx/src"))
+          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript.git" nil "typescript/src"))
+          (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml.git"))))
   :config
   (setq major-mode-remap-alist
         '((javascript-mode . js-ts-mode)
