@@ -546,8 +546,20 @@ The original function deletes trailing whitespace of the current line."
                     (buffer-substring-no-properties (region-beginning) (region-end))
                   (thing-at-point 'symbol))))
   (let* ((word (replace-regexp-in-string "\\\\" "\\\\\\\\" word))
-        (word (replace-regexp-in-string "/" "\\\\/" word)))
+         (word (replace-regexp-in-string "/" "\\\\/" word)))
     (evil-ex (concat "%s/" word "/" word))))
+
+(defun +my/open-in-osx-finder ()
+  (interactive)
+  (let* ((file (read-file-name "Open:" default-directory buffer-file-name))
+         (file (expand-file-name file))
+         (script (concat
+	              "set thePath to POSIX file \"" file "\"\n"
+	              "tell application \"Finder\"\n"
+	              " set frontmost to true\n"
+	              " reveal thePath \n"
+	              "end tell\n")))
+    (start-process "osascript-getinfo" nil "osascript" "-e" script)))
 #+end_src
 * Evil
 #+begin_src emacs-lisp
@@ -1233,6 +1245,7 @@ in some cases."
    :map embark-file-map
    ("r" . +my/rename-file)
    ("d" . +my/delete-file)
+   ("X" . +my/open-in-osx-finder)
    :map embark-identifier-map
    (";" . embrace-commander)
    :map embark-region-map
@@ -2798,7 +2811,7 @@ karabiner: shift for emacs-rime
            (executable-find "libtool")
            (executable-find "make"))
   (use-package vterm
-    :commands (vterm--internal vterm-posframe-toggle)
+    :commands (vterm--internal vterm-posframe-toggle +my/smart-switch-to-vterm-tab)
     :init
     (setq vterm-always-compile-module t)
     (setq vterm-shell "tmux")
