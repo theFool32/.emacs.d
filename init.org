@@ -628,28 +628,6 @@ The original function deletes trailing whitespace of the current line."
   :commands (embrace-add-pair embrace-add-pair-regexp)
   :config
 ;;;###autoload
-  (defun +evil--embrace-get-pair (char)
-    (if-let* ((pair (cdr-safe (assoc (string-to-char char) evil-surround-pairs-alist))))
-        pair
-      (if-let* ((pair (assoc-default char embrace--pairs-list)))
-          (if-let* ((real-pair (and (functionp (embrace-pair-struct-read-function pair))
-                                    (funcall (embrace-pair-struct-read-function pair)))))
-              real-pair
-            (cons (embrace-pair-struct-left pair) (embrace-pair-struct-right pair)))
-        (cons char char))))
-
-;;;###autoload
-  (defun +evil--embrace-escaped ()
-    "Backslash-escaped surround character support for embrace."
-    (let ((char (read-char "\\")))
-      (if (eq char 27)
-          (cons "" "")
-        (let ((pair (+evil--embrace-get-pair (string char)))
-              (text (if (sp-point-in-string) "\\\\%s" "\\%s")))
-          (cons (format text (car pair))
-                (format text (cdr pair)))))))
-
-;;;###autoload
   (defun +evil--embrace-latex ()
     "LaTeX command support for embrace."
     (cons (format "\\%s{" (read-string "\\")) "}"))
@@ -722,28 +700,10 @@ The original function deletes trailing whitespace of the current line."
              evilnc-outer-commenter
              evilnc-comment-or-uncomment-lines))
 
-
-;; for search
-;; key: f
-(use-package evil-snipe
-  :commands (evil-snipe-mode
-             evil-snipe-override-mode
-             evil-snipe-local-mode
-             evil-snipe-override-local-mode)
-  :init
-  (setq evil-snipe-smart-case t
-        evil-snipe-scope 'line
-        evil-snipe-repeat-scope 'visible
-        evil-snipe-char-fold t)
-  :config
-  (evil-snipe-mode +1)
-  (evil-snipe-override-mode +1))
-
 ;; for visualization like substitute
 (use-package evil-traces
   :after evil-ex
   :hook (+my/first-input . evil-traces-mode))
-
 
 ;; Allows you to use the selection for * and #
 (use-package evil-visualstar
@@ -3676,10 +3636,11 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
       (when (derived-mode-p 'emacs-lisp-mode)
         (setq pqs (butlast pqs)))
       (dolist (p pqs)
-        (ignore-errors
-          (if (member p parens)
-              (setq range (evil-select-paren (aref p 0) (aref p 1) beg end type count inclusive))
-            (setq range (evil-select-quote (aref p 0) beg end type count))))
+        (save-excursion
+          (ignore-errors
+            (if (member p parens)
+                (setq range (evil-select-paren (aref p 0) (aref p 1) beg end type count inclusive))
+              (setq range (evil-select-quote (aref p 0) beg end type count)))))
         (when (and range
                    (<= (nth 0 range) cur_point)
                    (>= (nth 1 range) cur_point))
