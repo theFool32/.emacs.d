@@ -3216,12 +3216,14 @@ karabiner: shift for emacs-rime
   (ef-themes-select 'ef-trio-light)
   :config
   (with-eval-after-load 'org
+    ;; (custom-set-faces '(org-done ((t (:foreground "gray")))))
     (setq org-todo-keyword-faces
           `(("TODO" . (:foreground ,(ef-themes-with-colors red-cooler) :weight bold))
             ("INPROCESS"  . ,(ef-themes-with-colors yellow-warmer))
             ("PROJ"  . ,(ef-themes-with-colors cyan-cooler))
-            ("WAITING" . ,(ef-themes-with-colors green-faint))
-            ("DONE" . (:foreground ,(ef-themes-with-colors fg-alt) :strike-through t))
+            ("WAITING" . ,(ef-themes-with-colors fg-dim))
+            ;; ("DONE" . (:foreground ,(ef-themes-with-colors fg-alt) :strike-through t))
+            ("DONE" . (:foreground "gray" :strike-through t))
             ("CANCELED" . (:foreground ,(ef-themes-with-colors fg-dim) :weight bold :strike-through t))))
     )
   )
@@ -4824,8 +4826,8 @@ If prefix ARG, copy instead of move."
   (add-hook 'org-capture-mode-hook #'evil-insert-state)
 
   (custom-set-faces
-   '(org-done ((t (:strike-through t))))
-   '(org-headline-done ((t (:strike-through t)))))
+   '(org-done ((t (:strike-through t :foreground "gray"))))
+   '(org-headline-done ((t (:strike-through t :foreground "gray")))))
 
   (defface org-checkbox-done-text
     '((t (:strike-through t)))
