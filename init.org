@@ -204,7 +204,8 @@ REST and STATE."
          (nconc (assq ',name +use-package--deferred-pkgs)
                 '(,@hooks)))
        (use-package-process-keywords name rest state)))))
-(require 'use-package-core)
+;; (require 'use-package-core)
+(require 'use-package)
 (push :after-call use-package-deferring-keywords)
 (setq use-package-keywords (use-package-list-insert :after-call use-package-keywords :after))
 (defalias 'use-package-normalize/:after-call #'use-package-normalize-symlist)
@@ -568,7 +569,7 @@ The original function deletes trailing whitespace of the current line."
     (if (derived-mode-p 'dired-mode)
         (car (dired-get-marked-files))
       (read-file-name "File:" default-directory buffer-file-name))))
-  (call-process-shell-command (concat "qlmanage -p " (expand-file-name file))))
+  (call-process-shell-command (concat "qlmanage -p \"" (expand-file-name file) "\"")))
 #+end_src
 * Evil
 #+begin_src emacs-lisp
@@ -2975,6 +2976,18 @@ karabiner: shift for emacs-rime
   (general-define-key :states '(normal)
                       :keymaps 'mu4e-main-mode-map
                       "o" #'open-mail-in-browser)
+  )
+#+end_src
+** PDF-Tools
+#+begin_src emacs-lisp
+(use-package pdf-tools
+  :mode (("\\.pdf\\'" . pdf-view-mode))
+  :hook (dired-mode . pdf-tools-install)
+  :config
+  ;; (pdf-tools-install)
+  (setq-default pdf-view-display-size 'fit-page)
+  (setq pdf-annot-activate-created-annotations t) ; automatically annotate highlights
+  (setq pdf-view-resize-factor 1.1) ; more fine-grained zooming
   )
 #+end_src
 * UI
@@ -5589,6 +5602,7 @@ begin and end of the block surrounding point."
 ;; Leader def
 (use-package general
   :after evil
+  :demand t
   :config
   (general-create-definer tab-def
     :states '(normal visual emacs motion)
