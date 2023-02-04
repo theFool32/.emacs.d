@@ -1169,23 +1169,6 @@ in some cases."
   :commands (avy-goto-char avy-goto-line))
 
 (use-package wgrep)
-
-(use-package jieba
-  ;;  FIXME: used only for thesis
-  :delight
-  :after (evil)
-  :straight (:host github :repo "mkvoya/jieba.el" :files ("*"))
-  :init  ; We need to enable jieba during init so that it can construct the jieba in background, rather than when autoloading the functions.
-  (jieba-mode)
-  (defun mk/forward-word()
-    "mk's better forward-word."
-    (interactive)
-    (let ((char (char-after)))
-      (if (memq char (string-to-list " \n\r\\"))
-          (re-search-forward "\\\s+")
-        (jieba-forward-word))))
-  (define-key evil-motion-state-map (kbd "w") #'mk/forward-word)
-  (define-key evil-motion-state-map (kbd "b") #'jieba-backward-word))
 #+end_src
 
 * Completion
@@ -1406,7 +1389,7 @@ targets."
          )
   :init
   :config
-  (setq consult-preview-key (kbd "M-."))
+  (setq consult-preview-key "M-.")
   (setq consult-narrow-key "<")
 
   (setq xref-show-xrefs-function #'consult-xref
@@ -1428,8 +1411,6 @@ targets."
                                                      (?M "Module"  font-lock-type-face)
                                                      (?v "Variable"  font-lock-variable-name-face))))
     )
-
-  (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-project-recent-file))
 
   (defun +my/consult-set-evil-search-pattern (&optional condition)
     (let ((re
@@ -1532,7 +1513,17 @@ targets."
             )
       (propertize short-name 'multi-category `(file . ,file))))
 
-  (plist-put consult--source-project-recent-file :items #'vmacs-consult--source-recentf-items)
+  (defvar recentf-source
+    `(:name     "Recent"
+                :narrow   ?r
+                :face     consult-file
+                :category file
+                :state    ,#'consult--file-state
+                :hidden   t
+                :items    vmacs-consult--source-recentf-items))
+
+  (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer recentf-source))
+
   (advice-add 'marginalia--annotate-local-file :override
               (defun marginalia--annotate-local-file-advice (cand)
                 (marginalia--fields
@@ -2240,6 +2231,7 @@ It handles the case of remote files as well."
                                       "s" 'dirvish-narrow ;;use `revert-buffer' (gr) to restore
                                       (kbd "TAB") 'dirvish-subtree-toggle
                                       (kbd "M-s") 'dirvish-setup-menu
+                                      (kbd "M-t") 'dirvish-layout-toggle
                                       (kbd "M-f") 'dirvish-toggle-fullscreen
                                       "*"   'dirvish-mark-menu
                                       "f"   'dirvish-file-info-menu
@@ -2258,6 +2250,8 @@ It handles the case of remote files as well."
   ;; (dirvish-enabled-features-on-remote '(extras vc))
   :config
   (set-face-attribute 'ansi-color-blue nil :foreground "#FFFFFF")
+  (setq dirvish-open-with-programs
+        '((("doc" "docx" "odt" "ods" "xls" "rtf" "xlsx" "odp" "ppt" "pptx" "pdf") . ("open" "%f"))))
   (setq dired-recursive-deletes 'always)
   (setq delete-by-moving-to-trash t)
   (setq dired-dwim-target t)
@@ -3743,33 +3737,18 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (setq treesit-language-source-alist
         '((bash       . ("https://github.com/tree-sitter/tree-sitter-bash.git"))
           (c          . ("https://github.com/tree-sitter/tree-sitter-c.git"))
-          (cmake      . ("https://github.com/uyha/tree-sitter-cmake.git"))
-          (cpp        . ("https://github.com/tree-sitter/tree-sitter-cpp.git"))
-          (csharp     . ("https://github.com/tree-sitter/tree-sitter-c-sharp.git"))
-          (css        . ("https://github.com/tree-sitter/tree-sitter-css.git"))
-          (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile.git"))
-          (go         . ("https://github.com/tree-sitter/tree-sitter-go.git"))
-          (gomod      . ("https://github.com/camdencheek/tree-sitter-go-mod.git"))
-          (html       . ("https://github.com/tree-sitter/tree-sitter-html.git"))
-          (java       . ("https://github.com/tree-sitter/tree-sitter-java.git"))
-          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript.git"))
           (json       . ("https://github.com/tree-sitter/tree-sitter-json.git"))
           (python     . ("https://github.com/tree-sitter/tree-sitter-python.git"))
-          (ruby       . ("https://github.com/tree-sitter/tree-sitter-ruby.git"))
-          (rust       . ("https://github.com/tree-sitter/tree-sitter-rust.git"))
           (toml       . ("https://github.com/tree-sitter/tree-sitter-toml.git"))
-          (tsx        . ("https://github.com/tree-sitter/tree-sitter-typescript.git" nil "tsx/src"))
-          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript.git" nil "typescript/src"))
           (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml.git"))))
   :config
   (setq major-mode-remap-alist
-        '((javascript-mode . js-ts-mode)
-          (js-mode . js-ts-mode)
-          (yaml-mode . yaml-ts-mode)
+        '((yaml-mode . yaml-ts-mode)
           ;; (python-mode . python-ts-mode)
           (js-json-mode . json-ts-mode)
           (sh-mode . bash-ts-mode)))
-  )
+  (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
+)
 #+end_src
 ** LSP
 #+begin_src emacs-lisp
