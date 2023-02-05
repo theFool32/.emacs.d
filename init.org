@@ -628,45 +628,9 @@ The original function deletes trailing whitespace of the current line."
   :after evil
   :commands (embrace-add-pair embrace-add-pair-regexp)
   :config
-;;;###autoload
-  (defun +evil--embrace-latex ()
-    "LaTeX command support for embrace."
-    (cons (format "\\%s{" (read-string "\\")) "}"))
-
-;;;###autoload
-  (defun +evil--embrace-elisp-fn ()
-    "Elisp function support for embrace."
-    (cons (format "(%s " (or (read-string "(") "")) ")"))
-
-;;;###autoload
-  (defun +evil--embrace-angle-brackets ()
-    "Type/generic angle brackets."
-    (cons (format "%s<" (or (read-string "") ""))
-          ">"))
-
   (add-hook 'LaTeX-mode-hook 'embrace-LaTeX-mode-hook)
   (add-hook 'org-mode-hook 'embrace-org-mode-hook)
   (add-hook 'emacs-lisp-mode-hook 'embrace-emacs-lisp-mode-hook)
-  (add-hook 'c++-mode-hook '+evil-embrace-angle-bracket-modes-hook-h)
-
-  (defun +evil-embrace-latex-mode-hook-h ()
-    (embrace-add-pair-regexp ?l "\\[a-z]+{\" \"}" #'+evil--embrace-latex))
-
-  (defun +evil-embrace-lisp-mode-hook-h ()
-    ;; Avoid `embrace-add-pair-regexp' because it would overwrite the default
-    ;; `f' rule, which we want for other modes
-    (push (cons ?f (make-embrace-pair-struct
-                    :key ?f
-                    :read-function #'+evil--embrace-elisp-fn
-                    :left-regexp "([^ ]+ \"
-                    :right-regexp \")"))
-          embrace--pairs-list))
-
-  (defun +evil-embrace-angle-bracket-modes-hook-h ()
-    (let ((var (make-local-variable 'evil-embrace-evil-surround-keys)))
-      (set var (delq ?< evil-embrace-evil-surround-keys))
-      (set var (delq ?> evil-embrace-evil-surround-keys)))
-    (embrace-add-pair ?> "<" ">"))
 
   ;; Add escaped-sequence support to embrace
   (setf (alist-get ?\\ (default-value 'embrace--pairs-list))
@@ -973,18 +937,6 @@ This backend prefers \"just working\" over accuracy."
   (when identifier
     (+consult-ripgrep-at-point (+my/project-root) identifier)
     t))
-
-(defun +lookup-evil-goto-definition-backend-fn (_identifier)
-  "Uses `evil-goto-definition' to conduct a text search for IDENTIFIER in the
-current buffer."
-  (when (fboundp 'evil-goto-definition)
-    (ignore-errors
-      (cl-destructuring-bind (beg . end)
-          (bounds-of-thing-at-point 'symbol)
-        (evil-goto-definition)
-        (let ((pt (point)))
-          (not (and (>= pt beg)
-                    (<  pt end))))))))
 
 (defun +lookup-ffap-backend-fn (identifier)
   (require 'ffap)
@@ -1519,7 +1471,7 @@ targets."
                 :face     consult-file
                 :category file
                 :state    ,#'consult--file-state
-                :hidden   t
+                :hidden   nil
                 :items    vmacs-consult--source-recentf-items))
 
   (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer recentf-source))
@@ -1935,10 +1887,6 @@ Quit if no candidate is selected."
     (when (derived-mode-p 'latex-mode) ;;  HACK: reftex not working in latex-mode
       (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion)))
 
-  (defun my/set-text-capf ()
-    (setq-local completion-at-point-functions (append completion-at-point-functions
-                                                      '(capf-english-helper-search))))
-
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file))
 
@@ -2167,7 +2115,6 @@ It handles the case of remote files as well."
 ** Dired
 #+begin_src emacs-lisp
 ;; DiredPackage
-;;  TODO: can we bring `quick look' in finder to dired?
 (use-package dired
   :after-call +my/first-input-hook-fun
   :straight nil
@@ -2807,13 +2754,6 @@ karabiner: shift for emacs-rime
         "Hidehandler used by `vterm-posframe-toggle'."
         (not (eq (selected-frame) posframe--frame)))
 
-      (defun get-vterm-buffer ()
-        "Return vterm buffer."
-        (let ((buffer (get-buffer "vterm-posframe")))
-          (if buffer
-              buffer
-            (vterm--internal #'ignore "vterm-posframe"))))
-
       (defun vterm-posframe-toggle ()
         "Toggle `vterm' child frame."
         (interactive)
@@ -3358,17 +3298,6 @@ Pretty symbols can be unset for emacs-lisp-mode with:
 This should not contain any symbols from the Unicode Private Area! There is no
 universal way of getting the correct symbol as that area varies from font to
 font.")
-
-(defun +pretty-code--correct-symbol-bounds (ligature-alist)
-  "Prepend non-breaking spaces to a ligature.
-This way `compose-region' (called by `prettify-symbols-mode') will use the
-correct width of the symbols instead of the width measured by `char-width'."
-  (let ((len (length (car ligature-alist)))
-        (acc (list   (cdr ligature-alist))))
-    (while (> len 1)
-      (setq acc (cons #X00a0 (cons '(Br . Bl) acc))
-            len (1- len)))
-    (cons (car ligature-alist) acc)))
 
 (defvar +pretty-code-enabled-modes '(org-mode)
   "List of major modes in which `prettify-symbols-mode' should be enabled.
@@ -4294,24 +4223,6 @@ re-align the table if necessary. (Necessary because org-mode has a
     (when (org-looking-at-p " ")
       (forward-char))))
 
-
-;;
-;;; Row/Column insertion
-
-;;;###autoload
-(defun +org/table-insert-column-left ()
-  "Insert a new column left of the current column."
-  (interactive)
-  (org-table-insert-column)
-  (org-table-move-column-left))
-
-;;;###autoload
-(defun +org/table-insert-row-below ()
-  "Insert a new row below the current row."
-  (interactive)
-  (org-table-insert-row 'below))
-
-
 ;;
 ;;; Hooks
 
@@ -4324,15 +4235,6 @@ re-align the table if necessary. (Necessary because org-mode has a
       ;; (org-table-recalculate)
       (if org-table-may-need-update (org-table-align))
       (goto-char pt))))
-
-;;;###autoload
-(defun +org-enable-auto-reformat-tables-h ()
-  "Realign tables & update formulas when exiting insert mode (`evil-mode').
-Meant for `org-mode-hook'."
-  (when (featurep 'evil)
-    (add-hook 'evil-insert-state-exit-hook #'+org-realign-table-maybe-h nil t)
-    (add-hook 'evil-replace-state-exit-hook #'+org-realign-table-maybe-h nil t)
-    (advice-add #'evil-replace :after #'+org-realign-table-maybe-a)))
 
 ;;
 ;;; Advice
@@ -4554,12 +4456,6 @@ If on a:
   "Inserts a new heading, table cell or item below the current one."
   (interactive "p")
   (dotimes (_ count) (+org--insert-item 'below)))
-
-;;;###autoload
-(defun +org/insert-item-above (count)
-  "Inserts a new heading, table cell or item above the current one."
-  (interactive "p")
-  (dotimes (_ count) (+org--insert-item 'above)))
 
 ;;
 ;;; Hooks
@@ -5455,11 +5351,6 @@ Targets `vimmish-fold', `hideshow', `ts-fold' and `outline' folds."
   :group 'doom-themes)
 
 ;;;###autoload
-(defun +fold-hideshow-haml-forward-sexp-fn (arg)
-  (haml-forward-sexp arg)
-  (move-beginning-of-line 1))
-
-;;;###autoload
 (defun +fold-hideshow-forward-block-by-indent-fn (_arg)
   (let ((start (current-indentation)))
     (forward-line)
@@ -5467,20 +5358,6 @@ Targets `vimmish-fold', `hideshow', `ts-fold' and `outline' folds."
       (let ((range (+fold-hideshow-indent-range)))
         (goto-char (cadr range))
         (end-of-line)))))
-
-;;;###autoload
-(defun +fold-hideshow-set-up-overlay-fn (ov)
-  (when (eq 'code (overlay-get ov 'hs))
-    (when (featurep 'vimish-fold)
-      (overlay-put
-       ov 'before-string
-       (propertize "…" 'display
-                   (list vimish-fold-indication-mode
-                         'empty-line
-                         'vimish-fold-fringe))))
-    (overlay-put
-     ov 'display (propertize "  [...]  " 'face '+fold-hideshow-folded-face))))
-
 
 ;;
 ;;; Indentation detection
