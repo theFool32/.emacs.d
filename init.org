@@ -691,7 +691,7 @@ The original function deletes trailing whitespace of the current line."
   (setq evil-want-keybinding nil)
   :config
   ;;  TODO: init when loading specific package
-  (let ((modes '(atomic-chrome calc calendar consult devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine gnus grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section magit-todos markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler python reftex replace rtags sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread tide timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired wgrep which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
+  (let ((modes '(atomic-chrome calc calendar consult debug devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section magit-todos markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler replace sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired wgrep which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
     (evil-collection-init modes))
   )
 
@@ -1122,7 +1122,11 @@ in some cases."
 
   :commands (avy-goto-char avy-goto-line))
 
-(use-package wgrep)
+(use-package wgrep
+  :demand t
+  :after evil
+  :config
+  (evil-set-initial-state 'grep-mode 'normal))
 #+end_src
 
 * Completion
@@ -1147,7 +1151,7 @@ in some cases."
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("M-." . embark-dwim)
-   ("C-/" . embark-export)
+   ("C-/" . embark-export) ;; BUG: not work for the fisrt two rows in `consult-ripgrep`, maybe `wgrep` use the first 4 lines as header
    ("C-h B" . embark-bindings) ;; alternative for `describe-bindings'
    :map embark-file-map
    ("r" . +my/rename-file)
@@ -1220,7 +1224,7 @@ targets."
 
 
 (use-package embark-consult
-  :ensure t ; only
+  :demand t
   :after consult)
 
 (use-package vertico
@@ -1524,7 +1528,7 @@ targets."
 
 
 (use-package orderless
-  :after-call +my/first-input-hook-fun
+  :after-call window-setup-hook
   :config
   (defvar +orderless-dispatch-alist
     '((?% . char-fold-to-regexp)
@@ -1594,7 +1598,6 @@ targets."
 (use-package vertico-posframe
   :hook (vertico-mode . vertico-posframe-mode)
   :init
-  ;;  BUG: weird behavior on the first time
   (setq vertico-posframe-parameters
         '((min-width . 80)
           (min-height . 15)
@@ -2177,7 +2180,7 @@ It handles the case of remote files as well."
                                       "." 'dired-omit-mode
                                       "s" 'dirvish-narrow ;;use `revert-buffer' (gr) to restore
                                       (kbd "TAB") 'dirvish-subtree-toggle
-                                      (kbd "M-s") 'dirvish-setup-menu
+                                      (kbd "M-m") 'dirvish-setup-menu
                                       (kbd "M-t") 'dirvish-layout-toggle
                                       (kbd "M-f") 'dirvish-toggle-fullscreen
                                       "*"   'dirvish-mark-menu
@@ -3092,39 +3095,22 @@ karabiner: shift for emacs-rime
           tabulated-list-mode
           Buffer-menu-mode
 
-          gnus-article-mode devdocs-mode
-          grep-mode rg-mode deadgrep-mode ag-mode pt-mode
+          devdocs-mode
           ;; occur-mode
           ivy-occur-mode ivy-occur-grep-mode
-          process-menu-mode list-environment-mode cargo-process-mode
-          youdao-dictionary-mode osx-dictionary-mode fanyi-mode
+          process-menu-mode list-environment-mode
+          youdao-dictionary-mode multi-translate-mode
 
-          "^\\*eshell.*\\*$" eshell-mode
-          "^\\*shell.*\\*$"  shell-mode
-          "^\\*term.*\\*$"   term-mode
-
-          "\\*DAP Templates\\*$" dap-server-log-mode
           "\\*ELP Profiling Restuls\\*" profiler-report-mode
-          "\\*Flycheck errors\\*$" " \\*Flycheck checker\\*$"
-          "\\*Paradox Report\\*$" "\\*package update results\\*$" "\\*Package-Lint\\*$"
           "\\*[Wo]*Man.*\\*$"
-          "\\*ert\\*$" overseer-buffer-mode
           "\\*gud-debug\\*$"
-          "\\*lspce-hover\\*"
           "\\*lsp-help\\*$" "\\*lsp session\\*$"
-          "\\*quickrun\\*$"
-          "\\*tldr\\*$"
           "\\*vc-.*\\*$"
-          "^\\*elfeed-entry\\*$"
           "^\\*macro expansion\\**"
           "\\*Flymake diagnostics .*\\*$"
 
           ;; "\\*Org Select\\*" "\\*Capture\\*" "^CAPTURE-.*\\.org*"
-          "\\*Gofmt Errors\\*$" "\\*Go Test\\*$" godoc-mode
-          "\\*docker-containers\\*" "\\*docker-images\\*" "\\*docker-networks\\*" "\\*docker-volumes\\*"
-          "\\*prolog\\*" inferior-python-mode inf-ruby-mode swift-repl-mode
-          "\\*rustfmt\\*$" rustic-compilation-mode rustic-cargo-clippy-mode
-          rustic-cargo-outdated-mode rustic-cargo-test-moed))
+          ))
 
   (setq popper-echo-dispatch-actions t)
   :config
