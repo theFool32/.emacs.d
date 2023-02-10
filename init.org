@@ -2022,7 +2022,7 @@ It handles the case of remote files as well."
   (add-to-list 'super-save-triggers 'switch-window)
   (add-to-list 'super-save-triggers 'switch-to-buffer)
   (setq super-save-exclude '(".gpg"))
-  (setq super-save-idle-duration 3)
+  (setq super-save-idle-duration 1)
   (setq save-silently t)
   (setq super-save-auto-save-when-idle t)
   (super-save-mode 1)
@@ -5498,8 +5498,8 @@ begin and end of the block surrounding point."
     "C-a" 'beginning-of-line
     "C-e" 'end-of-line)
 
-  (general-def 'insert
-    "C-o" 'evil-normal-state)
+  ;; (general-def 'insert
+  ;;   "C-o" 'evil-normal-state)
 
   (general-def "<escape>" 'keyboard-quit)
   (general-def "C-<tab>" 'tab-next)
