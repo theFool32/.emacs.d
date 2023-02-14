@@ -5534,7 +5534,7 @@ begin and end of the block surrounding point."
     "fs" '(+my/save-file :wk "Save file")
     "fd" '(dired-jump :wk "Current directory")
     "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.org")) :wk "init.org")
-    "fo" '((lambda() (interactive)(find-file (completing-read "Open org files:" +org-files))) :wk "Org files")
+    "fo" '((lambda() (interactive) (find-file (concat +self/org-base-dir (completing-read "Open org files:" (mapcar (lambda (f) (file-name-nondirectory f)) +org-files))))) :wk "Org files")
     "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
     "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
 
