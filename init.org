@@ -712,6 +712,8 @@ The original function deletes trailing whitespace of the current line."
   )
 
 (use-package evil-textobj-tree-sitter
+  ;;  TODO: waiting for support for `treesit'
+  :disabled
   :after (tree-sitter evil)
   :straight (evil-textobj-tree-sitter :type git :host github :repo "meain/evil-textobj-tree-sitter" :files (:defaults "queries"))
   :config
@@ -1151,7 +1153,7 @@ in some cases."
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("M-." . embark-dwim)
-   ("C-/" . embark-export) ;; BUG: not work for the fisrt two rows in `consult-ripgrep`, maybe `wgrep` use the first 4 lines as header
+   ("C-/" . embark-export)
    ("C-h B" . embark-bindings) ;; alternative for `describe-bindings'
    :map embark-file-map
    ("r" . +my/rename-file)
@@ -3634,16 +3636,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 #+end_src
 ** Tree sitter
 #+begin_src emacs-lisp
-(use-package tree-sitter
-  :defer t
-  :commands tree-sitter-hl-mode
-  :hook ((python-mode) . tree-sitter-hl-mode))
-
-(use-package tree-sitter-langs
-  :defer t
-  :after tree-sitter)
-
-;;  TODO: replace `tree-sitter'
 (use-package treesit
   :if (treesit-available-p)
   :straight (:type built-in)
@@ -3659,7 +3651,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :config
   (setq major-mode-remap-alist
         '((yaml-mode . yaml-ts-mode)
-          ;; (python-mode . python-ts-mode)
+          (python-mode . python-ts-mode)
           (js-json-mode . json-ts-mode)
           (sh-mode . bash-ts-mode)))
   (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
