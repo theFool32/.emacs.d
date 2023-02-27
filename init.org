@@ -756,54 +756,12 @@ REST and STATE."
 * Search
 ** English
 #+begin_src emacs-lisp
-(use-package youdao-dictionary
-  :commands youdao-dictionary-play-voice-of-current-word
-  :init
-  (setq url-automatic-caching t
-        youdao-dictionary-use-chinese-word-segmentation t) ; 中文分词
-
-  (defun +my/youdao-search-at-point ()
-    "Search word at point and display result with `posframe', `pos-tip', or buffer."
-    (interactive)
-    (if (display-graphic-p)
-        (youdao-dictionary-search-at-point-posframe)
-      (youdao-dictionary-search-at-point))))
-
 (use-package multi-translate
   :straight (:host github :repo "twlz0ne/multi-translate.el")
   :commands (multi-translate multi-translate-at-point multi-translate-yank-at-point)
   :custom
   (multi-translate-sentence-backends '(google))
   (multi-translate-word-backends '(bing youdao))
-  :config
-  (defun multi-translate-yank-at-point (arg)
-    ;;  FIXME: for thesis
-    "Used temporarily for thesis"
-    (interactive "P")
-    (let* ((bounds (if (region-active-p)
-                       (cons (region-beginning) (region-end))
-                     (bounds-of-thing-at-point 'word)))
-           (text (string-trim (buffer-substring-no-properties (car bounds) (cdr bounds)))))
-      (kill-new (multi-translate--google-translation "en" "zh-CN" text))
-      (evil-normal-state)
-      (message "Translate Done")))
-
-  (defun multi-translate-yank-at-point-and-paste-to-right (arg)
-    ;;  FIXME: for thesis
-    "Used temporarily for thesis"
-    (interactive "P")
-    (let* ((bounds (if (region-active-p)
-                       (cons (region-beginning) (region-end))
-                     (bounds-of-thing-at-point 'word)))
-           (text (string-trim (buffer-substring-no-properties (car bounds) (cdr bounds)))))
-      (kill-new (multi-translate--google-translation "en" "zh-CN" text))
-      (evil-normal-state)
-      (evil-window-right 1)
-      (end-of-buffer)
-      (evil-paste-after 1)
-      (evil-window-left 1)
-      (message "Translate Done")))
-
   )
 #+end_src
 ** Look up
@@ -5534,8 +5492,8 @@ begin and end of the block surrounding point."
 
     "o" '(:wk "Open")
     "om" '((lambda () (interactive) (mu4e)) :wk "Mail")
-    "oy" '(+my/youdao-search-at-point :wk "Youdao")
-    "oY" '(youdao-dictionary-search-from-input :wk "Youdao from input")
+    "oy" '(multi-translate-at-point :wk "Translate at point")
+    "oY" '(multi-translate :wk "Translate")
     "oe" '((lambda() (interactive)(if (get-buffer "vterm") (switch-to-buffer "vterm") (call-interactively #'vterm))) :wk "Shell")
     "ov" '(vterm-other-window :wk "Shell in window")
     "ot" '(org-todo-list :wk "Org Todo")
@@ -5549,8 +5507,6 @@ begin and end of the block surrounding point."
     "oo" '((lambda () (interactive)(org-clock-out) (org-save-all-org-buffers)) :wk "Clock out")
     "op" '(org-pomodoro :wk "Pomodoro")
     "ou" '(browse-url :wk "Url")
-    "y" '(multi-translate-yank-at-point :wk "Yank translate") ;;  FIXME: for thesis
-    "Y" '(multi-translate-yank-at-point-and-paste-to-right :wk "Yank translate and paste") ;;  FIXME: for thesis
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
