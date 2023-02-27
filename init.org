@@ -550,7 +550,7 @@ REST and STATE."
                                                     (server-start)))))
 
 (use-package ws-butler
-  :hook (window-setup . ws-butler-global-mode))
+  :hook (prog-mode . ws-butler-mode))
 #+end_src
 * Evil
 #+begin_src emacs-lisp
@@ -1900,7 +1900,6 @@ It handles the case of remote files as well."
         (alist-get 'node vundo-glyph-alist) ?O))
 
 (use-package super-save
-
   :defer 0.5
   :init
   (setq auto-save-default nil)
