@@ -2861,10 +2861,23 @@ karabiner: shift for emacs-rime
 
 (when (display-graphic-p)
   ;; (add-to-list 'default-frame-alist '(font . "CaskaydiaCove Nerd Font-14"))
-  (set-face-attribute 'default nil
-                      :font "CaskaydiaCove Nerd Font"
-                      :height 140)
-  (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC")
+  ;; (set-face-attribute 'default nil
+  ;;                     :font "CaskaydiaCove Nerd Font"
+  ;;                     :height 140)
+  ;; (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC")
+
+  (defun max/set-font (FONT-NAME CN-FONT-NAME &optional INITIAL-SIZE CN-FONT-RESCALE-RATIO)
+    "Set different font-family for Latin and Chinese charactors."
+    (let* ((size (or INITIAL-SIZE 14))
+	       (ratio (or CN-FONT-RESCALE-RATIO 0.0))
+	       (main (font-spec :name FONT-NAME :size size))
+	       (cn (font-spec :name CN-FONT-NAME)))
+      (set-face-attribute 'default nil :font main)
+      (dolist (charset '(kana han symbol cjk-misc bopomofo))
+        (set-fontset-font t charset cn))
+      (setq face-font-rescale-alist (if (/= ratio 0.0) `((,CN-FONT-NAME . ,ratio)) nil))))
+
+  (max/set-font "CaskaydiaCove Nerd Font" "Sarasa Mono SC" 14 1.1)
   )
 
 (setq split-width-threshold 0
