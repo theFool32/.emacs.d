@@ -253,6 +253,51 @@ REST and STATE."
   (interactive)
   (find-file (read-file-name "Repos: " "~/.emacs.d/straight/repos/")))
 #+end_src
+** elpaca
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle no
+:END:
+#+begin_src emacs-lisp
+(defvar elpaca-installer-version 0.2)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil
+                              :files (:defaults (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(when-let ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+           (build (expand-file-name "elpaca/" elpaca-builds-directory))
+           (order (cdr elpaca-order))
+           ((add-to-list 'load-path (if (file-exists-p build) build repo)))
+           ((not (file-exists-p repo))))
+  (condition-case-unless-debug err
+      (if-let ((buffer (pop-to-buffer-same-window "*elpaca-installer*"))
+               ((zerop (call-process "git" nil buffer t "clone"
+                                     (plist-get order :repo) repo)))
+               (default-directory repo)
+               ((zerop (call-process "git" nil buffer t "checkout"
+                                     (or (plist-get order :ref) "--"))))
+               (emacs (concat invocation-directory invocation-name))
+               ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                     "--eval" "(byte-recompile-directory \".\" 0 'force)"))))
+          (progn (require 'elpaca)
+                 (elpaca-generate-autoloads "elpaca" repo)
+                 (kill-buffer buffer))
+        (error "%s" (with-current-buffer buffer (buffer-string))))
+    ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+(require 'elpaca-autoloads)
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
+
+;; Install use-package support
+(elpaca elpaca-use-package
+  (elpaca-use-package-mode)
+  (setq elpaca-use-package-by-default t))
+
+;; Block until current queue processed.
+(elpaca-wait)
+#+end_src
 
 ** Benchmark
 :PROPERTIES:
@@ -1254,6 +1299,7 @@ targets."
 
 ;; A few more useful configurations...
 (use-package emacs
+  :straight nil
   :init
   ;; Add prompt indicator to `completing-read-multiple'.
   ;; Alternatively try `consult-completing-read-multiple'.
@@ -1267,7 +1313,10 @@ targets."
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
   ;; Enable recursive minibuffers
-  (setq enable-recursive-minibuffers t))
+  (setq enable-recursive-minibuffers t)
+
+  (setq completion-cycle-threshold 3)
+  (setq tab-always-indent 'completion))
 
 
 (use-package consult
@@ -1692,11 +1741,6 @@ Quit if no candidate is selected."
           corfu-complete))
   )
 
-(use-package emacs
-  :init
-  (setq completion-cycle-threshold 3)
-  (setq tab-always-indent 'completion))
-
 (use-package tempel
   :after corfu
   :after-call +my/first-input-hook-fun
@@ -1806,6 +1850,7 @@ Quit if no candidate is selected."
 * Utils
 #+begin_src emacs-lisp
 (use-package recentf
+  :straight nil
   :hook (after-init . recentf-mode)
   :custom
   ;; (recentf-auto-cleanup "05:00am")
@@ -1917,6 +1962,7 @@ It handles the case of remote files as well."
   :commands ztree-diff)
 
 (use-package winner
+  :straight nil
   :ensure nil
   :commands (winner-undo winner-redo)
   :hook (after-init . winner-mode)
@@ -1932,6 +1978,7 @@ It handles the case of remote files as well."
                                       "*esh command on file*")))
 
 (use-package tab-bar
+  :straight nil
   :ensure nil
   :commands (tab-new tab-bar-rename-tab tab-bar-close-tab tab-bar-select-tab-by-name)
   ;; :hook (after-init . tab-bar-mode)
@@ -3283,6 +3330,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 #+begin_src emacs-lisp
 ;; Highlight the current line
 (use-package hl-line
+  :straight nil
   :custom-face (hl-line ((t (:extend t))))
   :hook ((after-init . global-hl-line-mode)
          ((term-mode vterm-mode) . hl-line-unload-function)))
@@ -3379,6 +3427,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 
 ;; Pulse current line
 (use-package pulse
+  :straight nil
   :custom-face
   (pulse-highlight-start-face ((t (:inherit region))))
   (pulse-highlight-face ((t (:inherit region))))
@@ -3425,6 +3474,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 ** Paren
 #+begin_src emacs-lisp
 (use-package paren
+  :straight nil
   :hook (after-init . show-paren-mode)
   :init (setq show-paren-when-point-inside-paren t
               show-paren-when-point-in-periphery t
@@ -3433,6 +3483,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 
 ;; Automatic parenthesis pairing
 (use-package elec-pair
+  :straight nil
   :hook (+my/first-input . electric-pair-mode)
   :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
   :config
@@ -3533,6 +3584,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 ** Tree sitter
 #+begin_src emacs-lisp
 (use-package treesit
+  :straight nil
   :if (treesit-available-p)
   :straight (:type built-in)
   :init
@@ -3838,6 +3890,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 
 (use-package reftex
+  :straight nil
   :after tex
   :hook (LaTeX-mode . reftex-mode)
   :custom
@@ -3953,6 +4006,7 @@ Group number 1 should be the prefix itself."
   )
 
 (use-package bibtex
+  :straight nil
   :after (org tex)
   :custom
   (bibtex-dialect 'biblatex)
@@ -4925,7 +4979,7 @@ the lines even if the ranges do not overlap."
         "t" 'org-agenda-todo)
       )
 
-    (run-with-timer 15 nil
+    (run-with-timer 3 nil
                     (lambda ()
                       (with-eval-after-load 'org
                         (require 'appt)
@@ -5272,6 +5326,7 @@ begin and end of the block surrounding point."
 
 
 (use-package hideshow
+  :straight nil
   :config
   (setq hs-special-modes-alist
         (append
