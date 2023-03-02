@@ -53,6 +53,8 @@
       idle-update-delay 1.0
       )
 
+(fset 'display-startup-echo-area-message 'ignore)
+
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (custom-set-variables '(x-select-enable-clipboard t))
 
@@ -5072,7 +5074,13 @@ the lines even if the ranges do not overlap."
   (cfw:display-item-separators nil)
   (cfw:org-calendar-default-view 'two-weeks)
   :config
-  (require 'calfw-org))
+  (require 'calfw-org)
+  (custom-set-faces
+   '(cfw:face-today ((((class color) (background light))
+                      :background "#C3DEEF") ;;  HACK: background conflicts with face of `TODO' keyword
+                     (((class color) (background dark))
+                      :foreground "Cyan" :weight bold))))
+  )
 
 (use-package org-pomodoro
   :after org
