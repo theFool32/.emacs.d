@@ -1485,7 +1485,6 @@ targets."
   )
 
 (use-package consult-dir
-  :ensure t
   :after consult
   :bind (("C-x C-d" . consult-dir)
          :map vertico-map
