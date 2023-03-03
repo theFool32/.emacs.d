@@ -1589,17 +1589,20 @@ targets."
   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
 
   (use-package corfu-quick
+    :elpaca nil
     :bind
     (:map corfu-map
           ("C-q" . corfu-quick-insert)))
 
   (use-package corfu-popupinfo
+    :elpaca nil
     :config
     (setq corfu-popupinfo-delay '(0.2 . 0.1))
     (set-face-attribute 'corfu-popupinfo nil :height 140)
     :hook (corfu-mode . corfu-popupinfo-mode))
 
   (use-package corfu-history
+    :elpaca nil
     :hook (corfu-mode . corfu-history-mode))
 
   ;; kind ui
