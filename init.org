@@ -4778,8 +4778,11 @@ If prefix ARG, copy instead of move."
       "d" '(:wk "date/deadline")
       "dd" 'org-deadline
       "ds" 'org-schedule
-      "dt" 'org-time-stamp
+      ;; "dt" 'org-time-stamp
+      "dt" '(lambda () (interactive) (when (eq evil-state 'normal) (evil-append 1)) (call-interactively 'org-time-stamp))
       "dT" 'org-time-stamp-inactive
+      "dp" 'org-timestamp-up
+      "dn" 'org-timestamp-down
 
       "D" '+my-org/mark-done
 
