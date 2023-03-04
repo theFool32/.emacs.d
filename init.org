@@ -4722,15 +4722,24 @@ If prefix ARG, copy instead of move."
                         "C-S-<return>" 'org-insert-subheading)
     (define-key org-src-mode-map (kbd "C-c C-c") 'org-edit-src-exit)
     (general-define-key :states '(normal)
+                        :keymaps 'org-src-mode-map
+                        ", '" 'org-edit-src-exit)
+    (general-define-key :states '(normal)
                         :keymaps 'org-mode-map
                         "<return>" #'+org/dwim-at-point
                         "i" '(lambda ()
                                (interactive)
-                               (if (and (org-src--on-datum-p (org-element-at-point)) (org-in-src-block-p))
-                                   (progn
-                                     (org-edit-special)
-                                     (call-interactively 'evil-scroll-line-to-center))
-                                 (evil-insert-state))))
+                               (when (and (org-src--on-datum-p (org-element-at-point)) (org-in-src-block-p))
+                                 (org-edit-special)
+                                 (call-interactively 'evil-scroll-line-to-center))
+                               (evil-insert-state))
+                        "o" '(lambda ()
+                               (interactive)
+                               (when (and (org-src--on-datum-p (org-element-at-point)) (org-in-src-block-p))
+                                 (org-edit-special)
+                                 (call-interactively 'evil-scroll-line-to-center))
+                               (call-interactively 'evil-open-below))
+                        )
 
     (local-leader-def
       :keymaps 'org-mode-map
