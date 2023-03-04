@@ -1579,6 +1579,7 @@ targets."
 (use-package marginalia
   :hook (+my/first-input . marginalia-mode)
   :config
+  (add-to-list 'marginalia-prompt-categories '("Open org files:" . project-file))
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light)))
 
 (use-package vertico-posframe
