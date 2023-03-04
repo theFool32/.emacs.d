@@ -4719,11 +4719,18 @@ If prefix ARG, copy instead of move."
     (general-define-key :states '(normal insert)
                         :keymaps 'org-mode-map
                         "C-<return>" #'+org/insert-item-below
-                        "C-S-<return>" 'org-insert-subheading
-                        )
+                        "C-S-<return>" 'org-insert-subheading)
+    (define-key org-src-mode-map (kbd "C-c C-c") 'org-edit-src-exit)
     (general-define-key :states '(normal)
                         :keymaps 'org-mode-map
-                        "<return>" #'+org/dwim-at-point)
+                        "<return>" #'+org/dwim-at-point
+                        "i" '(lambda ()
+                               (interactive)
+                               (if (and (org-src--on-datum-p (org-element-at-point)) (org-in-src-block-p))
+                                   (progn
+                                     (org-edit-special)
+                                     (call-interactively 'evil-scroll-line-to-center))
+                                 (evil-insert-state))))
 
     (local-leader-def
       :keymaps 'org-mode-map
@@ -4876,8 +4883,8 @@ If prefix ARG, copy instead of move."
     "open org agenda in left window"
     (interactive)
     (org-agenda nil "n")
-    (kill-buffer "diary.org")
-    (kill-buffer "routine.org"))
+    ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
+    (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO")))
 
   (defun +my-org/mark-done ()
     (interactive)
