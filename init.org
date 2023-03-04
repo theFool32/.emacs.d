@@ -4626,7 +4626,7 @@ If prefix ARG, copy instead of move."
    )
 
   :config
-  (setq org-modules '())
+  (setq org-modules '(org-habit))
 
   ;; babel
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
@@ -5078,13 +5078,6 @@ the lines even if the ranges do not overlap."
   :config
   (cond (*sys/mac*
          (setq org-download-screenshot-method "screencapture -i %s"))))
-
-(use-package org-contrib
-  :after org)
-
-(use-package org-habit
-  :straight nil
-  :after org)
 
 (use-package calfw
   :commands (cfw:open-org-calendar cfw:open-org-week-calendar)
