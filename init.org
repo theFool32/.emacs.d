@@ -470,6 +470,56 @@ REST and STATE."
         (car (dired-get-marked-files))
       (read-file-name "File:" default-directory buffer-file-name))))
   (call-process-shell-command (concat "qlmanage -p \"" (expand-file-name file) "\"")))
+
+(defun +my/org-datetree-find-week-create (d &optional keep-restriction)
+  (setq-local org-datetree-base-level 1)
+  (save-restriction
+    (if (eq keep-restriction 'subtree-at-point)
+	    (progn
+	      (unless (org-at-heading-p) (error "Not at heading"))
+	      (widen)
+	      (org-narrow-to-subtree)
+	      (setq-local org-datetree-base-level
+		              (org-get-valid-level (org-current-level) 1)))
+      (unless keep-restriction (widen))
+      ;; Support the old way of tree placement, using a property
+      (let ((prop (org-find-property "WEEK_TREE")))
+	    (when prop
+	      (goto-char prop)
+	      (setq-local org-datetree-base-level
+		              (org-get-valid-level (org-current-level) 1))
+	      (org-narrow-to-subtree))))
+    (goto-char (point-min))
+    (require 'cal-iso)
+    (require 'org-datetree)
+    ;; WORKAROUND: this part is ugly
+    (let* ((year (calendar-extract-year d))
+	       (month (calendar-extract-month d))
+	       (day (calendar-extract-day d))
+	       (time (encode-time 0 0 0 day month year))
+           (weekday (string-to-number (format-time-string "%w" time)))
+           (sunday (encode-time 0 0 0 (- day weekday) month year))
+           (saturday (encode-time 0 0 0 (+ day (- 6 weekday)) month year))
+           (week (ceiling (/ (time-to-day-in-year sunday) 7.0)))
+           (sunday_dec (decode-time sunday))
+           (year (nth 5 sunday_dec))
+           (month (nth 4 sunday_dec))
+           (sunday_day (nth 3 sunday_dec))
+           )
+      (org-datetree--find-create
+       "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(\\s-*?\
+\\([ \t]:[[:alnum:]:_@#%%]+:\\)?\\s-*$\\)"
+       year nil nil
+       (format-time-string "%Y" time))
+      (org-datetree--find-create
+       "^\\*+[ \t]+%d-\\([01][0-9]\\) \\w+$"
+       year month nil)
+      (org-datetree--find-create
+       "^\\*+[ \t]+W[0-5][0-9] (%d-%02d-\\([0-3][0-9]\\) - [0-2][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9])$"
+       year month sunday_day
+       (format "W%02d (%s - %s)" week
+               (format-time-string "%Y-%m-%d" sunday)
+               (format-time-string "%Y-%m-%d" saturday))))))
 #+end_src
 * Global Configuration
 #+begin_src emacs-lisp
@@ -2759,7 +2809,8 @@ karabiner: shift for emacs-rime
            ("m:/Gmail/Inbox or m:/Outlook/Inbox or m:/XMU/Inbox" "Inbox" ?i)
            ("date:today..now"  "Today's messages"   ?t)
            ("date:7d..now"  "Last 7 days"           ?w)
-           ("mime:image/*"  "Messages with images"  ?p)))
+           ("mime:image/*"  "Messages with images"  ?p)
+           ("NOT (m:/Gmail/Trash OR m:/Gmail/[Gmail]/Trash OR m:/Outlook/Deleted OR m:/QQ/Deleted Messages OR m:/XMU/Trash)"  "All"  ?a)))
 
   (setq mu4e-headers-fields
         '((:human-date . 12)
@@ -3056,7 +3107,7 @@ karabiner: shift for emacs-rime
     ;; (custom-set-faces '(org-done ((t (:foreground "gray")))))
     (setq org-todo-keyword-faces
           `(("TODO" . (:background ,(ef-themes-with-colors red-cooler) :weight bold :foreground "white"))
-            ("INPROCESS"  . ,(ef-themes-with-colors yellow-warmer))
+            ("WIP"  . ,(ef-themes-with-colors yellow-warmer))
             ("PROJ"  . ,(ef-themes-with-colors cyan-cooler))
             ("WAITING" . ,(ef-themes-with-colors fg-dim))
             ;; ("DONE" . (:foreground ,(ef-themes-with-colors fg-alt) :strike-through t))
@@ -4516,15 +4567,14 @@ If prefix ARG, copy instead of move."
 (defvar +org-capture-file-idea (concat +self/org-base-dir "ideas.org"))
 (defvar +org-capture-file-note (concat +self/org-base-dir "notes.org"))
 (defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
-(defvar +org-capture-file-done (concat +self/org-base-dir "done.org"))
-(defvar +org-capture-file-goal (concat +self/org-base-dir "goals.org"))
+(defvar +org-capture-file-diary (concat +self/org-base-dir "diary.org"))
 (defvar +org-capture-file-routine (concat +self/org-base-dir "routine.org"))
 
 (defvar +org-files (list +org-capture-file-gtd
                          +org-capture-file-someday
                          +org-capture-file-note
                          +org-capture-file-idea
-                         +org-capture-file-goal
+                         +org-capture-file-diary
                          +org-capture-file-routine))
 
 (use-package org
@@ -4621,8 +4671,8 @@ If prefix ARG, copy instead of move."
   (setq org-refile-use-outline-path 'file)
   (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
                              (+org-capture-file-someday :level . 3)))
-  (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("emacs" . ?e)
-                        ("habit" . ?h) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?w)))
+  (setq org-tag-alist '(("lab" . ?l) ("academic" . ?a) ("personal" . ?p) ("emacs" . ?e) ("work" . ?w)
+                        ("habit" . ?h) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?W)))
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file +org-capture-file-gtd)
@@ -4644,7 +4694,7 @@ If prefix ARG, copy instead of move."
         '((sequence
            "TODO(t)"  ; A task that needs doing & is ready to do
            "PROJ(p)"  ; An ongoing project that cannot be completed in one step
-           "INPROCESS(i)"  ; A task that is in progress
+           "WIP(i)"  ; A task that is in progress
            "WAITING(w)"  ; Something is holding up this task; or it is paused
            "|"
            "DONE(d)"  ; Task successfully completed
@@ -4801,6 +4851,7 @@ If prefix ARG, copy instead of move."
       "sA" 'org-archive-subtree
       "sN" 'widen
       "sS" 'org-sort
+      "sw" '(lambda () (interactive) (+my/org-datetree-find-week-create (calendar-current-date)))
 
       "p" '(:wk "priority")
       "pd" 'org-priority-down
@@ -4825,9 +4876,9 @@ If prefix ARG, copy instead of move."
     "open org agenda in left window"
     (interactive)
     (org-agenda nil "n")
-    (kill-buffer "done.org")
-    (kill-buffer "goals.org")
+    (kill-buffer "diary.org")
     (kill-buffer "routine.org"))
+
   (defun +my-org/mark-done ()
     (interactive)
     (when (derived-mode-p 'org-mode)
@@ -4837,13 +4888,11 @@ If prefix ARG, copy instead of move."
                   (close-time (decode-time close-time))
                   (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
         (org-cut-subtree)
-        (with-current-buffer (find-file-noselect +org-capture-file-done)
-          (org-datetree-find-iso-week-create close-time)
+        (with-current-buffer (find-file-noselect +org-capture-file-diary)
+          (+my/org-datetree-find-week-create close-time)
           (org-paste-subtree)
-          (org-next-visible-heading 1)
-          (when (and (null (nth 2 (org-heading-components)))
-                     (= (nth 0 (org-heading-components)) 3))
-            (org-cut-subtree))
+          (org-move-subtree-down)
+          (org-shiftmetaright)
           (save-buffer)
           (kill-buffer)))))
 
@@ -4901,7 +4950,7 @@ the lines even if the ranges do not overlap."
           ("q" . winner-undo))
     :init
     (setq org-agenda-files (list +org-capture-file-gtd
-                                 +org-capture-file-done
+                                 +org-capture-file-diary
                                  +org-capture-file-routine)
 
           org-agenda-window-setup 'only-window
@@ -4917,11 +4966,11 @@ the lines even if the ranges do not overlap."
           '(("n" "Agenda"
              ((tags-todo
 	           "ACT_WEEK"
-	           ((org-agenda-files (list +org-capture-file-goal))
+	           ((org-agenda-files (list +org-capture-file-diary))
 	            (org-agenda-overriding-header "Goals for this week")))
               (tags-todo
 	           "ACT_MONTH"
-	           ((org-agenda-files (list +org-capture-file-goal))
+	           ((org-agenda-files (list +org-capture-file-diary))
 	            (org-agenda-overriding-header "Goals for this month")))
 	          (agenda)
               (alltodo "")))))
