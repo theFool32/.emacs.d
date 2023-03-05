@@ -2590,6 +2590,7 @@ formatting the entry."
                                 (kill-buffer buffer)
                                 (ebib--update-buffers))))))))))))
   :config
+  (require 'org-ebib) ;;  FIXME: `org-ebib' will not load automatically
   (use-package org-ebib
     :config
     (local-leader-def
