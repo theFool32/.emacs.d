@@ -53,6 +53,8 @@
       idle-update-delay 1.0
       )
 
+(fset 'display-startup-echo-area-message 'ignore)
+
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (custom-set-variables '(x-select-enable-clipboard t))
 
@@ -219,6 +221,7 @@ REST and STATE."
 #+begin_src emacs-lisp
 (setq straight--process-log nil
       straight-vc-git-default-clone-depth 1
+      straight-repository-branch "develop"
       straight-use-package-by-default t
       ;; straight-check-for-modifications '(check-on-save find-when-checking)
       straight-check-for-modifications nil)
@@ -468,6 +471,56 @@ REST and STATE."
         (car (dired-get-marked-files))
       (read-file-name "File:" default-directory buffer-file-name))))
   (call-process-shell-command (concat "qlmanage -p \"" (expand-file-name file) "\"")))
+
+(defun +my/org-datetree-find-week-create (d &optional keep-restriction)
+  (setq-local org-datetree-base-level 1)
+  (save-restriction
+    (if (eq keep-restriction 'subtree-at-point)
+	    (progn
+	      (unless (org-at-heading-p) (error "Not at heading"))
+	      (widen)
+	      (org-narrow-to-subtree)
+	      (setq-local org-datetree-base-level
+		              (org-get-valid-level (org-current-level) 1)))
+      (unless keep-restriction (widen))
+      ;; Support the old way of tree placement, using a property
+      (let ((prop (org-find-property "WEEK_TREE")))
+	    (when prop
+	      (goto-char prop)
+	      (setq-local org-datetree-base-level
+		              (org-get-valid-level (org-current-level) 1))
+	      (org-narrow-to-subtree))))
+    (goto-char (point-min))
+    (require 'cal-iso)
+    (require 'org-datetree)
+    ;; WORKAROUND: this part is ugly
+    (let* ((year (calendar-extract-year d))
+	       (month (calendar-extract-month d))
+	       (day (calendar-extract-day d))
+	       (time (encode-time 0 0 0 day month year))
+           (weekday (string-to-number (format-time-string "%w" time)))
+           (sunday (encode-time 0 0 0 (- day weekday) month year))
+           (saturday (encode-time 0 0 0 (+ day (- 6 weekday)) month year))
+           (week (ceiling (/ (time-to-day-in-year sunday) 7.0)))
+           (sunday_dec (decode-time sunday))
+           (year (nth 5 sunday_dec))
+           (month (nth 4 sunday_dec))
+           (sunday_day (nth 3 sunday_dec))
+           )
+      (org-datetree--find-create
+       "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(\\s-*?\
+\\([ \t]:[[:alnum:]:_@#%%]+:\\)?\\s-*$\\)"
+       year nil nil
+       (format-time-string "%Y" time))
+      (org-datetree--find-create
+       "^\\*+[ \t]+%d-\\([01][0-9]\\) \\w+$"
+       year month nil)
+      (org-datetree--find-create
+       "^\\*+[ \t]+W[0-5][0-9] (%d-%02d-\\([0-3][0-9]\\) - [0-2][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9])$"
+       year month sunday_day
+       (format "W%02d (%s - %s)" week
+               (format-time-string "%Y-%m-%d" sunday)
+               (format-time-string "%Y-%m-%d" saturday))))))
 #+end_src
 * Global Configuration
 #+begin_src emacs-lisp
@@ -1483,7 +1536,6 @@ targets."
   )
 
 (use-package consult-dir
-  :ensure t
   :after consult
   :bind (("C-x C-d" . consult-dir)
          :map vertico-map
@@ -1528,6 +1580,7 @@ targets."
 (use-package marginalia
   :hook (+my/first-input . marginalia-mode)
   :config
+  (add-to-list 'marginalia-prompt-categories '("Open org files:" . project-file))
   (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light)))
 
 (use-package vertico-posframe
@@ -1768,7 +1821,6 @@ Quit if no candidate is selected."
          (org-mode . my/set-basic-capf)
          ((lsp-completion-mode eglot-managed-mode lsp-bridge-mode lspce-mode). my/set-lsp-capf))
   :config
-
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
   (defun my/convert-super-capf (arg-capf)
@@ -2542,6 +2594,7 @@ formatting the entry."
                                 (kill-buffer buffer)
                                 (ebib--update-buffers))))))))))))
   :config
+  (require 'org-ebib) ;;  FIXME: `org-ebib' will not load automatically
   (use-package org-ebib
     :config
     (local-leader-def
@@ -2762,7 +2815,8 @@ karabiner: shift for emacs-rime
            ("m:/Gmail/Inbox or m:/Outlook/Inbox or m:/XMU/Inbox" "Inbox" ?i)
            ("date:today..now"  "Today's messages"   ?t)
            ("date:7d..now"  "Last 7 days"           ?w)
-           ("mime:image/*"  "Messages with images"  ?p)))
+           ("mime:image/*"  "Messages with images"  ?p)
+           ("NOT (m:/Gmail/Trash OR m:/Gmail/[Gmail]/Trash OR m:/Outlook/Deleted OR m:/QQ/Deleted Messages OR m:/XMU/Trash)"  "All"  ?a)))
 
   (setq mu4e-headers-fields
         '((:human-date . 12)
@@ -3058,8 +3112,8 @@ karabiner: shift for emacs-rime
   (with-eval-after-load 'org
     ;; (custom-set-faces '(org-done ((t (:foreground "gray")))))
     (setq org-todo-keyword-faces
-          `(("TODO" . (:foreground ,(ef-themes-with-colors red-cooler) :weight bold))
-            ("INPROCESS"  . ,(ef-themes-with-colors yellow-warmer))
+          `(("TODO" . (:background ,(ef-themes-with-colors red-cooler) :weight bold :foreground "white"))
+            ("WIP"  . ,(ef-themes-with-colors yellow-warmer))
             ("PROJ"  . ,(ef-themes-with-colors cyan-cooler))
             ("WAITING" . ,(ef-themes-with-colors fg-dim))
             ;; ("DONE" . (:foreground ,(ef-themes-with-colors fg-alt) :strike-through t))
@@ -4519,15 +4573,14 @@ If prefix ARG, copy instead of move."
 (defvar +org-capture-file-idea (concat +self/org-base-dir "ideas.org"))
 (defvar +org-capture-file-note (concat +self/org-base-dir "notes.org"))
 (defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
-(defvar +org-capture-file-done (concat +self/org-base-dir "done.org"))
-(defvar +org-capture-file-goal (concat +self/org-base-dir "goals.org"))
+(defvar +org-capture-file-diary (concat +self/org-base-dir "diary.org"))
 (defvar +org-capture-file-routine (concat +self/org-base-dir "routine.org"))
 
 (defvar +org-files (list +org-capture-file-gtd
                          +org-capture-file-someday
                          +org-capture-file-note
                          +org-capture-file-idea
-                         +org-capture-file-goal
+                         +org-capture-file-diary
                          +org-capture-file-routine))
 
 (use-package org
@@ -4579,7 +4632,7 @@ If prefix ARG, copy instead of move."
    )
 
   :config
-  (setq org-modules '())
+  (setq org-modules '(org-habit))
 
   ;; babel
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
@@ -4624,8 +4677,8 @@ If prefix ARG, copy instead of move."
   (setq org-refile-use-outline-path 'file)
   (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
                              (+org-capture-file-someday :level . 3)))
-  (setq org-tag-alist '(("lab" . ?L) ("academic" . ?a) ("life" . ?l) ("emacs" . ?e)
-                        ("habit" . ?h) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?w)))
+  (setq org-tag-alist '(("lab" . ?l) ("academic" . ?a) ("personal" . ?p) ("emacs" . ?e) ("work" . ?w)
+                        ("habit" . ?h) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?W)))
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file +org-capture-file-gtd)
@@ -4647,7 +4700,7 @@ If prefix ARG, copy instead of move."
         '((sequence
            "TODO(t)"  ; A task that needs doing & is ready to do
            "PROJ(p)"  ; An ongoing project that cannot be completed in one step
-           "INPROCESS(i)"  ; A task that is in progress
+           "WIP(i)"  ; A task that is in progress
            "WAITING(w)"  ; Something is holding up this task; or it is paused
            "|"
            "DONE(d)"  ; Task successfully completed
@@ -4672,11 +4725,27 @@ If prefix ARG, copy instead of move."
     (general-define-key :states '(normal insert)
                         :keymaps 'org-mode-map
                         "C-<return>" #'+org/insert-item-below
-                        "C-S-<return>" 'org-insert-subheading
-                        )
+                        "C-S-<return>" 'org-insert-subheading)
+    (define-key org-src-mode-map (kbd "C-c C-c") 'org-edit-src-exit)
+    (general-define-key :states '(normal)
+                        :keymaps 'org-src-mode-map
+                        ", '" 'org-edit-src-exit)
     (general-define-key :states '(normal)
                         :keymaps 'org-mode-map
-                        "<return>" #'+org/dwim-at-point)
+                        "<return>" #'+org/dwim-at-point
+                        "i" '(lambda ()
+                               (interactive)
+                               (when (and (org-src--on-datum-p (org-element-at-point)) (org-in-src-block-p))
+                                 (org-edit-special)
+                                 (call-interactively 'evil-scroll-line-to-center))
+                               (evil-insert-state))
+                        "o" '(lambda ()
+                               (interactive)
+                               (when (and (org-src--on-datum-p (org-element-at-point)) (org-in-src-block-p))
+                                 (org-edit-special)
+                                 (call-interactively 'evil-scroll-line-to-center))
+                               (call-interactively 'evil-open-below))
+                        )
 
     (local-leader-def
       :keymaps 'org-mode-map
@@ -4751,8 +4820,11 @@ If prefix ARG, copy instead of move."
       "d" '(:wk "date/deadline")
       "dd" 'org-deadline
       "ds" 'org-schedule
-      "dt" 'org-time-stamp
+      ;; "dt" 'org-time-stamp
+      "dt" '(lambda () (interactive) (when (eq evil-state 'normal) (evil-append 1)) (call-interactively 'org-time-stamp))
       "dT" 'org-time-stamp-inactive
+      "dp" 'org-timestamp-up
+      "dn" 'org-timestamp-down
 
       "D" '+my-org/mark-done
 
@@ -4801,6 +4873,7 @@ If prefix ARG, copy instead of move."
       "sA" 'org-archive-subtree
       "sN" 'widen
       "sS" 'org-sort
+      "sw" '(lambda () (interactive) (+my/org-datetree-find-week-create (calendar-current-date)))
 
       "p" '(:wk "priority")
       "pd" 'org-priority-down
@@ -4825,9 +4898,9 @@ If prefix ARG, copy instead of move."
     "open org agenda in left window"
     (interactive)
     (org-agenda nil "n")
-    (kill-buffer "done.org")
-    (kill-buffer "goals.org")
-    (kill-buffer "routine.org"))
+    ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
+    (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO")))
+
   (defun +my-org/mark-done ()
     (interactive)
     (when (derived-mode-p 'org-mode)
@@ -4837,13 +4910,11 @@ If prefix ARG, copy instead of move."
                   (close-time (decode-time close-time))
                   (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
         (org-cut-subtree)
-        (with-current-buffer (find-file-noselect +org-capture-file-done)
-          (org-datetree-find-iso-week-create close-time)
+        (with-current-buffer (find-file-noselect +org-capture-file-diary)
+          (+my/org-datetree-find-week-create close-time)
           (org-paste-subtree)
-          (org-next-visible-heading 1)
-          (when (and (null (nth 2 (org-heading-components)))
-                     (= (nth 0 (org-heading-components)) 3))
-            (org-cut-subtree))
+          (org-move-subtree-down)
+          (org-shiftmetaright)
           (save-buffer)
           (kill-buffer)))))
 
@@ -4901,7 +4972,7 @@ the lines even if the ranges do not overlap."
           ("q" . winner-undo))
     :init
     (setq org-agenda-files (list +org-capture-file-gtd
-                                 +org-capture-file-done
+                                 +org-capture-file-diary
                                  +org-capture-file-routine)
 
           org-agenda-window-setup 'only-window
@@ -4917,11 +4988,11 @@ the lines even if the ranges do not overlap."
           '(("n" "Agenda"
              ((tags-todo
 	           "ACT_WEEK"
-	           ((org-agenda-files (list +org-capture-file-goal))
+	           ((org-agenda-files (list +org-capture-file-diary))
 	            (org-agenda-overriding-header "Goals for this week")))
               (tags-todo
 	           "ACT_MONTH"
-	           ((org-agenda-files (list +org-capture-file-goal))
+	           ((org-agenda-files (list +org-capture-file-diary))
 	            (org-agenda-overriding-header "Goals for this month")))
 	          (agenda)
               (alltodo "")))))
@@ -4953,6 +5024,32 @@ the lines even if the ranges do not overlap."
         "r" 'org-agenda-refile
         "t" 'org-agenda-todo)
       )
+
+    (defun my:org-agenda-time-grid-spacing ()
+      "Set different line spacing w.r.t. time duration."
+      (save-excursion
+        (let* ((background (alist-get 'background-mode (frame-parameters)))
+               (background-dark-p (string= background "dark"))
+               (colors (if background-dark-p
+                           (list "#aa557f" "DarkGreen" "DarkSlateGray" "DarkSlateBlue")
+                         (list "#F6B1C3" "#FFFF9D" "#BEEB9F" "#ADD5F7")))
+               pos
+               duration)
+          (nconc colors colors)
+          (goto-char (point-min))
+          (while (setq pos (next-single-property-change (point) 'duration))
+            (goto-char pos)
+            (when (and (not (equal pos (point-at-eol)))
+                       (setq duration (org-get-at-bol 'duration)))
+              (let ((line-height (if (< duration 30) 1.0 (+ 0.5 (/ duration 60))))
+                    (ov (make-overlay (point-at-bol) (1+ (point-at-eol)))))
+                (overlay-put ov 'face `(:background ,(car colors)
+                                                    :foreground
+                                                    ,(if background-dark-p "white" "black")))
+                (setq colors (cdr colors))
+                (overlay-put ov 'line-height line-height)
+                (overlay-put ov 'line-spacing (1- line-height))))))))
+    (add-hook 'org-agenda-finalize-hook #'my:org-agenda-time-grid-spacing)
 
     (run-with-timer 3 nil
                     (lambda ()
@@ -5004,13 +5101,6 @@ the lines even if the ranges do not overlap."
   (cond (*sys/mac*
          (setq org-download-screenshot-method "screencapture -i %s"))))
 
-(use-package org-contrib
-  :after org)
-
-(use-package org-habit
-  :elpaca nil
-  :after org)
-
 (use-package calfw
   :commands (cfw:open-org-calendar cfw:open-org-week-calendar)
   :elpaca (calfw :includes (calfw-org calfw-cal) :host github :repo "theFool32/emacs-calfw" :files ("*.el"))
@@ -5021,7 +5111,13 @@ the lines even if the ranges do not overlap."
   (cfw:display-item-separators nil)
   (cfw:org-calendar-default-view 'two-weeks)
   :config
-  (require 'calfw-org))
+  (require 'calfw-org)
+  (custom-set-faces
+   '(cfw:face-today ((((class color) (background light))
+                      :background "#C3DEEF") ;;  HACK: background conflicts with face of `TODO' keyword
+                     (((class color) (background dark))
+                      :foreground "Cyan" :weight bold))))
+  )
 
 (use-package org-pomodoro
   :after org
