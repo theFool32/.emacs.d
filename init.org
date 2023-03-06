@@ -218,6 +218,7 @@ REST and STATE."
 #+begin_src emacs-lisp
 (setq straight--process-log nil
       straight-vc-git-default-clone-depth 1
+      straight-repository-branch "develop"
       straight-use-package-by-default t
       ;; straight-check-for-modifications '(check-on-save find-when-checking)
       straight-check-for-modifications nil)
