@@ -1570,7 +1570,7 @@ targets."
 
 
 (use-package orderless
-  :after-call window-setup-hook
+  :after-call +my/first-input-hook-fun
   :config
   (setq completion-styles '(orderless basic)
         completion-category-defaults nil
