@@ -1341,6 +1341,7 @@ targets."
     )
   (use-package vertico-directory
     :after vertico
+    :after-call +my/first-input-hook-fun
     :ensure nil
     ;; More convenient directory navigation commands
     :bind (:map vertico-map
