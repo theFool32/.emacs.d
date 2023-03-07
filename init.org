@@ -3437,20 +3437,6 @@ Otherwise it builds `prettify-code-symbols-alist' according to
     (add-hook 'magit-pre-refresh-hook #'diff-hl-magit-pre-refresh)
     (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))
 
-;; Highlight some operations
-(use-package volatile-highlights
-
-  :hook (+my/first-input . volatile-highlights-mode)
-  :config
-  (vhl/define-extension 'evil 'evil-paste-after 'evil-paste-before
-                        'evil-paste-pop 'evil-move)
-  (vhl/install-extension 'evil)
-  (when (fboundp 'pulse-momentary-highlight-region)
-    (defun my-vhl-pulse (beg end &optional _buf face)
-      "Pulse the changes."
-      (pulse-momentary-highlight-region beg end face))
-    (advice-add #'vhl/.make-hl :override #'my-vhl-pulse)))
-
 ;; Pulse current line
 (use-package pulse
   :straight nil
