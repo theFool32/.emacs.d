@@ -5510,8 +5510,8 @@ begin and end of the block surrounding point."
     "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
     "?" '(+consult-ripgrep-at-point :wk "Search symbol here")
     "." '(find-file :wk "Find file")
-    ";" '(pp-eval-expression :wk "Evil expression")
-    ":" '(+my/open-org-agenda :wk "Agenda")
+    ":" '(pp-eval-expression :wk "Evil expression")
+    ";" '(+my/open-org-agenda :wk "Agenda")
     "x" '(org-capture :wk "Org capture")
     "r" '(er/expand-region :wk "expand-region")
     "k" '(+my/replace :wk "Replace") ;;  FIXME: more semantic key
