@@ -1571,7 +1571,7 @@ targets."
 
 
 (use-package orderless
-  :after-call +my/first-input-hook-fun
+  :after-call window-setup-hook 
   :config
   (setq completion-styles '(orderless basic)
         completion-category-defaults nil
@@ -1973,18 +1973,25 @@ It handles the case of remote files as well."
         (alist-get 'node vundo-glyph-alist) ?O))
 
 (use-package super-save
-  :defer 0.5
+  :hook (window-setup . super-save-mode)
   :init
   (setq auto-save-default nil)
   :config
   (add-to-list 'super-save-triggers 'switch-window)
   (add-to-list 'super-save-triggers 'switch-to-buffer)
+  (add-to-list 'super-save-triggers 'eglot-rename)
+  (add-to-list 'super-save-triggers 'consult-buffer)
   (setq super-save-exclude '(".gpg"))
   (setq super-save-idle-duration 1)
   (setq save-silently t)
   (setq super-save-auto-save-when-idle t)
-  (super-save-mode 1)
-  (advice-add 'super-save-command :override 'save-all-buffers))
+  (add-to-list 'super-save-predicates (lambda () (not (and (featurep 'tempel) tempel--active))))
+
+  (defun +super-save-without-format ()
+    (let ((before-save-hook (remove 'format-all--buffer-from-hook before-save-hook)))
+      (when (super-save-p)
+        (save-all-buffers))))
+  (advice-add 'super-save-command :override '+super-save-without-format))
 
 (use-package ztree
   :commands ztree-diff)
@@ -3783,7 +3790,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 (use-package format-all
 
   :commands format-all-buffer
-  :hook ((prog-mode) . format-all-ensure-formatter)
+  :hook ((prog-mode . format-all-ensure-formatter)
+         (prog-mode . format-all-mode))
   )
 #+end_src
 ** Language
