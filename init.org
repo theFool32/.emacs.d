@@ -2193,7 +2193,7 @@ It handles the case of remote files as well."
 ;; MagitPac
 (use-package magit
   :defer t
-  :commands (magit magit-open-repo)
+  :commands (magit magit-open-repo aborn/simple-git-commit-push)
   :if *git*
   :config
   ;; (global-auto-revert-mode -1)
@@ -3067,6 +3067,7 @@ karabiner: shift for emacs-rime
           "\\*Agenda Commands\\*"
           "\\*eldoc\\*"
           "\\*Calendar\\*"
+          "\\*Org Links\\*"
 
           bookmark-bmenu-mode
           compilation-mode
