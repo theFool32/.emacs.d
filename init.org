@@ -4989,7 +4989,8 @@ the lines even if the ranges do not overlap."
 	           ((org-agenda-files (list +org-capture-file-diary))
 	            (org-agenda-overriding-header "Goals for this month")))
 	          (agenda)
-              (alltodo "")))))
+              (tags-todo "-ACT_MONTH-ACT_WEEK"
+                         ((org-agenda-files (list +org-capture-file-gtd +org-capture-file-diary))))))))
     (evil-set-initial-state 'org-agenda-mode 'motion)
     (setq-default
      org-agenda-inhibit-startup nil
