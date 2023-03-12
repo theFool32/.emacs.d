@@ -1571,7 +1571,7 @@ targets."
 
 
 (use-package orderless
-  :after-call window-setup-hook 
+  :after-call after-init-hook
   :config
   (setq completion-styles '(orderless basic)
         completion-category-defaults nil
