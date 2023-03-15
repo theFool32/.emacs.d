@@ -3126,6 +3126,9 @@ karabiner: shift for emacs-rime
             ("DONE" . (:foreground "gray" :strike-through t))
             ("UNDONE" . (:foreground ,(ef-themes-with-colors fg-dim) :weight bold :strike-through t))
             ("CANCELED" . (:foreground ,(ef-themes-with-colors fg-dim) :weight bold :strike-through t))))
+
+    (custom-set-faces
+     `(org-scheduled-today ((t (:foreground ,(ef-themes-with-colors blue))))))
     )
   )
 
@@ -4991,8 +4994,8 @@ the lines even if the ranges do not overlap."
 	           ((org-agenda-files (list +org-capture-file-diary))
 	            (org-agenda-overriding-header "Goals for this month")))
 	          (agenda)
-              (tags-todo "-ACT_MONTH-ACT_WEEK"
-                         ((org-agenda-files (list +org-capture-file-gtd +org-capture-file-diary))))))))
+              (alltodo ""
+                       ((org-agenda-files (list +org-capture-file-gtd))))))))
     (evil-set-initial-state 'org-agenda-mode 'motion)
     (setq-default
      org-agenda-inhibit-startup nil
