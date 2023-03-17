@@ -3651,7 +3651,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                    "K" '+eglot-help-at-point)
                                  (eglot-inlay-hints-mode -1)
                                  ))
-         ((python-mode c-mode c++-mode LaTeX-mode) . eglot-ensure)
+         ((python-mode python-ts-mode c-mode c++-mode LaTeX-mode) . eglot-ensure)
          )
   :init
   (defvar +lsp--default-read-process-output-max nil)
@@ -5536,7 +5536,7 @@ begin and end of the block surrounding point."
     "fs" '(+my/save-file :wk "Save file")
     "fd" '(dired-jump :wk "Current directory")
     "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.org")) :wk "init.org")
-    "fo" '((lambda() (interactive) (find-file (concat +self/org-base-dir (completing-read "Open org files:" (mapcar (lambda (f) (file-name-nondirectory f)) +org-files))))) :wk "Org files")
+    "fo" '((lambda() (interactive) (find-file (format "%s/%s.org" +self/org-base-dir (completing-read "Open org files:" (mapcar (lambda (f) (file-name-base f)) +org-files))))) :wk "Org files")
     "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
     "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
 
