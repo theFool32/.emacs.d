@@ -4582,7 +4582,7 @@ If prefix ARG, copy instead of move."
       (org-archive-subtree))))
 
 (with-eval-after-load 'consult
-  (defun +my/retrieval-todo-items ()
+  (defun +my/retrieve-todo-entries ()
     (require 'consult-org)
     (consult--read
      (consult--with-increased-gc
@@ -4590,7 +4590,7 @@ If prefix ARG, copy instead of move."
                  (not (member
                        (car (cdr (get-text-property 0 'consult-org--heading item)))
                        '("DONE" "CANCELED" "UNDONE"))))
-               (consult-org--headings nil nil 'agenda)))
+               (consult-org--headings nil nil (list +org-capture-file-gtd +org-capture-file-routine)))) ;; Only retrieve entries from `gtd' and `routine'
      :prompt "Go to heading: "
      :category 'consult-org-heading
      :sort nil
@@ -4610,7 +4610,7 @@ If prefix ARG, copy instead of move."
     "Clock into an Org agenda heading."
     (interactive)
     (save-window-excursion
-      (+my/retrieval-todo-items)
+      (+my/retrieve-todo-entries)
       (org-clock-in)
       (save-buffer)))
   (consult-customize consult-clock-in :prompt "Clock in: ")
@@ -4619,7 +4619,7 @@ If prefix ARG, copy instead of move."
     "Clock into an Org agenda heading."
     (interactive)
     (save-window-excursion
-      (+my/retrieval-todo-items)
+      (+my/retrieve-todo-entries)
       (org-todo 'done)
       (save-buffer)))
   (consult-customize consult-mark-done :prompt "Mark done: ")
