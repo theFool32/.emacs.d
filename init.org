@@ -3710,7 +3710,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                    "K" '+eglot-help-at-point)
                                  (eglot-inlay-hints-mode -1)
                                  ))
-         ((python-mode python-ts-mode c-mode c++-mode LaTeX-mode) . eglot-ensure)
+         ((python-mode c-mode c++-mode LaTeX-mode) . eglot-ensure)
          )
   :init
   (defvar +lsp--default-read-process-output-max nil)
@@ -3869,10 +3869,16 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   ;; Disable readline based native completion
   (setq python-shell-completion-native-enable nil)
   (setq python-indent-guess-indent-offset-verbose nil)
+
   :config
+  (add-to-list 'auto-mode-alist '("\\.py[iw]?\\'" . python-mode))
+  (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-mode))
+
 
   (add-hook 'python-mode-hook (lambda ()
                                 (setq-local tab-width 4)))
+  ;;  HACK: DO NOT USE `python-ts-mode' RIGHT NOW
+  (setq major-mode-remap-alist '((python-ts-mode . python-mode)))
 
   (setq python-indent-offset 4
         python-shell-interpreter "python3"
