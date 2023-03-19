@@ -4980,7 +4980,8 @@ If prefix ARG, copy instead of move."
           (org-move-subtree-down)
           (org-shiftmetaright)
           (save-buffer)
-          (kill-buffer)))))
+          ;; (kill-buffer)
+          ))))
 
 ;;;###autoload
   (defun org-clock-merge (arg)
