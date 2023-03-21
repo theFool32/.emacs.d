@@ -2765,8 +2765,7 @@ karabiner: shift for emacs-rime
   :if (executable-find "mu")
   :commands mu4e
   :hook ((mu4e-headers-mode . hl-line-mode)
-         (mu4e-compose-mode . (lambda ()
-                                (electric-indent-local-mode nil))))
+         (mu4e-compose-mode . (lambda () (electric-indent-local-mode -1) (setq-local evil-auto-indent nil))))
   :init
   (provide 'html2text)
   :config
