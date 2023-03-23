@@ -2459,6 +2459,7 @@ kill all magit buffers for this repo."
 ** Ebib
 #+begin_src emacs-lisp
 (use-package ebib
+  :after evil-collection
   :commands ebib
   :straight (ebib :includes (org-ebib) :host github :repo "theFool32/ebib")
   :hook (ebib-index-mode . hl-line-mode)
@@ -2492,7 +2493,7 @@ kill all magit buffers for this repo."
         ("/" . ebib-jump-to-entry)
         ("?" . ebib-swiper)
         ;; ("?" . ebib-search)
-        ("D" . ebib-delete-entry-with-file)
+        ("x" . ebib-delete-entry-with-file)
         ("s"   . ebib-save-all-databases)
         ("S"   . +my/search-pdf)
         ("B"   . ebib-import-ref)
@@ -5050,17 +5051,18 @@ the lines even if the ranges do not overlap."
     (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
     (setq org-agenda-custom-commands
           '(("n" "Agenda"
-             ((tags-todo
-	           "ACT_WEEK"
-	           ((org-agenda-files (list +org-capture-file-diary))
-	            (org-agenda-overriding-header "Goals for this week")))
-              (tags-todo
-	           "ACT_MONTH"
-	           ((org-agenda-files (list +org-capture-file-diary))
-	            (org-agenda-overriding-header "Goals for this month")))
-	          (agenda)
-              (alltodo ""
-                       ((org-agenda-files (list +org-capture-file-gtd))))))))
+             ((tags
+               "ACT_WEEK"
+               ((org-agenda-files (list +org-capture-file-diary))
+                (org-agenda-overriding-header "Goals for this week")
+                (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+              (tags
+               "ACT_MONTH"
+               ((org-agenda-files (list +org-capture-file-diary))
+                (org-agenda-overriding-header "Goals for this month")
+                (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+              (agenda)
+              (alltodo "" ((org-agenda-files (list +org-capture-file-gtd))))))))
     (evil-set-initial-state 'org-agenda-mode 'motion)
     (setq-default
      org-agenda-inhibit-startup nil
