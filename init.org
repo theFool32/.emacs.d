@@ -1836,7 +1836,9 @@ Quit if no candidate is selected."
 
   (defun my/set-basic-capf ()
     (setq completion-category-defaults nil)
-    (setq-local completion-at-point-functions (my/convert-super-capf (car (last completion-at-point-functions 2)))))
+    (let ((f (car (last completion-at-point-functions 2))))
+      (when (functionp f)
+        (setq-local completion-at-point-functions (my/convert-super-capf f)))))
 
   (defun my/set-lsp-capf ()
     (setq completion-category-defaults nil)
@@ -2442,19 +2444,13 @@ kill all magit buffers for this repo."
   ;;  TODO: use `flymake-flycheck' or `flymake-collection' to enhance backends
   )
 
-(use-package wucuo
-  :hook (LaTeX-mode . wucuo-mode)
+(use-package jinx
+  :straight (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
+  :bind (([remap ispell-word] . #'jinx-correct))
+  :hook (LaTeX-mode . jinx-mode)
   :config
-  (setq ispell-program-name "aspell")
-  ;; You could add extra option "--camel-case" for since Aspell 0.60.8
-  ;; @see https://github.com/redguardtoo/emacs.d/issues/796
-  (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_US" "--run-together"))
-  ;; (add-hook 'text-mode-hook #'wucuo-start)
-  (general-define-key :states 'normal
-                      :keymaps 'LaTeX-mode-map
-                      :prefix ","
-                      "g" '(flyspell-auto-correct-word :wk "Auto correct")
-                      "d" '(flyspell-correct-word-before-point :wk "Correct word")))
+  (add-to-list 'jinx-exclude-regexps '(t "\\cc"))
+  )
 #+end_src
 ** Ebib
 #+begin_src emacs-lisp
@@ -3889,6 +3885,9 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
     :hook (python-mode . (lambda ()
                            (add-hook 'before-save-hook #'py-isort-before-save nil t))))
   )
+
+
+(use-package jupyter)
 #+end_src
 *** Latex
 #+begin_src emacs-lisp
@@ -4701,7 +4700,13 @@ If prefix ARG, copy instead of move."
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
     "Load language if needed"
     (let* ((lang (nth 0 info))
-           (sym (if (member (downcase lang) '("c" "cpp" "c++")) 'C (intern lang)))
+           (sym (cond
+                 ((member (downcase lang) '("c" "cpp" "c++"))
+                  'C)
+                 ((string-prefix-p "jupyter" (downcase lang))
+                  (intern "jupyter"))
+                 (t
+                  (intern lang))))
            (backup-languages org-babel-load-languages)
            (pair (assoc sym backup-languages)))
       ;; - `(LANG . nil)' 是有意义的，不宜覆盖，详见 `org-babel-do-load-languages'。
