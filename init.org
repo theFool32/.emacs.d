@@ -764,6 +764,7 @@ REST and STATE."
 
 
 (use-package evil-collection
+  :elpaca (:host github :repo "meliache/evil-collection" :branch "mu4e-development") ;;  HACK: follow the upstream update of `mu4e'
   :defer nil
   :after evil
   :init
@@ -1571,7 +1572,7 @@ targets."
 
 
 (use-package orderless
-  :after-call window-setup-hook 
+  :after-call after-elpaca-init-hook
   :config
   (setq completion-styles '(orderless basic)
         completion-category-defaults nil
@@ -1839,14 +1840,14 @@ Quit if no candidate is selected."
 
   (defun my/set-basic-capf ()
     (setq completion-category-defaults nil)
-    (setq-local completion-at-point-functions (my/convert-super-capf (car (last completion-at-point-functions 2)))))
+    (let ((f (car (last completion-at-point-functions 2))))
+      (when (functionp f)
+        (setq-local completion-at-point-functions (my/convert-super-capf f)))))
 
   (defun my/set-lsp-capf ()
     (setq completion-category-defaults nil)
     (setq-local completion-at-point-functions (my/convert-super-capf
-                                               'lsp-capf))
-    (when (derived-mode-p 'latex-mode) ;;  HACK: reftex not working in latex-mode
-      (add-to-list 'completion-at-point-functions #'+my/reftex-citation-completion)))
+                                               'lsp-capf)))
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file))
@@ -2445,23 +2446,18 @@ kill all magit buffers for this repo."
   ;;  TODO: use `flymake-flycheck' or `flymake-collection' to enhance backends
   )
 
-(use-package wucuo
-  :hook (LaTeX-mode . wucuo-mode)
+(use-package jinx
+  :elpaca (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
+  :bind (([remap ispell-word] . #'jinx-correct))
+  :hook (LaTeX-mode . jinx-mode)
   :config
-  (setq ispell-program-name "aspell")
-  ;; You could add extra option "--camel-case" for since Aspell 0.60.8
-  ;; @see https://github.com/redguardtoo/emacs.d/issues/796
-  (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_US" "--run-together"))
-  ;; (add-hook 'text-mode-hook #'wucuo-start)
-  (general-define-key :states 'normal
-                      :keymaps 'LaTeX-mode-map
-                      :prefix ","
-                      "g" '(flyspell-auto-correct-word :wk "Auto correct")
-                      "d" '(flyspell-correct-word-before-point :wk "Correct word")))
+  (add-to-list 'jinx-exclude-regexps '(t "\\cc"))
+  )
 #+end_src
 ** Ebib
 #+begin_src emacs-lisp
 (use-package ebib
+  :after evil-collection
   :commands ebib
   :elpaca (ebib :includes (org-ebib) :host github :repo "theFool32/ebib")
   :hook (ebib-index-mode . hl-line-mode)
@@ -2495,7 +2491,7 @@ kill all magit buffers for this repo."
         ("/" . ebib-jump-to-entry)
         ("?" . ebib-swiper)
         ;; ("?" . ebib-search)
-        ("D" . ebib-delete-entry-with-file)
+        ("x" . ebib-delete-entry-with-file)
         ("s"   . ebib-save-all-databases)
         ("S"   . +my/search-pdf)
         ("B"   . ebib-import-ref)
@@ -2768,8 +2764,7 @@ karabiner: shift for emacs-rime
   :if (executable-find "mu")
   :commands mu4e
   :hook ((mu4e-headers-mode . hl-line-mode)
-         (mu4e-compose-mode . (lambda ()
-                                (electric-indent-local-mode nil))))
+         (mu4e-compose-mode . (lambda () (electric-indent-local-mode -1) (setq-local evil-auto-indent nil))))
   :init
   (provide 'html2text)
   :config
@@ -3127,7 +3122,11 @@ karabiner: shift for emacs-rime
             ("WAITING" . ,(ef-themes-with-colors fg-dim))
             ;; ("DONE" . (:foreground ,(ef-themes-with-colors fg-alt) :strike-through t))
             ("DONE" . (:foreground "gray" :strike-through t))
+            ("UNDONE" . (:foreground ,(ef-themes-with-colors fg-dim) :weight bold :strike-through t))
             ("CANCELED" . (:foreground ,(ef-themes-with-colors fg-dim) :weight bold :strike-through t))))
+
+    (custom-set-faces
+     `(org-scheduled-today ((t (:foreground ,(ef-themes-with-colors blue))))))
     )
   )
 
@@ -3612,22 +3611,73 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :if (treesit-available-p)
   :elpaca (:type built-in)
   :init
-  ;; WORKAROUND: set source alist manually
-  (setq treesit-language-source-alist
-        '((bash       . ("https://github.com/tree-sitter/tree-sitter-bash.git"))
-          (c          . ("https://github.com/tree-sitter/tree-sitter-c.git"))
-          (json       . ("https://github.com/tree-sitter/tree-sitter-json.git"))
-          (python     . ("https://github.com/tree-sitter/tree-sitter-python.git"))
-          (toml       . ("https://github.com/tree-sitter/tree-sitter-toml.git"))
-          (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml.git"))))
   :config
-  (setq major-mode-remap-alist
-        '((yaml-mode . yaml-ts-mode)
-          (python-mode . python-ts-mode)
-          (js-json-mode . json-ts-mode)
-          (sh-mode . bash-ts-mode)))
   (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
 )
+
+(use-package tree-sitter
+  :defer t
+  :commands tree-sitter-hl-mode
+  :hook ((python-mode) . tree-sitter-hl-mode))
+
+(use-package tree-sitter-langs
+  :after tree-sitter)
+
+
+(use-package evil-textobj-tree-sitter
+  :defer nil
+  :after tree-sitter
+  :elpaca (evil-textobj-tree-sitter :type git
+                                      :host github
+                                      :repo "meain/evil-textobj-tree-sitter"
+                                      :files (:defaults "queries"))
+  :config
+  ;; bind `function.outer`(entire function block) to `f` for use in things like `vaf`, `yaf`
+  (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
+  ;; bind `function.inner`(function block without name and args) to `f` for use in things like `vif`, `yif`
+  (define-key evil-inner-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.inner"))
+
+  (define-key evil-outer-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "class.outer"))
+  (define-key evil-inner-text-objects-map "c" (evil-textobj-tree-sitter-get-textobj "class.inner"))
+
+  ;; You can also bind multiple items and we will match the first one we can find
+  (define-key evil-outer-text-objects-map "a" (evil-textobj-tree-sitter-get-textobj ("conditional.outer" "loop.outer")))
+
+  ;; function
+  ;; Goto start of next function
+  (define-key evil-normal-state-map (kbd "]f") (lambda ()
+                                                 (interactive)
+                                                 (evil-textobj-tree-sitter-goto-textobj "function.outer")))
+  ;; Goto start of previous function
+  (define-key evil-normal-state-map (kbd "[f") (lambda ()
+                                                 (interactive)
+                                                 (evil-textobj-tree-sitter-goto-textobj "function.outer" t)))
+  ;; Goto end of next function
+  (define-key evil-normal-state-map (kbd "]F") (lambda ()
+                                                 (interactive)
+                                                 (evil-textobj-tree-sitter-goto-textobj "function.outer" nil t)))
+  ;; Goto end of previous function
+  (define-key evil-normal-state-map (kbd "[F") (lambda ()
+                                                 (interactive)
+                                                 (evil-textobj-tree-sitter-goto-textobj "function.outer" t t)))
+  ;; class
+  ;; Goto start of next class
+  (define-key evil-normal-state-map (kbd "]c") (lambda ()
+                                                 (interactive)
+                                                 (evil-textobj-tree-sitter-goto-textobj "class.outer")))
+  ;; Goto start of previous class
+  (define-key evil-normal-state-map (kbd "[c") (lambda ()
+                                                 (interactive)
+                                                 (evil-textobj-tree-sitter-goto-textobj "class.outer" t)))
+  ;; Goto end of next class
+  (define-key evil-normal-state-map (kbd "]C") (lambda ()
+                                                 (interactive)
+                                                 (evil-textobj-tree-sitter-goto-textobj "class.outer" nil t)))
+  ;; Goto end of previous class
+  (define-key evil-normal-state-map (kbd "[C") (lambda ()
+                                                 (interactive)
+                                                 (evil-textobj-tree-sitter-goto-textobj "class.outer" t t)))
+  )
 #+end_src
 ** LSP
 #+begin_src emacs-lisp
@@ -3809,10 +3859,16 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   ;; Disable readline based native completion
   (setq python-shell-completion-native-enable nil)
   (setq python-indent-guess-indent-offset-verbose nil)
+
   :config
+  (add-to-list 'auto-mode-alist '("\\.py[iw]?\\'" . python-mode))
+  (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-mode))
+
 
   (add-hook 'python-mode-hook (lambda ()
                                 (setq-local tab-width 4)))
+  ;;  HACK: DO NOT USE `python-ts-mode' RIGHT NOW
+  (setq major-mode-remap-alist '((python-ts-mode . python-mode)))
 
   (setq python-indent-offset 4
         python-shell-interpreter "python3"
@@ -3823,6 +3879,9 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
     :hook (python-mode . (lambda ()
                            (add-hook 'before-save-hook #'py-isort-before-save nil t))))
   )
+
+
+(use-package jupyter)
 #+end_src
 *** Latex
 #+begin_src emacs-lisp
@@ -3912,124 +3971,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
         ("setlistdepth" "{")
         ("restartlist" "{")
         ("crefname" "{")))
-
-
-
-(use-package reftex
-  :elpaca nil
-  :after tex
-  :hook (LaTeX-mode . reftex-mode)
-  :custom
-  (reftex-plug-into-AUCTeX t)
-  (reftex-toc-split-windows-fraction 0.3)
-  :config
-
-  (defvar +my/reftex-citation-completion-table nil)
-
-  (defun +my/reftex-find-citation (prefix)
-    (reftex-access-scan-info)
-    (setq +my/reftex-citation-completion-table
-          (cl-letf (((symbol-function 'reftex--query-search-regexps)
-                     (lambda (_) (if (string= prefix "")
-                                (list ".+")
-                              (list (regexp-quote prefix))))))
-            (let* ((bibtype (reftex-bib-or-thebib))
-                   (candidates
-                    (cond
-                     ((eq 'thebib bibtype)
-                      (reftex-extract-bib-entries-from-thebibliography
-                       (reftex-uniquify
-                        (mapcar 'cdr
-                                (reftex-all-assq
-                                 'thebib (symbol-value reftex-docstruct-symbol))))))
-                     ((eq 'bib bibtype)
-                      (reftex-extract-bib-entries (reftex-get-bibfile-list)))
-                     (reftex-default-bibliography
-                      (reftex-extract-bib-entries (reftex-default-bibliography))))))
-              (cl-loop
-               for entry in candidates
-               collect
-               (let ((key (substring-no-properties (car entry)))
-                     (annotate (reftex-format-citation entry "%t")))
-                 (cons
-                  (format "%s -> %s" key annotate)
-                  key)))))
-          )
-    +my/reftex-citation-completion-table)
-
-  (defcustom company-reftex-citations-regexp
-    (rx "\\"
-        ;; List taken from `reftex-cite-format-builtin'
-        (or "autocite"
-            "autocite*"
-            "bibentry"
-            "cite"
-            "cite*"
-            "citeA"
-            "citeaffixed"
-            "citeasnoun"
-            "citeauthor"
-            "citeauthor*"
-            "citeauthory"
-            "citefield"
-            "citeN"
-            "citename"
-            "cites"
-            "citet"
-            "citet*"
-            "citetitle"
-            "citetitle*"
-            "citep"
-            "citeyear"
-            "citeyear*"
-            "footcite"
-            "footfullcite"
-            "fullcite"
-            "fullocite"
-            "nocite"
-            "ocite"
-            "ocites"
-            "parencite"
-            "parencite*"
-            "possessivecite"
-            "shortciteA"
-            "shortciteN"
-            "smartcite"
-            "supercite"
-            "textcite"
-            "textcite*"
-            "ycite"
-            "ycites")
-        (* (not (any "[{")))
-        (* (seq "[" (* (not (any "]"))) "]"))
-        "{"
-        (* (seq (* (not (any "},"))) ","))
-        (group (* (not (any "},")))))
-    "Regular expression to use when lookng for the citation prefix.
-Group number 1 should be the prefix itself."
-    :type 'string
-    :group 'company-reftex)
-  (defun company-reftex-prefix (regexp)
-    "Return the prefix for matching given REGEXP."
-    (and (derived-mode-p 'latex-mode)
-         reftex-mode
-         (when (looking-back regexp nil)
-           (match-string-no-properties 1))))
-
-  (defun +my/reftex-citation-completion ()
-    (when (company-reftex-prefix company-reftex-citations-regexp)
-      (let ((bounds (bounds-of-thing-at-point 'symbol)))
-        `(,(car bounds) ,(cdr bounds)
-          ,(cape--table-with-properties
-            (cape--cached-table (car bounds) (cdr bounds) #'+my/reftex-find-citation 'substring)
-            :category 'cape-table)
-          :exclusive 'no
-          ;; :annotation-function (lambda (k) (cdr (assoc k table)))
-          :exit-function (lambda (str sta)
-                           (backward-delete-char (length str))
-                           (insert (cdr (assoc str +my/reftex-citation-completion-table))))))))
-
-  )
 
 (use-package bibtex
   :elpaca nil
@@ -4522,15 +4463,15 @@ If prefix ARG, copy instead of move."
       (org-archive-subtree))))
 
 (with-eval-after-load 'consult
-  (defun +my/retrieval-todo-items ()
+  (defun +my/retrieve-todo-entries ()
     (require 'consult-org)
     (consult--read
      (consult--with-increased-gc
       (-filter (lambda (item)
                  (not (member
                        (car (cdr (get-text-property 0 'consult-org--heading item)))
-                       '("DONE" "CANCELED"))))
-               (consult-org--headings nil nil 'agenda)))
+                       '("DONE" "CANCELED" "UNDONE"))))
+               (consult-org--headings nil nil (list +org-capture-file-gtd +org-capture-file-routine)))) ;; Only retrieve entries from `gtd' and `routine'
      :prompt "Go to heading: "
      :category 'consult-org-heading
      :sort nil
@@ -4550,7 +4491,7 @@ If prefix ARG, copy instead of move."
     "Clock into an Org agenda heading."
     (interactive)
     (save-window-excursion
-      (+my/retrieval-todo-items)
+      (+my/retrieve-todo-entries)
       (org-clock-in)
       (save-buffer)))
   (consult-customize consult-clock-in :prompt "Clock in: ")
@@ -4559,7 +4500,7 @@ If prefix ARG, copy instead of move."
     "Clock into an Org agenda heading."
     (interactive)
     (save-window-excursion
-      (+my/retrieval-todo-items)
+      (+my/retrieve-todo-entries)
       (org-todo 'done)
       (save-buffer)))
   (consult-customize consult-mark-done :prompt "Mark done: ")
@@ -4635,7 +4576,13 @@ If prefix ARG, copy instead of move."
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
     "Load language if needed"
     (let* ((lang (nth 0 info))
-           (sym (if (member (downcase lang) '("c" "cpp" "c++")) 'C (intern lang)))
+           (sym (cond
+                 ((member (downcase lang) '("c" "cpp" "c++"))
+                  'C)
+                 ((string-prefix-p "jupyter" (downcase lang))
+                  (intern "jupyter"))
+                 (t
+                  (intern lang))))
            (backup-languages org-babel-load-languages)
            (pair (assoc sym backup-languages)))
       ;; - `(LANG . nil)' 是有意义的，不宜覆盖，详见 `org-babel-do-load-languages'。
@@ -4701,6 +4648,7 @@ If prefix ARG, copy instead of move."
            "WAITING(w)"  ; Something is holding up this task; or it is paused
            "|"
            "DONE(d)"  ; Task successfully completed
+           "UNDONE(u)"  ; Task is not completed
            "CANCELED(c)") ; Task was cancelled, aborted or is no longer applicable
           ))
 
@@ -4896,7 +4844,7 @@ If prefix ARG, copy instead of move."
     (interactive)
     (org-agenda nil "n")
     ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
-    (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO")))
+    (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE")))
 
   (defun +my-org/mark-done ()
     (interactive)
@@ -4913,7 +4861,8 @@ If prefix ARG, copy instead of move."
           (org-move-subtree-down)
           (org-shiftmetaright)
           (save-buffer)
-          (kill-buffer)))))
+          ;; (kill-buffer)
+          ))))
 
 ;;;###autoload
   (defun org-clock-merge (arg)
@@ -4983,16 +4932,18 @@ the lines even if the ranges do not overlap."
     (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
     (setq org-agenda-custom-commands
           '(("n" "Agenda"
-             ((tags-todo
-	           "ACT_WEEK"
-	           ((org-agenda-files (list +org-capture-file-diary))
-	            (org-agenda-overriding-header "Goals for this week")))
-              (tags-todo
-	           "ACT_MONTH"
-	           ((org-agenda-files (list +org-capture-file-diary))
-	            (org-agenda-overriding-header "Goals for this month")))
-	          (agenda)
-              (alltodo "")))))
+             ((tags
+               "ACT_WEEK"
+               ((org-agenda-files (list +org-capture-file-diary))
+                (org-agenda-overriding-header "Goals for this week")
+                (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+              (tags
+               "ACT_MONTH"
+               ((org-agenda-files (list +org-capture-file-diary))
+                (org-agenda-overriding-header "Goals for this month")
+                (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+              (agenda)
+              (alltodo "" ((org-agenda-files (list +org-capture-file-gtd))))))))
     (evil-set-initial-state 'org-agenda-mode 'motion)
     (setq-default
      org-agenda-inhibit-startup nil
@@ -5533,7 +5484,7 @@ begin and end of the block surrounding point."
     "fs" '(+my/save-file :wk "Save file")
     "fd" '(dired-jump :wk "Current directory")
     "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.org")) :wk "init.org")
-    "fo" '((lambda() (interactive) (find-file (concat +self/org-base-dir (completing-read "Open org files:" (mapcar (lambda (f) (file-name-nondirectory f)) +org-files))))) :wk "Org files")
+    "fo" '((lambda() (interactive) (find-file (format "%s/%s.org" +self/org-base-dir (completing-read "Open org files:" (mapcar (lambda (f) (file-name-base f)) +org-files))))) :wk "Org files")
     "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
     "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
 
