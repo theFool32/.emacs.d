@@ -495,9 +495,9 @@ REST and STATE."
     (require 'org-datetree)
     ;; WORKAROUND: this part is ugly
     (let* ((year (calendar-extract-year d))
-	       (month (calendar-extract-month d))
-	       (day (calendar-extract-day d))
-	       (time (encode-time 0 0 0 day month year))
+           (month (calendar-extract-month d))
+           (day (calendar-extract-day d))
+           (time (encode-time 0 0 0 day month year))
            (weekday (string-to-number (format-time-string "%w" time)))
            (sunday (encode-time 0 0 0 (- day weekday) month year))
            (saturday (encode-time 0 0 0 (+ day (- 6 weekday)) month year))
@@ -4853,6 +4853,7 @@ If prefix ARG, copy instead of move."
                   (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
         (org-cut-subtree)
         (with-current-buffer (find-file-noselect +org-capture-file-diary)
+          ;;  FIXME: this is instable, but it is not easy to reproduce
           (+my/org-datetree-find-week-create close-time)
           (org-paste-subtree)
           (org-move-subtree-down)
