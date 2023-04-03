@@ -4490,7 +4490,7 @@ If prefix ARG, copy instead of move."
     (save-window-excursion
       (+my/retrieve-todo-entries)
       (org-clock-in)
-      (save-buffer)))
+      (save-all-buffers)))
   (consult-customize consult-clock-in :prompt "Clock in: ")
 
   (defun consult-mark-done ()
@@ -4499,7 +4499,7 @@ If prefix ARG, copy instead of move."
     (save-window-excursion
       (+my/retrieve-todo-entries)
       (org-todo 'done)
-      (save-buffer)))
+      (save-all-buffers)))
   (consult-customize consult-mark-done :prompt "Mark done: ")
 
   )
