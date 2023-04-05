@@ -3735,7 +3735,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :config
   (use-package consult-eglot)
   (fset 'lsp-capf 'eglot-completion-at-point)
-  (setq eglot-sync-connect 1
+  (setq eglot-sync-connect 0
         eglot-connect-timeout 10
         eglot-autoshutdown t
         eglot-send-changes-idle-time 0
@@ -3878,7 +3878,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   )
 
 
-(use-package jupyter)
+(use-package jupyter
+  :disabled)
 #+end_src
 *** Latex
 #+begin_src emacs-lisp
