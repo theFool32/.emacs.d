@@ -521,6 +521,16 @@ REST and STATE."
        (format "W%02d (%s - %s)" week
                (format-time-string "%Y-%m-%d" sunday)
                (format-time-string "%Y-%m-%d" saturday))))))
+
+(defun +my/comment-and-paste (content_start content_end)
+  "Comment selected lines and paste then after."
+  (interactive "r")
+  (let ((line-number (line-number-at-pos content_end)))
+    (call-interactively 'evilnc-comment-and-kill-ring-save)
+    (goto-line line-number)
+    (end-of-line)
+    (newline)
+    (yank)))
 #+end_src
 * Global Configuration
 #+begin_src emacs-lisp
@@ -1200,8 +1210,13 @@ in some cases."
    ("SPC" . +my/quick-look)
    :map embark-identifier-map
    (";" . embrace-commander)
+   ("D" . xref-find-definitions-other-window)
    :map embark-region-map
    (";" . embrace-commander)
+   ("y" . +my/comment-and-paste)
+   ("V" . diff-hl-show-hunk)
+   ("/" . evilnc-comment-or-uncomment-lines)
+   ("=" . er/expand-region)
    )
   :custom
   (embark-cycle-key ".")
