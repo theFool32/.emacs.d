@@ -4614,6 +4614,7 @@ If prefix ARG, copy instead of move."
   (add-hook 'org-capture-mode-hook #'evil-insert-state)
 
   (custom-set-faces
+   '(org-agenda-done ((t (:strike-through nil))))
    '(org-done ((t (:strike-through t :foreground "gray"))))
    '(org-headline-done ((t (:strike-through t :foreground "gray")))))
 
