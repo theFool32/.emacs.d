@@ -2038,6 +2038,9 @@ It handles the case of remote files as well."
   :config
   (set-face-attribute 'aw-leading-char-face nil :height 400)
   )
+
+(use-package imenu-list
+  :commands (imenu-list imenu-list-smart-toggle))
 #+end_src
 ** Persp
 #+begin_src emacs-lisp
