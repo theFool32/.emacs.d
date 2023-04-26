@@ -332,7 +332,7 @@ REST and STATE."
 (defun +my/rename-file()
   "Rename file while using current file as default."
   (interactive)
-  (let ((file-from (read-file-name "Move from: " default-directory buffer-file-name))
+  (let ((file-from (read-file-name "Move from: " default-directory (file-name-nondirectory buffer-file-name)))
         (file-to (read-file-name "Move to:" default-directory)))
     (rename-file file-from file-to)
     (when (string= (file-truename file-from) (file-truename (buffer-file-name)))
@@ -344,7 +344,7 @@ REST and STATE."
   "Put current buffer file to top."
   (interactive)
   (delete-file
-   (read-file-name "Delete: " default-directory buffer-file-name))
+   (read-file-name "Delete: " default-directory (file-name-nondirectory buffer-file-name)))
   (unless (file-exists-p (buffer-file-name))
     (kill-current-buffer)))
 
@@ -495,9 +495,9 @@ REST and STATE."
     (require 'org-datetree)
     ;; WORKAROUND: this part is ugly
     (let* ((year (calendar-extract-year d))
-	       (month (calendar-extract-month d))
-	       (day (calendar-extract-day d))
-	       (time (encode-time 0 0 0 day month year))
+           (month (calendar-extract-month d))
+           (day (calendar-extract-day d))
+           (time (encode-time 0 0 0 day month year))
            (weekday (string-to-number (format-time-string "%w" time)))
            (sunday (encode-time 0 0 0 (- day weekday) month year))
            (saturday (encode-time 0 0 0 (+ day (- 6 weekday)) month year))
@@ -521,6 +521,16 @@ REST and STATE."
        (format "W%02d (%s - %s)" week
                (format-time-string "%Y-%m-%d" sunday)
                (format-time-string "%Y-%m-%d" saturday))))))
+
+(defun +my/comment-and-paste (content_start content_end)
+  "Comment selected lines and paste then after."
+  (interactive "r")
+  (let ((line-number (line-number-at-pos content_end)))
+    (call-interactively 'evilnc-comment-and-kill-ring-save)
+    (goto-line line-number)
+    (end-of-line)
+    (newline)
+    (yank)))
 #+end_src
 * Global Configuration
 #+begin_src emacs-lisp
@@ -1200,8 +1210,13 @@ in some cases."
    ("SPC" . +my/quick-look)
    :map embark-identifier-map
    (";" . embrace-commander)
+   ("D" . xref-find-definitions-other-window)
    :map embark-region-map
    (";" . embrace-commander)
+   ("y" . +my/comment-and-paste)
+   ("V" . diff-hl-show-hunk)
+   ("/" . evilnc-comment-or-uncomment-lines)
+   ("=" . er/expand-region)
    )
   :custom
   (embark-cycle-key ".")
@@ -2026,6 +2041,9 @@ It handles the case of remote files as well."
   :config
   (set-face-attribute 'aw-leading-char-face nil :height 400)
   )
+
+(use-package imenu-list
+  :commands (imenu-list imenu-list-smart-toggle))
 #+end_src
 ** Persp
 #+begin_src emacs-lisp
@@ -3738,7 +3756,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :config
   (use-package consult-eglot)
   (fset 'lsp-capf 'eglot-completion-at-point)
-  (setq eglot-sync-connect 1
+  (setq eglot-sync-connect 0
         eglot-connect-timeout 10
         eglot-autoshutdown t
         eglot-send-changes-idle-time 0
@@ -3881,7 +3899,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   )
 
 
-(use-package jupyter)
+(use-package jupyter
+  :disabled)
 #+end_src
 *** Latex
 #+begin_src emacs-lisp
@@ -4493,7 +4512,7 @@ If prefix ARG, copy instead of move."
     (save-window-excursion
       (+my/retrieve-todo-entries)
       (org-clock-in)
-      (save-buffer)))
+      (save-all-buffers)))
   (consult-customize consult-clock-in :prompt "Clock in: ")
 
   (defun consult-mark-done ()
@@ -4502,7 +4521,7 @@ If prefix ARG, copy instead of move."
     (save-window-excursion
       (+my/retrieve-todo-entries)
       (org-todo 'done)
-      (save-buffer)))
+      (save-all-buffers)))
   (consult-customize consult-mark-done :prompt "Mark done: ")
 
   )
@@ -4602,6 +4621,7 @@ If prefix ARG, copy instead of move."
   (add-hook 'org-capture-mode-hook #'evil-insert-state)
 
   (custom-set-faces
+   '(org-agenda-done ((t (:strike-through nil))))
    '(org-done ((t (:strike-through t :foreground "gray"))))
    '(org-headline-done ((t (:strike-through t :foreground "gray")))))
 
@@ -4857,6 +4877,7 @@ If prefix ARG, copy instead of move."
                   (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
         (org-cut-subtree)
         (with-current-buffer (find-file-noselect +org-capture-file-diary)
+          ;;  FIXME: this is instable, but it is not easy to reproduce
           (+my/org-datetree-find-week-create close-time)
           (org-paste-subtree)
           (org-move-subtree-down)
