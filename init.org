@@ -1372,6 +1372,7 @@ targets."
     :hook (minibuffer-setup . vertico-repeat-save)
     )
   (use-package vertico-directory
+    :elpaca nil
     :after vertico
     :after-call +my/first-input-hook-fun
     :ensure nil
@@ -1932,7 +1933,7 @@ It handles the case of remote files as well."
   :commands ztree-diff)
 
 (use-package winner
-  :elpacs nil
+  :elpaca nil
   :ensure nil
   :commands (winner-undo winner-redo)
   :hook (elpaca-after-init . winner-mode)
@@ -2377,11 +2378,11 @@ kill all magit buffers for this repo."
   (setq flymake-no-changes-timeout nil)
   ;; (setq-local flymake-diagnostic-functions nil)
   (setq flymake-fringe-indicator-position 'right-fringe)
-  (use-package flymake-posframe
-    :elpaca (:host github :repo "articuluxe/flymake-posframe" :branch "feature/eglot")
-    :hook (flymake-mode . flymake-posframe-mode))
   ;;  TODO: use `flymake-flycheck' or `flymake-collection' to enhance backends
   )
+
+(use-package flymake-popon
+  :hook (flymake-mode . flymake-popon-mode))
 
 (use-package jinx
   :elpaca (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
