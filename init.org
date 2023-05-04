@@ -2369,7 +2369,7 @@ kill all magit buffers for this repo."
 ** Ebib
 #+begin_src emacs-lisp
 (use-package ebib
-  :after evil-collection
+  :after (evil-collection org)
   :commands ebib
   :elpaca (ebib :includes (org-ebib) :host github :repo "theFool32/ebib")
   :hook (ebib-index-mode . hl-line-mode)
@@ -2424,71 +2424,23 @@ kill all magit buffers for this repo."
     (interactive)
     (consult-ripgrep (concat +self/ebib-base-dir "/pdfs") ""))
 
-  (random t)
-  (defun get-random-uuid ()
-    "Insert a random UUID.
-Example of a UUID: 1df63142-a513-c850-31a3-535fc3520c3d
-
-WARNING: this is a simple implementation.  The chance of generating the same UUID is much higher than a robust algorithm.."
-    (interactive)
-
-    (format "%04x%04x-%04x-%04x-%04x-%06x%06x"
-            (random (expt 16 4))
-            (random (expt 16 4))
-            (random (expt 16 4))
-            (random (expt 16 4))
-            (random (expt 16 4))
-            (random (expt 16 6))
-            (random (expt 16 6))))
-
-
-  (defun my-ebib--format-entry (key db &optional timestamp sort)
-    "Write entry KEY in DB into the current buffer in BibTeX format.
-If TIMESTAMP is non-nil and `ebib-use-timestamp' is set, a
-timestamp is added to the entry, possibly overwriting an existing
-timestamp.  If SORT is non-nil, the fields are sorted before
-formatting the entry."
-    (let* ((entry (copy-alist (ebib-db-get-entry key db 'noerror)))
-           (type (cdr (assoc "=type=" entry)))
-           (my-needed-fields '("author" "booktitle" "year" "title" "journal")))
-      (when entry
-        (if (and timestamp ebib-use-timestamp)
-            (setcdr (assoc-string "timestamp" entry 'case-fold) (format-time-string (concat "{" ebib-timestamp-format "}"))))
-        (setq entry (seq-filter (lambda (field)
-                                  (and (cdr field) ; Remove fields with value nil. See `ebib-set-field-value'.
-                                       (not (ebib--special-field-p (car field))))
-                                  (member (car field) my-needed-fields))
-                                entry))
-        (setq entry (if sort
-                        (cl-sort entry #'string< :key #'car)
-                      ;; When reading, fields are stored with `push', so if we don't
-                      ;; sort, we need to reverse them to get the original order
-                      ;; back.  See github issues #42, #55, #62.
-                      (reverse entry)))
-        (insert (format "@%s{%s,\n" type key))
-        (insert (mapconcat (lambda (field)
-                             (format "\t%s = %s" (car field) (cdr field)))
-                           entry
-                           ",\n"))
-        (insert "\n}\n\n"))))
-
   (defun insert-to-bib ()
     (interactive)
     (call-interactively 'ebib-jump-to-entry)
     (ebib--execute-when
-     (entries
-      (let ((key (ebib--get-key-at-point)))
-        (with-temp-buffer
-          (my-ebib--format-entry key ebib--cur-db)
-          (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-        (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
-     (default
-      (beep)))
+      (entries
+       (let ((key (ebib--get-key-at-point)))
+         (with-temp-buffer
+           (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
+           (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+         (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+      (default
+       (beep)))
     (yank))
 
   (defun ebib-import-ref (url)
     (interactive "sUrl:")
-    (let ((buffername (concat "*ref-" (get-random-uuid) "*"))
+    (let ((buffername (concat "*ref-" (org-id-uuid) "*"))
           (pdf-url url))
       (run-with-idle-timer
        0.1
@@ -2510,12 +2462,11 @@ formatting the entry."
                                 (kill-buffer buffer)
                                 (ebib--update-buffers))))))))))))
   :config
-  (require 'org-ebib) ;;  FIXME: `org-ebib' will not load automatically
-  (use-package org-ebib
-    :config
-    (local-leader-def
-      :keymaps 'org-mode-map
-      "lb" 'org-ebib-insert-link)))
+  (require 'org-ebib)
+  (local-leader-def
+    :keymaps 'org-mode-map
+    "lb" 'org-ebib-insert-link)
+  )
 #+end_src
 ** Rime
 karabiner: shift for emacs-rime
