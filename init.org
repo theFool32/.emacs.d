@@ -307,9 +307,9 @@ REST and STATE."
 
 (mapcar
  (lambda (p) (add-to-list 'elpaca-ignored-dependencies p))
- '(xref tramp eglot use-package project org xref
+ '(xref tramp eglot use-package project org xref recentf winner
         tramp-sh flymake simple diff-mode smerge-mode python css-mode custom
-        server help elec-pair paren recentf winner tab-bar hl-line pulse prog-mode
+        server help elec-pair paren tab-bar hl-line pulse prog-mode
         lisp-mode treesit imenu eldoc))
 
 ;; Block until current queue processed.
@@ -1932,7 +1932,7 @@ It handles the case of remote files as well."
   :commands ztree-diff)
 
 (use-package winner
-  :elpaca nil
+  :elpacs nil
   :ensure nil
   :commands (winner-undo winner-redo)
   :hook (elpaca-after-init . winner-mode)
@@ -2959,6 +2959,7 @@ karabiner: shift for emacs-rime
           (variable ,(nerd-icons-codicon "nf-cod-symbol_variable") :face font-lock-variable-name-face)
           (tabnine ,(nerd-icons-codicon "nf-cod-hubot") :face font-lock-warning-face)
           (unknown ,(nerd-icons-codicon "nf-cod-code") :face font-lock-warning-face)
+          (tmux ,(nerd-icons-codicon "nf-cod-terminal") :face font-lock-warning-face)
           (t ,(nerd-icons-codicon "nf-cod-code") :face font-lock-warning-face)))
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
@@ -5513,11 +5514,10 @@ begin and end of the block surrounding point."
 ** TODO search packages and functions in this org file
 * End
 #+begin_src emacs-lisp
-;; (add-hook 'window-setup-hook
 (add-hook 'elpaca-after-init-hook
           #'(lambda ()
               (+my/open-org-agenda)
-              (message "Start in %s s with %d gc" (float-time (time-subtract (current-time) +my/start-time)))))
+              (message "Start in %s s with %d gc" (float-time (time-subtract (current-time) +my/start-time)) gcs-done)))
 
 (provide 'init)
 #+end_src
