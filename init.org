@@ -635,6 +635,7 @@ REST and STATE."
 
 ;; _ as part of a word
 (modify-syntax-entry ?_ "w")
+(modify-syntax-entry ?- "w")
 (defalias 'forward-evil-word 'forward-evil-symbol)
 
 ;; Don't ping things that look like domain names.
@@ -1689,7 +1690,7 @@ targets."
   (use-package corfu-history
     :elpaca nil
     :hook (corfu-mode . corfu-history-mode))
-  
+
   ;; allow evil-repeat
   ;; https://github.com/minad/corfu/pull/225
   (defun corfu--unread-this-command-keys ()
@@ -1771,7 +1772,8 @@ Quit if no candidate is selected."
      ;; 'equal)
      #'tmux-capf
      ;; #'cape-dabbrev
-     #'eng-capf
+     ;; #'eng-capf
+     #'cape-dict
      ))
 
   (defun my/set-basic-capf ()
@@ -1786,7 +1788,32 @@ Quit if no candidate is selected."
                                                'lsp-capf)))
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file))
+  (add-to-list 'completion-at-point-functions #'cape-file)
+
+
+  ;;  HACK: use `rg' instead of `grep'
+  ;;  TODO: performance comparison between `cape-dict' and `corfu-english-helper'. Or maybe rewrite it?
+  (defun cape--dict-list (input)
+    "Return all words from `cape-dict-file' matching INPUT."
+    (unless (equal input "")
+      (cape--case-replace-list
+       cape-dict-case-replace input
+       (if cape-dict-grep
+           (apply #'process-lines-ignore-status
+                  "rg"
+                  (concat "-N" (and (cape--case-fold-p cape-dict-case-fold) "i"))
+                  input (cape--dict-file))
+         (unless cape--dict-all-words
+           (setq cape--dict-all-words
+                 (split-string (with-temp-buffer
+                                 (mapc #'insert-file-contents
+                                       (cape--dict-file))
+                                 (buffer-string))
+                               "\n" 'omit-nulls)))
+         (let ((completion-ignore-case t)
+               (completion-regexp-list (list (regexp-quote input))))
+           (all-completions "" cape--dict-all-words))))))
+  )
 
 (use-package corfu-english-helper
   :after cape
@@ -1919,10 +1946,11 @@ It handles the case of remote files as well."
   (add-to-list 'super-save-triggers 'eglot-rename)
   (add-to-list 'super-save-triggers 'consult-buffer)
   (setq super-save-exclude '(".gpg"))
-  (setq super-save-idle-duration 1)
+  (setq super-save-idle-duration 0.4)
   (setq save-silently t)
   (setq super-save-auto-save-when-idle t)
   (add-to-list 'super-save-predicates (lambda () (not (and (featurep 'tempel) tempel--active))))
+  (add-to-list 'super-save-predicates (lambda () (not corfu--candidates)))
 
   (defun +super-save-without-format ()
     (let ((before-save-hook (remove 'format-all--buffer-from-hook before-save-hook)))
