@@ -7,3 +7,6 @@ custom:
 
 init: env custom
 	@emacs -Q -batch -eval '(progn (find-file "init.org")(org-babel-tangle))'
+
+install:
+	@brew install ripgrep fd rga terminal-notifier
