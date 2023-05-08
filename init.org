@@ -2428,16 +2428,17 @@ kill all magit buffers for this repo."
 
   (defun insert-to-bib ()
     (interactive)
-    (call-interactively 'ebib-jump-to-entry)
-    (ebib--execute-when
-      (entries
-       (let ((key (ebib--get-key-at-point)))
-         (with-temp-buffer
-           (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
-           (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-         (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
-      (default
-       (beep)))
+    (save-excursion
+      (call-interactively 'ebib-jump-to-entry)
+      (ebib--execute-when
+        (entries
+         (let ((key (ebib--get-key-at-point)))
+           (with-temp-buffer
+             (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
+             (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+           (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+        (default
+         (beep))))
     (yank))
 
   (defun ebib-import-ref (url)
