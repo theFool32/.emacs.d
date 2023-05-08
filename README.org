@@ -1,8 +1,6 @@
 
 * Emacs Configuration
 
-I use it with Emacs with native-comp.
-
 ** Installation
 *** Installing Emacs
 Instal =Emacs= with one of below:
