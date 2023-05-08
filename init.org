@@ -2050,7 +2050,8 @@ It handles the case of remote files as well."
   )
 
 (use-package dirvish  ;; `(' for details.
-  :elpaca (dirvish :type git :host github :repo "alexluigit/dirvish")
+  ;; :elpaca (dirvish :type git :host github :repo "alexluigit/dirvish")
+  :elpaca (:type git :host github :repo "rainstormstudio/dirvish" :branch "feature/nerd-icons") ;;  TODO: waiting for `dirvish' merging this pr
   :hook ((+my/first-input . dirvish-override-dired-mode)
          (evil-collection-setup . (lambda (&rest a)
                                     (evil-define-key '(normal) dired-mode-map
@@ -2075,7 +2076,8 @@ It handles the case of remote files as well."
   :custom
   (dirvish-mode-line-format ; it's ok to place string inside
    '(:left (sort file-time " " file-size symlink) :right (omit yank index)))
-  (dirvish-attributes '(file-size vc-state git-msg))
+  (dirvish-attributes '(nerd-icons file-size vc-state git-msg))
+  (dirvish-subtree-state-style 'nerd)
   (dirvish-side-follow-buffer-file t)
   ;; (dirvish-enabled-features-on-remote '(extras vc))
   :config
@@ -2830,6 +2832,7 @@ karabiner: shift for emacs-rime
   :init
   (setq nerd-icons-scale-factor 1.1))
 (use-package nerd-icons-dired
+  :disabled
   :diminish
   :commands nerd-icons-dired-mode
   :custom-face
