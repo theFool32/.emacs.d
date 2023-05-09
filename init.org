@@ -4709,14 +4709,13 @@ If prefix ARG, copy instead of move."
                   (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
         (org-cut-subtree)
         (with-current-buffer (find-file-noselect +org-capture-file-diary)
-          ;;  FIXME: this is instable, but it is not easy to reproduce
           (+my/org-datetree-find-week-create close-time)
-          (org-paste-subtree)
-          (org-move-subtree-down)
-          (org-shiftmetaright)
-          (save-buffer)
-          ;; (kill-buffer)
-          ))))
+          (let ((has-child (org-goto-first-child)))
+            (org-paste-subtree)
+            (org-move-subtree-down)
+            (unless has-child
+              (org-demote-subtree)))
+          (save-buffer)))))
 
 ;;;###autoload
   (defun org-clock-merge (arg)
