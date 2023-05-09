@@ -24,7 +24,7 @@
       mode-line-format nil
       byte-compile-warnings nil
       native-comp-async-report-warnings-errors nil
-      warning-suppress-log-types '((comp) (bytecomp))
+      warning-suppress-log-types '((comp) (bytecomp)(emacs)) ;; disable `emacs` warnings for `youdao` autoloads
       display-time-default-load-average nil
 
       inhibit-startup-screen t
@@ -71,6 +71,8 @@
       use-package-verbose nil
       use-package-expand-minimally t
       use-package-compute-statistics nil)
+
+(setq warning-minimum-level :emergency)
 
 (provide 'early-init)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -263,7 +265,6 @@ REST and STATE."
 ** elpaca
 #+begin_src emacs-lisp
 ;;  FIXME: still slow when startup (~0.5s)
-;;  FIXME: youdao autoloads warning
 (defvar elpaca-installer-version 0.4)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
@@ -817,7 +818,6 @@ REST and STATE."
   )
 
 (use-package evil-mc
-  ;;  FIXME: still not easy to use, need finetune
   :after evil
   :hook (+my/first-input . global-evil-mc-mode)
   :config
@@ -1536,7 +1536,7 @@ targets."
                 :category file
                 :face     consult-file
                 :history  file-name-history
-                :enabled  ,(lambda () t)  ;;  FIXME: check whether z.lua is installed
+                :enabled  ,(lambda () (getenv "ZLUA_SCRIPT"))
                 :items    ,#'consult-dir--zlua-dirs)
     "Fasd directory source for `consult-dir'.")
   ;; (add-to-list 'consult-dir-sources 'consult-dir--source-zlua t)
@@ -3428,7 +3428,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                                      (member char parens))
                                                 `("d" "a" ,char)
                                               ;; '("d" "i" "g")
-                                              ;;  HACK: Don't know why dig not works
                                               '("v" "i" "g" "x")
                                               ))) nil))))
   (with-eval-after-load 'general
@@ -4388,7 +4387,7 @@ If prefix ARG, copy instead of move."
    org-element-use-cache nil
    org-src-preserve-indentation nil
    org-edit-src-content-indentation 0
-   org-capture-bookmark nil ;; TODO: no bookmark for refile
+   org-capture-bookmark nil
    org-log-done 'time
    org-hide-emphasis-markers t
    org-deadline-warning-days 90
@@ -5321,7 +5320,7 @@ begin and end of the block surrounding point."
     ";" '(+my/open-org-agenda :wk "Agenda")
     "x" '(org-capture :wk "Org capture")
     "r" '(er/expand-region :wk "expand-region")
-    "k" '(+my/replace :wk "Replace") ;;  FIXME: more semantic key
+    "k" '(+my/replace :wk "Replace")
 
     "b" '(:wk "Buffer")
     "b[" '(previous-buffer :wk "Previous buffer")
