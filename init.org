@@ -666,8 +666,13 @@ REST and STATE."
 (dolist (hook '(conf-mode-hook conf-space-mode-hook emacs-lisp-mode-hook))
   (add-hook hook #'hexcolour-add-to-font-lock))
 
-(setq-default which-func-modes '(emacs-lisp-mode python-mode org-mode latex-mode))
-(which-function-mode +1)
+;; (setq-default which-func-modes '(emacs-lisp-mode python-mode org-mode latex-mode))
+;; (which-function-mode +1)
+
+(use-package breadcrumb
+  :elpaca (:host github :repo "joaotavora/breadcrumb")
+  :hook ((prog-mode org-mode). breadcrumb-local-mode)
+  )
 
 (add-hook 'elpaca-after-init-hook (lambda ()
                              (run-with-idle-timer 5 nil
@@ -1378,6 +1383,7 @@ targets."
 
   ;; consult-imenu
   (with-eval-after-load 'consult-imenu
+    ;;  FIXME: does not work since `eglot' use `breadcrumb-kind' instead
     (add-to-list 'consult-imenu-config '(python-mode :types
                                                      ((?c "Class"    font-lock-type-face)
                                                       (?C "Constant"    font-lock-constant-face)
