@@ -671,7 +671,7 @@ REST and STATE."
 
 (use-package breadcrumb
   :elpaca (:host github :repo "joaotavora/breadcrumb")
-  :hook ((prog-mode org-mode). breadcrumb-local-mode)
+  :hook ((prog-mode org-mode LaTeX-mode). breadcrumb-local-mode)
   )
 
 (add-hook 'elpaca-after-init-hook (lambda ()
