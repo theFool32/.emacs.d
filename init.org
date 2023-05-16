@@ -2450,8 +2450,8 @@ kill all magit buffers for this repo."
 
   (defun ebib-import-ref (url)
     (interactive "sUrl:")
-    (let ((buffername (concat "*ref-" (org-id-uuid) "*"))
-          (pdf-url url))
+    (let* ((buffername (concat "*ref-" (org-id-uuid) "*"))
+           (pdf-url url))
       (run-with-idle-timer
        0.1
        nil
