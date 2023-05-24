@@ -1651,19 +1651,10 @@ targets."
                                    unread-command-events))
       (clear-this-command-keys t)))
 
-  (defun corfu--pre-command ()
-    "Insert selected candidate unless command is marked to continue completion."
-    (when corfu--preview-ov
-      (delete-overlay corfu--preview-ov)
-      (setq corfu--preview-ov nil))
-    ;; Ensure that state is initialized before next Corfu command
-    (when (and (symbolp this-command) (string-prefix-p "corfu-" (symbol-name this-command)))
-      (corfu--update))
-    (when (and (eq corfu-preview-current 'insert)
-               (/= corfu--index corfu--preselect)
-               ;; See the comment about `overriding-local-map' in `corfu--post-command'.
-               (not (or overriding-terminal-local-map
-                        (corfu--match-symbol-p corfu-continue-commands this-command))))
+  (cl-defmethod corfu--insert :around (status)
+    (if (or (eq this-command 'corfu-insert-exact)
+            (not (eq status 'exact)))
+        (cl-call-next-method)
       (corfu--unread-this-command-keys)
       (setq this-command 'corfu-insert-exact)))
 
