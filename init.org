@@ -736,8 +736,9 @@ REST and STATE."
 ** Evil related packages
 #+begin_src emacs-lisp
 (use-package evil-embrace
+  :defer 1
   :after evil
-  :commands (embrace-add-pair embrace-add-pair-regexp)
+  :commands (embrace-commander embrace-add-pair embrace-add-pair-regexp)
   :config
   (add-hook 'LaTeX-mode-hook 'embrace-LaTeX-mode-hook)
   (add-hook 'org-mode-hook 'embrace-org-mode-hook)
@@ -749,7 +750,7 @@ REST and STATE."
          :key ?\\
          :left-regexp "\\[[{(]"
          :right-regexp "\\[]})]"))
-  (evil-surround-mode)
+  (global-evil-surround-mode)
   (evil-embrace-enable-evil-surround-integration)
   )
 
