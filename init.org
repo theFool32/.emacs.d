@@ -670,6 +670,7 @@ REST and STATE."
 ;; (which-function-mode +1)
 
 (use-package breadcrumb
+  :disabled
   :elpaca (:host github :repo "joaotavora/breadcrumb")
   :hook ((prog-mode org-mode LaTeX-mode). breadcrumb-local-mode)
   )
@@ -3531,8 +3532,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 (use-package eglot
   :elpaca nil
   :commands (+eglot-help-at-point)
-  :hook (
-         (eglot-managed-mode . (lambda ()
+  :hook ((eglot-managed-mode . (lambda ()
                                  (+lsp-optimization-mode)
                                  (leader-def :keymaps 'override
                                    "ca" '(eglot-code-actions :wk "Code Actions")
@@ -3545,10 +3545,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
                                  (evil-define-key 'normal 'global
                                    "K" '+eglot-help-at-point)
-                                 (eglot-inlay-hints-mode -1)
-                                 ))
-         ((python-mode c-mode c++-mode LaTeX-mode) . eglot-ensure)
-         )
+                                 (eglot-inlay-hints-mode -1)))
+         ((python-mode c-mode c++-mode LaTeX-mode) . eglot-ensure))
   :init
   (defvar +lsp--default-read-process-output-max nil)
   (defvar +lsp--default-gcmh-high-cons-threshold nil)
@@ -3627,7 +3625,55 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
   (defun +eglot-help-at-point()
     (interactive)
-    (+eglot-lookup-documentation nil)))
+    (+eglot-lookup-documentation nil))
+
+  ;;  FIXME: currently, `eglot-imenu' can't work with `consult-imenu', load older implementation as workaround
+  (defun eglot-imenu ()
+    "EGLOT's `imenu-create-index-function'."
+    (cl-labels
+        ((visit (_name one-obj-array)
+           (imenu-default-goto-function
+            nil (car (eglot--range-region
+                      (eglot--dcase (aref one-obj-array 0)
+                        (((SymbolInformation) location)
+                         (plist-get location :range))
+                        (((DocumentSymbol) selectionRange)
+                         selectionRange))))))
+         (unfurl (obj)
+           (eglot--dcase obj
+             (((SymbolInformation)) (list obj))
+             (((DocumentSymbol) name children)
+              (cons obj
+                    (mapcar
+                     (lambda (c)
+                       (plist-put
+                        c :containerName
+                        (let ((existing (plist-get c :containerName)))
+                          (if existing (format "%s::%s" name existing)
+                            name))))
+                     (mapcan #'unfurl children)))))))
+      (mapcar
+       (pcase-lambda (`(,kind . ,objs))
+         (cons
+          (alist-get kind eglot--symbol-kind-names "Unknown")
+          (mapcan (pcase-lambda (`(,container . ,objs))
+                    (let ((elems (mapcar (lambda (obj)
+                                           (list (plist-get obj :name)
+                                                 `[,obj] ;; trick
+                                                 #'visit))
+                                         objs)))
+                      (if container (list (cons container elems)) elems)))
+                  (seq-group-by
+                   (lambda (e) (plist-get e :containerName)) objs))))
+       (seq-group-by
+        (lambda (obj) (plist-get obj :kind))
+        (mapcan #'unfurl
+                (jsonrpc-request (eglot--current-server-or-lose)
+                                 :textDocument/documentSymbol
+                                 `(:textDocument
+                                   ,(eglot--TextDocumentIdentifier))
+                                 :cancel-on-input non-essential))))))
+  )
 #+end_src
 ** Utils
 #+begin_src emacs-lisp
