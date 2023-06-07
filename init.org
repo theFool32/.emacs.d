@@ -2049,8 +2049,7 @@ It handles the case of remote files as well."
   )
 
 (use-package dirvish  ;; `(' for details.
-  ;; :elpaca (dirvish :type git :host github :repo "alexluigit/dirvish")
-  :elpaca (:type git :host github :repo "rainstormstudio/dirvish" :branch "feature/nerd-icons") ;;  TODO: waiting for `dirvish' merging this pr
+  :elpaca (dirvish :type git :host github :repo "alexluigit/dirvish")
   :hook ((+my/first-input . dirvish-override-dired-mode)
          (evil-collection-setup . (lambda (&rest a)
                                     (evil-define-key '(normal) dired-mode-map
@@ -4955,7 +4954,8 @@ the lines even if the ranges do not overlap."
   :custom
   (cfw:display-calendar-holidays nil)
   (cfw:display-item-separators nil)
-  (cfw:org-calendar-default-view 'two-weeks)
+  ;; (cfw:org-calendar-default-view 'two-weeks)
+  (cfw:org-calendar-default-view 'month)
   :config
   (require 'calfw-org)
   (custom-set-faces
