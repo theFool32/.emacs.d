@@ -2439,35 +2439,37 @@ kill all magit buffers for this repo."
          (beep))))
     (yank))
 
-  (defun ebib-import-ref (url)
-    (interactive "sUrl:")
-    (let* ((buffername (concat "*ref-" (org-id-uuid) "*"))
-           (pdf-url url))
-      (run-with-idle-timer
-       0.1
-       nil
-       (lambda ()
-         (let ((tempbuff (get-buffer-create buffername)))
-           (make-process
-            :name ""
-            :buffer tempbuff
-            :command (list "ref_down.py" pdf-url (concat +self/ebib-base-dir "/pdfs"))
-            :sentinel (lambda (process event)
-                        ;; Render result to content buffer when subprocess finish.
-                        (when (string= (substring event 0 -1) "finished")
-                          (let ((buffer (process-buffer process)))
-                            ;; Do nothing if process buffer has killed.
-                            (when (get-buffer buffer)
-                              (with-current-buffer buffer
-                                (ebib-import-entries)
-                                (kill-buffer buffer)
-                                (ebib--update-buffers))))))))))))
   :config
   (require 'org-ebib)
   (local-leader-def
     :keymaps 'org-mode-map
     "lb" 'org-ebib-insert-link)
   )
+
+;;  HACK: lexical-let not work here
+(defun ebib-import-ref (url)
+  (interactive "sUrl:")
+  (let ((buffername (concat "*ref-" (org-id-uuid) "*"))
+        (pdf-url url))
+    (run-with-idle-timer
+     0.1
+     nil
+     (lambda ()
+       (let ((tempbuff (get-buffer-create buffername)))
+         (make-process
+          :name ""
+          :buffer tempbuff
+          :command (list "ref_down.py" pdf-url (concat +self/ebib-base-dir "/pdfs"))
+          :sentinel (lambda (process event)
+                      ;; Render result to content buffer when subprocess finish.
+                      (when (string= (substring event 0 -1) "finished")
+                        (let ((buffer (process-buffer process)))
+                          ;; Do nothing if process buffer has killed.
+                          (when (get-buffer buffer)
+                            (with-current-buffer buffer
+                              (ebib-import-entries)
+                              (kill-buffer buffer)
+                              (ebib--update-buffers))))))))))))
 #+end_src
 ** Rime
 karabiner: shift for emacs-rime
