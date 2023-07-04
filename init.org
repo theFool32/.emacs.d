@@ -3580,7 +3580,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
         (setq +lsp--optimization-init-p t))))
 
   :config
-  (use-package consult-eglot)
   (fset 'lsp-capf 'eglot-completion-at-point)
   (setq eglot-sync-connect 0
         eglot-connect-timeout 10
@@ -3673,6 +3672,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                    ,(eglot--TextDocumentIdentifier))
                                  :cancel-on-input non-essential))))))
   )
+
+(use-package consult-eglot)
 #+end_src
 ** Utils
 #+begin_src emacs-lisp
