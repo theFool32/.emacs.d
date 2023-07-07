@@ -1743,23 +1743,25 @@ Quit if no candidate is selected."
   (defun cape--dict-list (input)
     "Return all words from `cape-dict-file' matching INPUT."
     (unless (equal input "")
-      (cape--case-replace-list
-       cape-dict-case-replace input
-       (if cape-dict-grep
-           (apply #'process-lines-ignore-status
-                  "rg"
-                  (concat "-N" (and (cape--case-fold-p cape-dict-case-fold) "i"))
-                  input (cape--dict-file))
-         (unless cape--dict-all-words
-           (setq cape--dict-all-words
-                 (split-string (with-temp-buffer
-                                 (mapc #'insert-file-contents
-                                       (cape--dict-file))
-                                 (buffer-string))
-                               "\n" 'omit-nulls)))
-         (let ((completion-ignore-case t)
-               (completion-regexp-list (list (regexp-quote input))))
-           (all-completions "" cape--dict-all-words))))))
+      (let* ((inhibit-message t)
+             (message-log-max nil)
+             (files (ensure-list
+                     (if (functionp cape-dict-file)
+                         (funcall cape-dict-file)
+                       cape-dict-file)))
+             (words
+              (apply #'process-lines-ignore-status
+                     "rg"
+                     (concat "-N"
+                             (and (cape--case-fold-p cape-dict-case-fold) "i")
+                             (and cape-dict-limit (format "m%d" cape-dict-limit)))
+                     input files)))
+        (cons
+         (apply-partially
+          (if (and cape-dict-limit (length= words cape-dict-limit))
+              #'equal #'string-search)
+          input)
+         (cape--case-replace-list cape-dict-case-replace input words)))))
   )
 
 (use-package corfu-english-helper
