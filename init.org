@@ -1711,10 +1711,10 @@ Quit if no candidate is selected."
      ;; (cape-capf-buster
      (if +self/use-tabnine
          (cape-super-capf
-          arg-capf)
+          arg-capf
+          #'tabnine-capf)
        (cape-super-capf
-        arg-capf
-        #'tabnine-capf)
+        arg-capf)
        )
      ;; 'equal)
      #'tmux-capf
