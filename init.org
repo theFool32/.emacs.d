@@ -1709,9 +1709,13 @@ Quit if no candidate is selected."
     (list
      #'cape-file
      ;; (cape-capf-buster
-     (cape-super-capf
-      arg-capf
-      #'tabnine-capf)
+     (if +self/use-tabnine
+         (cape-super-capf
+          arg-capf)
+       (cape-super-capf
+        arg-capf
+        #'tabnine-capf)
+       )
      ;; 'equal)
      #'tmux-capf
      ;; #'cape-dabbrev
@@ -1770,6 +1774,7 @@ Quit if no candidate is selected."
   )
 
 (use-package tabnine-capf
+  :if +self/use-tabnine
   :after cape
   :commands (tabnine-capf tabnine-capf-start-process)
   :elpaca (:host github :repo "50ways2sayhard/tabnine-capf" :files ("*.el" "*.sh" "*.py"))

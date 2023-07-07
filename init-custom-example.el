@@ -14,6 +14,9 @@
 (defconst +self/use-rime t
   "Should we use `rime'")
 
+(defconst +self/use-tabnine t
+  "Should we use `tabnine'")
+
 (provide 'init-custom)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-custom-example.el ends here
