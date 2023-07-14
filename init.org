@@ -2977,7 +2977,7 @@ karabiner: shift for emacs-rime
     (setq org-todo-keyword-faces
           `(("TODO" . (:background ,(ef-themes-with-colors red-cooler) :weight bold :foreground "white"))
             ("WIP"  . ,(ef-themes-with-colors yellow-warmer))
-            ("PROJ"  . ,(ef-themes-with-colors cyan-cooler))
+            ("PROJ"  . ,(ef-themes-with-colors cyan-cooler)) ;;  TODO: better face with background
             ("WAITING" . ,(ef-themes-with-colors fg-dim))
             ;; ("DONE" . (:foreground ,(ef-themes-with-colors fg-alt) :strike-through t))
             ("DONE" . (:foreground "gray" :strike-through t))
@@ -4416,13 +4416,15 @@ If prefix ARG, copy instead of move."
 (defvar +org-capture-file-someday (concat +self/org-base-dir "someday.org"))
 (defvar +org-capture-file-diary (concat +self/org-base-dir "diary.org"))
 (defvar +org-capture-file-routine (concat +self/org-base-dir "routine.org"))
+(defvar +org-capture-file-proj (concat +self/org-base-dir "proj.org"))
 
 (defvar +org-files (list +org-capture-file-gtd
                          +org-capture-file-someday
                          +org-capture-file-note
                          +org-capture-file-idea
                          +org-capture-file-diary
-                         +org-capture-file-routine))
+                         +org-capture-file-routine
+                         +org-capture-file-proj))
 
 (use-package org
   :elpaca nil
