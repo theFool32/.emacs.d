@@ -2977,7 +2977,7 @@ karabiner: shift for emacs-rime
     (setq org-todo-keyword-faces
           `(("TODO" . (:background ,(ef-themes-with-colors red-cooler) :weight bold :foreground "white"))
             ("WIP"  . ,(ef-themes-with-colors yellow-warmer))
-            ("PROJ"  . ,(ef-themes-with-colors cyan-cooler)) ;;  TODO: better face with background
+            ("PROJ" . (:background ,(ef-themes-with-colors bg-cyan-subtle) :weight bold :foreground ,(ef-themes-with-colors cyan-cooler)))
             ("WAITING" . ,(ef-themes-with-colors fg-dim))
             ;; ("DONE" . (:foreground ,(ef-themes-with-colors fg-alt) :strike-through t))
             ("DONE" . (:foreground "gray" :strike-through t))
