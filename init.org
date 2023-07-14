@@ -632,6 +632,7 @@ REST and STATE."
   (advice-add #'save-buffer :after (η
                                     (lambda ()
                                       (when (derived-mode-p 'prog-mode)
+                                        (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
                                         (call-process-shell-command "rc" nil 0))))))
 
 ;; _ as part of a word
@@ -676,9 +677,9 @@ REST and STATE."
   )
 
 (add-hook 'elpaca-after-init-hook (lambda ()
-                             (run-with-idle-timer 5 nil
-                                                  (lambda ()
-                                                    (server-start)))))
+                                    (run-with-idle-timer 5 nil
+                                                         (lambda ()
+                                                           (server-start)))))
 
 (use-package ws-butler
   :hook (prog-mode . ws-butler-mode))
@@ -5502,7 +5503,7 @@ begin and end of the block surrounding point."
     "qq" '(save-buffers-kill-terminal :wk "Quit")
     "qr" '(restart-emacs :wk "Restart")
 
-    "u" '((lambda() (interactive)(call-process-shell-command "rc" nil 0)) :wk "Sync code")
+    "u" '((lambda() (interactive)(call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)) :wk "Sync code")
     )
   )
 #+end_src
