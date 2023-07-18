@@ -1614,12 +1614,8 @@ targets."
   (advice-add #'keyboard-quit :before #'corfu-quit)
   (add-to-list 'corfu-auto-commands 'end-of-visual-line)
 
-  (advice-add 'evil-escape-func :before 'corfu-quit)
-  (evil-define-key 'insert 'corfu-map (kbd "<escape>")
-    '(lambda ()
-       (interactive)
-       (call-interactively 'corfu-quit)
-       (evil-normal-state)))
+  (add-hook 'evil-insert-state-exit-hook #'corfu-quit)
+
 
   ;; https://github.com/minad/corfu/issues/12#issuecomment-869037519
   (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
