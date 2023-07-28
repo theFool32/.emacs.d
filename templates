@@ -64,6 +64,7 @@ python-mode
 (f "def " (s fun) "(" (s args) ") -> " (s return) ":" n> r)
 (ifm "if __name__ == '__main__':" n> r)
 (init "def __init__(self, " (s args) "):" n> r)
+(pdb "__import__(\"pdb\").set_trace()")
 (ipdb "__import__(\"ipdb\").set_trace()")
 (lambda "lambda " p ":" r)
 (lt "[" p " for " p " in " r "]")
