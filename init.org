@@ -3509,7 +3509,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :elpaca (evil-textobj-tree-sitter :type git
                                     :host github
                                     :repo "meain/evil-textobj-tree-sitter"
-                                    :files (:defaults "queries"))
+                                    :files (:defaults "queries" "treesit-queries"))
   :config
   ;; bind `function.outer`(entire function block) to `f` for use in things like `vaf`, `yaf`
   (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
