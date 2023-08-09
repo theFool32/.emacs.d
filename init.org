@@ -631,7 +631,9 @@ REST and STATE."
 (when +self/use-rc-to-sync
   (advice-add #'save-buffer :after (η
                                     (lambda ()
-                                      (when (derived-mode-p 'prog-mode)
+                                      (when (or
+                                             (derived-mode-p 'prog-mode)
+                                             (derived-mode-p 'yaml-ts-mode))
                                         (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
                                         (call-process-shell-command "rc" nil 0))))))
 
@@ -667,8 +669,8 @@ REST and STATE."
 (dolist (hook '(conf-mode-hook conf-space-mode-hook emacs-lisp-mode-hook))
   (add-hook hook #'hexcolour-add-to-font-lock))
 
-;; (setq-default which-func-modes '(emacs-lisp-mode python-mode org-mode latex-mode))
-;; (which-function-mode +1)
+(setq-default which-func-modes '(emacs-lisp-mode python-mode python-ts-mode org-mode latex-mode))
+(which-function-mode +1)
 
 (use-package breadcrumb
   :disabled
@@ -1387,7 +1389,7 @@ targets."
   ;; consult-imenu
   (with-eval-after-load 'consult-imenu
     ;;  FIXME: does not work since `eglot' use `breadcrumb-kind' instead
-    (add-to-list 'consult-imenu-config '(python-mode :types
+    (add-to-list 'consult-imenu-config '(python-ts-mode :types
                                                      ((?c "Class"    font-lock-type-face)
                                                       (?C "Constant"    font-lock-constant-face)
                                                       (?f "Function"  font-lock-function-name-face)
@@ -3473,24 +3475,41 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :elpaca nil
   :init
   (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
-)
+  :config
+  (setq treesit-language-source-alist
+        '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+          (cmake "https://github.com/uyha/tree-sitter-cmake")
+          (css "https://github.com/tree-sitter/tree-sitter-css")
+          (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+          (go "https://github.com/tree-sitter/tree-sitter-go")
+          (html "https://github.com/tree-sitter/tree-sitter-html")
+          (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+          (json "https://github.com/tree-sitter/tree-sitter-json")
+          (make "https://github.com/alemuller/tree-sitter-make")
+          (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+          (python "https://github.com/tree-sitter/tree-sitter-python")
+          (toml "https://github.com/tree-sitter/tree-sitter-toml")
+          (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+          (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+          (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
-(use-package tree-sitter
-  :defer t
-  :commands tree-sitter-hl-mode
-  :hook ((python-mode) . tree-sitter-hl-mode))
-
-(use-package tree-sitter-langs
-  :after tree-sitter)
-
+  (setq major-mode-remap-alist
+        '((yaml-mode . yaml-ts-mode)
+          (bash-mode . bash-ts-mode)
+          (js2-mode . js-ts-mode)
+          (typescript-mode . typescript-ts-mode)
+          (json-mode . json-ts-mode)
+          (js-json-mode . json-ts-mode)
+          (css-mode . css-ts-mode)
+          (python-mode . python-ts-mode)))
+  )
 
 (use-package evil-textobj-tree-sitter
   :defer nil
-  :after tree-sitter
   :elpaca (evil-textobj-tree-sitter :type git
-                                      :host github
-                                      :repo "meain/evil-textobj-tree-sitter"
-                                      :files (:defaults "queries"))
+                                    :host github
+                                    :repo "meain/evil-textobj-tree-sitter"
+                                    :files (:defaults "queries"))
   :config
   ;; bind `function.outer`(entire function block) to `f` for use in things like `vaf`, `yaf`
   (define-key evil-outer-text-objects-map "f" (evil-textobj-tree-sitter-get-textobj "function.outer"))
@@ -3558,7 +3577,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                  (evil-define-key 'normal 'global
                                    "K" '+eglot-help-at-point)
                                  (eglot-inlay-hints-mode -1)))
-         ((python-mode c-mode c++-mode LaTeX-mode) . eglot-ensure))
+         ((python-mode python-ts-mode c-mode c++-mode LaTeX-mode) . eglot-ensure))
   :init
   (defvar +lsp--default-read-process-output-max nil)
   (defvar +lsp--default-gcmh-high-cons-threshold nil)
@@ -3694,7 +3713,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :elpaca (:host github :repo "astoff/devdocs.el")
   :commands (devdocs-lookup-at-point devdocs-search-at-point)
   :config
-  (add-hook 'python-mode-hook
+  (add-hook 'python-ts-mode-hook
             (lambda() (setq-local devdocs-current-docs '("python~3.9" "PyTorch" "NumPy~1.20"))))
   (defun devdocs-lookup-at-point()
     (interactive)
@@ -3757,7 +3776,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 #+begin_src emacs-lisp
 (use-package python
   :defer t
-  :mode ("\\.py\\'" . python-mode)
+  :mode ("\\.py\\'" . python-ts-mode)
   :hook (inferior-python-mode . (lambda ()
                                   (process-query-on-exit-flag
                                    (get-process "Python"))))
@@ -3767,14 +3786,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (setq python-indent-guess-indent-offset-verbose nil)
 
   :config
-  (add-to-list 'auto-mode-alist '("\\.py[iw]?\\'" . python-mode))
-  (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-mode))
-
-
-  (add-hook 'python-mode-hook (lambda ()
+  (add-hook 'python-ts-mode-hook (lambda ()
                                 (setq-local tab-width 4)))
-  ;;  HACK: DO NOT USE `python-ts-mode' RIGHT NOW
-  (setq major-mode-remap-alist '((python-ts-mode . python-mode)))
 
   (setq python-indent-offset 4
         python-shell-interpreter "python3"
@@ -3782,7 +3795,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
         flycheck-python-flake8-executable "flake8")
 
   (use-package py-isort
-    :hook (python-mode . (lambda ()
+    :hook (python-ts-mode . (lambda ()
                            (add-hook 'before-save-hook #'py-isort-before-save nil t))))
   )
 
@@ -5347,7 +5360,7 @@ begin and end of the block surrounding point."
     "/" 'evilnc-comment-or-uncomment-lines)
 
   (general-evil-define-key 'normal
-    '(python-mode-map LaTeX-mode-map emacs-lisp-mode-map yaml-ts-mode-map)
+    '(python-mode-map python-ts-mode-map LaTeX-mode-map emacs-lisp-mode-map yaml-ts-mode-map)
     "<tab>" '+fold/toggle)
 
   ;; evil mode

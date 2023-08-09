@@ -53,7 +53,7 @@ org-mode
 (link "[[" (s link) "][" r "]]")
 (table "|" p "|" r "|" n> "|-+-|" n> "|||")
 
-python-mode
+python-ts-mode
 
 (if "if " p ":" n> r)
 (arg "parser.add_argment(\"-" p "\"" r ")")
