@@ -1778,7 +1778,7 @@ Quit if no candidate is selected."
      #'tmux-capf
      ;; #'cape-dabbrev
      ;; #'eng-capf
-     #'cape-dict
+     ;; #'cape-dict
      ))
 
   (defun my/set-basic-capf ()
@@ -1794,37 +1794,10 @@ Quit if no candidate is selected."
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
-
-
-  ;;  HACK: use `rg' instead of `grep'
-  ;;  TODO: performance comparison between `cape-dict' and `corfu-english-helper'. Or maybe rewrite it?
-  (defun cape--dict-list (input)
-    "Return all words from `cape-dict-file' matching INPUT."
-    (unless (equal input "")
-      (let* ((inhibit-message t)
-             (message-log-max nil)
-             (files (ensure-list
-                     (if (functionp cape-dict-file)
-                         (funcall cape-dict-file)
-                       cape-dict-file)))
-             (words
-              (apply #'process-lines-ignore-status
-                     "rg"
-                     (concat "-N"
-                             (and (cape--case-fold-p cape-dict-case-fold) "i")
-                             (and cape-dict-limit (format "m%d" cape-dict-limit)))
-                     input files)))
-        (cons
-         (apply-partially
-          (if (and cape-dict-limit (length= words cape-dict-limit))
-              #'equal #'string-search)
-          input)
-         (cape--case-replace-list cape-dict-case-replace input words)))))
   )
 
 (use-package corfu-english-helper
   :after cape
-  ;; :bind (("C-x C-e" . corfu-english-helper-search))
   :bind (("C-x C-e" . eng-capf))
   :commands (corfu-english-helper-search)
   :defer t
