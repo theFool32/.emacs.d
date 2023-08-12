@@ -2860,7 +2860,7 @@ karabiner: shift for emacs-rime
         (set-fontset-font t charset cn))
       (setq face-font-rescale-alist (if (/= ratio 0.0) `((,CN-FONT-NAME . ,ratio)) nil))))
 
-  (max/set-font "CaskaydiaCove Nerd Font" "Sarasa Mono SC" 14 1.1)
+  (max/set-font "CaskaydiaCove Nerd Font" "Sarasa Mono SC" 15 1.2)
   )
 
 (setq split-width-threshold 0
