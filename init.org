@@ -488,55 +488,41 @@ REST and STATE."
       (read-file-name "File:" default-directory buffer-file-name))))
   (call-process-shell-command (concat "qlmanage -p \"" (expand-file-name file) "\"")))
 
-(defun +my/org-datetree-find-week-create (d &optional keep-restriction)
-  (setq-local org-datetree-base-level 1)
-  (save-restriction
-    (if (eq keep-restriction 'subtree-at-point)
-	    (progn
-	      (unless (org-at-heading-p) (error "Not at heading"))
-	      (widen)
-	      (org-narrow-to-subtree)
-	      (setq-local org-datetree-base-level
-		              (org-get-valid-level (org-current-level) 1)))
-      (unless keep-restriction (widen))
-      ;; Support the old way of tree placement, using a property
-      (let ((prop (org-find-property "WEEK_TREE")))
-	    (when prop
-	      (goto-char prop)
-	      (setq-local org-datetree-base-level
-		              (org-get-valid-level (org-current-level) 1))
-	      (org-narrow-to-subtree))))
-    (goto-char (point-min))
-    (require 'cal-iso)
-    (require 'org-datetree)
-    ;; WORKAROUND: this part is ugly
-    (let* ((year (calendar-extract-year d))
-           (month (calendar-extract-month d))
-           (day (calendar-extract-day d))
-           (time (encode-time 0 0 0 day month year))
-           (weekday (string-to-number (format-time-string "%w" time)))
-           (sunday (encode-time 0 0 0 (- day weekday) month year))
-           (saturday (encode-time 0 0 0 (+ day (- 6 weekday)) month year))
-           (week (ceiling (/ (time-to-day-in-year sunday) 7.0)))
-           (sunday_dec (decode-time sunday))
-           (year (nth 5 sunday_dec))
-           (month (nth 4 sunday_dec))
-           (sunday_day (nth 3 sunday_dec))
-           )
-      (org-datetree--find-create
-       "^\\*+[ \t]+\\([12][0-9]\\{3\\}\\)\\(\\s-*?\
-\\([ \t]:[[:alnum:]:_@#%%]+:\\)?\\s-*$\\)"
-       year nil nil
-       (format-time-string "%Y" time))
-      (org-datetree--find-create
-       "^\\*+[ \t]+%d-\\([01][0-9]\\) \\w+$"
-       year month nil)
-      (org-datetree--find-create
-       "^\\*+[ \t]+W[0-5][0-9] (%d-%02d-\\([0-3][0-9]\\) - [0-2][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9])$"
-       year month sunday_day
-       (format "W%02d (%s - %s)" week
-               (format-time-string "%Y-%m-%d" sunday)
-               (format-time-string "%Y-%m-%d" saturday))))))
+
+(defun +my/org-datetree-find-date-create (&optional time)
+  (interactive)
+  (let ((time (or time (current-time))))
+    (org-reverse-datetree-goto-date-in-file time)
+    (org-fold-show-children)
+    (let ((goal-text "Daily Goals")
+          (archieved-text "Archived")
+          has-goal has-archieved archieved-point)
+      (if (org-goto-first-child)
+          (progn
+            (let ((continue t))
+              (while continue
+                (let ((heading (org-element-property :title (org-element-at-point))))
+                  (when (string= heading goal-text)
+                    (setq has-goal t))
+                  (when (string= heading archieved-text)
+                    (setq archieved-point (point))
+                    (setq has-archieved t)))
+                (setq continue (org-goto-sibling))))
+            (when (not has-goal)
+              (org-insert-heading nil)
+              (insert goal-text))
+            (when (not has-archieved)
+              (org-insert-heading nil)
+              (insert archieved-text)
+              (setq archieved-point (point))))
+        (org-insert-subheading nil)
+        (insert goal-text)
+        (org-insert-heading nil)
+        (insert archieved-text)
+        (setq archieved-point (point)))
+      (goto-char archieved-point)
+      (end-of-line)
+      (point))))
 
 (defun +my/comment-and-paste (content_start content_end)
   "Comment selected lines and paste then after."
@@ -685,6 +671,10 @@ REST and STATE."
 
 (use-package ws-butler
   :hook (prog-mode . ws-butler-mode))
+
+;; YorN
+(fset 'yes-or-no-p 'y-or-n-p)
+;; -YorN
 #+end_src
 * Evil
 #+begin_src emacs-lisp
@@ -2816,11 +2806,6 @@ karabiner: shift for emacs-rime
 (setq-default frame-title-format '("EMACS" " - %b"))
 ;; -TitleBar
 
-
-;; YorN
-(fset 'yes-or-no-p 'y-or-n-p)
-;; -YorN
-
 (menu-bar-mode 0)
 
 ;; DisLineNum
@@ -4570,7 +4555,7 @@ If prefix ARG, copy instead of move."
   (setq org-refile-use-outline-path 'file)
   (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
                              (+org-capture-file-someday :level . 3)))
-  (setq org-tag-alist '(("academic" . ?a) ("personal" . ?p) ("emacs" . ?e) ("work" . ?w) ("company" . ?c) ("habit" . ?h) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?W)))
+  (setq org-tag-alist '(("academic" . ?a) ("personal" . ?p) ("emacs" . ?e) ("work" . ?w) ("company" . ?c) ("habit" . ?h) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?W) ("ACT_TODAY" . ?d)))
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file +org-capture-file-gtd)
@@ -4766,7 +4751,7 @@ If prefix ARG, copy instead of move."
       "sA" 'org-archive-subtree
       "sN" 'widen
       "sS" 'org-sort
-      "sw" '(lambda () (interactive) (+my/org-datetree-find-week-create (calendar-current-date)))
+      "sw" '(lambda () (interactive) (+my/org-datetree-find-date-create (current-time)))
 
       "p" '(:wk "priority")
       "pd" 'org-priority-down
@@ -4799,18 +4784,14 @@ If prefix ARG, copy instead of move."
     (when (derived-mode-p 'org-mode)
       (org-back-to-heading)
       (when-let* ((close-time (org-entry-get (point) "CLOSED"))
-                  (close-time (org-time-string-to-time close-time))
-                  (close-time (decode-time close-time))
-                  (close-time (list (decoded-time-month close-time) (decoded-time-day close-time) (decoded-time-year close-time))))
+                  (close-time (org-time-string-to-time close-time)))
         (org-cut-subtree)
         (with-current-buffer (find-file-noselect +org-capture-file-diary)
-          (+my/org-datetree-find-week-create close-time)
-          (org-fold-show-children)
-          (let ((has-child (org-goto-first-child)))
-            (org-paste-subtree)
-            (org-move-subtree-down)
-            (unless has-child
-              (org-demote-subtree)))
+          (+my/org-datetree-find-date-create close-time)
+          (save-restriction
+            (widen)
+            ;;  HACK: assuming level of: year, month, week, day, Achieved, items
+            (org-paste-subtree 6))
           (save-buffer)))))
 
 ;;;###autoload
@@ -4866,15 +4847,16 @@ the lines even if the ranges do not overlap."
   :elpaca nil
   :ensure nil
   :after org
-  :bind
-  (:map org-agenda-mode-map
-        ("q" . winner-undo))
+  ;; :bind
+  ;; (:map org-agenda-mode-map
+  ;;       ("q" . winner-undo))
   :init
   (setq org-agenda-files (list +org-capture-file-gtd
                                +org-capture-file-diary
                                +org-capture-file-routine)
 
-        org-agenda-window-setup 'only-window
+        ;; org-agenda-window-setup 'only-window
+        org-agenda-window-setup 'current-window
         org-agenda-span 3
         org-agenda-start-with-log-mode t
         org-agenda-start-with-clockreport-mode nil
@@ -4885,15 +4867,21 @@ the lines even if the ranges do not overlap."
   (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
   (setq org-agenda-custom-commands
         '(("n" "Agenda"
-           ((tags
-             "ACT_WEEK"
-             ((org-agenda-files (list +org-capture-file-diary))
-              (org-agenda-overriding-header "Goals for this week")
-              (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+           (
             (tags
              "ACT_MONTH"
              ((org-agenda-files (list +org-capture-file-diary))
-              (org-agenda-overriding-header "Goals for this month")
+              (org-agenda-overriding-header "Month Goals:")
+              (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+            (tags
+             "ACT_WEEK"
+             ((org-agenda-files (list +org-capture-file-diary))
+              (org-agenda-overriding-header "Week Goals:")
+              (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+            (tags
+             "ACT_TODAY"
+             ((org-agenda-files (list +org-capture-file-diary))
+              (org-agenda-overriding-header "Today Goals:")
               (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
             (agenda)
             (alltodo "" ((org-agenda-files (list +org-capture-file-gtd))))))))
@@ -5065,6 +5053,22 @@ kill the current timer, this may be a break or a running pomodoro."
             (call-interactively 'consult-clock-in))))
       (org-pomodoro-start :pomodoro))))
   )
+
+(use-package org-reverse-datetree
+  :after org
+  :init
+  (setq-default org-reverse-datetree-level-formats
+                '("%Y"                    ; year
+                  (lambda (time) (format-time-string "%Y-%m %B" (org-reverse-datetree-sunday time))) ; month
+                  (lambda (time)
+                    (format "W%s (%s - %s)"
+                            (format-time-string "%W" time)
+                            (format-time-string "%Y-%m-%d" (org-reverse-datetree-sunday time))
+                            (format-time-string "%Y-%m-%d" (org-reverse-datetree-last-dow 13 time))
+                            )) ; month
+                  "%Y-%m-%d %A"           ; date
+                  ))
+  (setq-default org-reverse-datetree-non-reverse t))
 #+end_src
 *** Markdown
 #+begin_src emacs-lisp
