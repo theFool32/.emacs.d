@@ -5065,7 +5065,7 @@ kill the current timer, this may be a break or a running pomodoro."
                   (lambda (time) (format-time-string "%Y-%m %B" (org-reverse-datetree-sunday time))) ; month
                   (lambda (time)
                     (format "W%s (%s - %s)"
-                            (format-time-string "%W" time)
+                            (format-time-string "%U" time)
                             (format-time-string "%Y-%m-%d" (org-reverse-datetree-sunday time))
                             (format-time-string "%Y-%m-%d" (org-reverse-datetree-last-dow 13 time))
                             )) ; month
