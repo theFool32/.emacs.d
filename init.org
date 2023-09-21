@@ -4997,6 +4997,11 @@ the lines even if the ranges do not overlap."
   (cfw:org-calendar-default-view 'month)
   :config
   (require 'calfw-org)
+
+  ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
+  (advice-add #'cfw:open-org-calendar :before
+              (lambda (&optional _)
+                (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE"))))
   (custom-set-faces
    '(cfw:face-today ((((class color) (background light))
                       :background "#C3DEEF") ;;  HACK: background conflicts with face of `TODO' keyword
@@ -5056,7 +5061,7 @@ kill the current timer, this may be a break or a running pomodoro."
   :elpaca (:host github :repo "theFool32/org-reverse-datetree")
   :after org
   :init
-  
+
   (setq org-reverse-datetree-ignored-heading-text '("Weekly Goals" "Monthly Goals"))
   (setq-default org-reverse-datetree-level-formats
                 '("%Y"                    ; year
