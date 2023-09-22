@@ -2557,23 +2557,19 @@ karabiner: shift for emacs-rime
   (define-key rime-mode-map (kbd "M-j") 'rime-force-enable)
   (define-key rime-mode-map (kbd "M-k") 'rime-inline-ascii)
 
-  (defun rime-predicate-tex-math-p ()
-    (and (derived-mode-p 'tex-mode)
-         (or (and (featurep 'tex-site)
-                  (texmathp))
-             (and rime--current-input-key
-                  (or (= #x24 rime--current-input-key)
-                      (= #x5c rime--current-input-key))
-                  (or (= (point) (line-beginning-position))
-                      (= #x20 (char-before))
-                      (rime-predicate-after-ascii-char-p))))))
-
   (setq rime-inline-predicates '(rime-predicate-space-after-cc-p))
   (setq rime-disable-predicates '(rime-predicate-evil-mode-p
-                                  rime-predicate-prog-in-code-p
-                                  rime-predicate-after-alphabet-char-p
-                                  rime-predicate-space-after-cc-p
-                                  rime-predicate-tex-math-p))
+                                  (lambda ()
+                                    (and (rime-predicate-prog-in-code-p)
+                                         (not (rime-predicate-in-code-string-p))))
+                                  (lambda ()
+                                    (and (> (point) (save-excursion (back-to-indentation) (point)))
+                                         (let ((string (buffer-substring (point) (max (line-beginning-position) (- (point) 80)))))
+                                           (string-match-p "[a-zA-Z0-9\./\\<>;:\[\]{}\|!@#\$&\*\(\)\-=\+_,\?\^]$" string))))
+                                  rime-predicate-tex-math-or-command-p))
+
+
+
   )
 #+end_src
 ** Shell
