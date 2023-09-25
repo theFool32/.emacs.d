@@ -533,6 +533,33 @@ REST and STATE."
     (end-of-line)
     (newline)
     (yank)))
+
+(defun +my/auto-act-today-and-current-week ()
+  (let ((act-today-points '())
+        (act-week-points '())
+        (act-today-tag ":ACT_TODAY:")
+        (act-week-tag ":ACT_WEEK:"))
+    (org-map-entries
+     (lambda ()
+       (let ((tag-string (car (last (org-heading-components)))))
+     (when tag-string
+       (when (string= tag-string act-today-tag)
+         (push (point) act-today-points))
+       (when (string= tag-string act-week-tag)
+         (push (point) act-week-points))
+         ))))
+
+    (when (length> act-today-points 1)
+      (dolist (p (cdr act-today-points))
+        (save-excursion
+          (goto-char p)
+          (org-toggle-tag (substring act-today-tag 1 -1)))))
+    (when (length> act-week-points 1)
+      (dolist (p (cdr act-week-points))
+        (save-excursion
+          (goto-char p)
+          (org-toggle-tag (substring act-week-tag 1 -1)))))
+    ))
 #+end_src
 * Global Configuration
 #+begin_src emacs-lisp
