@@ -2584,7 +2584,6 @@ karabiner: shift for emacs-rime
   (define-key rime-mode-map (kbd "M-j") 'rime-force-enable)
   (define-key rime-mode-map (kbd "M-k") 'rime-inline-ascii)
 
-  (setq rime-inline-predicates '(rime-predicate-space-after-cc-p))
   (setq rime-disable-predicates '(rime-predicate-evil-mode-p
                                   (lambda ()
                                     (and (rime-predicate-prog-in-code-p)
