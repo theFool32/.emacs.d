@@ -4433,9 +4433,9 @@ If prefix ARG, copy instead of move."
      (lambda (cand transform)
        (let ((name (buffer-name
                     (marker-buffer
-                     (get-text-property 0 'consult--candidate cand)))))
+                     (get-text-property 0 'org-marker cand)))))
          (if transform cand name)))
-     :lookup #'consult--lookup-candidate))
+     :lookup (apply-partially #'consult--lookup-prop 'org-marker)))
 
   (defun consult-clock-in ()
     "Clock into an Org agenda heading."
