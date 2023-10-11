@@ -5095,8 +5095,7 @@ kill the current timer, this may be a break or a running pomodoro."
                             (format-time-string "%Y-%m-%d" (org-reverse-datetree-last-dow 13 time))
                             )) ; month
                   "%Y-%m-%d %A"           ; date
-                  ))
-  (setq-default org-reverse-datetree-non-reverse t))
+                  )))
 #+end_src
 *** Markdown
 #+begin_src emacs-lisp
