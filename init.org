@@ -550,12 +550,12 @@ REST and STATE."
          ))))
 
     (when (length> act-today-points 1)
-      (dolist (p (cdr act-today-points))
+      (dolist (p (cdr (reverse act-today-points)))
         (save-excursion
           (goto-char p)
           (org-toggle-tag (substring act-today-tag 1 -1)))))
     (when (length> act-week-points 1)
-      (dolist (p (cdr act-week-points))
+      (dolist (p (cdr (reverse act-week-points)))
         (save-excursion
           (goto-char p)
           (org-toggle-tag (substring act-week-tag 1 -1)))))
@@ -5015,13 +5015,16 @@ the lines even if the ranges do not overlap."
   :custom
   (cfw:display-calendar-holidays nil)
   (cfw:display-item-separators nil)
-  ;; (cfw:org-calendar-default-view 'two-weeks)
-  (cfw:org-calendar-default-view 'month)
+  (cfw:org-calendar-default-view 'two-weeks)
+  ;; (cfw:org-calendar-default-view 'month)
   :config
   (require 'calfw-org)
 
   ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
   (advice-add #'cfw:open-org-calendar :before
+              (lambda (&optional _)
+                (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE"))))
+  (advice-add #'cfw:refresh-calendar-buffer :before
               (lambda (&optional _)
                 (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE"))))
   (custom-set-faces
