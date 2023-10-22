@@ -490,33 +490,43 @@ REST and STATE."
 
 
 (defun +my/org-datetree-find-date-create (&optional time)
+  ;;  TODO: act week/month
   (interactive)
   (let ((time (or time (current-time))))
     (org-reverse-datetree-goto-date-in-file time)
     (org-fold-show-children)
-    (let ((goal-text "Daily Goals")
-          (archieved-text "Archived")
-          has-goal has-archieved archieved-point)
+    (let* ((goal-text "Daily Goals")
+           (archieved-text "Archived")
+           has-goal has-archieved archieved-point
+           (arg-time (decode-time time))
+           (today-time (decode-time (current-time)))
+           (same-day (and
+                      (= (nth 3 arg-time) (nth 3 today-time))
+                      (= (nth 4 arg-time) (nth 4 today-time))
+                      (= (nth 5 arg-time) (nth 5 today-time)))))
       (if (org-goto-first-child)
           (progn
             (let ((continue t))
               (while continue
                 (let ((heading (org-element-property :title (org-element-at-point))))
                   (when (string= heading goal-text)
-                    (setq has-goal t))
+                    (setq has-goal t)
+                    (when same-day (org-toggle-tag "ACT_TODAY" 'on)))
                   (when (string= heading archieved-text)
                     (setq archieved-point (point))
                     (setq has-archieved t)))
                 (setq continue (org-goto-sibling))))
             (when (not has-goal)
               (org-insert-heading nil)
-              (insert goal-text))
+              (insert goal-text)
+              (when same-day (org-toggle-tag "ACT_TODAY" 'on)))
             (when (not has-archieved)
               (org-insert-heading nil)
               (insert archieved-text)
               (setq archieved-point (point))))
         (org-insert-subheading nil)
         (insert goal-text)
+        (when same-day (org-toggle-tag "ACT_TODAY" 'on))
         (org-insert-heading nil)
         (insert archieved-text)
         (setq archieved-point (point)))
@@ -652,7 +662,6 @@ REST and STATE."
 
 ;; _ as part of a word
 (modify-syntax-entry ?_ "w")
-(modify-syntax-entry ?- "w")
 (defalias 'forward-evil-word 'forward-evil-symbol)
 
 ;; Don't ping things that look like domain names.
@@ -4958,7 +4967,7 @@ the lines even if the ranges do not overlap."
               (setq colors (cdr colors))
               (overlay-put ov 'line-height line-height)
               (overlay-put ov 'line-spacing (1- line-height))))))))
-  (add-hook 'org-agenda-finalize-hook #'my:org-agenda-time-grid-spacing)
+  ;; (add-hook 'org-agenda-finalize-hook #'my:org-agenda-time-grid-spacing)
 
   (run-with-timer 3 nil
                   (lambda ()
