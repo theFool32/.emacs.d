@@ -4819,6 +4819,7 @@ If prefix ARG, copy instead of move."
           (+my/org-datetree-find-date-create close-time)
           (save-restriction
             (widen)
+            (org-fold-show-all)
             ;;  HACK: assuming level of: year, month, week, day, Achieved, items
             (org-paste-subtree 6))
           (save-buffer)))))
