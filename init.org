@@ -711,6 +711,14 @@ REST and STATE."
 ;; YorN
 (fset 'yes-or-no-p 'y-or-n-p)
 ;; -YorN
+
+
+;; for long line
+(setq-default bidi-display-reordering nil)
+(setq bidi-inhibit-bpa t
+      long-line-threshold 1000
+      large-hscroll-threshold 1000
+      syntax-wholeline-max 1000)
 #+end_src
 * Evil
 #+begin_src emacs-lisp
@@ -1525,30 +1533,6 @@ targets."
       (apply args)))
   (advice-add #'consult-ripgrep :around #'consult--with-orderless)
 
-  (defvar consult--fd-command nil)
-  (defun consult--fd-builder (input)
-    (unless consult--fd-command
-      (setq consult--fd-command
-            (if (eq 0 (call-process-shell-command "fdfind"))
-                "fdfind"
-              "fd")))
-    (pcase-let* ((`(,arg . ,opts) (consult--command-split input))
-                 (`(,re . ,hl) (funcall consult--regexp-compiler
-                                        arg 'extended t)))
-      (when re
-        (cons (append
-               (list consult--fd-command
-                     "--color=never" "--full-path"
-                     (consult--join-regexps re 'extended))
-               opts)
-              hl))))
-
-  (defun consult-fd (&optional dir initial)
-    (interactive "P")
-    (pcase-let* ((`(,prompt ,paths ,dir) (consult--directory-prompt "Fd" dir))
-                 (default-directory dir))
-      (find-file (consult--find prompt #'consult--fd-builder initial))))
-
   ;; Shorten candidates in consult-buffer:
   ;; See: https://emacs-china.org/t/21-emacs-vertico-orderless-marginalia-embark-consult/19683/50
   (defun vmacs-consult--source-recentf-items ()
@@ -1582,28 +1566,43 @@ targets."
             )
       (propertize short-name 'multi-category `(file . ,file))))
 
-  (defvar recentf-source
-    `(:name     "Recent"
-                :narrow   ?r
-                :face     consult-file
-                :category file
-                :state    ,#'consult--file-state
-                :hidden   nil
-                :items    vmacs-consult--source-recentf-items))
+  ;; (defvar recentf-source
+  ;;   `(:name     "Recent"
+  ;;               :narrow   ?r
+  ;;               :face     consult-file
+  ;;               :category file
+  ;;               :state    ,#'consult--file-state
+  ;;               :hidden   nil
+  ;;               :items    vmacs-consult--source-recentf-items))
 
-  (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer recentf-source))
+   (plist-put consult--source-recent-file
+             :items #'vmacs-consult--source-recentf-items)
+
 
   (advice-add 'marginalia--annotate-local-file :override
               (defun marginalia--annotate-local-file-advice (cand)
                 (marginalia--fields
                  ((marginalia--full-candidate cand)
                   :face 'marginalia-size ))))
+
+
+  (autoload 'org-buffer-list "org")
+  (defvar org-buffer-source
+    `(:name     "Org"
+                :narrow   ?o
+                :category buffer
+                :state    ,#'consult--buffer-state
+                :hidden   t
+                :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
+  ;; (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-recent-file))
+  (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
+
+
   )
 
-(use-package consult-project-extra
-  :after consult
-  :elpaca (consult-project-extra :type git :host github :repo "Qkessler/consult-project-extra")
-  )
+(use-package consult-jump-project
+  :elpaca (consult-jump-project :type git :host github :repo "jdtsmith/consult-jump-project")
+  :custom (consult-jump-direct-jump-modes '(dired-mode)))
 
 (use-package consult-dir
   :after consult
@@ -5578,7 +5577,7 @@ begin and end of the block surrounding point."
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
-    "pf" '(consult-project-extra-find :wk "Find file in project")
+    "pf" '(consult-jump-project :wk "Find file in project")
     "pt" '(magit-todos-list :wk "List project tasks")
     "pk" '(project-kill-buffers :wk "Kill project buffers")
 
