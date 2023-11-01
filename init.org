@@ -1467,11 +1467,11 @@ targets."
   (with-eval-after-load 'consult-imenu
     ;;  FIXME: does not work since `eglot' use `breadcrumb-kind' instead
     (add-to-list 'consult-imenu-config '(python-ts-mode :types
-                                                     ((?c "Class"    font-lock-type-face)
-                                                      (?C "Constant"    font-lock-constant-face)
-                                                      (?f "Function"  font-lock-function-name-face)
-                                                      (?m "Method"  font-lock-function-name-face)
-                                                      (?v "Variable"  font-lock-variable-name-face))))
+                                                        ((?c "Class"    font-lock-type-face)
+                                                         (?C "Constant"    font-lock-constant-face)
+                                                         (?f "Function"  font-lock-function-name-face)
+                                                         (?m "Method"  font-lock-function-name-face)
+                                                         (?v "Variable"  font-lock-variable-name-face))))
     (add-to-list 'consult-imenu-config '(latex-mode :types
                                                     ((?c "Class"    font-lock-type-face)
                                                      (?C "Constant"    font-lock-constant-face)
@@ -1546,28 +1546,15 @@ targets."
 /a/b/c/d-> c/d"
     (let* ((file (directory-file-name file))
            (filename (file-name-nondirectory file))
-           ;; (dir (file-name-directory file))
+           (dir (file-name-directory file))
            short-name)
-      (setq short-name filename
-            ;; (if dir
-            ;;     (format "%s/%s" (file-name-nondirectory
-            ;;                      (directory-file-name dir))
-            ;;             filename)
-            ;;   filename)
-            )
+      (setq short-name
+            (if dir
+                (format "%s/%s" (file-name-nondirectory (directory-file-name dir)) filename)
+              filename))
       (propertize short-name 'multi-category `(file . ,file))))
 
-  ;; (defvar recentf-source
-  ;;   `(:name     "Recent"
-  ;;               :narrow   ?r
-  ;;               :face     consult-file
-  ;;               :category file
-  ;;               :state    ,#'consult--file-state
-  ;;               :hidden   nil
-  ;;               :items    vmacs-consult--source-recentf-items))
-
-  ;;  TODO: deduplicate
-   (plist-put consult--source-recent-file
+  (plist-put consult--source-recent-file
              :items #'vmacs-consult--source-recentf-items)
 
 
@@ -1586,7 +1573,7 @@ targets."
                 :state    ,#'consult--buffer-state
                 :hidden   t
                 :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
-  
+
   (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-recent-file))
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
 
