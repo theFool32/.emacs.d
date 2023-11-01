@@ -534,16 +534,6 @@ REST and STATE."
       (end-of-line)
       (point))))
 
-(defun +my/comment-and-paste (content_start content_end)
-  "Comment selected lines and paste then after."
-  (interactive "r")
-  (let ((line-number (line-number-at-pos content_end)))
-    (call-interactively 'evilnc-comment-and-kill-ring-save)
-    (goto-line line-number)
-    (end-of-line)
-    (newline)
-    (yank)))
-
 (defun +my/auto-act-today-and-current-week ()
   (let ((act-today-points '())
         (act-week-points '())
@@ -815,7 +805,8 @@ REST and STATE."
   :commands (evilnc-comment-operator
              evilnc-inner-comment
              evilnc-outer-commenter
-             evilnc-comment-or-uncomment-lines))
+             evilnc-comment-or-uncomment-lines
+             evilnc-copy-and-comment-lines))
 
 ;; for visualization like substitute
 (use-package evil-traces
@@ -1271,7 +1262,7 @@ in some cases."
    ("D" . xref-find-definitions-other-window)
    :map embark-region-map
    (";" . embrace-commander)
-   ("y" . +my/comment-and-paste)
+   ("y" . evilnc-copy-and-comment-lines)
    ("V" . diff-hl-show-hunk)
    ("/" . evilnc-comment-or-uncomment-lines)
    ("=" . er/expand-region)
@@ -1575,6 +1566,7 @@ targets."
   ;;               :hidden   nil
   ;;               :items    vmacs-consult--source-recentf-items))
 
+  ;;  TODO: deduplicate
    (plist-put consult--source-recent-file
              :items #'vmacs-consult--source-recentf-items)
 
@@ -1594,7 +1586,8 @@ targets."
                 :state    ,#'consult--buffer-state
                 :hidden   t
                 :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
-  ;; (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-recent-file))
+  
+  (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-recent-file))
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
 
 
