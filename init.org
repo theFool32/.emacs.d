@@ -536,19 +536,27 @@ REST and STATE."
 
 (defun +my/auto-act-today-and-current-week ()
   (let ((act-today-points '())
+        (act-month-points '())
         (act-week-points '())
+        (act-month-tag ":ACT_MONTH:")
         (act-today-tag ":ACT_TODAY:")
         (act-week-tag ":ACT_WEEK:"))
     (org-map-entries
      (lambda ()
        (let ((tag-string (car (last (org-heading-components)))))
-     (when tag-string
-       (when (string= tag-string act-today-tag)
-         (push (point) act-today-points))
-       (when (string= tag-string act-week-tag)
-         (push (point) act-week-points))
-         ))))
+         (when tag-string
+           (when (string= tag-string act-today-tag)
+             (push (point) act-today-points))
+           (when (string= tag-string act-week-tag)
+             (push (point) act-week-points))
+           (when (string= tag-string act-month-tag)
+             (push (point) act-month-points))))))
 
+    (when (length> act-month-points 1)
+      (dolist (p (cdr (reverse act-month-points)))
+        (save-excursion
+          (goto-char p)
+          (org-toggle-tag (substring act-month-tag 1 -1)))))
     (when (length> act-today-points 1)
       (dolist (p (cdr (reverse act-today-points)))
         (save-excursion
