@@ -3794,7 +3794,10 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 (use-package py-isort
   :after python
   :hook (python-ts-mode . (lambda ()
-                            (add-hook 'before-save-hook #'py-isort-buffer))))
+                            (add-hook 'before-save-hook
+                                      (lambda ()
+                                        (when (evil-normal-state-p)
+                                          (call-interactively #'py-isort-buffer)))))))
 
 (use-package flymake-ruff
   :after (flymake python)
