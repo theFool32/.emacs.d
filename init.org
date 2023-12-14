@@ -3590,7 +3590,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :elpaca nil
   :commands (+eglot-help-at-point)
   :hook ((eglot-managed-mode . (lambda ()
-                                 (+lsp-optimization-mode)
                                  (leader-def :keymaps 'override
                                    "ca" '(eglot-code-actions :wk "Code Actions")
                                    "cr" '(eglot-rename :wk "Rename symbol")
@@ -3605,40 +3604,10 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                  (eglot-inlay-hints-mode -1)))
          ((python-mode python-ts-mode c-mode c++-mode LaTeX-mode) . eglot-ensure))
   :init
-  (defvar +lsp--default-read-process-output-max nil)
-  (defvar +lsp--default-gcmh-high-cons-threshold nil)
-  (defvar +lsp--optimization-init-p nil)
-
-  (define-minor-mode +lsp-optimization-mode
-    "Deploys universal GC and IPC optimizations for `lsp-mode' and `eglot'."
-    :global t
-    :init-value nil
-    (if (not +lsp-optimization-mode)
-        (setq-default read-process-output-max +lsp--default-read-process-output-max
-                      gcmh-high-cons-threshold +lsp--default-gcmh-high-cons-threshold
-                      +lsp--optimization-init-p nil)
-      ;; Only apply these settings once!
-      (unless +lsp--optimization-init-p
-        (setq +lsp--default-read-process-output-max
-              ;; DEPRECATED Remove check when 26 support is dropped
-              (if (boundp 'read-process-output-max)
-                  (default-value 'read-process-output-max))
-              +lsp--default-gcmh-high-cons-threshold
-              (default-value 'gcmh-high-cons-threshold))
-        ;; `read-process-output-max' is only available on recent development
-        ;; builds of Emacs 27 and above.
-        (setq-default read-process-output-max (* 1024 1024))
-        ;; REVIEW LSP causes a lot of allocations, with or without Emacs 27+'s
-        ;;        native JSON library, so we up the GC threshold to stave off
-        ;;        GC-induced slowdowns/freezes. Doom uses `gcmh' to enforce its
-        ;;        GC strategy, so we modify its variables rather than
-        ;;        `gc-cons-threshold' directly.
-        (setq-default gcmh-high-cons-threshold (* 2 +lsp--default-gcmh-high-cons-threshold))
-        (gcmh-set-high-threshold)
-        (setq +lsp--optimization-init-p t))))
 
   :config
   (fset 'lsp-capf 'eglot-completion-at-point)
+  (setq eglot-stay-out-of '(flymake))
   (setq eglot-sync-connect 0
         eglot-connect-timeout 10
         eglot-autoshutdown t
@@ -3813,17 +3782,24 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
   :config
   (add-hook 'python-ts-mode-hook (lambda ()
-                                (setq-local tab-width 4)))
+                                   (setq-local tab-width 4)))
 
   (setq python-indent-offset 4
         python-shell-interpreter "python3"
         importmagic-python-interpreter "python"
         flycheck-python-flake8-executable "flake8")
 
-  (use-package py-isort
-    :hook (python-ts-mode . (lambda ()
-                           (add-hook 'before-save-hook #'py-isort-before-save nil t))))
   )
+
+(use-package py-isort
+  :after python
+  :hook (python-ts-mode . (lambda ()
+                            (add-hook 'before-save-hook #'py-isort-buffer))))
+
+(use-package flymake-ruff
+  :after (flymake python)
+  :ensure t
+  :hook ((python-mode python-ts-mode). flymake-ruff-load))
 
 
 (use-package jupyter
