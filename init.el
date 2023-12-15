@@ -177,6 +177,7 @@ REST and STATE."
 
 
 ;;;; elpaca
+
 ;;  FIXME: still slow when startup (~0.5s)
 (defvar elpaca-installer-version 0.5)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
@@ -1294,20 +1295,26 @@ targets."
   ;; consult-imenu
   (with-eval-after-load 'consult-imenu
     ;;  FIXME: does not work since `eglot' use `breadcrumb-kind' instead
-    (add-to-list 'consult-imenu-config '(python-ts-mode :types
-                                                        ((?c "Class"    font-lock-type-face)
-                                                         (?C "Constant"    font-lock-constant-face)
-                                                         (?f "Function"  font-lock-function-name-face)
-                                                         (?m "Method"  font-lock-function-name-face)
-                                                         (?v "Variable"  font-lock-variable-name-face))))
-    (add-to-list 'consult-imenu-config '(latex-mode :types
-                                                    ((?c "Class"    font-lock-type-face)
-                                                     (?C "Constant"    font-lock-constant-face)
-                                                     (?f "Function"  font-lock-function-name-face)
-                                                     (?m "Method"  font-lock-function-name-face)
-                                                     (?M "Module"  font-lock-type-face)
-                                                     (?v "Variable"  font-lock-variable-name-face))))
-    )
+    (setq consult-imenu-config '((python-ts-mode :types
+                                                 ((?c "Class"    font-lock-type-face)
+                                                  (?C "Constant"    font-lock-constant-face)
+                                                  (?f "Function"  font-lock-function-name-face)
+                                                  (?m "Method"  font-lock-function-name-face)
+                                                  (?v "Variable"  font-lock-variable-name-face)))
+                                 (latex-mode :types
+                                             ((?c "Class"    font-lock-type-face)
+                                              (?C "Constant"    font-lock-constant-face)
+                                              (?f "Function"  font-lock-function-name-face)
+                                              (?m "Method"  font-lock-function-name-face)
+                                              (?M "Module"  font-lock-type-face)
+                                              (?v "Variable"  font-lock-variable-name-face)))
+                                 (emacs-lisp-mode :toplevel "Functions"
+                                                  :types ((?f "Functions" font-lock-function-name-face)
+                                                          (?m "Macros"    font-lock-function-name-face)
+                                                          (?p "Packages"  font-lock-constant-face)
+                                                          (?t "Types"     font-lock-type-face)
+                                                          (?h "Headings"  font-lock-doc-face)
+                                                          (?v "Variables" font-lock-variable-name-face))))))
 
   (defun +my/consult-set-evil-search-pattern (&optional condition)
     (let ((re
@@ -2322,14 +2329,14 @@ kill all magit buffers for this repo."
     (save-excursion
       (call-interactively 'ebib-jump-to-entry)
       (ebib--execute-when
-       (entries
-        (let ((key (ebib--get-key-at-point)))
-          (with-temp-buffer
-            (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
-            (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-          (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
-       (default
-        (beep))))
+        (entries
+         (let ((key (ebib--get-key-at-point)))
+           (with-temp-buffer
+             (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
+             (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+           (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+        (default
+         (beep))))
     (yank))
 
   :config
