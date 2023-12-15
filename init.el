@@ -1,87 +1,9 @@
-#+PROPERTY: header-args:emacs-lisp :results silent :tangle "~/.emacs.d/init.el"
-#+STARTUP: overview
-
-* Early Initialization
-#+begin_src emacs-lisp :tangle "~/.emacs.d/early-init.el"
-;;; early-init.el --- -*- lexical-binding: t -*-
-
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.5
-      package-enable-at-startup nil
-      file-name-handler-alist nil
-      site-run-file nil
-      default-frame-alist
-      '((vertical-scroll-bars . nil)
-        (menu-bar-lines . 0)
-        (tool-bar-lines . 0)
-
-        (undecorated . t);会导致所有边框全部消失无法拖动调整窗口大小 需要加上后面两句
-        (drag-internal-border . 1)
-        (internal-border-width . 5)
-        ;; (ns-transparent-titlebar . t)
-        )
-
-      mode-line-format nil
-      byte-compile-warnings nil
-      native-comp-async-report-warnings-errors nil
-      warning-suppress-log-types '((comp) (bytecomp)(emacs)) ;; disable `emacs` warnings for `youdao` autoloads
-      display-time-default-load-average nil
-
-      inhibit-startup-screen t
-      inhibit-startup-message t
-      inhibit-startup-echo-area-message user-login-name
-      inhibit-default-init t
-      initial-major-mode 'fundamental-mode
-      initial-scratch-message nil
-      inhibit-compacting-font-caches t
-
-      frame-inhibit-implied-resize t
-      frame-resize-pixelwise t
-
-      load-prefer-newer nil
-      auto-mode-case-fold nil
-
-      bidi-display-reordering 'left-to-right
-      bidi-paragraph-direction 'left-to-right
-      cursor-in-non-selected-windows nil
-      highlight-nonselected-windows nil
-
-      fast-but-imprecise-scrolling t
-      ffap-machine-p-known 'reject
-      redisplay-skip-fontification-on-input t
-
-      idle-update-delay 1.0
-      )
-
-(fset 'display-startup-echo-area-message 'ignore)
-
-(add-to-list 'initial-frame-alist '(fullscreen . maximized))
-(custom-set-variables '(x-select-enable-clipboard t))
-
-;; Automatically reread from disk if the underlying file changes
-(setq auto-revert-interval 3
-      auto-revert-check-vc-info t)
-(global-auto-revert-mode)
-
-(savehist-mode)
-
-(setq use-package-always-defer t
-      use-package-enable-imenu-support t
-      ;; use-package-verbose (not (bound-and-true-p byte-compile-current-file))
-      use-package-verbose nil
-      use-package-expand-minimally t
-      use-package-compute-statistics nil)
-
-(setq warning-minimum-level :emergency)
-
-(provide 'early-init)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; early-init.el ends here
-#+end_src
-
-* StartUp
-#+begin_src emacs-lisp
 ;;; init.el --- -*- lexical-binding: t -*-
+
+;;; Commentary:
+;;; Code:
+
+;;; StartUp
 (defvar +my/start-time (current-time))
 
 (setq gc-cons-threshold most-positive-fixnum
@@ -96,50 +18,48 @@
 
 (defvar +my/first-input-hook nil)
 (defun +my/first-input-hook-fun ()
+  "A hook run after the first input."
   (when +my/first-input-hook
     (run-hooks '+my/first-input-hook)
     (setq +my/first-input-hook nil))
   (remove-hook 'pre-command-hook '+my/first-input-hook-fun))
 (add-hook 'pre-command-hook '+my/first-input-hook-fun)
-#+end_src
 
-* Const
-#+begin_src emacs-lisp
+
+;;; Const
 ;; Load env
 (let ((my-env-file (concat user-emacs-directory "env")))
   (when (and (or (display-graphic-p)
                  (daemonp))
              (file-exists-p my-env-file))
-    (if (not (file-readable-p my-env-file))
-        (unless noerror
-          (signal 'file-error (list "Couldn't read envvar file" my-env-file)))
-      (let (envvars environment)
-        (with-temp-buffer
-          (save-excursion
-            (insert "\n")
-            (insert-file-contents my-env-file))
-          (while (re-search-forward "\n *\\([^#= \n]*\\)=" nil t)
-            (push (match-string 1) envvars)
-            (push (buffer-substring
-                   (match-beginning 1)
-                   (1- (or (save-excursion
-                             (when (re-search-forward "^\\([^= ]+\\)=" nil t)
-                               (line-beginning-position)))
-                           (point-max))))
-                  environment)))
-        (when environment
-          (setq process-environment
-                (append (nreverse environment) process-environment)
-                exec-path
-                (if (member "PATH" envvars)
-                    (append (split-string (getenv "PATH") path-separator t)
-                            (list exec-directory))
-                  exec-path)
-                shell-file-name
-                (if (member "SHELL" envvars)
-                    (or (getenv "SHELL") shell-file-name)
-                  shell-file-name))
-          envvars)))))
+    (if (file-readable-p my-env-file)
+        (let (envvars environment)
+          (with-temp-buffer
+            (save-excursion
+              (insert "\n")
+              (insert-file-contents my-env-file))
+            (while (re-search-forward "\n *\\([^#= \n]*\\)=" nil t)
+              (push (match-string 1) envvars)
+              (push (buffer-substring
+                     (match-beginning 1)
+                     (1- (or (save-excursion
+                               (when (re-search-forward "^\\([^= ]+\\)=" nil t)
+                                 (line-beginning-position)))
+                             (point-max))))
+                    environment)))
+          (when environment
+            (setq process-environment
+                  (append (nreverse environment) process-environment)
+                  exec-path
+                  (if (member "PATH" envvars)
+                      (append (split-string (getenv "PATH") path-separator t)
+                              (list exec-directory))
+                    exec-path)
+                  shell-file-name
+                  (if (member "SHELL" envvars)
+                      (or (getenv "SHELL") shell-file-name)
+                    shell-file-name))
+            envvars)))))
 
 ;; UserInfo
 (setq user-full-name "theFool32")
@@ -170,11 +90,9 @@
 (defconst *git*
   (executable-find "git")
   "Do we have git?")
-#+end_src
 
-* Package Manager
-** Use-package =after-call=
-#+begin_src emacs-lisp
+;;; Package Manager
+;;;; Use-package after-call
 (defvar +use-package--deferred-pkgs '(t))
 (defun use-package-handler/:after-call (name _keyword hooks rest state)
   "Add keyword `:after-call' to `use-package'.
@@ -215,55 +133,50 @@ REST and STATE."
 (setq use-package-keywords (use-package-list-insert :after-call use-package-keywords :after))
 (defalias 'use-package-normalize/:after-call #'use-package-normalize-symlist)
 
-#+end_src
+;;;; Straight [not-used]
 
-** Straight
-:PROPERTIES:
-:header-args:emacs-lisp: :tangle no
-:END:
-#+begin_src emacs-lisp
-(setq straight--process-log nil
-      straight-vc-git-default-clone-depth 1
-      straight-repository-branch "develop"
-      straight-use-package-by-default t
-      ;; straight-check-for-modifications '(check-on-save find-when-checking)
-      straight-check-for-modifications nil)
+;; (setq straight--process-log nil
+;;       straight-vc-git-default-clone-depth 1
+;;       straight-repository-branch "develop"
+;;       straight-use-package-by-default t
+;;       ;; straight-check-for-modifications '(check-on-save find-when-checking)
+;;       straight-check-for-modifications nil)
 
-(unless (featurep 'straight)
-  (defvar bootstrap-version)
+;; (unless (featurep 'straight)
+;;   (defvar bootstrap-version)
 
-  (let ((bootstrap-file (concat user-emacs-directory
-                                "straight/repos/straight.el/bootstrap.el"))
-        (bootstrap-version 5))
-    (unless (file-exists-p bootstrap-file)
-      (with-current-buffer
-          (url-retrieve-synchronously
-           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-           'silent 'inhibit-cookies)
-        (goto-char (point-max))
-        (eval-print-last-sexp)))
-    (load bootstrap-file nil 'nomessage)))
+;;   (let ((bootstrap-file (concat user-emacs-directory
+;;                                 "straight/repos/straight.el/bootstrap.el"))
+;;         (bootstrap-version 5))
+;;     (unless (file-exists-p bootstrap-file)
+;;       (with-current-buffer
+;;           (url-retrieve-synchronously
+;;            "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+;;            'silent 'inhibit-cookies)
+;;         (goto-char (point-max))
+;;         (eval-print-last-sexp)))
+;;     (load bootstrap-file nil 'nomessage)))
 
-;; (defun +set-github-mirror (oldfunc &rest args)
-;;   (let ((url (apply oldfunc args)))
-;;     (replace-regexp-in-string (rx (group "github.com"))
-;;                               "hub.fastgit.org" url nil nil 1)))
-;; (advice-add 'straight-vc-git--encode-url :around #'+set-github-mirror)
+;; ;; (defun +set-github-mirror (oldfunc &rest args)
+;; ;;   (let ((url (apply oldfunc args)))
+;; ;;     (replace-regexp-in-string (rx (group "github.com"))
+;; ;;                               "hub.fastgit.org" url nil nil 1)))
+;; ;; (advice-add 'straight-vc-git--encode-url :around #'+set-github-mirror)
 
-(add-to-list 'straight-built-in-pseudo-packages 'eglot)
-(add-to-list 'straight-built-in-pseudo-packages 'tramp)
-(add-to-list 'straight-built-in-pseudo-packages 'use-package)
-(add-to-list 'straight-built-in-pseudo-packages 'project)
-(add-to-list 'straight-built-in-pseudo-packages 'org)
-(add-to-list 'straight-built-in-pseudo-packages 'xref)
-;; -Straight
+;; (add-to-list 'straight-built-in-pseudo-packages 'eglot)
+;; (add-to-list 'straight-built-in-pseudo-packages 'tramp)
+;; (add-to-list 'straight-built-in-pseudo-packages 'use-package)
+;; (add-to-list 'straight-built-in-pseudo-packages 'project)
+;; (add-to-list 'straight-built-in-pseudo-packages 'org)
+;; (add-to-list 'straight-built-in-pseudo-packages 'xref)
+;; ;; -Straight
 
-(defun +my/check-straight-repos ()
-  (interactive)
-  (find-file (read-file-name "Repos: " "~/.emacs.d/straight/repos/")))
-#+end_src
-** elpaca
-#+begin_src emacs-lisp
+;; (defun +my/check-straight-repos ()
+;;   (interactive)
+;;   (find-file (read-file-name "Repos: " "~/.emacs.d/straight/repos/")))
+
+
+;;;; elpaca
 ;;  FIXME: still slow when startup (~0.5s)
 (defvar elpaca-installer-version 0.5)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
@@ -307,7 +220,7 @@ REST and STATE."
   (elpaca-use-package-mode)
   (setq elpaca-use-package-by-default t))
 
-(mapcar
+(mapc
  (lambda (p) (add-to-list 'elpaca-ignored-dependencies p))
  '(xref tramp eglot use-package project org xref recentf winner
         tramp-sh flymake simple diff-mode smerge-mode python css-mode custom
@@ -316,20 +229,14 @@ REST and STATE."
 
 ;; Block until current queue processed.
 (elpaca-wait)
-#+end_src
 
-** Benchmark
-:PROPERTIES:
-:header-args:emacs-lisp: :tangle no
-:END:
-#+begin_src emacs-lisp
-(use-package benchmark-init
-  :demand t
-  :config
-  (add-hook '+my/first-input-hook 'benchmark-init/deactivate))
-#+end_src
-* Helper Functions
-#+begin_src emacs-lisp
+;;;; Benchmark [not-used]
+;; (use-package benchmark-init
+;;   :demand t
+;;   :config
+;;   (add-hook '+my/first-input-hook 'benchmark-init/deactivate))
+
+;;; Helper Functions
 ;;;###autoload
 (defun +my/kill-other-buffers ()
   "Kill all other buffers."
@@ -401,7 +308,7 @@ REST and STATE."
 
 ;;;###autoload
 (defun +my/save-file ()
-  "Save files including org agenda"
+  "Save files including org agenda."
   (interactive)
   (if (derived-mode-p 'org-agenda-mode)
       (org-save-all-org-buffers)
@@ -411,7 +318,7 @@ REST and STATE."
 ;;;###autoload
 (defun hexcolour-luminance (color)
   "Calculate the luminance of a COLOR string (e.g. \"#ffaa00\", \"blue\").
-  This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
+This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
   (let* ((values (x-color-values color))
          (r (car values))
          (g (cadr values))
@@ -420,6 +327,7 @@ REST and STATE."
 
 ;;;###autoload
 (defun hexcolour-add-to-font-lock ()
+  "Add color to font lock."
   (interactive)
   (font-lock-add-keywords
    nil
@@ -448,7 +356,7 @@ REST and STATE."
 
 ;;;###autoload
 (defun +my/google-it (&optional word)
-  "Google WORD"
+  "Google WORD."
   (interactive (list
                 (if (use-region-p)
                     (buffer-substring-no-properties (region-beginning)
@@ -468,7 +376,7 @@ REST and STATE."
     (evil-ex (concat "%s/" word "/" word))))
 
 (defun +my/open-in-osx-finder (file)
-  "Open FILE in `Finder'"
+  "Open FILE in `Finder'."
   (interactive "GFile: ")
   (let* ((file (expand-file-name file))
          (script (concat
@@ -480,7 +388,7 @@ REST and STATE."
     (start-process "osascript-getinfo" nil "osascript" "-e" script)))
 
 (defun +my/quick-look (&optional file)
-  "Open FILE with quick look"
+  "Open FILE with quick look."
   (interactive
    (list
     (if (derived-mode-p 'dired-mode)
@@ -489,8 +397,9 @@ REST and STATE."
   (call-process-shell-command (concat "qlmanage -p \"" (expand-file-name file) "\"")))
 
 
+;;  TODO: act week/month
 (defun +my/org-datetree-find-date-create (&optional time)
-  ;;  TODO: act week/month
+  "Find or create date tree for TIME."
   (interactive)
   (let ((time (or time (current-time))))
     (org-reverse-datetree-goto-date-in-file time)
@@ -568,9 +477,9 @@ REST and STATE."
           (goto-char p)
           (org-toggle-tag (substring act-week-tag 1 -1)))))
     ))
-#+end_src
-* Global Configuration
-#+begin_src emacs-lisp
+
+
+;;; Global Configuration
 ;; UTF8Coding
 (set-selection-coding-system 'utf-8)
 (prefer-coding-system 'utf-8)
@@ -676,7 +585,7 @@ REST and STATE."
 (advice-add 'save-buffer :around 'suppress-message-advice-around)
 
 (defun filter-command-error-function (data context caller)
-  "Ignore the buffer-read-only, beginning-of-line, end-of-line, beginning-of-buffer, end-of-buffer signals; pass the rest to the default handler."
+  "Ignore the `'buffer-read-only', `beginning-of-line', `end-of-line', `beginning-of-buffer', `end-of-buffer' signals; pass the rest to the default handler."
   (when (not (memq (car data) '(buffer-read-only
                                 beginning-of-line
                                 end-of-line
@@ -717,9 +626,9 @@ REST and STATE."
       long-line-threshold 1000
       large-hscroll-threshold 1000
       syntax-wholeline-max 1000)
-#+end_src
-* Evil
-#+begin_src emacs-lisp
+
+;;; Evil
+;;;; Evil configuration
 (use-package evil
   :hook (elpaca-after-init . evil-mode)
   :demand t
@@ -768,9 +677,9 @@ REST and STATE."
                         "C-k" 'evil-window-up
                         "C-l" 'evil-window-right))
   )
-#+end_src
-** Evil related packages
-#+begin_src emacs-lisp
+
+;;;; Evil related packages
+
 (use-package evil-embrace
   :defer 1
   :after evil
@@ -866,10 +775,10 @@ REST and STATE."
   :config
   (global-set-key (kbd "s-<mouse-1>") 'evil-mc-toggle-cursor-on-click)
   )
-#+end_src
-* Search
-** English
-#+begin_src emacs-lisp
+
+;;; Search
+;;;; English
+
 (use-package go-translate
   :commands (go-translate-at-point go-translate-translate)
   :bind
@@ -929,11 +838,8 @@ REST and STATE."
       (defun go-translate-translate ()
         (interactive)
         (gts-translate my-translator-input)))))
-#+end_src
-** Look up
-#+begin_src emacs-lisp
-;;
-;;; Helpers
+
+;;;; Look up
 
 (defun +lookup--run-handler (handler identifier)
   (if (commandp handler)
@@ -1003,7 +909,7 @@ REST and STATE."
 
 
 ;;
-;;; Lookup backends
+;; Lookup backends
 
 (autoload 'xref--show-defs "xref")
 (defun +lookup--xref-show (fn identifier &optional show-fn)
@@ -1063,7 +969,7 @@ This backend prefers \"just working\" over accuracy."
       (find-file-at-point guess))))
 
 ;;
-;;; Main commands
+;; Main commands
 
 ;;;###autoload
 (defun +lookup/definition (identifier &optional arg)
@@ -1149,96 +1055,10 @@ in some cases."
            (xref-backend-identifier-at-point (xref-find-backend))))
         (prompt
          (read-string (if (stringp prompt) prompt "")))))
-#+end_src
 
-#+begin_src emacs-lisp
-(defvar +lookup-definition-functions
-  '(+lookup-xref-definitions-backend-fn
-    +lookup-dumb-jump-backend-fn
-    +lookup-ffap-backend-fn
-    +lookup-project-search-backend-fn))
+;;; Completion
+;;;; Vertico
 
-(defvar +lookup-references-functions
-  '(+lookup-xref-references-backend-fn
-    +lookup-project-search-backend-fn))
-
-;;
-;;; dumb-jump
-
-(use-package dumb-jump
-  :commands dumb-jump-result-follow
-  :config
-  (setq dumb-jump-default-project "~/.emacs.d/"
-        dumb-jump-prefer-searcher 'rg
-        dumb-jump-aggressive nil
-        dumb-jump-quiet t
-        dumb-jump-selector 'completing-read)
-  (add-hook 'dumb-jump-after-jump-hook #'better-jumper-set-jump))
-
-;;
-;;; xref
-(use-package xref
-  :elpaca nil
-  :init
-  (setq xref-search-program 'ripgrep)
-  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-  :hook ((xref-after-return xref-after-jump) . recenter))
-
-
-;; The lookup commands are superior, and will consult xref if there are no
-;; better backends available.
-(global-set-key [remap xref-find-definitions] #'+lookup/definition)
-(global-set-key [remap xref-find-references]  #'+lookup/references)
-
-(use-package better-jumper
-  :hook (+my/first-input . better-jumper-mode)
-  :commands doom-set-jump-a
-  :preface
-  ;; REVIEW Suppress byte-compiler warning spawning a *Compile-Log* buffer at
-  ;; startup. This can be removed once gilbertw1/better-jumper#2 is merged.
-  (defvar better-jumper-local-mode nil)
-  :init
-  (global-set-key [remap evil-jump-forward]  #'better-jumper-jump-forward)
-  (global-set-key [remap evil-jump-backward] #'better-jumper-jump-backward)
-  (global-set-key [remap xref-pop-marker-stack] #'better-jumper-jump-backward)
-  :config
-  (defun doom-set-jump-a (fn &rest args)
-    "Set a jump point and ensure fn doesn't set any new jump points."
-    (better-jumper-set-jump (if (markerp (car args)) (car args)))
-    (let ((evil--jumps-jumping t)
-          (better-jumper--jumping t))
-      (apply fn args)))
-
-  (mapcar
-   (lambda (fn)
-     (advice-add fn :around #'doom-set-jump-a))
-   (list #'kill-current-buffer #'+my/imenu #'+my/consult-line
-         #'find-file #'+my/consult-line-symbol-at-point #'consult-fd #'consult-ripgrep
-         #'+consult-ripgrep-at-point))
-  )
-
-(with-eval-after-load 'xref
-  (remove-hook 'xref-backend-functions #'etags--xref-backend)
-  ;; This integration is already built into evil
-  ;; Use `better-jumper' instead of xref's marker stack
-  (advice-add #'xref-push-marker-stack :around #'doom-set-jump-a)
-  )
-
-(use-package avy
-
-  :commands (avy-goto-char avy-goto-line))
-
-(use-package wgrep
-  :demand t
-  :after evil
-  :config
-  (evil-set-initial-state 'grep-mode 'normal))
-#+end_src
-
-* Completion
-** Vertico
-#+begin_src emacs-lisp
 (use-package pinyinlib
   :after orderless
   :after-call +my/first-input-hook-fun
@@ -1649,9 +1469,8 @@ targets."
           (left-fringe . 8)
           (right-fringe . 8)))
   )
-#+end_src
-** Code Completion
-#+begin_src emacs-lisp
+
+;;;; Code Completion
 (use-package corfu
   :elpaca (corfu :includes (corfu-indexed corfu-quick corfu-popupinfo corfu-history) :files (:defaults "extensions/corfu-*.el"))
   ;; :hook (+my/first-input . global-corfu-mode)
@@ -1828,13 +1647,40 @@ Quit if no candidate is selected."
   :config
   (defalias 'tabnine-capf 'tabnine-completion-at-point))
 
+(use-package tabnine
+  :disabled
+  :elpaca t
+  :commands (tabnine-start-process)
+  ;; :hook (prog-mode . tabnine-mode)
+  :diminish "⌬"
+  :custom
+  (tabnine-wait 1)
+  (tabnine-minimum-prefix-length 0)
+  :hook (kill-emacs . tabnine-kill-process)
+  :config
+  ;; (add-to-list 'completion-at-point-functions #'tabnine-completion-at-point)
+  (defalias 'tabnine-capf 'tabnine-completion-at-point)
+  (tabnine-start-process)
+  ;; :bind
+  ;; (:map  tabnine-completion-map
+  ;;    ("<tab>" . tabnine-accept-completion)
+  ;;    ("TAB" . tabnine-accept-completion)
+  ;;    ("M-f" . tabnine-accept-completion-by-word)
+  ;;    ("M-<return>" . tabnine-accept-completion-by-line)
+  ;;    ("C-g" . tabnine-clear-overlay)
+  ;;    ("M-[" . tabnine-previous-completion)
+  ;;    ("M-]" . tabnine-next-completion))
+  )
+
 (use-package tmux-capf
   :elpaca (:host github :repo "theFool32/tmux-capf" :files ("*.el" "*.sh"))
   :after cape
   :commands tmux-capf)
-#+end_src
-* Utils
-#+begin_src emacs-lisp
+
+
+;;; Utils
+;;;; misc
+
 (use-package recentf
   :elpaca nil
   :hook (elpaca-after-init . recentf-mode)
@@ -1988,9 +1834,9 @@ It handles the case of remote files as well."
 
 (use-package imenu-list
   :commands (imenu-list imenu-list-smart-toggle))
-#+end_src
-** Persp
-#+begin_src emacs-lisp
+
+;;;; Persp
+
 (use-package persp-mode
 
   :defines (recentf-exclude)
@@ -2043,10 +1889,9 @@ It handles the case of remote files as well."
                 (tab-bar-tabs-set (persp-parameter 'tab-bar-tabs))
                 (tab-bar--update-tab-bar-lines t)))
   )
-#+end_src
-* Tools
-** Dired
-#+begin_src emacs-lisp
+
+;;; Tools
+;;;; Dired
 ;; DiredPackage
 (use-package dired
   :after-call +my/first-input-hook-fun
@@ -2154,9 +1999,8 @@ It handles the case of remote files as well."
   (general-def "C-x C-s" nil)
   (general-def "C-x C-s" 'save-all-buffers))
 ;; -SaveAllBuffers
-#+end_src
-** Magit
-#+begin_src emacs-lisp
+
+;;;; Magit
 ;; MagitPac
 (use-package magit
   :defer t
@@ -2389,16 +2233,15 @@ kill all magit buffers for this repo."
   (blamer-min-offset 70)
   :custom-face
   (blamer-face ((t :foreground "#7a88cf"
-                    :background unspecified
-                    :height 140
-                    :italic t))))
-#+end_src
-** Checker
-#+begin_src emacs-lisp
+                   :background unspecified
+                   :height 140
+                   :italic t))))
+;;;; Checker
 ;; flymake
 (use-package flymake
   :ensure nil
-  :hook ((prog-mode markdown-mode LaTeX-mode) . flymake-mode)
+  ;; :hook ((prog-mode LaTeX-mode) . flymake-mode)
+  :hook ((python-mode LaTeX-mode) . flymake-mode)
   :config
   (setq flymake-no-changes-timeout nil)
   ;; (setq-local flymake-diagnostic-functions nil)
@@ -2416,9 +2259,8 @@ kill all magit buffers for this repo."
   :config
   (add-to-list 'jinx-exclude-regexps '(t "\\cc"))
   )
-#+end_src
-** Ebib
-#+begin_src emacs-lisp
+
+;;;; Ebib
 (use-package ebib
   :after (evil-collection org)
   :commands ebib
@@ -2480,14 +2322,14 @@ kill all magit buffers for this repo."
     (save-excursion
       (call-interactively 'ebib-jump-to-entry)
       (ebib--execute-when
-        (entries
-         (let ((key (ebib--get-key-at-point)))
-           (with-temp-buffer
-             (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
-             (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-           (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
-        (default
-         (beep))))
+       (entries
+        (let ((key (ebib--get-key-at-point)))
+          (with-temp-buffer
+            (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
+            (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+          (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+       (default
+        (beep))))
     (yank))
 
   :config
@@ -2521,46 +2363,45 @@ kill all magit buffers for this repo."
                               (ebib-import-entries)
                               (kill-buffer buffer)
                               (ebib--update-buffers))))))))))))
-#+end_src
-** Rime
-karabiner: shift for emacs-rime
-#+begin_src json
-{
-    "description": "Shift for Emacs-Rime",
-    "manipulators": [
-        {
-            "type": "basic",
-            "from": {
-                "key_code": "left_shift",
-                "modifiers": {
-                    "optional": [
-                        "any"
-                    ]
-                }
-            },
-            "to": [
-                {
-                    "key_code": "left_shift",
-                    "lazy": true
-                }
-            ],
-            "to_if_alone": [
-                {
-                    "key_code": "backslash",
-                    "modifiers": ["left_control"]
-                }
-            ],
-            "conditions": [
-                {
-                "type": "frontmost_application_if",
-                "bundle_identifiers": ["org\\.gnu\\.Emacs"]
-                }
-            ]
-        }
-    ]
-},
-#+end_src
-#+begin_src emacs-lisp
+;;;; Rime
+;; karabiner: shift for emacs-rime
+;; #+begin_src json
+;; {
+;;     "description": "Shift for Emacs-Rime",
+;;     "manipulators": [
+;;         {
+;;             "type": "basic",
+;;             "from": {
+;;                 "key_code": "left_shift",
+;;                 "modifiers": {
+;;                     "optional": [
+;;                         "any"
+;;                     ]
+;;                 }
+;;             },
+;;             "to": [
+;;                 {
+;;                     "key_code": "left_shift",
+;;                     "lazy": true
+;;                 }
+;;             ],
+;;             "to_if_alone": [
+;;                 {
+;;                     "key_code": "backslash",
+;;                     "modifiers": ["left_control"]
+;;                 }
+;;             ],
+;;             "conditions": [
+;;                 {
+;;                 "type": "frontmost_application_if",
+;;                 "bundle_identifiers": ["org\\.gnu\\.Emacs"]
+;;                 }
+;;             ]
+;;         }
+;;     ]
+;; },
+;; #+end_src
+
 (use-package rime
   :after-call toggle-input-method
   :if +self/use-rime
@@ -2593,9 +2434,8 @@ karabiner: shift for emacs-rime
 
 
   )
-#+end_src
-** Shell
-#+begin_src emacs-lisp
+
+;;;; Shell
 (when (and module-file-suffix
            (executable-find "cmake")
            (executable-find "libtool")
@@ -2664,9 +2504,8 @@ karabiner: shift for emacs-rime
             ;; Focus the child frame
             (select-frame-set-input-focus vterm-posframe--frame))))
       )))
-#+end_src
-** Mail
-#+begin_src emacs-lisp
+
+;;;; Mail
 (defvar mu-path (format "%s%s" (getenv "MU_PATH") "/share/emacs/site-lisp/mu/mu4e"))
 (use-package mu4e
   :elpaca nil
@@ -2788,9 +2627,8 @@ karabiner: shift for emacs-rime
                       :keymaps 'mu4e-main-mode-map
                       "o" #'open-mail-in-browser)
   )
-#+end_src
-** PDF-Tools
-#+begin_src emacs-lisp
+
+;;;; PDF-Tools
 (use-package pdf-tools
   :mode (("\\.pdf\\'" . pdf-view-mode))
   :hook (dired-mode . pdf-tools-install)
@@ -2800,9 +2638,9 @@ karabiner: shift for emacs-rime
   (setq pdf-annot-activate-created-annotations t) ; automatically annotate highlights
   (setq pdf-view-resize-factor 1.1) ; more fine-grained zooming
   )
-#+end_src
-* UI
-#+begin_src emacs-lisp
+
+;;; UI
+;;;; UI-config
 ;; SmoothScroll
 ;; Vertical Scroll
 (setq scroll-step 1)
@@ -2831,6 +2669,7 @@ karabiner: shift for emacs-rime
 ;; Display column numbers in modeline
 (column-number-mode 1)
 (setq display-line-numbers-type 'relative)
+(setq display-line-numbers-grow-only t)
 ;; -DisLineNum
 
 ;; DisTimeBat
@@ -3036,9 +2875,9 @@ karabiner: shift for emacs-rime
   (doom-modeline-time-icon nil)
   )
 ;; -DoomModeline
-#+end_src
-** Pretty Code
-#+begin_src emacs-lisp
+
+;;;; Pretty Code
+
 ;;;###autoload
 (defvar +pretty-code-symbols-alist '((t))
   "An alist containing a mapping of major modes to its value for
@@ -3253,9 +3092,11 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   ;; :priority_c    "[#C]"
   ;; :priority_d    "[#D]"
   )
-#+end_src
-** Highlight
-#+begin_src emacs-lisp
+
+;;;;
+
+;;;; Highlight
+
 ;; Highlight the current line
 (use-package hl-line
   :elpaca nil
@@ -3383,10 +3224,9 @@ Otherwise it builds `prettify-code-symbols-alist' according to
                  pop-global-mark
                  goto-last-change))
     (advice-add cmd :after #'my-recenter-and-pulse)))
-#+end_src
-* Program
-** Paren
-#+begin_src emacs-lisp
+
+;;; Program
+;;;; Paren
 (use-package paren
   :elpaca nil
   :hook (elpaca-after-init . show-paren-mode)
@@ -3472,9 +3312,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
     (general-define-key
      :keymaps '(evil-normal-state-map)
      "C-k" 'my/edit-kill)))
-#+end_src
-** Indent
-#+begin_src emacs-lisp
+
+;;;; Indent
 (setq-default indent-tabs-mode nil)
 (setq-default indent-line-function 'insert-tab)
 (setq-default tab-width 4)
@@ -3493,9 +3332,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 (dolist (hook '(text-mode-hook conf-mode-hook conf-space-mode-hook))
   (add-hook hook (lambda ()
                    (toggle-indent t))))
-#+end_src
-** Tree sitter
-#+begin_src emacs-lisp
+;;;; Tree sitter
 (use-package treesit
   :if (treesit-available-p)
   :elpaca nil
@@ -3583,9 +3420,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                                  (interactive)
                                                  (evil-textobj-tree-sitter-goto-textobj "class.outer" t t)))
   )
-#+end_src
-** LSP
-#+begin_src emacs-lisp
+
+;;;; LSP
 (use-package eglot
   :elpaca nil
   :commands (+eglot-help-at-point)
@@ -3631,21 +3467,21 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (defun +eglot-lookup-documentation (_identifier)
     "Request documentation for the thing at point."
     (eglot--dbind ((Hover) contents range)
-        (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
-                         (eglot--TextDocumentPositionParams))
-      (let ((blurb (and (not (seq-empty-p contents))
-                        (eglot--hover-info contents range)))
-            (hint (thing-at-point 'symbol)))
-        (if blurb
-            (with-current-buffer
-                (or (and (buffer-live-p +eglot--help-buffer)
-                         +eglot--help-buffer)
-                    (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
-              (with-help-window (current-buffer)
-                (rename-buffer (format "*eglot-help for %s*" hint))
-                (with-current-buffer standard-output (insert blurb))
-                (setq-local nobreak-char-display nil)))
-          (display-local-help))))
+                  (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
+                                   (eglot--TextDocumentPositionParams))
+                  (let ((blurb (and (not (seq-empty-p contents))
+                                    (eglot--hover-info contents range)))
+                        (hint (thing-at-point 'symbol)))
+                    (if blurb
+                        (with-current-buffer
+                            (or (and (buffer-live-p +eglot--help-buffer)
+                                     +eglot--help-buffer)
+                                (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
+                          (with-help-window (current-buffer)
+                            (rename-buffer (format "*eglot-help for %s*" hint))
+                            (with-current-buffer standard-output (insert blurb))
+                            (setq-local nobreak-char-display nil)))
+                      (display-local-help))))
     'deferred)
 
   (defun +eglot-help-at-point()
@@ -3660,23 +3496,23 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
            (imenu-default-goto-function
             nil (car (eglot--range-region
                       (eglot--dcase (aref one-obj-array 0)
-                        (((SymbolInformation) location)
-                         (plist-get location :range))
-                        (((DocumentSymbol) selectionRange)
-                         selectionRange))))))
+                                    (((SymbolInformation) location)
+                                     (plist-get location :range))
+                                    (((DocumentSymbol) selectionRange)
+                                     selectionRange))))))
          (unfurl (obj)
            (eglot--dcase obj
-             (((SymbolInformation)) (list obj))
-             (((DocumentSymbol) name children)
-              (cons obj
-                    (mapcar
-                     (lambda (c)
-                       (plist-put
-                        c :containerName
-                        (let ((existing (plist-get c :containerName)))
-                          (if existing (format "%s::%s" name existing)
-                            name))))
-                     (mapcan #'unfurl children)))))))
+                         (((SymbolInformation)) (list obj))
+                         (((DocumentSymbol) name children)
+                          (cons obj
+                                (mapcar
+                                 (lambda (c)
+                                   (plist-put
+                                    c :containerName
+                                    (let ((existing (plist-get c :containerName)))
+                                      (if existing (format "%s::%s" name existing)
+                                        name))))
+                                 (mapcan #'unfurl children)))))))
       (mapcar
        (pcase-lambda (`(,kind . ,objs))
          (cons
@@ -3701,9 +3537,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   )
 
 (use-package consult-eglot)
-#+end_src
-** Utils
-#+begin_src emacs-lisp
+
+;;;; Utils
 (use-package devdocs
   :elpaca (:host github :repo "astoff/devdocs.el")
   :commands (devdocs-lookup-at-point devdocs-search-at-point)
@@ -3765,10 +3600,9 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :hook ((prog-mode . format-all-ensure-formatter)
          (prog-mode . format-all-mode))
   )
-#+end_src
-** Language
-*** Python
-#+begin_src emacs-lisp
+
+;;;; Language
+;;;;; Python
 (use-package python
   :defer t
   :mode ("\\.py\\'" . python-ts-mode)
@@ -3807,9 +3641,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 (use-package jupyter
   :disabled)
-#+end_src
-*** Latex
-#+begin_src emacs-lisp
+;;;;; Latex
 ;; Fontification taken from https://tex.stackexchange.com/a/86119/81279
 (setq font-latex-match-reference-keywords
       '(;; biblatex
@@ -3974,8 +3806,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
         (if (null (plist-get TeX-error-report-switches (intern master-file)))
             ;; (if (string= next-command "BibTeX")
             ;;     (setq next-command "LaTeX")
-              ;; (setq next-command (TeX-command-default master-file)))
-              (setq next-command (TeX-command-default master-file))
+            ;; (setq next-command (TeX-command-default master-file)))
+            (setq next-command (TeX-command-default master-file))
           (setq counter -1)
           (when (y-or-n-p "Error found. Visit it? ")
             ;; `TeX-next-error' number of arguments changed at some
@@ -4015,13 +3847,12 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (add-hook 'org-cdlatex-mode-hook
             (lambda () (define-key org-cdlatex-mode-map "`" 'asymbol-insert-text-or-symbol)))
   )
-#+end_src
-*** Org
-#+begin_src emacs-lisp
+
+
+;;;;; Org
 ;;  TODO: remove unused codes
 
-;;
-;;; Row/Column traversal
+;; Row/Column traversal
 
 ;;;###autoload
 (defun +org/table-previous-row ()
@@ -4044,7 +3875,7 @@ re-align the table if necessary. (Necessary because org-mode has a
       (forward-char))))
 
 ;;
-;;; Hooks
+;; Hooks
 
 ;;;###autoload
 (defun +org-realign-table-maybe-h ()
@@ -4057,7 +3888,7 @@ re-align the table if necessary. (Necessary because org-mode has a
       (goto-char pt))))
 
 ;;
-;;; Advice
+;; Advice
 
 ;;;###autoload
 (defun +org-realign-table-maybe-a (&rest _)
@@ -4165,7 +3996,7 @@ re-align the table if necessary. (Necessary because org-mode has a
              return keywords)))
 
 ;;
-;;; Commands
+;; Commands
 
 ;;;###autoload
 (defun +org/dwim-at-point ()
@@ -4278,7 +4109,7 @@ If on a:
   (dotimes (_ count) (+org--insert-item 'below)))
 
 ;;
-;;; Hooks
+;; Hooks
 
 ;;;###autoload
 (defun +org-update-cookies-h ()
@@ -5075,21 +4906,17 @@ kill the current timer, this may be a break or a running pomodoro."
                             )) ; month
                   "%Y-%m-%d %A"           ; date
                   )))
-#+end_src
-*** Markdown
-#+begin_src emacs-lisp
+;;;; Markdown
 (use-package markdown-mode
   :defer t
   :mode ("\\.md\\'" . markdown-mode))
 
-#+end_src
-* Edit
-** Fold
-#+begin_src emacs-lisp
+;;; Edit
+;;;; Fold
 ;; Used for fold
 ;; Copy from doom-emacs
 ;;
-;;; Helpers
+;; Helpers
 
 (defun +fold--ensure-hideshow-mode ()
   (unless (bound-and-true-p hs-minor-mode)
@@ -5139,7 +4966,7 @@ kill the current timer, this may be a break or a running pomodoro."
 
 
 ;;
-;;; Commands
+;; Commands
 
 ;;;###autoload
 (defun +fold/toggle ()
@@ -5149,10 +4976,7 @@ Targets `vimmish-fold', `hideshow', `ts-fold' and `outline' folds."
   (interactive)
   (save-excursion
     (cond ((+fold--vimish-fold-p) (vimish-fold-toggle))
-          ((+fold--outline-fold-p)
-           (cl-letf (((symbol-function #'outline-hide-subtree)
-                      (symbol-function #'outline-hide-entry)))
-             (outline-toggle-children)))
+          ((+fold--outline-fold-p) (outline-cycle))
           ((+fold--hideshow-fold-p) (+fold-from-eol (hs-toggle-hiding))))))
 
 ;;;###autoload
@@ -5256,7 +5080,7 @@ Targets `vimmish-fold', `hideshow', `ts-fold' and `outline' folds."
         (end-of-line)))))
 
 ;;
-;;; Indentation detection
+;; Indentation detection
 
 (defun +fold--hideshow-empty-line-p (_)
   (string= "" (string-trim (thing-at-point 'line 'no-props))))
@@ -5311,9 +5135,9 @@ begin and end of the block surrounding point."
   (setq hs-special-modes-alist
         (append
          '((yaml-ts-mode "\\s-*\\_<\\(?:[^:]+\\)\\_>"
-                      ""
-                      "#"
-                      +fold-hideshow-forward-block-by-indent-fn nil)
+                         ""
+                         "#"
+                         +fold-hideshow-forward-block-by-indent-fn nil)
            (latex-mode
             ;; LaTeX-find-matching-end needs to be inside the env
             ("\\\\begin{[a-zA-Z*]+}\\(\\)" 1)
@@ -5344,9 +5168,18 @@ begin and end of the block surrounding point."
   :config
   (vimish-fold-global-mode +1))
 ;; end of fold
-#+end_src
-* Binding
-#+begin_src emacs-lisp
+
+
+
+(use-package outli
+  :elpaca (:host github :repo "jdtsmith/outli")
+  :hook ((emacs-lisp-mode . outli-mode)
+         ;; (outli-mode . (lambda () (call-interactively #'outline-hide-sublevels)))
+         ))
+
+
+;;; Binding
+
 (use-package which-key
   :hook (+my/first-input . which-key-mode)
 
@@ -5377,7 +5210,7 @@ begin and end of the block surrounding point."
     "3" '((lambda () (interactive) (tab-bar-select-tab 3)) :wk "Select 3")
     "4" '((lambda () (interactive) (tab-bar-select-tab 4)) :wk "Select 4")
     "5" '((lambda () (interactive) (tab-bar-select-tab 5)) :wk "Select 5")
-   )
+    )
 
   (general-create-definer leader-def
     :states '(normal visual emacs motion)
@@ -5394,7 +5227,7 @@ begin and end of the block surrounding point."
     "/" 'evilnc-comment-or-uncomment-lines)
 
   (general-evil-define-key 'normal
-    '(python-mode-map python-ts-mode-map LaTeX-mode-map emacs-lisp-mode-map yaml-ts-mode-map)
+      '(python-mode-map python-ts-mode-map LaTeX-mode-map emacs-lisp-mode-map yaml-ts-mode-map)
     "<tab>" '+fold/toggle)
 
   ;; evil mode
@@ -5444,7 +5277,7 @@ begin and end of the block surrounding point."
     "fr" '(+my/open-recent :wk "Recent file")
     "fs" '(+my/save-file :wk "Save file")
     "fd" '(dired-jump :wk "Current directory")
-    "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.org")) :wk "init.org")
+    "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :wk "init.el")
     "fo" '((lambda() (interactive) (find-file (format "%s/%s.org" +self/org-base-dir (completing-read "Open org files:" (mapcar (lambda (f) (file-name-base f)) +org-files))))) :wk "Org files")
     "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
     "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
@@ -5556,19 +5389,14 @@ begin and end of the block surrounding point."
     "u" '((lambda() (interactive)(call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)) :wk "Sync code")
     )
   )
-#+end_src
-** TODO search packages and functions in this org file
-* End
-#+begin_src emacs-lisp
+
+;;; End
+
 (add-hook 'elpaca-after-init-hook
           #'(lambda ()
               (+my/open-org-agenda)
               (message "Start in %s s with %d gc" (float-time (time-subtract (current-time) +my/start-time)) gcs-done)))
 
 (provide 'init)
-#+end_src
 
-
-;; Local Variables:
-;; eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
-;; End:
+;;; init.el ends here

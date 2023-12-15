@@ -68,7 +68,5 @@ site-lisp
 image-dired
 tree-sitter
 dirvish
-early-init.el
-init.el
 init.elc
 elpaca
