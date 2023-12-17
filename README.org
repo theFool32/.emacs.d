@@ -17,10 +17,9 @@ git clone --depth 1 https://github.com/theFool32/.emacs.d.git .emacs.d
 #+end_src
 
 *** Prepare
-Prepare the environment variables, custom variables,  =early-init.el= and =init.el= with:
 #+begin_src bash
 cd .emacs.d
-make init
+make custom
 #+end_src
 
 When the environment variables changed, you should update them with
