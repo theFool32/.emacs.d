@@ -2248,7 +2248,7 @@ kill all magit buffers for this repo."
 (use-package flymake
   :ensure nil
   ;; :hook ((prog-mode LaTeX-mode) . flymake-mode)
-  :hook ((python-mode LaTeX-mode) . flymake-mode)
+  :hook ((python-mode python-ts-mode LaTeX-mode) . flymake-mode)
   :config
   (setq flymake-no-changes-timeout nil)
   ;; (setq-local flymake-diagnostic-functions nil)
