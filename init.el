@@ -608,10 +608,13 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
   :hook ((prog-mode org-mode LaTeX-mode). breadcrumb-local-mode)
   )
 
-(add-hook 'elpaca-after-init-hook (lambda ()
-                                    (run-with-idle-timer 5 nil
-                                                         (lambda ()
-                                                           (server-start)))))
+(use-package server
+  :elpaca nil
+  :ensure t
+  :defer 5
+  :commands (server-running-p)
+  :config
+  (or (server-running-p) (server-start)))
 
 (use-package ws-butler
   :hook (prog-mode . ws-butler-mode))
@@ -780,65 +783,47 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 ;;; Search
 ;;;; English
 
-(use-package go-translate
-  :commands (go-translate-at-point go-translate-translate)
-  :bind
-  ("C-c t y" . go-translate-at-point)
-  ("C-c t Y" . go-translate-translate)
+(use-package maple-translate
+  :elpaca (:host github :repo "honmaple/emacs-maple-translate")
+  :commands (maple-translate maple-translate+ maple-translate-posframe)
+  :custom
+  (maple-translate-buffer " *maple-translate* ")
   :config
-  (setq gts-translate-list '(("en" "zh") ("zh" "en")))
-  (cl-defmethod gts-pre ((render gts-posframe-pop-render) translator)
-    (with-slots (width height forecolor backcolor padding) render
-      (let* ((inhibit-read-only t)
-             (buf gts-posframe-pop-render-buffer)
-             (frame (posframe-show buf
-                                   :string "Loading..."
-                                   :timeout gts-posframe-pop-render-timeout
-                                   :max-width width
-                                   :max-height height
-                                   :foreground-color (or forecolor gts-pop-posframe-forecolor)
-                                   :background-color (or backcolor gts-pop-posframe-backcolor)
-                                   :internal-border-width padding
-                                   :internal-border-color (or backcolor gts-pop-posframe-backcolor)
-                                   :accept-focus nil
-                                   :position (point)
-                                   :poshandler gts-posframe-pop-render-poshandler)))
+  ;; (setq maple-translate-engine '(google dictcn youdao))
+  (setq maple-translate-engine '(google))
 
-        ;; render
-        (gts-render-buffer-prepare buf translator)
-        (posframe-refresh buf)
-        ;; setup
-        (with-current-buffer buf
-          (gts-buffer-set-key ("q" "Close") (progn
-                                              (posframe-delete buf)))))))
+  ;; with google translate
+  (setq maple-translate-google-url "https://translate.googleapis.com/translate_a/single")
 
-  (ef-themes-with-colors
-    (let ((render (gts-posframe-pop-render :backcolor bg-dim :forecolor fg-dim :width 200 :height 100))
-          (engines (list
-                    (gts-google-rpc-engine)
-                    (gts-bing-engine)
-                    (gts-youdao-dict-engine)))
-          (splitter (gts-paragraph-splitter)))
-      (defvar my-translator-at-point
-        (gts-translator
-         :picker (gts-noprompt-picker)
-         :engines engines
-         :render render
-         :splitter splitter))
 
-      (defvar my-translator-input
-        (gts-translator
-         :picker (gts-prompt-picker)
-         :engines engines
-         :render render
-         :splitter splitter))
+  (defun maple-translate-posframe-tip (result)
+    "Show STRING using posframe-show."
+    (unless (and (require 'posframe nil t) (posframe-workable-p))
+      (error "Posframe not workable"))
 
-      (defun go-translate-at-point ()
-        (interactive)
-        (gts-translate my-translator-at-point))
-      (defun go-translate-translate ()
-        (interactive)
-        (gts-translate my-translator-input)))))
+    (if result
+        (progn
+          (with-current-buffer (get-buffer-create maple-translate-buffer)
+            (let ((inhibit-read-only t))
+              (erase-buffer)
+              (insert result)
+              (maple-translate-mode)
+              (goto-char (point-min))))
+          (posframe-show maple-translate-buffer
+                         :left-fringe 8
+                         :right-fringe 8
+                         :internal-border-color (face-foreground 'default)
+                         :internal-border-width 1)
+          (unwind-protect
+              (push (read-event) unread-command-events)
+            (progn
+              (posframe-hide maple-translate-buffer))))
+      (message "Nothing to look up")))
+
+  (defun maple-translate-posframe(word)
+    "Translate WORD and display result in echoarea."
+    (interactive (list (maple-translate-word)))
+    (maple-translate-show word 'maple-translate-posframe-tip)))
 
 ;;;; Look up
 
@@ -2329,14 +2314,14 @@ kill all magit buffers for this repo."
     (save-excursion
       (call-interactively 'ebib-jump-to-entry)
       (ebib--execute-when
-        (entries
-         (let ((key (ebib--get-key-at-point)))
-           (with-temp-buffer
-             (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
-             (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-           (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
-        (default
-         (beep))))
+       (entries
+        (let ((key (ebib--get-key-at-point)))
+          (with-temp-buffer
+            (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
+            (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+          (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+       (default
+        (beep))))
     (yank))
 
   :config
@@ -2814,7 +2799,7 @@ kill all magit buffers for this repo."
           ;; occur-mode
           ivy-occur-mode ivy-occur-grep-mode
           process-menu-mode list-environment-mode
-          youdao-dictionary-mode multi-translate-mode
+          youdao-dictionary-mode multi-translate-mode maple-translate-mode
 
           "\\*ELP Profiling Restuls\\*" profiler-report-mode
           "\\*[Wo]*Man.*\\*$"
@@ -3240,7 +3225,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :init (setq show-paren-when-point-inside-paren t
               show-paren-when-point-in-periphery t
               show-paren-style 'parenthesis
-              show-paren-context-when-offscreen 'overlay))
+              show-paren-context-when-offscreen 'child-frame))
 
 ;; Automatic parenthesis pairing
 (use-package elec-pair
@@ -5367,8 +5352,8 @@ begin and end of the block surrounding point."
 
     "o" '(:wk "Open")
     "om" '((lambda () (interactive) (mu4e)) :wk "Mail")
-    "oy" '(go-translate-at-point :wk "Translate at point")
-    "oY" '(go-translate-translate :wk "Translate")
+    "oy" '(maple-translate-posframe :wk "Translate at point")
+    "oY" '((lambda () (interactive) (maple-translate+ (read-from-minibuffer "Translate word: "))):wk "Translate")
     "oe" '((lambda() (interactive)(if (get-buffer "vterm") (switch-to-buffer "vterm") (call-interactively #'vterm))) :wk "Shell")
     "ov" '(vterm-other-window :wk "Shell in window")
     "ot" '(org-todo-list :wk "Org Todo")
