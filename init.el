@@ -752,7 +752,6 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
   :init
   (setq evil-want-keybinding nil)
   :config
-  ;;  TODO: init when loading specific package
   (let ((modes '(atomic-chrome calc calendar consult debug devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section magit-todos markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler replace sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired wgrep which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
     (evil-collection-init modes))
   )
@@ -1122,7 +1121,7 @@ in some cases."
 
 (use-package wgrep
   :demand t
-  :after evil
+  :after (evil embark)
   :config
   (evil-set-initial-state 'grep-mode 'normal))
 
@@ -1338,8 +1337,7 @@ targets."
 
 
 (use-package consult
-  :demand t
-  :after orderless
+  :after-call +my/first-input-hook-fun
   :elpaca (:host github :repo "minad/consult")
   :bind (
          ([remap recentf-open-files] . consult-recent-file)
@@ -1909,66 +1907,12 @@ It handles the case of remote files as well."
 (use-package imenu-list
   :commands (imenu-list imenu-list-smart-toggle))
 
-;;;; Persp
-
-(use-package persp-mode
-
-  :defines (recentf-exclude)
-  :commands (get-current-persp persp-contain-buffer-p)
-  :hook (+my/first-input . persp-mode)
-  :init
-  (setq persp-keymap-prefix (kbd "C-x p")
-        persp-nil-name "default"
-        persp-set-last-persp-for-new-frames nil
-        persp-kill-foreign-buffer-behaviour 'kill
-        persp-auto-resume-time -0.1
-        )
-  (defun +my/persp-resume ()
-    "Resume previous layout"
-    (interactive)
-    (persp-mode +1)
-    (condition-case error
-        (persp-load-state-from-file (expand-file-name "persp-auto-save" persp-save-dir))
-      (error)))
-  :config
-  ;; Don't save dead or temporary buffers
-  (add-hook 'persp-filter-save-buffers-functions
-            (lambda (b)
-              "Ignore dead and unneeded buffers."
-              (or (not (buffer-live-p b))
-                  (string-prefix-p " *" (buffer-name b)))))
-  (add-hook 'persp-filter-save-buffers-functions
-            (lambda (b)
-              "Ignore temporary buffers."
-              (let ((bname (file-name-nondirectory (buffer-name b))))
-                (or (string-prefix-p "magit" bname)
-                    (string-prefix-p "COMMIT_EDITMSG" bname)
-                    (string-prefix-p "\*Minibuf-." bname)
-                    (string-prefix-p "\*scratch\*" bname)
-                    (string-match-p "\\.elc\\|\\.tar\\|\\.gz\\|\\.zip\\'" bname)
-                    (string-match-p "\\.bin\\|\\.so\\|\\.dll\\|\\.exe\\'" bname)))))
-
-  ;; Don't save persp configs in `recentf'
-  (with-eval-after-load 'recentf
-    (push persp-save-dir recentf-exclude))
-
-  (advice-add #'persp-save-state-to-file :before
-              (lambda (&optional _)
-                (set-persp-parameter
-                 'tab-bar-tabs
-                 (frameset-filter-tabs (tab-bar-tabs) nil nil t))))
-
-  (advice-add #'persp-load-state-from-file :after
-              (lambda (&optional _)
-                (tab-bar-tabs-set (persp-parameter 'tab-bar-tabs))
-                (tab-bar--update-tab-bar-lines t)))
-  )
-
 ;;; Tools
 ;;;; Dired
 ;; DiredPackage
 (use-package dired
-  :after-call +my/first-input-hook-fun
+  ;; :after-call +my/first-input-hook-fun
+  :commands (dired dirvish)
   :elpaca nil
   :bind
   (:map dired-mode-map
@@ -2049,7 +1993,6 @@ It handles the case of remote files as well."
   (dirvish-side-follow-buffer-file t)
   ;; (dirvish-enabled-features-on-remote '(extras vc))
   :config
-  (set-face-attribute 'ansi-color-blue nil :foreground "#FFFFFF")
   (setq dirvish-open-with-programs
         '((("doc" "docx" "odt" "ods" "xls" "rtf" "xlsx" "odp" "ppt" "pptx" "pdf") . ("open" "%f"))))
   (setq dired-recursive-deletes 'always)
@@ -2057,10 +2000,12 @@ It handles the case of remote files as well."
   (setq dired-dwim-target t)
   (setq dired-listing-switches
         "-l --almost-all --human-readable --time-style=long-iso --group-directories-first --no-group")
+  )
 
-  (use-package dirvish-extras
-    :elpaca nil
-    ))
+(use-package dirvish-extras
+  :elpaca nil
+  :after dirvish
+  )
 
 
 ;; SaveAllBuffers
