@@ -1042,6 +1042,90 @@ in some cases."
         (prompt
          (read-string (if (stringp prompt) prompt "")))))
 
+
+(defvar +lookup-definition-functions
+  '(+lookup-xref-definitions-backend-fn
+    +lookup-dumb-jump-backend-fn
+    +lookup-ffap-backend-fn
+    +lookup-project-search-backend-fn))
+
+(defvar +lookup-references-functions
+  '(+lookup-xref-references-backend-fn
+    +lookup-project-search-backend-fn))
+
+;;
+;; dumb-jump
+
+(use-package dumb-jump
+  :commands dumb-jump-result-follow
+  :config
+  (setq dumb-jump-default-project "~/.emacs.d/"
+        dumb-jump-prefer-searcher 'rg
+        dumb-jump-aggressive nil
+        dumb-jump-quiet t
+        dumb-jump-selector 'completing-read)
+  (add-hook 'dumb-jump-after-jump-hook #'better-jumper-set-jump))
+
+;;
+;; xref
+(use-package xref
+  :elpaca nil
+  :init
+  (setq xref-search-program 'ripgrep)
+  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+  :hook ((xref-after-return xref-after-jump) . recenter))
+
+
+;; The lookup commands are superior, and will consult xref if there are no
+;; better backends available.
+(global-set-key [remap xref-find-definitions] #'+lookup/definition)
+(global-set-key [remap xref-find-references]  #'+lookup/references)
+
+(use-package better-jumper
+  :hook (+my/first-input . better-jumper-mode)
+  :commands doom-set-jump-a
+  :preface
+  ;; REVIEW Suppress byte-compiler warning spawning a *Compile-Log* buffer at
+  ;; startup. This can be removed once gilbertw1/better-jumper#2 is merged.
+  (defvar better-jumper-local-mode nil)
+  :init
+  (global-set-key [remap evil-jump-forward]  #'better-jumper-jump-forward)
+  (global-set-key [remap evil-jump-backward] #'better-jumper-jump-backward)
+  (global-set-key [remap xref-pop-marker-stack] #'better-jumper-jump-backward)
+  :config
+  (defun doom-set-jump-a (fn &rest args)
+    "Set a jump point and ensure fn doesn't set any new jump points."
+    (better-jumper-set-jump (if (markerp (car args)) (car args)))
+    (let ((evil--jumps-jumping t)
+          (better-jumper--jumping t))
+      (apply fn args)))
+
+  (mapcar
+   (lambda (fn)
+     (advice-add fn :around #'doom-set-jump-a))
+   (list #'kill-current-buffer #'+my/imenu #'+my/consult-line
+         #'find-file #'+my/consult-line-symbol-at-point #'consult-fd #'consult-ripgrep
+         #'+consult-ripgrep-at-point))
+  )
+
+(with-eval-after-load 'xref
+  (remove-hook 'xref-backend-functions #'etags--xref-backend)
+  ;; This integration is already built into evil
+  ;; Use `better-jumper' instead of xref's marker stack
+  (advice-add #'xref-push-marker-stack :around #'doom-set-jump-a)
+  )
+
+(use-package avy
+
+  :commands (avy-goto-char avy-goto-line))
+
+(use-package wgrep
+  :demand t
+  :after evil
+  :config
+  (evil-set-initial-state 'grep-mode 'normal))
+
 ;;; Completion
 ;;;; Vertico
 
@@ -1054,8 +1138,6 @@ in some cases."
   (add-to-list 'orderless-matching-styles 'completion--regex-pinyin)
   )
 
-
-(autoload 'ffap-file-at-point "ffap")
 
 (use-package embark
   :elpaca (embark :files (:defaults "*.el"))
@@ -1747,7 +1829,7 @@ It handles the case of remote files as well."
 	    '(("overleaf\\.com" . LaTeX-mode))))
 
 (use-package tramp
-  :defer 1
+  :defer 60
   :elpaca nil
   :config
   (setq tramp-completion-use-auth-sources nil
