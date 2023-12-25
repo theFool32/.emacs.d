@@ -605,7 +605,7 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 (use-package breadcrumb
   :disabled
   :elpaca (:host github :repo "joaotavora/breadcrumb")
-  :hook ((prog-mode org-mode LaTeX-mode). breadcrumb-local-mode)
+  :hook ((prog-mode org-mode LaTeX-mode) . breadcrumb-local-mode)
   )
 
 (use-package server
@@ -669,7 +669,7 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
   (advice-add #'evil-visual-update-x-selection :override #'ignore)
 
   ;; Start help-with-tutorial in emacs state
-  (advice-add #'help-with-tutorial :after (lambda (&rest _) (evil-emacs-state +1)))
+  ;; (advice-add #'help-with-tutorial :after (lambda (&rest _) (evil-emacs-state +1)))
 
   ;; Allows you to click buttons without initiating a selection
   (define-key evil-motion-state-map [down-mouse-1] nil)
@@ -3653,9 +3653,10 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                           (call-interactively #'py-isort-buffer)))))))
 
 (use-package flymake-ruff
+  :commands (flymake-ruff-load)
   :after (flymake python)
   :ensure t
-  :hook ((python-mode python-ts-mode). flymake-ruff-load))
+  :hook ((python-mode python-ts-mode) . flymake-ruff-load))
 
 
 (use-package jupyter
