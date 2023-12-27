@@ -1416,7 +1416,7 @@ targets."
     (setq input (orderless-pattern-compiler input))
     (cons
      (mapcar (lambda (r) (consult--convert-regexp r type)) input)
-     (lambda (str) (orderless--highlight input str))))
+     (lambda (str) (orderless--highlight input t str))))
   (defun consult--with-orderless (&rest args)
     (minibuffer-with-setup-hook
         (lambda ()
@@ -1576,7 +1576,7 @@ targets."
 
 
   ;; https://github.com/minad/corfu/issues/12#issuecomment-869037519
-  (advice-add 'corfu--setup :after 'evil-normalize-keymaps)
+  (advice-add 'corfu--setup :after (lambda (&rest _) (evil-normalize-keymaps)))
   (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
   (evil-make-overriding-map corfu-map)
 
