@@ -541,9 +541,15 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 (load custom-file 'noerror)
 
 ;; So Long mitigates slowness due to extremely long lines.
-;; Currently available in Emacs master branch *only*!
 (when (fboundp 'global-so-long-mode)
   (global-so-long-mode))
+
+;; for long line
+(setq-default bidi-display-reordering nil)
+(setq bidi-inhibit-bpa t
+      long-line-threshold 1000
+      large-hscroll-threshold 1000
+      syntax-wholeline-max 1000)
 
 ;; Add a newline automatically at the end of the file upon save.
 (setq require-final-newline t)
@@ -623,13 +629,8 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 (fset 'yes-or-no-p 'y-or-n-p)
 ;; -YorN
 
-
-;; for long line
-(setq-default bidi-display-reordering nil)
-(setq bidi-inhibit-bpa t
-      long-line-threshold 1000
-      large-hscroll-threshold 1000
-      syntax-wholeline-max 1000)
+;; Open new file in original frame
+(setq ns-pop-up-frames nil)
 
 ;;; Evil
 ;;;; Evil configuration
