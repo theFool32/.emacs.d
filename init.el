@@ -2169,6 +2169,9 @@ kill all magit buffers for this repo."
   )
 ;; -MagitPac
 
+(use-package magit-delta
+  :hook (magit-mode . magit-delta-mode))
+
 (use-package magit-todos
   :after magit
   :init
