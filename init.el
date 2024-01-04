@@ -1672,10 +1672,10 @@ Quit if no candidate is selected."
      #'cape-file
      ;; (cape-capf-buster
      (if +self/use-tabnine
-         (cape-super-capf
+         (cape-capf-super
           arg-capf
           #'tabnine-capf)
-       (cape-super-capf
+       (cape-capf-super
         arg-capf)
        )
      ;; 'equal)
@@ -1707,7 +1707,7 @@ Quit if no candidate is selected."
   :defer t
   :elpaca (:host github :repo "manateelazycat/corfu-english-helper")
   :config
-  (fset 'eng-capf (cape-interactive-capf #'corfu-english-helper-search))
+  (fset 'eng-capf (cape-capf-interactive #'corfu-english-helper-search))
   )
 
 (use-package tabnine-capf
