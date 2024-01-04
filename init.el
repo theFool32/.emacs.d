@@ -3757,8 +3757,16 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 
 (use-package latex
-  :elpaca auctex
-  :mode ("\\.tex\\'" . LaTeX-mode)
+  :elpaca  (auctex :pre-build (("./autogen.sh")
+                               ("./configure"
+                                "--without-texmf-dir"
+                                "--with-lispdir=./"
+                                "--with-datadir=./")
+                               ("make"))
+                   :build (:not elpaca--compile-info) ;; Make will take care of this step
+                   :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+                   :version (lambda (_) (require 'tex-site) AUCTeX-version))
+  :mode ("\\.tex\\'" . TeX-latex-mode)
   :hook (LaTeX-mode . outline-minor-mode)
   :custom
   (TeX-insert-braces nil)
