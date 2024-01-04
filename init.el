@@ -541,9 +541,15 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 (load custom-file 'noerror)
 
 ;; So Long mitigates slowness due to extremely long lines.
-;; Currently available in Emacs master branch *only*!
 (when (fboundp 'global-so-long-mode)
   (global-so-long-mode))
+
+;; for long line
+(setq-default bidi-display-reordering nil)
+(setq bidi-inhibit-bpa t
+      long-line-threshold 1000
+      large-hscroll-threshold 1000
+      syntax-wholeline-max 1000)
 
 ;; Add a newline automatically at the end of the file upon save.
 (setq require-final-newline t)
@@ -623,13 +629,8 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 (fset 'yes-or-no-p 'y-or-n-p)
 ;; -YorN
 
-
-;; for long line
-(setq-default bidi-display-reordering nil)
-(setq bidi-inhibit-bpa t
-      long-line-threshold 1000
-      large-hscroll-threshold 1000
-      syntax-wholeline-max 1000)
+;; Open new file in original frame
+(setq ns-pop-up-frames nil)
 
 ;;; Evil
 ;;;; Evil configuration
@@ -2169,6 +2170,9 @@ kill all magit buffers for this repo."
   )
 ;; -MagitPac
 
+(use-package magit-delta
+  :hook (magit-mode . magit-delta-mode))
+
 (use-package magit-todos
   :after magit
   :init
@@ -2740,57 +2744,50 @@ kill all magit buffers for this repo."
   :elpaca (nerd-icons-completion :type git :host github :repo "rainstormstudio/nerd-icons-completion")
   :commands (nerd-icons-completion-marginalia-setup)
   :hook (marginalia-mode . nerd-icons-completion-marginalia-setup))
-(use-package kind-icon
+(use-package nerd-icons-corfu
   :after (corfu nerd-icons)
   :after-call +my/first-input-hook-fun
-  :elpaca (:host github :repo "jdtsmith/kind-icon")
-  :custom
-  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   :config
-  (setq kind-icon-use-icons nil
-        kind-icon-blend-background nil)
-
-  (setq kind-icon-mapping
-        `((array ,(nerd-icons-codicon "nf-cod-symbol_array") :face font-lock-type-face)
-          (boolean ,(nerd-icons-codicon "nf-cod-symbol_boolean") :face font-lock-builtin-face)
-          (class ,(nerd-icons-codicon "nf-cod-symbol_class") :face font-lock-type-face)
-          (color ,(nerd-icons-codicon "nf-cod-symbol_color") :face success)
-          (command ,(nerd-icons-codicon "nf-cod-terminal") :face default)
-          (constant ,(nerd-icons-codicon "nf-cod-symbol_constant") :face font-lock-constant-face)
-          (constructor ,(nerd-icons-codicon "nf-cod-triangle_right") :face font-lock-function-name-face)
-          (enummember ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
-          (enum-member ,(nerd-icons-codicon "nf-cod-symbol_enum_member") :face font-lock-builtin-face)
-          (enum ,(nerd-icons-codicon "nf-cod-symbol_enum") :face font-lock-builtin-face)
-          (event ,(nerd-icons-codicon "nf-cod-symbol_event") :face font-lock-warning-face)
-          (field ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-variable-name-face)
-          (file ,(nerd-icons-codicon "nf-cod-symbol_file") :face font-lock-string-face)
-          (folder ,(nerd-icons-codicon "nf-cod-folder") :face font-lock-doc-face)
-          (interface ,(nerd-icons-codicon "nf-cod-symbol_interface") :face font-lock-type-face)
-          (keyword ,(nerd-icons-codicon "nf-cod-symbol_keyword") :face font-lock-keyword-face)
-          (macro ,(nerd-icons-codicon "nf-cod-symbol_misc") :face font-lock-keyword-face)
-          (magic ,(nerd-icons-codicon "nf-cod-wand") :face font-lock-builtin-face)
-          (method ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
-          (function ,(nerd-icons-codicon "nf-cod-symbol_method") :face font-lock-function-name-face)
-          (module ,(nerd-icons-codicon "nf-cod-file_submodule") :face font-lock-preprocessor-face)
-          (numeric ,(nerd-icons-codicon "nf-cod-symbol_numeric") :face font-lock-builtin-face)
-          (operator ,(nerd-icons-codicon "nf-cod-symbol_operator") :face font-lock-comment-delimiter-face)
-          (param ,(nerd-icons-codicon "nf-cod-symbol_parameter") :face default)
-          (property ,(nerd-icons-codicon "nf-cod-symbol_property") :face font-lock-variable-name-face)
-          (reference ,(nerd-icons-codicon "nf-cod-references") :face font-lock-variable-name-face)
-          (snippet ,(nerd-icons-codicon "nf-cod-symbol_snippet") :face font-lock-string-face)
-          (string ,(nerd-icons-codicon "nf-cod-symbol_string") :face font-lock-string-face)
-          (struct ,(nerd-icons-codicon "nf-cod-symbol_structure") :face font-lock-variable-name-face)
-          (text ,(nerd-icons-codicon "nf-cod-text_size") :face font-lock-doc-face)
-          (typeparameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
-          (type-parameter ,(nerd-icons-codicon "nf-cod-list_unordered") :face font-lock-type-face)
-          (unit ,(nerd-icons-codicon "nf-cod-symbol_ruler") :face font-lock-constant-face)
-          (value ,(nerd-icons-codicon "nf-cod-symbol_field") :face font-lock-builtin-face)
-          (variable ,(nerd-icons-codicon "nf-cod-symbol_variable") :face font-lock-variable-name-face)
-          (tabnine ,(nerd-icons-codicon "nf-cod-hubot") :face font-lock-warning-face)
-          (unknown ,(nerd-icons-codicon "nf-cod-code") :face font-lock-warning-face)
-          (tmux ,(nerd-icons-codicon "nf-cod-terminal") :face font-lock-warning-face)
-          (t ,(nerd-icons-codicon "nf-cod-code") :face font-lock-warning-face)))
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+  (setq nerd-icons-corfu-mapping
+        `((array :style "cod" :icon "symbol_array" :face font-lock-type-face)
+          (boolean :style "cod" :icon "symbol_boolean" :face font-lock-builtin-face)
+          (class :style "cod" :icon "symbol_class" :face font-lock-type-face)
+          (color :style "cod" :icon "symbol_color" :face success)
+          (command :style "cod" :icon "terminal" :face default)
+          (constant :style "cod" :icon "symbol_constant" :face font-lock-constant-face)
+          (constructor :style "cod" :icon "symbol_method" :face font-lock-function-name-face)
+          (enummember :style "cod" :icon "symbol_enum_member" :face font-lock-builtin-face)
+          (enum-member :style "cod" :icon "symbol_enum_member" :face font-lock-builtin-face)
+          (enum :style "cod" :icon "symbol_enum" :face font-lock-builtin-face)
+          (event :style "cod" :icon "symbol_event" :face font-lock-warning-face)
+          (field :style "cod" :icon "symbol_field" :face font-lock-variable-name-face)
+          (file :style "cod" :icon "symbol_file" :face font-lock-string-face)
+          (folder :style "cod" :icon "folder" :face font-lock-doc-face)
+          (interface :style "cod" :icon "symbol_interface" :face font-lock-type-face)
+          (keyword :style "cod" :icon "symbol_keyword" :face font-lock-keyword-face)
+          (macro :style "cod" :icon "symbol_misc" :face font-lock-keyword-face)
+          (magic :style "cod" :icon "wand" :face font-lock-builtin-face)
+          (method :style "cod" :icon "symbol_method" :face font-lock-function-name-face)
+          (function :style "cod" :icon "symbol_method" :face font-lock-function-name-face)
+          (module :style "cod" :icon "file_submodule" :face font-lock-preprocessor-face)
+          (numeric :style "cod" :icon "symbol_numeric" :face font-lock-builtin-face)
+          (operator :style "cod" :icon "symbol_operator" :face font-lock-comment-delimiter-face)
+          (param :style "cod" :icon "symbol_parameter" :face default)
+          (property :style "cod" :icon "symbol_property" :face font-lock-variable-name-face)
+          (reference :style "cod" :icon "references" :face font-lock-variable-name-face)
+          (snippet :style "cod" :icon "symbol_snippet" :face font-lock-string-face)
+          (string :style "cod" :icon "symbol_string" :face font-lock-string-face)
+          (struct :style "cod" :icon "symbol_structure" :face font-lock-variable-name-face)
+          (text :style "cod" :icon "text_size" :face font-lock-doc-face)
+          (typeparameter :style "cod" :icon "list_unordered" :face font-lock-type-face)
+          (type-parameter :style "cod" :icon "list_unordered" :face font-lock-type-face)
+          (unit :style "cod" :icon "symbol_ruler" :face font-lock-constant-face)
+          (value :style "cod" :icon "symbol_field" :face font-lock-builtin-face)
+          (variable :style "cod" :icon "symbol_variable" :face font-lock-variable-name-face)
+          (tabnine :style "cod" :icon "hubot" :face font-lock-warning-face)
+          (unknown :style "cod" :icon "code" :face font-lock-warning-face)
+          (t :style "cod" :icon "code" :face font-lock-warning-face)))
+  (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 (use-package olivetti
   :elpaca (:host github :repo "rnkn/olivetti")
@@ -3760,8 +3757,16 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 
 (use-package latex
-  :elpaca auctex
-  :mode ("\\.tex\\'" . LaTeX-mode)
+  :elpaca  (auctex :pre-build (("./autogen.sh")
+                               ("./configure"
+                                "--without-texmf-dir"
+                                "--with-lispdir=./"
+                                "--with-datadir=./")
+                               ("make"))
+                   :build (:not elpaca--compile-info) ;; Make will take care of this step
+                   :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
+                   :version (lambda (_) (require 'tex-site) AUCTeX-version))
+  :mode ("\\.tex\\'" . TeX-latex-mode)
   :hook (LaTeX-mode . outline-minor-mode)
   :custom
   (TeX-insert-braces nil)
