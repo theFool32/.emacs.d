@@ -1578,7 +1578,7 @@ targets."
 
   ;; https://github.com/minad/corfu/issues/12#issuecomment-869037519
   (advice-add 'corfu--setup :after (lambda (&rest _) (evil-normalize-keymaps)))
-  (advice-add 'corfu--teardown :after 'evil-normalize-keymaps)
+  (advice-add 'corfu--teardown :after (lambda (&rest _) (evil-normalize-keymaps)))
   (evil-make-overriding-map corfu-map)
 
   (defun corfu-enable-always-in-minibuffer ()
@@ -2345,14 +2345,14 @@ kill all magit buffers for this repo."
     (save-excursion
       (call-interactively 'ebib-jump-to-entry)
       (ebib--execute-when
-       (entries
-        (let ((key (ebib--get-key-at-point)))
-          (with-temp-buffer
-            (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
-            (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-          (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
-       (default
-        (beep))))
+        (entries
+         (let ((key (ebib--get-key-at-point)))
+           (with-temp-buffer
+             (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
+             (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+           (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+        (default
+         (beep))))
     (yank))
 
   :config
@@ -3440,8 +3440,9 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 ;;;; LSP
 (use-package eglot
   :elpaca nil
-  :commands (+eglot-help-at-point)
+  :commands (+eglot-help-at-point eglot-booster)
   :hook ((eglot-managed-mode . (lambda ()
+                                 (call-interactively #'eglot-booster)
                                  (leader-def :keymaps 'override
                                    "ca" '(eglot-code-actions :wk "Code Actions")
                                    "cr" '(eglot-rename :wk "Rename symbol")
@@ -3455,9 +3456,49 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                    "K" '+eglot-help-at-point)
                                  (eglot-inlay-hints-mode -1)))
          ((python-mode python-ts-mode c-mode c++-mode LaTeX-mode) . eglot-ensure))
-  :init
-
   :config
+  ;; https://github.com/blahgeek/emacs-lsp-booster/issues/1
+  (defun eglot-booster-plain-command (com)
+    "Test if command COM is a plain eglot server command."
+    (and (consp com)
+         (not (integerp (cadr com)))
+         (not (seq-intersection '(:initializationOptions :autoport) com))))
+
+  (defun eglot-booster ()
+    "Boost plain eglot server programs with emacs-lsp-booster.
+The emacs-lsp-booster program must be compiled and available on
+variable `exec-path'.  Only local stdin/out based lsp servers can
+be boosted."
+    (interactive)
+    (unless (executable-find "emacs-lsp-booster")
+      (user-error "The emacs-lsp-booster program is not installed"))
+    (if (get 'eglot-server-programs 'lsp-booster-p)
+        (message "eglot-server-programs already boosted.")
+      (let ((cnt 0)
+	        (orig-read (symbol-function 'jsonrpc--json-read)))
+        (dolist (entry eglot-server-programs)
+	      (cond
+	       ((functionp (cdr entry))
+	        (cl-incf cnt)
+	        (let ((fun (cdr entry)))
+	          (setcdr entry (lambda (&rest r) ; wrap function
+			                  (let ((res (apply fun r)))
+			                    (if (eglot-booster-plain-command res)
+				                    (cons "emacs-lsp-booster" res)
+				                  res))))))
+	       ((eglot-booster-plain-command (cdr entry))
+	        (cl-incf cnt)
+	        (setcdr entry (cons "emacs-lsp-booster" (cdr entry))))))
+        (defalias 'jsonrpc--json-read
+	      (lambda ()
+	        (or (and (= (following-char) ?#)
+		             (let ((bytecode (read (current-buffer))))
+		               (when (byte-code-function-p bytecode)
+		                 (funcall bytecode))))
+	            (funcall orig-read))))
+        (message "Boosted %d eglot-server-programs" cnt))
+      (put 'eglot-server-programs 'lsp-booster-p t)))
+
   (fset 'lsp-capf 'eglot-completion-at-point)
   (setq eglot-stay-out-of '(flymake))
   (setq eglot-sync-connect 0
@@ -3483,21 +3524,21 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (defun +eglot-lookup-documentation (_identifier)
     "Request documentation for the thing at point."
     (eglot--dbind ((Hover) contents range)
-                  (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
-                                   (eglot--TextDocumentPositionParams))
-                  (let ((blurb (and (not (seq-empty-p contents))
-                                    (eglot--hover-info contents range)))
-                        (hint (thing-at-point 'symbol)))
-                    (if blurb
-                        (with-current-buffer
-                            (or (and (buffer-live-p +eglot--help-buffer)
-                                     +eglot--help-buffer)
-                                (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
-                          (with-help-window (current-buffer)
-                            (rename-buffer (format "*eglot-help for %s*" hint))
-                            (with-current-buffer standard-output (insert blurb))
-                            (setq-local nobreak-char-display nil)))
-                      (display-local-help))))
+        (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
+                         (eglot--TextDocumentPositionParams))
+      (let ((blurb (and (not (seq-empty-p contents))
+                        (eglot--hover-info contents range)))
+            (hint (thing-at-point 'symbol)))
+        (if blurb
+            (with-current-buffer
+                (or (and (buffer-live-p +eglot--help-buffer)
+                         +eglot--help-buffer)
+                    (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
+              (with-help-window (current-buffer)
+                (rename-buffer (format "*eglot-help for %s*" hint))
+                (with-current-buffer standard-output (insert blurb))
+                (setq-local nobreak-char-display nil)))
+          (display-local-help))))
     'deferred)
 
   (defun +eglot-help-at-point()
@@ -3512,23 +3553,23 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
            (imenu-default-goto-function
             nil (car (eglot--range-region
                       (eglot--dcase (aref one-obj-array 0)
-                                    (((SymbolInformation) location)
-                                     (plist-get location :range))
-                                    (((DocumentSymbol) selectionRange)
-                                     selectionRange))))))
+                        (((SymbolInformation) location)
+                         (plist-get location :range))
+                        (((DocumentSymbol) selectionRange)
+                         selectionRange))))))
          (unfurl (obj)
            (eglot--dcase obj
-                         (((SymbolInformation)) (list obj))
-                         (((DocumentSymbol) name children)
-                          (cons obj
-                                (mapcar
-                                 (lambda (c)
-                                   (plist-put
-                                    c :containerName
-                                    (let ((existing (plist-get c :containerName)))
-                                      (if existing (format "%s::%s" name existing)
-                                        name))))
-                                 (mapcan #'unfurl children)))))))
+             (((SymbolInformation)) (list obj))
+             (((DocumentSymbol) name children)
+              (cons obj
+                    (mapcar
+                     (lambda (c)
+                       (plist-put
+                        c :containerName
+                        (let ((existing (plist-get c :containerName)))
+                          (if existing (format "%s::%s" name existing)
+                            name))))
+                     (mapcan #'unfurl children)))))))
       (mapcar
        (pcase-lambda (`(,kind . ,objs))
          (cons
