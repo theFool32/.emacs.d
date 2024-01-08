@@ -1972,17 +1972,18 @@ It handles the case of remote files as well."
                                       "i" 'wdired-change-to-wdired-mode
                                       "q" 'dirvish-quit
                                       "." 'dired-omit-mode
+                                      "c" 'dirvish-yank-menu
+                                      "?" 'dirvish-dispatch
                                       "s" 'dirvish-narrow ;;use `revert-buffer' (gr) to restore
                                       (kbd "TAB") 'dirvish-subtree-toggle
                                       (kbd "M-m") 'dirvish-setup-menu
                                       (kbd "M-t") 'dirvish-layout-toggle
-                                      (kbd "M-f") 'dirvish-toggle-fullscreen
                                       "*"   'dirvish-mark-menu
                                       "f"   'dirvish-file-info-menu
                                       [remap dired-sort-toggle-or-edit] 'dirvish-quicksort
                                       [remap dired-do-redisplay] 'dirvish-ls-switches-menu
                                       [remap dired-summary] 'dirvish-dispatch
-                                      [remap dired-do-copy] 'dirvish-yank-menu
+                                      ;; [remap dired-do-copy] 'dirvish-yank-menu
                                       [remap mode-line-other-buffer] 'dirvish-history-last))))
   :after dired
 
@@ -2262,6 +2263,7 @@ kill all magit buffers for this repo."
 ;;;; Checker
 ;; flymake
 (use-package flymake
+  :elpaca nil
   :ensure nil
   ;; :hook ((prog-mode LaTeX-mode) . flymake-mode)
   :hook ((python-mode python-ts-mode LaTeX-mode) . flymake-mode)
@@ -3661,6 +3663,7 @@ be boosted."
 ;;;; Language
 ;;;;; Python
 (use-package python
+  :elpaca nil
   :defer t
   :mode ("\\.py\\'" . python-ts-mode)
   :hook (inferior-python-mode . (lambda ()
