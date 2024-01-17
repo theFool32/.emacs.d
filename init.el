@@ -1820,13 +1820,6 @@ It handles the case of remote files as well."
 (use-package restart-emacs
   :commands restart-emacs)
 
-(use-package atomic-chrome
-  :defer
-  :commands (atomic-chrome-start-server)
-  :config
-  (setq atomic-chrome-url-major-mode-alist
-	    '(("overleaf\\.com" . LaTeX-mode))))
-
 (use-package tramp
   :defer 60
   :elpaca nil
