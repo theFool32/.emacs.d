@@ -4998,10 +4998,58 @@ kill the current timer, this may be a break or a running pomodoro."
                             )) ; month
                   "%Y-%m-%d %A"           ; date
                   )))
-;;;; Markdown
+;;;;; Markdown
 (use-package markdown-mode
   :defer t
   :mode ("\\.md\\'" . markdown-mode))
+
+
+;;;; Debug
+(use-package dape
+  :elpaca (:host github :repo "svaante/dape")
+  :hook (dape-active-mode . dape-breakpoint-global-mode)
+  :config
+
+  (transient-define-prefix dape-transient ()
+    "Transient for dape."
+    [["Stepping"
+      ("n" "Next" dape-next :transient t)
+      ("i" "Step in" dape-step-in :transient t)
+      ("o" "Step out" dape-step-out :transient t)
+      ("c" "Continue" dape-continue :transient t)
+      ("r" "restart" dape-restart :transient t)]
+     ["Breakpoints"
+      ("bb" "Toggle" dape-breakpoint-toggle :transient t)
+      ("bd" "Remove all" dape-breakpoint-remove-all :transient t)
+      ("bl" "Add log breakpoing" dape-breakpoint-log :transient t)
+      ("be" "Add expression breakpoint" dape-breakpoint-expression :transient t)
+      ]
+     ["Switch"
+      ("i" "Info" dape-info)
+      ("R" "Repl" dape-repl)
+      ("m" "Memory" dape-read-memory)
+      ("t" "Thread" dape-select-thread)
+      ("w" "Watch" dape-watch-dwim)
+      ("S" "Stack" dape-select-stack)]
+     ["Quit"
+      ("qq" "Quit" dape-quit :transient nil)
+      ("qk" "Kill" dape-kill :transient nil)]])
+
+  (add-to-list 'dape-configs
+               `(debugpy-remote-attach
+                 modes (python-mode python-ts-mode)
+                 host (lambda () (read-string "Host: " "localhost"))
+                 port (lambda () (read-number "Port: "))
+                 :request "attach"
+                 :type "python"
+                 :pathMappings [(:localRoot (lambda ()
+                                              (read-directory-name "Local source directory: "
+                                                                   (funcall dape-cwd-fn)))
+                                            :remoteRoot (lambda ()
+                                                          (read-string "Remote source directory: ")))]
+                 :justMyCode nil
+                 :showReturnValue t))
+  )
 
 ;;; Edit
 ;;;; Fold
@@ -5469,7 +5517,7 @@ begin and end of the block surrounding point."
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
-    "pf" '(consult-jump-project :wk "Find file in project")
+    "pf" '(project-find-file :wk "Find file in project")
     "pt" '(magit-todos-list :wk "List project tasks")
     "pk" '(project-kill-buffers :wk "Kill project buffers")
 
