@@ -504,6 +504,15 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
     ))
 
 
+(defvar project--ignore-list
+  '("/opt/homebrew/"))
+
+(defun my-project--ignored-p (path)
+  (catch 'found
+    (dolist (ignore project--ignore-list)
+      (when (string-prefix-p (file-truename ignore) (file-truename path))
+        (throw 'found t)))))
+
 ;;; Global Configuration
 ;; UTF8Coding
 (set-selection-coding-system 'utf-8)
@@ -3476,7 +3485,10 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                  (evil-define-key 'normal 'global
                                    "K" '+eglot-help-at-point)
                                  (eglot-inlay-hints-mode -1)))
-         ((python-mode python-ts-mode c-mode c++-mode LaTeX-mode) . eglot-ensure))
+         ((python-mode python-ts-mode c-mode c++-mode LaTeX-mode) .
+          (lambda ()
+            (unless (my-project--ignored-p (buffer-file-name (current-buffer)))
+              (eglot-ensure)))))
   :config
   (defun eglot-booster-plain-command (com)
     "Test if command COM is a plain eglot server command."
