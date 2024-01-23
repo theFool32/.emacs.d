@@ -845,7 +845,7 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
       (message "Nothing to look up")))
 
   (defun maple-translate-posframe(word)
-    "Translate WORD and display result in echoarea."
+    "Translate WORD and display result in posframe."
     (interactive (list (maple-translate-word)))
     (maple-translate-show word 'maple-translate-posframe-tip)))
 
