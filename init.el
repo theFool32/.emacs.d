@@ -2762,13 +2762,6 @@ kill all magit buffers for this repo."
 (use-package nerd-icons
   :init
   (setq nerd-icons-scale-factor 1.1))
-(use-package nerd-icons-dired
-  :disabled
-  :diminish
-  :commands nerd-icons-dired-mode
-  :custom-face
-  (nerd-icons-dired-dir-face ((t (:inherit nerd-icons-dsilver :foreground unspecified))))
-  :hook (dired-mode . nerd-icons-dired-mode))
 (use-package nerd-icons-completion
   :elpaca (nerd-icons-completion :type git :host github :repo "rainstormstudio/nerd-icons-completion")
   :commands (nerd-icons-completion-marginalia-setup)
@@ -3472,7 +3465,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :elpaca nil
   :commands (+eglot-help-at-point eglot-booster)
   :hook ((eglot-managed-mode . (lambda ()
-                                 (eglot-booster)
                                  (leader-def :keymaps 'override
                                    "ca" '(eglot-code-actions :wk "Code Actions")
                                    "cr" '(eglot-rename :wk "Rename symbol")
@@ -3490,52 +3482,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
             (unless (my-project--ignored-p (buffer-file-name (current-buffer)))
               (eglot-ensure)))))
   :config
-  (defun eglot-booster-plain-command (com)
-    "Test if command COM is a plain eglot server command."
-    (and (consp com)
-         (not (integerp (cadr com)))
-         (not (seq-intersection '(:initializationOptions :autoport) com))))
-
-  (defun eglot-booster ()
-    "Boost plain eglot server programs with emacs-lsp-booster.
-The emacs-lsp-booster program must be compiled and available on
-variable `exec-path'.  Only local stdin/out based lsp servers can
-be boosted."
-    (interactive)
-    (unless (executable-find "emacs-lsp-booster")
-      (user-error "The emacs-lsp-booster program is not installed"))
-    (if (get 'eglot-server-programs 'lsp-booster-p)
-        (message "eglot-server-programs already boosted.")
-      (let ((cnt 0)
-	        (orig-read (symbol-function 'jsonrpc--json-read))
-	        (boost '("emacs-lsp-booster" "--json-false-value" ":json-false" "--")))
-        (dolist (entry eglot-server-programs)
-	      (cond
-	       ((functionp (cdr entry))
-	        (cl-incf cnt)
-	        (let ((fun (cdr entry)))
-	          (setcdr entry (lambda (&rest r) ; wrap function
-			                  (let ((res (apply fun r)))
-			                    (if (eglot-booster-plain-command res)
-				                    (append boost res)
-				                  res))))))
-	       ((eglot-booster-plain-command (cdr entry))
-	        (cl-incf cnt)
-	        (setcdr entry (append boost (cdr entry))))))
-        (defalias 'jsonrpc--json-read
-	      (lambda ()
-	        (or (and (= (following-char) ?#)
-		             (let ((bytecode (read (current-buffer))))
-		               (when (byte-code-function-p bytecode)
-		                 (funcall bytecode))))
-	            (funcall orig-read))))
-        (message "Boosted %d eglot-server-programs" cnt))
-      (put 'eglot-server-programs 'lsp-booster-p t)))
-
-  (defun eglot-booster-reset ()
-    (put 'eglot-server-programs 'lsp-booster-p nil))
-
-
   (fset 'lsp-capf 'eglot-completion-at-point)
   (setq eglot-stay-out-of '(flymake))
   (setq eglot-sync-connect 0
@@ -3735,8 +3681,6 @@ be boosted."
   :hook ((python-mode python-ts-mode) . flymake-ruff-load))
 
 
-(use-package jupyter
-  :disabled)
 ;;;;; Latex
 ;; Fontification taken from https://tex.stackexchange.com/a/86119/81279
 (setq font-latex-match-reference-keywords
