@@ -508,10 +508,11 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
   '("/opt/homebrew/"))
 
 (defun my-project--ignored-p (path)
-  (catch 'found
-    (dolist (ignore project--ignore-list)
-      (when (string-prefix-p (file-truename ignore) (file-truename path))
-        (throw 'found t)))))
+  (when path
+    (catch 'found
+      (dolist (ignore project--ignore-list)
+        (when (string-prefix-p (file-truename ignore) (file-truename path))
+          (throw 'found t))))))
 
 ;;; Global Configuration
 ;; UTF8Coding
