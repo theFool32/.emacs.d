@@ -3473,7 +3473,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :elpaca nil
   :commands (+eglot-help-at-point eglot-booster)
   :hook ((eglot-managed-mode . (lambda ()
-                                 (eglot-booster)
                                  (leader-def :keymaps 'override
                                    "ca" '(eglot-code-actions :wk "Code Actions")
                                    "cr" '(eglot-rename :wk "Rename symbol")
@@ -3491,65 +3490,21 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
             (unless (my-project--ignored-p (buffer-file-name (current-buffer)))
               (eglot-ensure)))))
   :config
-  (defun eglot-booster-plain-command (com)
-    "Test if command COM is a plain eglot server command."
-    (and (consp com)
-         (not (integerp (cadr com)))
-         (not (seq-intersection '(:initializationOptions :autoport) com))))
-
-  (defun eglot-booster ()
-    "Boost plain eglot server programs with emacs-lsp-booster.
-The emacs-lsp-booster program must be compiled and available on
-variable `exec-path'.  Only local stdin/out based lsp servers can
-be boosted."
-    (interactive)
-    (unless (executable-find "emacs-lsp-booster")
-      (user-error "The emacs-lsp-booster program is not installed"))
-    (if (get 'eglot-server-programs 'lsp-booster-p)
-        (message "eglot-server-programs already boosted.")
-      (let ((cnt 0)
-	        (orig-read (symbol-function 'jsonrpc--json-read))
-	        (boost '("emacs-lsp-booster" "--json-false-value" ":json-false" "--")))
-        (dolist (entry eglot-server-programs)
-	      (cond
-	       ((functionp (cdr entry))
-	        (cl-incf cnt)
-	        (let ((fun (cdr entry)))
-	          (setcdr entry (lambda (&rest r) ; wrap function
-			                  (let ((res (apply fun r)))
-			                    (if (eglot-booster-plain-command res)
-				                    (append boost res)
-				                  res))))))
-	       ((eglot-booster-plain-command (cdr entry))
-	        (cl-incf cnt)
-	        (setcdr entry (append boost (cdr entry))))))
-        (defalias 'jsonrpc--json-read
-	      (lambda ()
-	        (or (and (= (following-char) ?#)
-		             (let ((bytecode (read (current-buffer))))
-		               (when (byte-code-function-p bytecode)
-		                 (funcall bytecode))))
-	            (funcall orig-read))))
-        (message "Boosted %d eglot-server-programs" cnt))
-      (put 'eglot-server-programs 'lsp-booster-p t)))
-
-  (defun eglot-booster-reset ()
-    (put 'eglot-server-programs 'lsp-booster-p nil))
-
-
   (fset 'lsp-capf 'eglot-completion-at-point)
   (setq eglot-stay-out-of '(flymake))
   (setq eglot-sync-connect 0
         eglot-connect-timeout 10
         eglot-autoshutdown t
-        eglot-send-changes-idle-time 0
-        eglot-events-buffer-size 0
+        eglot-send-changes-idle-time 0.5
+        eglot-events-buffer-config '(:size 0 :format full)
         ;; NOTE We disable eglot-auto-display-help-buffer because :select t in
         ;;      its popup rule causes eglot to steal focus too often.
         eglot-auto-display-help-buffer nil)
   (setq eldoc-echo-area-use-multiline-p nil)
   (setq eglot-ignored-server-capabilities '(:documentHighlightProvider :foldingRangeProvider :colorProvider :codeLensProvider :documentOnTypeFormattingProvider :executeCommandProvider))
   (add-to-list 'eglot-server-programs '((latex-mode Tex-latex-mode texmode context-mode texinfo-mode bibtex-mode) "texlab"))
+  ;;  HACK: eglot-booster does not work well with `eglot-alternatives'
+  (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) "pyright-langserver" "--stdio"))
 
   ;; HACK Eglot removed `eglot-help-at-point' in joaotavora/eglot@a044dec for a
   ;;      more problematic approach of deferred to eldoc. Here, I've restored it.
@@ -3629,9 +3584,19 @@ be boosted."
                                  `(:textDocument
                                    ,(eglot--TextDocumentIdentifier))
                                  :cancel-on-input non-essential))))))
+
+  (eglot-booster-mode +1)
   )
 
 (use-package consult-eglot)
+
+(use-package eglot-booster
+  :elpaca (:host github :repo "jdtsmith/eglot-booster")
+  :if (executable-find "emacs-lsp-booster")
+  :commands (eglot-booster-mode)
+  :after eglot
+  :config
+  (eglot-booster-mode))
 
 ;;;; Utils
 (use-package devdocs
@@ -3716,8 +3681,7 @@ be boosted."
 
   (setq python-indent-offset 4
         python-shell-interpreter "python3"
-        importmagic-python-interpreter "python"
-        flycheck-python-flake8-executable "flake8")
+        importmagic-python-interpreter "python")
 
   )
 
@@ -3733,7 +3697,10 @@ be boosted."
   :commands (flymake-ruff-load)
   :after (flymake python)
   :ensure t
-  :hook ((python-mode python-ts-mode) . flymake-ruff-load))
+  :hook ((python-mode python-ts-mode) .
+         (lambda ()
+           (remove-hook 'flymake-diagnostic-functions #'python-flymake t)
+           (flymake-ruff-load))))
 
 
 (use-package jupyter
