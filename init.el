@@ -1696,8 +1696,7 @@ Quit if no candidate is selected."
   :after (corfu tempel)
   :bind (("C-x C-f" . cape-file)
          ("C-x C-l" . cape-line))
-  :hook ((prog-mode . my/set-basic-capf)
-         (org-mode . my/set-basic-capf)
+  :hook (((org-mode emacs-lisp-mode) . my/set-basic-capf)
          ((lsp-completion-mode eglot-managed-mode lsp-bridge-mode lspce-mode). my/set-lsp-capf))
   :config
   (setq dabbrev-upcase-means-case-search t)
