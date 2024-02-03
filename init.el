@@ -508,10 +508,11 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
   '("/opt/homebrew/"))
 
 (defun my-project--ignored-p (path)
-  (catch 'found
-    (dolist (ignore project--ignore-list)
-      (when (string-prefix-p (file-truename ignore) (file-truename path))
-        (throw 'found t)))))
+  (when path
+    (catch 'found
+      (dolist (ignore project--ignore-list)
+        (when (string-prefix-p (file-truename ignore) (file-truename path))
+          (throw 'found t))))))
 
 ;;; Global Configuration
 ;; UTF8Coding
@@ -1695,8 +1696,7 @@ Quit if no candidate is selected."
   :after (corfu tempel)
   :bind (("C-x C-f" . cape-file)
          ("C-x C-l" . cape-line))
-  :hook ((prog-mode . my/set-basic-capf)
-         (org-mode . my/set-basic-capf)
+  :hook (((org-mode emacs-lisp-mode) . my/set-basic-capf)
          ((lsp-completion-mode eglot-managed-mode lsp-bridge-mode lspce-mode). my/set-lsp-capf))
   :config
   (setq dabbrev-upcase-means-case-search t)
@@ -3487,14 +3487,16 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (setq eglot-sync-connect 0
         eglot-connect-timeout 10
         eglot-autoshutdown t
-        eglot-send-changes-idle-time 0
-        eglot-events-buffer-size 0
+        eglot-send-changes-idle-time 0.5
+        eglot-events-buffer-config '(:size 0 :format full)
         ;; NOTE We disable eglot-auto-display-help-buffer because :select t in
         ;;      its popup rule causes eglot to steal focus too often.
         eglot-auto-display-help-buffer nil)
   (setq eldoc-echo-area-use-multiline-p nil)
   (setq eglot-ignored-server-capabilities '(:documentHighlightProvider :foldingRangeProvider :colorProvider :codeLensProvider :documentOnTypeFormattingProvider :executeCommandProvider))
   (add-to-list 'eglot-server-programs '((latex-mode Tex-latex-mode texmode context-mode texinfo-mode bibtex-mode) "texlab"))
+  ;;  HACK: eglot-booster does not work well with `eglot-alternatives'
+  (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) "pyright-langserver" "--stdio"))
 
   ;; HACK Eglot removed `eglot-help-at-point' in joaotavora/eglot@a044dec for a
   ;;      more problematic approach of deferred to eldoc. Here, I've restored it.
@@ -3574,9 +3576,19 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                  `(:textDocument
                                    ,(eglot--TextDocumentIdentifier))
                                  :cancel-on-input non-essential))))))
+
+  (eglot-booster-mode +1)
   )
 
 (use-package consult-eglot)
+
+(use-package eglot-booster
+  :elpaca (:host github :repo "jdtsmith/eglot-booster")
+  :if (executable-find "emacs-lsp-booster")
+  :commands (eglot-booster-mode)
+  :after eglot
+  :config
+  (eglot-booster-mode))
 
 ;;;; Utils
 (use-package devdocs
@@ -3661,8 +3673,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
   (setq python-indent-offset 4
         python-shell-interpreter "python3"
-        importmagic-python-interpreter "python"
-        flycheck-python-flake8-executable "flake8")
+        importmagic-python-interpreter "python")
 
   )
 
@@ -3678,7 +3689,10 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   :commands (flymake-ruff-load)
   :after (flymake python)
   :ensure t
-  :hook ((python-mode python-ts-mode) . flymake-ruff-load))
+  :hook ((python-mode python-ts-mode) .
+         (lambda ()
+           (remove-hook 'flymake-diagnostic-functions #'python-flymake t)
+           (flymake-ruff-load))))
 
 
 ;;;;; Latex
