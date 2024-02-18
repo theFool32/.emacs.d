@@ -3495,8 +3495,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (setq eldoc-echo-area-use-multiline-p nil)
   (setq eglot-ignored-server-capabilities '(:documentHighlightProvider :foldingRangeProvider :colorProvider :codeLensProvider :documentOnTypeFormattingProvider :executeCommandProvider))
   (add-to-list 'eglot-server-programs '((latex-mode Tex-latex-mode texmode context-mode texinfo-mode bibtex-mode) "texlab"))
-  ;;  HACK: eglot-booster does not work well with `eglot-alternatives'
-  (add-to-list 'eglot-server-programs '((python-mode python-ts-mode) "pyright-langserver" "--stdio"))
 
   ;; HACK Eglot removed `eglot-help-at-point' in joaotavora/eglot@a044dec for a
   ;;      more problematic approach of deferred to eldoc. Here, I've restored it.
