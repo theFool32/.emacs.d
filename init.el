@@ -2476,12 +2476,13 @@ kill all magit buffers for this repo."
   (setq rime-disable-predicates '(rime-predicate-evil-mode-p
                                   (lambda ()
                                     (and (rime-predicate-prog-in-code-p)
-                                         (not (rime-predicate-in-code-string-p))))
+                                         (not (rime-predicate-in-code-string-p))
+                                         ))
                                   (lambda ()
                                     (and (> (point) (save-excursion (back-to-indentation) (point)))
                                          (let ((string (buffer-substring (point) (max (line-beginning-position) (- (point) 80)))))
                                            (string-match-p "[a-zA-Z0-9\./\\<>;:\[\]{}\|!@#\$&\*\(\)\-=\+_,\?\^]$" string))))
-                                  rime-predicate-tex-math-or-command-p))
+                                  ))
 
 
 
@@ -3801,7 +3802,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                    :build (:not elpaca--compile-info) ;; Make will take care of this step
                    :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
                    :version (lambda (_) (require 'tex-site) AUCTeX-version))
-  :mode ("\\.tex\\'" . TeX-latex-mode)
+  ;;  TODO: not work
+  :mode ("\\.tex\\'" . LaTeX-mode)
   :hook (LaTeX-mode . outline-minor-mode)
   :custom
   (TeX-insert-braces nil)
