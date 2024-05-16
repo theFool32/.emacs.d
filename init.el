@@ -1582,6 +1582,7 @@ targets."
   :elpaca (corfu :includes (corfu-indexed corfu-quick corfu-popupinfo corfu-history) :files (:defaults "extensions/corfu-*.el"))
   ;; :hook (+my/first-input . global-corfu-mode)
   :custom
+  (global-corfu-modes '((not dape-repl-mode) t))
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
   (corfu-auto-prefix 1)
