@@ -2297,14 +2297,13 @@ kill all magit buffers for this repo."
   :hook ((python-mode python-ts-mode LaTeX-mode) . flymake-mode)
   :config
   (setq flymake-no-changes-timeout nil)
-  (setq flymake-show-diagnostics-at-end-of-line t)
+  (setq flymake-show-diagnostics-at-end-of-line nil)
   ;; (setq-local flymake-diagnostic-functions nil)
   (setq flymake-fringe-indicator-position 'right-fringe)
   ;;  TODO: use `flymake-flycheck' or `flymake-collection' to enhance backends
   )
 
 (use-package flymake-popon
-  :disabled
   :hook (flymake-mode . flymake-popon-mode))
 
 (use-package jinx
