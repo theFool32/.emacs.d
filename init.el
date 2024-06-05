@@ -5498,7 +5498,9 @@ begin and end of the block surrounding point."
     "qq" '(save-buffers-kill-terminal :wk "Quit")
     "qr" '(restart-emacs :wk "Restart")
 
-    "u" '((lambda() (interactive)(call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)) :wk "Sync code")
+    "u" '((lambda() (interactive)
+            (call-process-shell-command "rc" nil 0)
+            (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)) :wk "Sync code")
     )
   )
 
