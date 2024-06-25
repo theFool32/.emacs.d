@@ -4954,6 +4954,7 @@ kill the current timer, this may be a break or a running pomodoro."
   )
 
 (use-package org-reverse-datetree
+  :commands (my-org-reverse-datetree-cleanup-empty-dates)
   :elpaca (:host github :repo "theFool32/org-reverse-datetree")
   :after org
   :init
@@ -4968,8 +4969,78 @@ kill the current timer, this may be a break or a running pomodoro."
                             (format-time-string "%Y-%m-%d" (org-reverse-datetree-sunday time))
                             (format-time-string "%Y-%m-%d" (org-reverse-datetree-last-dow 13 time))
                             )) ; month
-                  "%Y-%m-%d %A"           ; date
-                  )))
+                  "%Y-%m-%d %A"))
+  :config
+  (cl-defun my-org-reverse-datetree-cleanup-empty-dates (&key noconfirm
+                                                              ancestors)
+    (interactive)
+    (unless (derived-mode-p 'org-mode)
+      (user-error "Not in org-mode"))
+    (when (and (or noninteractive
+                   (not (called-interactively-p 'any)))
+               (not noconfirm))
+      (error "Please set NOCONFIRM when called non-interactively"))
+    (let ((levels (length (org-reverse-datetree--get-level-formats t)))
+          count)
+      (when (> levels 0)
+        (org-save-outline-visibility t
+          (outline-hide-sublevels (1+ levels))
+          (when (or noconfirm
+                    (and (not (org-before-first-heading-p))
+                         (yes-or-no-p "Start from the beginning?")))
+            (goto-char (point-min)))
+          (catch 'abort
+            (while (> levels 0)
+              (setq count 0)
+
+              (while (re-search-forward
+                      (rx-to-string `(and bol
+                                          (group (= ,levels "*")
+                                                 (+ " ")
+                                                 (*? nonl)
+                                                 (+ "\n")
+                                                 (opt
+                                                  (and "***** Daily Goals"
+                                                       (*? nonl)
+                                                       (+ "\n")
+                                                       "***** Archived"
+                                                       (*? nonl)
+                                                       (+ "\n"))))
+                                          (or string-end
+                                              (and (** 1 ,levels "*")
+                                                   " "))))
+                      nil t)
+                (let ((begin (match-beginning 1))
+                      (end (match-end 1)))
+                  (cond
+                   (noconfirm
+                    (delete-region begin end)
+                    (cl-incf count)
+                    (goto-char begin))
+                   ((not noninteractive)
+                    (goto-char begin)
+                    (push-mark end)
+                    (setq mark-active t)
+                    (if (yes-or-no-p "Delete this empty entry?")
+                        (progn
+                          (call-interactively #'delete-region)
+                          (cl-incf count)
+                          (goto-char begin))
+                      (goto-char end))))))
+              (when (= count 0)
+                (message "No trees were deleted. Aborting")
+                (throw 'abort t))
+              (if (and (> levels 1)
+                       (or (and ancestors
+                                noconfirm)
+                           (and (not noninteractive)
+                                (called-interactively-p 'any)
+                                (yes-or-no-p "Clean up the upper level as well?"))))
+                  (progn
+                    (cl-decf levels)
+                    (goto-char (point-min)))
+                (throw 'abort t))))))))
+  )
 ;;;;; Markdown
 (use-package markdown-mode
   :defer t
