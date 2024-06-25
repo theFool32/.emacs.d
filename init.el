@@ -3510,21 +3510,21 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (defun +eglot-lookup-documentation (_identifier)
     "Request documentation for the thing at point."
     (eglot--dbind ((Hover) contents range)
-        (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
-                         (eglot--TextDocumentPositionParams))
-      (let ((blurb (and (not (seq-empty-p contents))
-                        (eglot--hover-info contents range)))
-            (hint (thing-at-point 'symbol)))
-        (if blurb
-            (with-current-buffer
-                (or (and (buffer-live-p +eglot--help-buffer)
-                         +eglot--help-buffer)
-                    (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
-              (with-help-window (current-buffer)
-                (rename-buffer (format "*eglot-help for %s*" hint))
-                (with-current-buffer standard-output (insert blurb))
-                (setq-local nobreak-char-display nil)))
-          (display-local-help))))
+                  (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
+                                   (eglot--TextDocumentPositionParams))
+                  (let ((blurb (and (not (seq-empty-p contents))
+                                    (eglot--hover-info contents range)))
+                        (hint (thing-at-point 'symbol)))
+                    (if blurb
+                        (with-current-buffer
+                            (or (and (buffer-live-p +eglot--help-buffer)
+                                     +eglot--help-buffer)
+                                (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
+                          (with-help-window (current-buffer)
+                            (rename-buffer (format "*eglot-help for %s*" hint))
+                            (with-current-buffer standard-output (insert blurb))
+                            (setq-local nobreak-char-display nil)))
+                      (display-local-help))))
     'deferred)
 
   (defun +eglot-help-at-point()
@@ -3539,23 +3539,23 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
            (imenu-default-goto-function
             nil (car (eglot--range-region
                       (eglot--dcase (aref one-obj-array 0)
-                        (((SymbolInformation) location)
-                         (plist-get location :range))
-                        (((DocumentSymbol) selectionRange)
-                         selectionRange))))))
+                                    (((SymbolInformation) location)
+                                     (plist-get location :range))
+                                    (((DocumentSymbol) selectionRange)
+                                     selectionRange))))))
          (unfurl (obj)
            (eglot--dcase obj
-             (((SymbolInformation)) (list obj))
-             (((DocumentSymbol) name children)
-              (cons obj
-                    (mapcar
-                     (lambda (c)
-                       (plist-put
-                        c :containerName
-                        (let ((existing (plist-get c :containerName)))
-                          (if existing (format "%s::%s" name existing)
-                            name))))
-                     (mapcan #'unfurl children)))))))
+                         (((SymbolInformation)) (list obj))
+                         (((DocumentSymbol) name children)
+                          (cons obj
+                                (mapcar
+                                 (lambda (c)
+                                   (plist-put
+                                    c :containerName
+                                    (let ((existing (plist-get c :containerName)))
+                                      (if existing (format "%s::%s" name existing)
+                                        name))))
+                                 (mapcan #'unfurl children)))))))
       (mapcar
        (pcase-lambda (`(,kind . ,objs))
          (cons
