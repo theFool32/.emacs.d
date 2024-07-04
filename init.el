@@ -4394,6 +4394,7 @@ If prefix ARG, copy instead of move."
 
   :config
   (setq org-modules '(org-habit))
+  (setq org-habit-graph-column 60)
 
   ;; babel
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
@@ -4753,6 +4754,7 @@ the lines even if the ranges do not overlap."
         org-agenda-start-with-clockreport-mode nil
         org-agenda-start-on-weekday 1
         org-agenda-todo-ignore-scheduled 'future
+        org-deadline-warning-days 60
         )
   :config
   (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
