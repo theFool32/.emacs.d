@@ -4755,6 +4755,10 @@ the lines even if the ranges do not overlap."
         org-agenda-start-on-weekday 1
         org-agenda-todo-ignore-scheduled 'future
         org-deadline-warning-days 60
+        org-agenda-sorting-strategy
+        '((agenda time-up priority-down category-keep)
+          (todo priority-down category-keep) (tags priority-down category-keep)
+          (search category-keep))
         )
   :config
   (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
