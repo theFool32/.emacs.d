@@ -3408,6 +3408,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
           (js-json-mode . json-ts-mode)
           (css-mode . css-ts-mode)
           (python-mode . python-ts-mode)))
+  (setq major-mode-remap-defaults nil)
   )
 
 (use-package evil-textobj-tree-sitter
