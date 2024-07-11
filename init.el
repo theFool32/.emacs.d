@@ -4446,7 +4446,7 @@ If prefix ARG, copy instead of move."
   (setq org-refile-use-outline-path 'file)
   (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
                              (+org-capture-file-someday :level . 3)))
-  (setq org-tag-alist '(("academic" . ?a) ("personal" . ?p) ("emacs" . ?e) ("work" . ?w) ("company" . ?c) ("habit" . ?h) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?W) ("ACT_TODAY" . ?d)))
+  (setq org-tag-alist '(("academic" . ?a) ("personal" . ?p) ("emacs" . ?e) ("work" . ?w) ("company" . ?c) ("habit" . ?h) ("joy" . ?j) ("computer" . ?C) ("program" . ?P) ("home" . ?H) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?W) ("ACT_TODAY" . ?d)))
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file +org-capture-file-gtd)
