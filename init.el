@@ -3399,7 +3399,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
           (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
 
   (setq major-mode-remap-alist
-        '((yaml-mode . yaml-ts-mode)
+        '((latex-mode . LaTeX-mode)
+          (yaml-mode . yaml-ts-mode)
           (bash-mode . bash-ts-mode)
           (js2-mode . js-ts-mode)
           (typescript-mode . typescript-ts-mode)
