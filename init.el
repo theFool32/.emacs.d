@@ -2300,7 +2300,8 @@ kill all magit buffers for this repo."
   (setq flymake-show-diagnostics-at-end-of-line nil)
   ;; (setq-local flymake-diagnostic-functions nil)
   (setq flymake-fringe-indicator-position 'right-fringe)
-  ;;  TODO: use `flymake-flycheck' or `flymake-collection' to enhance backends
+
+  (setq python-flymake-command '("ruff" "--quiet" "--stdin-filename=stdin" "-"))
   )
 
 (use-package flymake-popon
@@ -3687,15 +3688,6 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                       (lambda ()
                                         (when (evil-normal-state-p)
                                           (call-interactively #'py-isort-buffer)))))))
-
-(use-package flymake-ruff
-  :commands (flymake-ruff-load)
-  :after (flymake python)
-  :ensure t
-  :hook ((python-mode python-ts-mode) .
-         (lambda ()
-           (remove-hook 'flymake-diagnostic-functions #'python-flymake t)
-           (flymake-ruff-load))))
 
 
 ;;;;; Latex
