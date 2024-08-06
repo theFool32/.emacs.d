@@ -37,6 +37,14 @@ Enjoy hacking!
 # For Mac OS X
 brew install ripgrep fd rga terminal-notifier
 #+end_src
+*** Fonts
+#+begin_src bash
+# For Mac OS X
+brew install --cask font-jetbrains-mono
+
+brew tap laishulu/cask-fonts
+brew install --cask font-sarasa-nerd
+#+end_src
 
 *** Emacs-rime (Optional)
 Following [[https://github.com/DogLooksGood/emacs-rime/blob/master/INSTALLATION.org][Installation]] to use `emacs-rime`.

@@ -2534,7 +2534,12 @@ kill all magit buffers for this repo."
                    :accept-focus t))
             ;; Focus the child frame
             (select-frame-set-input-focus vterm-posframe--frame))))
-      )))
+      )
+    (add-hook 'vterm-mode-hook
+              (lambda ()
+                (set (make-local-variable 'buffer-face-mode-face) '(:family "JetBrains Mono"))
+                (buffer-face-mode t))))
+  )
 
 ;;;; Mail
 (defvar mu-path (format "%s%s" (getenv "MU_PATH") "/share/emacs/site-lisp/mu/mu4e"))
@@ -2731,7 +2736,7 @@ kill all magit buffers for this repo."
         (set-fontset-font t charset cn))
       (setq face-font-rescale-alist (if (/= ratio 0.0) `((,CN-FONT-NAME . ,ratio)) nil))))
 
-  (max/set-font "CaskaydiaCove Nerd Font" "Sarasa Mono SC" 14 1.1)
+  (max/set-font "CaskaydiaCove Nerd Font" "Sarasa Term SC" 14 1.1)
   )
 
 (setq split-width-threshold 0
@@ -3488,21 +3493,21 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (defun +eglot-lookup-documentation (_identifier)
     "Request documentation for the thing at point."
     (eglot--dbind ((Hover) contents range)
-                  (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
-                                   (eglot--TextDocumentPositionParams))
-                  (let ((blurb (and (not (seq-empty-p contents))
-                                    (eglot--hover-info contents range)))
-                        (hint (thing-at-point 'symbol)))
-                    (if blurb
-                        (with-current-buffer
-                            (or (and (buffer-live-p +eglot--help-buffer)
-                                     +eglot--help-buffer)
-                                (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
-                          (with-help-window (current-buffer)
-                            (rename-buffer (format "*eglot-help for %s*" hint))
-                            (with-current-buffer standard-output (insert blurb))
-                            (setq-local nobreak-char-display nil)))
-                      (display-local-help))))
+        (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
+                         (eglot--TextDocumentPositionParams))
+      (let ((blurb (and (not (seq-empty-p contents))
+                        (eglot--hover-info contents range)))
+            (hint (thing-at-point 'symbol)))
+        (if blurb
+            (with-current-buffer
+                (or (and (buffer-live-p +eglot--help-buffer)
+                         +eglot--help-buffer)
+                    (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
+              (with-help-window (current-buffer)
+                (rename-buffer (format "*eglot-help for %s*" hint))
+                (with-current-buffer standard-output (insert blurb))
+                (setq-local nobreak-char-display nil)))
+          (display-local-help))))
     'deferred)
 
   (defun +eglot-help-at-point()
@@ -3517,23 +3522,23 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
            (imenu-default-goto-function
             nil (car (eglot--range-region
                       (eglot--dcase (aref one-obj-array 0)
-                                    (((SymbolInformation) location)
-                                     (plist-get location :range))
-                                    (((DocumentSymbol) selectionRange)
-                                     selectionRange))))))
+                        (((SymbolInformation) location)
+                         (plist-get location :range))
+                        (((DocumentSymbol) selectionRange)
+                         selectionRange))))))
          (unfurl (obj)
            (eglot--dcase obj
-                         (((SymbolInformation)) (list obj))
-                         (((DocumentSymbol) name children)
-                          (cons obj
-                                (mapcar
-                                 (lambda (c)
-                                   (plist-put
-                                    c :containerName
-                                    (let ((existing (plist-get c :containerName)))
-                                      (if existing (format "%s::%s" name existing)
-                                        name))))
-                                 (mapcan #'unfurl children)))))))
+             (((SymbolInformation)) (list obj))
+             (((DocumentSymbol) name children)
+              (cons obj
+                    (mapcar
+                     (lambda (c)
+                       (plist-put
+                        c :containerName
+                        (let ((existing (plist-get c :containerName)))
+                          (if existing (format "%s::%s" name existing)
+                            name))))
+                     (mapcan #'unfurl children)))))))
       (mapcar
        (pcase-lambda (`(,kind . ,objs))
          (cons
