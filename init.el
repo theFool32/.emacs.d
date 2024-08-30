@@ -1575,6 +1575,8 @@ targets."
           (min-height . 15)
           (left-fringe . 8)
           (right-fringe . 8)))
+  ;;  HACK: To fix https://github.com/tumashu/vertico-posframe/issues/12
+  (add-hook 'minibuffer-exit-hook #'vertico-posframe-cleanup)
   )
 
 ;;;; Code Completion
