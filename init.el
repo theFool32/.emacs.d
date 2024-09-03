@@ -236,22 +236,24 @@ REST and STATE."
    with queued = (elpaca--queued)
    with version-regexp-alist = ;; Handle -dev, -DEV, etc. Why isn't this default?
    (append version-regexp-alist '(("\\(?:-[[:alpha:]]+\\)" . -1)))
-   for (id declared) in (elpaca--dependencies e)
-   for min = (version-to-list declared)
+   for (id need) in (elpaca--dependencies e)
+   for min = (version-to-list need)
    for datep = (> (car min) elpaca--date-version-schema-min) ;; YYYYMMDD version.
    for dep = (elpaca-alist-get id queued)
    for core = (unless dep (elpaca-alist-get id package--builtin-versions))
-   when (or (and core (version-list-< (if datep elpaca-core-date core) min))
-            (unless (memq id elpaca-ignored-dependencies)
-              (let ((version (if datep (elpaca--date-version dep)
-                               ;;  HACK: use `9999' as the default version
-                               (version-to-list (or (elpaca--declared-version dep) "9999")))))
-                (and (version-list-< version min)
-                     (let ((tag (elpaca--latest-tag dep)))
-                       (or (null tag) (version-list-< (version-to-list tag) min)))))))
-   do (cl-return (elpaca--fail e (format "Requires %s minimum version: %s" id declared))))
+   for version = (cond (core (if datep elpaca-core-date core))
+                       ((memq id elpaca-ignored-dependencies) 'skip)
+                       ((null dep) (cl-return (elpaca--fail e (format "Missing dependency %s" id))))
+                       (datep (version-to-list (elpaca--commit-date dep)))
+                       (t (version-to-list (or (elpaca--declared-version dep) "999"))))
+   unless (eq version 'skip)
+   when (or (and core (version-list-< version min))
+            (and (version-list-< version min)
+                 (let ((tag (elpaca-latest-tag dep)))
+                   (or (null tag) (version-list-< (version-to-list tag) min)))))
+   do (cl-return (elpaca--fail e (format "%s installed version %s lower than min required %s"
+                                         id version need))))
   (elpaca--continue-build e))
-
 ;; Block until current queue processed.
 (elpaca-wait)
 
@@ -644,13 +646,12 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 
 (use-package breadcrumb
   :disabled
-  :elpaca (:host github :repo "joaotavora/breadcrumb")
+  :ensure (:host github :repo "joaotavora/breadcrumb")
   :hook ((prog-mode org-mode LaTeX-mode) . breadcrumb-local-mode)
   )
 
 (use-package server
-  :elpaca nil
-  :ensure t
+  :ensure nil
   :defer 5
   :commands (server-running-p)
   :config
@@ -818,7 +819,7 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 ;;;; English
 
 (use-package maple-translate
-  :elpaca (:host github :repo "honmaple/emacs-maple-translate")
+  :ensure (:host github :repo "honmaple/emacs-maple-translate")
   :commands (maple-translate maple-translate+ maple-translate-posframe)
   :custom
   (maple-translate-buffer " *maple-translate* ")
@@ -1103,7 +1104,7 @@ in some cases."
 ;;
 ;; xref
 (use-package xref
-  :elpaca nil
+  :ensure nil
   :init
   (setq xref-search-program 'ripgrep)
   (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
@@ -1174,7 +1175,7 @@ in some cases."
 
 
 (use-package embark
-  :elpaca (embark :files (:defaults "*.el"))
+  :ensure (embark :files (:defaults "*.el"))
   :after-call +my/first-input-hook-fun
   :after general
   :bind
@@ -1262,7 +1263,7 @@ targets."
   :after consult)
 
 (use-package vertico
-  :elpaca (vertico :includes (vertico-quick vertico-repeat vertico-directory) :files (:defaults "extensions/vertico-*.el"))
+  :ensure (vertico :includes (vertico-quick vertico-repeat vertico-directory) :files (:defaults "extensions/vertico-*.el"))
   :hook (window-setup . vertico-mode)
   :config
   (setq vertico-cycle nil
@@ -1325,19 +1326,19 @@ targets."
   (use-package vertico-quick
     :after vertico
     :ensure nil
-    :elpaca nil
+    :ensure nil
     :bind (:map vertico-map
                 ("M-q" . vertico-quick-insert)
                 ("C-q" . vertico-quick-exit)))
   (use-package vertico-repeat
     :after vertico
     :ensure nil
-    :elpaca nil
+    :ensure nil
     :bind ("C-c r" . vertico-repeat)
     :hook (minibuffer-setup . vertico-repeat-save)
     )
   (use-package vertico-directory
-    :elpaca nil
+    :ensure nil
     :after vertico
     :after-call +my/first-input-hook-fun
     :ensure nil
@@ -1351,7 +1352,7 @@ targets."
 
 ;; A few more useful configurations...
 (use-package emacs
-  :elpaca nil
+  :ensure nil
   :init
   ;; Add prompt indicator to `completing-read-multiple'.
   ;; Alternatively try `consult-completing-read-multiple'.
@@ -1373,7 +1374,7 @@ targets."
 
 (use-package consult
   :after-call +my/first-input-hook-fun
-  :elpaca (:host github :repo "minad/consult")
+  :ensure (:host github :repo "minad/consult")
   :bind (
          ([remap recentf-open-files] . consult-recent-file)
          ([remap imenu] . consult-imenu)
@@ -1516,7 +1517,7 @@ targets."
   )
 
 (use-package consult-jump-project
-  :elpaca (consult-jump-project :type git :host github :repo "jdtsmith/consult-jump-project")
+  :ensure (consult-jump-project :type git :host github :repo "jdtsmith/consult-jump-project")
   :custom (consult-jump-direct-jump-modes '(dired-mode)))
 
 (use-package consult-dir
@@ -1548,7 +1549,7 @@ targets."
 (use-package consult-git-log-grep
   :after consult
   :commands consult-git-log-grep
-  :elpaca (:host github :repo "ghosty141/consult-git-log-grep")
+  :ensure (:host github :repo "ghosty141/consult-git-log-grep")
   :custom
   (consult-git-log-grep-open-function #'magit-show-commit))
 
@@ -1579,7 +1580,7 @@ targets."
 
 ;;;; Code Completion
 (use-package corfu
-  :elpaca (corfu :includes (corfu-indexed corfu-quick corfu-popupinfo corfu-history) :files (:defaults "extensions/corfu-*.el"))
+  :ensure (corfu :includes (corfu-indexed corfu-quick corfu-popupinfo corfu-history) :files (:defaults "extensions/corfu-*.el"))
   ;; :hook (+my/first-input . global-corfu-mode)
   :custom
   (global-corfu-modes '((not dape-repl-mode) t))
@@ -1625,20 +1626,20 @@ targets."
   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
 
   (use-package corfu-quick
-    :elpaca nil
+    :ensure nil
     :bind
     (:map corfu-map
           ("C-q" . corfu-quick-insert)))
 
   (use-package corfu-popupinfo
-    :elpaca nil
+    :ensure nil
     :config
     (setq corfu-popupinfo-delay '(0.2 . 0.1))
     (set-face-attribute 'corfu-popupinfo nil :height 140)
     :hook (corfu-mode . corfu-popupinfo-mode))
 
   (use-package corfu-history
-    :elpaca nil
+    :ensure nil
     :hook (corfu-mode . corfu-history-mode))
 
   ;; allow evil-repeat
@@ -1680,7 +1681,7 @@ Quit if no candidate is selected."
 (use-package tempel
   :after corfu
   :after-call +my/first-input-hook-fun
-  :elpaca (:host github :repo "minad/tempel")
+  :ensure (:host github :repo "minad/tempel")
   :config
   (defun my/tempel-expand-or-next ()
     "Try tempel expand, if failed, try copilot expand."
@@ -1740,7 +1741,7 @@ Quit if no candidate is selected."
   :bind (("C-x C-e" . eng-capf))
   :commands (corfu-english-helper-search)
   :defer t
-  :elpaca (:host github :repo "manateelazycat/corfu-english-helper")
+  :ensure (:host github :repo "manateelazycat/corfu-english-helper")
   :config
   (fset 'eng-capf (cape-capf-interactive #'corfu-english-helper-search))
   )
@@ -1749,13 +1750,13 @@ Quit if no candidate is selected."
   :if +self/use-tabnine
   :after cape
   :commands (tabnine-capf tabnine-capf-start-process)
-  :elpaca (:host github :repo "50ways2sayhard/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
+  :ensure (:host github :repo "50ways2sayhard/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
   :hook ((kill-emacs . tabnine-capf-kill-process))
   :config
   (defalias 'tabnine-capf 'tabnine-completion-at-point))
 
 (use-package tmux-capf
-  :elpaca (:host github :repo "theFool32/tmux-capf" :files ("*.el" "*.sh"))
+  :ensure (:host github :repo "theFool32/tmux-capf" :files ("*.el" "*.sh"))
   :after cape
   :commands tmux-capf)
 
@@ -1764,7 +1765,7 @@ Quit if no candidate is selected."
 ;;;; misc
 
 (use-package recentf
-  :elpaca nil
+  :ensure nil
   :hook (elpaca-after-init . recentf-mode)
   :custom
   ;; (recentf-auto-cleanup "05:00am")
@@ -1831,7 +1832,7 @@ It handles the case of remote files as well."
 
 (use-package tramp
   :defer 60
-  :elpaca nil
+  :ensure nil
   :config
   (setq tramp-completion-use-auth-sources nil
         tramp-verbose 0
@@ -1844,7 +1845,7 @@ It handles the case of remote files as well."
                 tramp-file-name-regexp)))
 
 (use-package vundo
-  :elpaca (:host github :repo "casouri/vundo")
+  :ensure (:host github :repo "casouri/vundo")
   :commands vundo
   :defer t
   :config
@@ -1878,7 +1879,7 @@ It handles the case of remote files as well."
   :commands ztree-diff)
 
 (use-package winner
-  :elpaca nil
+  :ensure nil
   :ensure nil
   :commands (winner-undo winner-redo)
   :hook (elpaca-after-init . winner-mode)
@@ -1894,7 +1895,7 @@ It handles the case of remote files as well."
                                       "*esh command on file*")))
 
 (use-package tab-bar
-  :elpaca nil
+  :ensure nil
   :ensure nil
   :commands (tab-new tab-bar-rename-tab tab-bar-close-tab tab-bar-select-tab-by-name)
   ;; :hook (elpaca-after-init . tab-bar-mode)
@@ -1916,7 +1917,7 @@ It handles the case of remote files as well."
 (use-package dired
   ;; :after-call +my/first-input-hook-fun
   :commands (dired dirvish)
-  :elpaca nil
+  :ensure nil
   :bind
   (:map dired-mode-map
         ("C-q" . evil-avy-goto-line))
@@ -1957,7 +1958,7 @@ It handles the case of remote files as well."
 
 ;; Extra Dired functionality
 (use-package dired-x
-  :elpaca nil
+  :ensure nil
   :after dired
   :config
   (setq dired-omit-files
@@ -1966,7 +1967,7 @@ It handles the case of remote files as well."
   )
 
 (use-package dirvish  ;; `(' for details.
-  :elpaca (dirvish :type git :host github :repo "alexluigit/dirvish")
+  :ensure (dirvish :type git :host github :repo "alexluigit/dirvish")
   :hook ((+my/first-input . dirvish-override-dired-mode)
          (evil-collection-setup . (lambda (&rest a)
                                     (evil-define-key '(normal) dired-mode-map
@@ -2007,7 +2008,7 @@ It handles the case of remote files as well."
   )
 
 (use-package dirvish-extras
-  :elpaca nil
+  :ensure nil
   :after dirvish
   )
 
@@ -2033,6 +2034,9 @@ It handles the case of remote files as well."
 ;; -SaveAllBuffers
 
 ;;;; Magit
+
+(use-package transient)
+
 ;; MagitPac
 (use-package magit
   :defer t
@@ -2196,7 +2200,7 @@ kill all magit buffers for this repo."
 
 ;; Walk through git revisions of a file
 (use-package git-timemachine
-  :elpaca (:host codeberg :repo "pidu/git-timemachine")
+  :ensure (:host codeberg :repo "pidu/git-timemachine")
   :after magit
   :custom-face
   (git-timemachine-minibuffer-author-face ((t (:inherit success))))
@@ -2217,7 +2221,7 @@ kill all magit buffers for this repo."
               ("%" . magit-gitflow-popup)))
 
 (use-package smerge-mode
-  :elpaca nil
+  :ensure nil
   :commands smerge-mode
   :hook ((find-file . (lambda ()
                         (save-excursion
@@ -2261,7 +2265,7 @@ kill all magit buffers for this repo."
     (evil-insert-state)))
 
 (use-package blamer
-  :elpaca (:host github :repo "artawower/blamer.el")
+  :ensure (:host github :repo "artawower/blamer.el")
   :bind (("s-i" . blamer-show-posframe-commit-info))
   :commands (blamer-show-posframe-commit-info)
   :custom
@@ -2275,7 +2279,7 @@ kill all magit buffers for this repo."
 ;;;; Checker
 ;; flymake
 (use-package flymake
-  :elpaca nil
+  :ensure nil
   :ensure nil
   ;; :hook ((prog-mode LaTeX-mode) . flymake-mode)
   :hook ((python-mode python-ts-mode LaTeX-mode) . flymake-mode)
@@ -2292,7 +2296,7 @@ kill all magit buffers for this repo."
   :hook (flymake-mode . flymake-popon-mode))
 
 (use-package jinx
-  :elpaca (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
+  :ensure (:host github :repo "minad/jinx" :files (:defaults "jinx-mod.c" "emacs-module.h"))
   :bind (([remap ispell-word] . #'jinx-correct))
   :hook (LaTeX-mode . jinx-mode)
   :config
@@ -2303,7 +2307,7 @@ kill all magit buffers for this repo."
 (use-package ebib
   :after (evil-collection org)
   :commands ebib
-  :elpaca (ebib :includes (org-ebib) :host github :repo "theFool32/ebib")
+  :ensure (ebib :includes (org-ebib) :host github :repo "theFool32/ebib")
   :hook (ebib-index-mode . hl-line-mode)
   :custom
   (ebib-file-associations '(("pdf" . "open")))
@@ -2553,7 +2557,7 @@ kill all magit buffers for this repo."
 ;;;; Mail
 (defvar mu-path (format "%s%s" (getenv "MU_PATH") "/share/emacs/site-lisp/mu/mu4e"))
 (use-package mu4e
-  :elpaca nil
+  :ensure nil
   :load-path mu-path
   :if (executable-find "mu")
   :commands mu4e
@@ -2756,7 +2760,7 @@ kill all magit buffers for this repo."
   :init
   (setq nerd-icons-scale-factor 1.1))
 (use-package nerd-icons-completion
-  :elpaca (nerd-icons-completion :type git :host github :repo "rainstormstudio/nerd-icons-completion")
+  :ensure (nerd-icons-completion :type git :host github :repo "rainstormstudio/nerd-icons-completion")
   :commands (nerd-icons-completion-marginalia-setup)
   :hook (marginalia-mode . nerd-icons-completion-marginalia-setup))
 (use-package nerd-icons-corfu
@@ -2805,7 +2809,7 @@ kill all magit buffers for this repo."
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
 (use-package olivetti
-  :elpaca (:host github :repo "rnkn/olivetti")
+  :ensure (:host github :repo "rnkn/olivetti")
   :commands (olivetti-mode olivetti-shrink olivetti-expand olivetti-set-width)
   :custom
   (olivetti-body-width 120))
@@ -2868,7 +2872,7 @@ kill all magit buffers for this repo."
 
 
 (use-package ef-themes
-  :elpaca (:host github :repo "protesilaos/ef-themes")
+  :ensure (:host github :repo "protesilaos/ef-themes")
   :init
   ;;  HACK: do not load unused themes
   (dolist (theme '(ef-winter ef-tritanopia-dark ef-trio-dark ef-night ef-duo-dark ef-deuteranopia-dark ef-dark ef-cherie ef-bio ef-autumn ef-tritanopia-light ef-summer ef-spring ef-light ef-frost ef-duo-light ef-deuteranopia-light ef-day ef-cyprus ef-trio-light))
@@ -3131,7 +3135,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 
 ;; Highlight the current line
 (use-package hl-line
-  :elpaca nil
+  :ensure nil
   :custom-face (hl-line ((t (:extend t))))
   :hook ((elpaca-after-init . global-hl-line-mode)
          ((term-mode vterm-mode) . hl-line-unload-function)))
@@ -3214,7 +3218,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 
 ;; Pulse current line
 (use-package pulse
-  :elpaca nil
+  :ensure nil
   :custom-face
   (pulse-highlight-start-face ((t (:inherit region))))
   (pulse-highlight-face ((t (:inherit region))))
@@ -3260,7 +3264,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 ;;; Program
 ;;;; Paren
 (use-package paren
-  :elpaca nil
+  :ensure nil
   :hook (elpaca-after-init . show-paren-mode)
   :init (setq show-paren-when-point-inside-paren t
               show-paren-when-point-in-periphery t
@@ -3269,7 +3273,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 
 ;; Automatic parenthesis pairing
 (use-package elec-pair
-  :elpaca nil
+  :ensure nil
   :hook (+my/first-input . electric-pair-mode)
   :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
   :config
@@ -3367,7 +3371,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 ;;;; Tree sitter
 (use-package treesit
   :if (treesit-available-p)
-  :elpaca nil
+  :ensure nil
   :init
   (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
   :config
@@ -3403,7 +3407,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 (use-package evil-textobj-tree-sitter
   :defer nil
-  :elpaca (evil-textobj-tree-sitter :type git
+  :ensure (evil-textobj-tree-sitter :type git
                                     :host github
                                     :repo "meain/evil-textobj-tree-sitter"
                                     :files (:defaults "queries" "treesit-queries"))
@@ -3457,7 +3461,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 ;;;; LSP
 (use-package eglot
-  :elpaca nil
+  :ensure nil
   :commands (+eglot-help-at-point eglot-booster)
   :hook ((eglot-managed-mode . (lambda ()
                                  (leader-def :keymaps 'override
@@ -3576,7 +3580,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 (use-package consult-eglot)
 
 (use-package eglot-booster
-  :elpaca (:host github :repo "jdtsmith/eglot-booster")
+  :ensure (:host github :repo "jdtsmith/eglot-booster")
   :if (executable-find "emacs-lsp-booster")
   :commands (eglot-booster-mode)
   :after eglot
@@ -3585,7 +3589,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 ;;;; Utils
 (use-package devdocs
-  :elpaca (:host github :repo "astoff/devdocs.el")
+  :ensure (:host github :repo "astoff/devdocs.el")
   :commands (devdocs-lookup-at-point devdocs-search-at-point)
   :config
   (add-hook 'python-ts-mode-hook
@@ -3598,7 +3602,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
     (devdocs-search (thing-at-point 'symbol))))
 
 (use-package project
-  :elpaca nil
+  :ensure nil
   :after-call +my/first-input-hook-fun
   :config
   (defun my/project-files-in-directory (dir)
@@ -3649,7 +3653,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 ;;;; Language
 ;;;;; Python
 (use-package python
-  :elpaca nil
+  :ensure nil
   :defer t
   :mode ("\\.py\\'" . python-ts-mode)
   :hook (inferior-python-mode . (lambda ()
@@ -3768,7 +3772,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
         ("crefname" "{")))
 
 (use-package bibtex
-  :elpaca nil
+  :ensure nil
   :after (org tex)
   :custom
   (bibtex-dialect 'biblatex)
@@ -3778,7 +3782,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
 
 (use-package latex
-  :elpaca  (auctex :pre-build (("./autogen.sh")
+  :ensure  (auctex :pre-build (("./autogen.sh")
                                ("./configure"
                                 "--without-texmf-dir"
                                 "--with-lispdir=./"
@@ -3884,7 +3888,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   )
 
 (use-package asymbol
-  :elpaca (:host github :repo "dwuggh/asymbol" :depth 1)
+  :ensure (:host github :repo "dwuggh/asymbol" :depth 1)
   :hook (LaTeX-mode . asymbol-mode)
   :init
   (setq asymbol-help-symbol-linewidth 110
@@ -4327,7 +4331,7 @@ If prefix ARG, copy instead of move."
                          +org-capture-file-proj))
 
 (use-package org
-  :elpaca nil
+  :ensure nil
   :commands (+my/open-org-agenda)
   :hook ((org-mode . org-indent-mode)
          (org-mode . +org-enable-auto-update-cookies-h)
@@ -4719,7 +4723,7 @@ the lines even if the ranges do not overlap."
 ;; ;; -OrgPac
 
 (use-package org-agenda
-  :elpaca nil
+  :ensure nil
   :ensure nil
   :after org
   ;; :bind
@@ -4869,7 +4873,7 @@ the lines even if the ranges do not overlap."
 
 (use-package calfw
   :commands (cfw:open-org-calendar cfw:open-org-week-calendar)
-  :elpaca (calfw :includes (calfw-org calfw-cal) :host github :repo "theFool32/emacs-calfw" :files ("*.el"))
+  :ensure (calfw :includes (calfw-org calfw-cal) :host github :repo "theFool32/emacs-calfw" :files ("*.el"))
   :bind (:map cfw:calendar-mode-map
               ("s" . cfw:show-details-command))
   :custom
@@ -4944,7 +4948,7 @@ kill the current timer, this may be a break or a running pomodoro."
 
 (use-package org-reverse-datetree
   :commands (my-org-reverse-datetree-cleanup-empty-dates)
-  :elpaca (:host github :repo "theFool32/org-reverse-datetree")
+  :ensure (:host github :repo "theFool32/org-reverse-datetree")
   :after org
   :init
 
@@ -5038,7 +5042,7 @@ kill the current timer, this may be a break or a running pomodoro."
 
 ;;;; Debug
 (use-package dape
-  :elpaca (:host github :repo "svaante/dape")
+  :ensure (:host github :repo "svaante/dape")
   :hook (dape-active-mode . dape-breakpoint-global-mode)
   :config
 
@@ -5302,7 +5306,7 @@ begin and end of the block surrounding point."
 
 
 (use-package hideshow
-  :elpaca nil
+  :ensure nil
   :config
   (setq hs-special-modes-alist
         (append
@@ -5344,7 +5348,7 @@ begin and end of the block surrounding point."
 
 
 (use-package outli
-  :elpaca (:host github :repo "jdtsmith/outli")
+  :ensure (:host github :repo "jdtsmith/outli")
   :hook ((emacs-lisp-mode . outli-mode)
          ;; (outli-mode . (lambda () (call-interactively #'outline-hide-sublevels)))
          ))
