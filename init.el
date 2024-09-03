@@ -425,6 +425,7 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 
 
 ;;  TODO: act week/month
+;;  FIXME: polish the code
 (defun +my/org-datetree-find-date-create (&optional time)
   "Find or create date tree for TIME."
   (interactive)
@@ -447,7 +448,7 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
                 (let ((heading (org-element-property :title (org-element-at-point))))
                   (when (string= heading goal-text)
                     (setq has-goal t)
-                    (when same-day (org-toggle-tag "ACT_TODAY" 'on)))
+                    (when same-day (org-toggle-tag "ACT_TODAY" 'on) (org-schedule nil (current-time))))
                   (when (string= heading archieved-text)
                     (setq archieved-point (point))
                     (setq has-archieved t)))
@@ -455,15 +456,15 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
             (when (not has-goal)
               (org-insert-heading nil)
               (insert goal-text)
-              (when same-day (org-toggle-tag "ACT_TODAY" 'on)))
+              (when same-day (org-toggle-tag "ACT_TODAY" 'on) (org-schedule nil (current-time))))
             (when (not has-archieved)
               (org-insert-heading nil)
               (insert archieved-text)
               (setq archieved-point (point))))
         (org-insert-subheading nil)
         (insert goal-text)
-        (when same-day (org-toggle-tag "ACT_TODAY" 'on))
-        (org-insert-heading nil)
+        (when same-day (org-schedule nil (current-time)) (org-toggle-tag "ACT_TODAY" 'on))
+        (org-insert-heading-after-current)
         (insert archieved-text)
         (setq archieved-point (point)))
       (goto-char archieved-point)
@@ -1576,6 +1577,8 @@ targets."
           (min-height . 15)
           (left-fringe . 8)
           (right-fringe . 8)))
+  ;;  HACK: To fix https://github.com/tumashu/vertico-posframe/issues/12
+  (add-hook 'minibuffer-exit-hook #'vertico-posframe-cleanup)
   )
 
 ;;;; Code Completion
@@ -4337,7 +4340,8 @@ If prefix ARG, copy instead of move."
          (org-mode . +org-enable-auto-update-cookies-h)
          (org-mode . (lambda () (show-paren-local-mode -1) (eldoc-mode -1))))
   :bind (:map org-mode-map
-              ([tab] . org-cycle))
+              ([tab] . org-cycle)
+              ("C-c s" . my-org-insert-sub-task))
   :init
   (setq
    org-src-window-setup 'current-window
@@ -4502,6 +4506,16 @@ If prefix ARG, copy instead of move."
                                  (call-interactively 'evil-scroll-line-to-center))
                                (call-interactively 'evil-open-below))
                         )
+
+
+    ;; inherit schedule time from parent
+    (defun my-org-insert-sub-task ()
+      (interactive)
+      (let ((parent-schedule (org-get-scheduled-time nil)))
+        (org-goto-sibling)
+        (org-insert-todo-subheading t)
+        (when parent-schedule
+          (org-schedule nil parent-schedule))))
 
     (local-leader-def
       :keymaps 'org-mode-map
@@ -4749,6 +4763,14 @@ the lines even if the ranges do not overlap."
         )
   :config
   (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
+  (defun org/skip-daily-goals (&optional time)
+    (let* ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+           (subtree-end (save-excursion (org-end-of-subtree t)))
+           (heading (nth 4 (org-heading-components)))
+           (subtree-valid (not (string= "Daily Goals" heading))))
+      (message "%s" heading)
+      (unless subtree-valid
+        next-headline)))
   (setq org-agenda-custom-commands
         '(("n" "Agenda"
            (
@@ -4767,7 +4789,7 @@ the lines even if the ranges do not overlap."
              ((org-agenda-files (list +org-capture-file-diary))
               (org-agenda-overriding-header "Today Goals:")
               (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
-            (agenda)
+            (agenda "" ((org-agenda-skip-function 'org/skip-daily-goals)))
             (alltodo "" ((org-agenda-files (list +org-capture-file-gtd))))))))
   (evil-set-initial-state 'org-agenda-mode 'motion)
   (setq-default
