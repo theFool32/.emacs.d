@@ -2903,6 +2903,8 @@ kill all magit buffers for this repo."
 
 ;; DoomModeline
 (use-package doom-modeline
+  ;;  FIXME: https://github.com/seagle0128/doom-modeline/issues/739
+  :ensure (:ref "36e32f0")
   :hook (window-setup . doom-modeline-mode)
   :custom-face
   (doom-modeline-buffer-modified ((t (:inherit (error bold) :background unspecified))))
