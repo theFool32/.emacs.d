@@ -1451,8 +1451,8 @@ targets."
     (consult-ripgrep dir initial))
 
   ;; HACK add `ignore' according to upstream, wihout meaning
-  (defun consult--orderless-regexp-compiler (input type igore)
-    (setq input (orderless-pattern-compiler input))
+  (defun consult--orderless-regexp-compiler (input type &rest _config)
+    (setq input (cdr (orderless-compile input)))
     (cons
      (mapcar (lambda (r) (consult--convert-regexp r type)) input)
      (lambda (str) (orderless--highlight input t str))))
