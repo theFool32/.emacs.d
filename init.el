@@ -2688,6 +2688,44 @@ kill all magit buffers for this repo."
                       "o" #'open-mail-in-browser)
   )
 
+
+
+(use-package smtpmail
+  :ensure nil
+  :config
+  (defvar +my-smtp-current-user nil)
+  (defvar +my-during-smtp-sending nil)
+  (advice-add 'user-login-name :around
+              (lambda (orig-fun &rest args)
+                (or
+                 (and
+                  (boundp '+my-during-smtp-sending)
+                  +my-during-smtp-sending
+                  (boundp '+my-smtp-current-user)
+                  +my-smtp-current-user)
+                 (apply orig-fun args))))
+
+  (advice-add 'smtpmail-send-it :before (lambda () (setq +my-during-smtp-sending t)))
+  (advice-add 'smtpmail-send-it :after (lambda () (setq +my-during-smtp-sending nil)))
+
+  (defun fetch-access-token ()
+    (with-temp-buffer
+      (call-process "mutt_oauth2.py" nil t nil (expand-file-name "~/.mstoken"))
+	  (buffer-string)))
+
+   ;;; Add new authentication method for xoauth2
+  (cl-defmethod smtpmail-try-auth-method
+    (process (_mech (eql xoauth2)) user password)
+    (let* ((access-token (fetch-access-token)))
+      (smtpmail-command-or-throw
+       process
+       (concat "AUTH XOAUTH2 "
+               (base64-encode-string
+                (concat "user=" user "\1auth=Bearer " access-token "\1\1") t)))))
+
+  (add-to-list 'smtpmail-auth-supported 'xoauth2)
+  )
+
 ;;;; PDF-Tools
 (use-package pdf-tools
   :mode (("\\.pdf\\'" . pdf-view-mode))
