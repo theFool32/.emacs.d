@@ -3417,6 +3417,33 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 (dolist (hook '(text-mode-hook conf-mode-hook conf-space-mode-hook))
   (add-hook hook (lambda ()
                    (toggle-indent t))))
+
+(use-package indent-bars
+  :ensure (indent-bars :type git :host github :repo "jdtsmith/indent-bars")
+  :hook (prog-mode . indent-bars-mode)
+  :custom-face
+  (indent-bars-face ((t (:height 1.2))))
+  :custom
+  (indent-bars-treesit-support t)
+  (indent-bars-no-descend-string t)
+  (indent-bars-treesit-ignore-blank-lines-types '("module"))
+  (indent-bars-prefer-character t)
+  (indent-bars-treesit-wrap
+   '((python
+	    argument_list
+	    parameters ; for python, as an example
+	    list
+	    list_comprehension
+	    dictionary
+	    dictionary_comprehension
+	    parenthesized_expression
+	    subscript)))
+  (indent-bars-no-stipple-char ?\⎸)
+  :init
+  (require 'indent-bars-ts)
+  )
+
+
 ;;;; Tree sitter
 (use-package treesit
   :if (treesit-available-p)
