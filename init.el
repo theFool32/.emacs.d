@@ -5128,46 +5128,6 @@ kill the current timer, this may be a break or a running pomodoro."
                     (goto-char (point-min)))
                 (throw 'abort t))))))))
   )
-
-(use-package org-modern
-  :after org
-  :hook ((org-mode . org-modern-mode)
-         (org-agenda-finalize . org-modern-agenda))
-  :config
-  (setq
-   org-modern-checkbox nil
-   org-modern-timestamp nil
-   org-modern-priority nil
-   org-modern-todo nil
-   org-modern-list nil
-   org-modern-keyword nil
-   org-agenda-block-separator ?─
-   org-agenda-time-leading-zero 0
-   org-agenda-time-grid
-   '((daily today require-timed)
-     (800 1000 1200 1400 1600 1800 2000)
-     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-   org-agenda-current-time-string
-   "⭠ now ─────────────────────────────────────────────────")
-
-
-  ;; (setq org-tags-column 0
-  ;;       org-auto-align-tags nil
-  ;;       org-special-ctrl-a/e t
-  ;;       org-special-ctrl-k t
-  ;;       org-insert-heading-respect-content t
-  ;;       org-fold-catch-invisible-edits 'show-and-error
-  ;;       org-agenda-tags-column 0)
-
-  ;; avoid unneccesary calculations, I never need it.
-  ;; (defalias 'org-align-tags #'ignore)
-  )
-
-(use-package org-modern-indent
-  :ensure (:host github :repo "jdtsmith/org-modern-indent")
-  :hook (org-mode . org-modern-indent-mode))
-
-
 ;;;;; Markdown
 (use-package markdown-mode
   :defer t
