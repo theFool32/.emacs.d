@@ -1562,6 +1562,28 @@ targets."
   :custom
   (consult-git-log-grep-open-function #'magit-show-commit))
 
+;;  TODO: consult-todo-project accept git files
+(use-package consult-todo
+  :ensure (:host github :repo "liuyinz/consult-todo")
+  :demand t
+  :config
+  (when *rg*
+    (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +")
+    (defun consult-todo-dir (&optional directory files)
+      "Jump to hl-todo keywords in FILES in DIRECTORY.
+If optinal arg FILES is nil, search in all files.
+If optional arg DIRECTORY is nil, rgrep in default directory."
+      (interactive)
+      (let* ((files (or files "* .*"))
+             (directory (or directory default-directory)))
+        (add-hook 'compilation-finish-functions #'consult-todo--candidates-rgrep)
+        (cl-letf ((compilation-buffer-name-function
+                   (lambda (&rest _) (format "*consult-todo-%s*" directory))))
+          (save-window-excursion
+            (rgrep (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)) files directory)))))
+    )
+  )
+
 
 (use-package orderless
   :after-call elpaca-after-init-hook
