@@ -797,7 +797,7 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
   :init
   (setq evil-want-keybinding nil)
   :config
-  (let ((modes '(atomic-chrome calc calendar consult debug devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section magit-todos markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler replace sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired wgrep which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
+  (let ((modes '(atomic-chrome calc calendar consult debug devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler replace sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired wgrep which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
     (evil-collection-init modes))
   )
 
@@ -815,13 +815,6 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
   :config
   (global-anzu-mode)
   (add-hook 'evil-insert-state-entry-hook #'evil-ex-nohighlight)
-  )
-
-(use-package evil-mc
-  :after evil
-  :hook (+my/first-input . global-evil-mc-mode)
-  :config
-  (global-set-key (kbd "s-<mouse-1>") 'evil-mc-toggle-cursor-on-click)
   )
 
 ;;; Search
@@ -1568,7 +1561,10 @@ targets."
   :demand t
   :config
   (when *rg*
-    (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +")
+    ;;  HACK: speed up with `ripgrep'
+    ;; (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +")
+    (grep-apply-setting 'grep-template "rg --no-heading -H <R> <D>")
+
     (defun consult-todo-dir (&optional directory files)
       "Jump to hl-todo keywords in FILES in DIRECTORY.
 If optinal arg FILES is nil, search in all files.
@@ -1580,7 +1576,14 @@ If optional arg DIRECTORY is nil, rgrep in default directory."
         (cl-letf ((compilation-buffer-name-function
                    (lambda (&rest _) (format "*consult-todo-%s*" directory))))
           (save-window-excursion
-            (rgrep (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)) files directory)))))
+            ;; (rgrep (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)) files directory)
+
+            ;;  FIXME: NAIVE TEXT MATCHING is stupid
+            ;; (replace-regexp-in-string "\\([A-Z]+\\)" " \\1:" (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)))
+
+            ;;  HACK: use `lgrep' instead `find'
+            (lgrep (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)) files directory)
+            ))))
     )
   )
 
@@ -2000,7 +2003,8 @@ It handles the case of remote files as well."
   )
 
 (use-package dirvish  ;; `(' for details.
-  :ensure (dirvish :type git :host github :repo "alexluigit/dirvish")
+  ;; :ensure (dirvish :type git :host github :repo "alexluigit/dirvish")
+  :ensure (dirvish :type git :host github :repo "dvzubarev/dirvish" :branch "ml-fix")
   :hook ((+my/first-input . dirvish-override-dired-mode)
          (evil-collection-setup . (lambda (&rest a)
                                     (evil-define-key '(normal) dired-mode-map
@@ -2222,14 +2226,6 @@ kill all magit buffers for this repo."
 (use-package magit-delta
   :if (executable-find "delta")
   :hook (magit-mode . magit-delta-mode))
-
-(use-package magit-todos
-  :after magit
-  :init
-  ;; HACK
-  (defun magit--tramp-asserts (dir)
-    "override `magit--tramp-asserts'"
-    nil))
 
 ;; Walk through git revisions of a file
 (use-package git-timemachine
@@ -3889,7 +3885,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                    :build (:not elpaca--compile-info) ;; Make will take care of this step
                    :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
                    :version (lambda (_) (require 'tex-site) AUCTeX-version))
-  ;;  TODO: not work
+  ;;  FIXME: not work
   :mode ("\\.tex\\'" . LaTeX-mode)
   :hook (LaTeX-mode . outline-minor-mode)
   :custom
@@ -5670,7 +5666,7 @@ begin and end of the block surrounding point."
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
     "pf" '(project-find-file :wk "Find file in project")
-    "pt" '(magit-todos-list :wk "List project tasks")
+    "pt" '(consult-todo-project :wk "List project tasks")
     "pk" '(project-kill-buffers :wk "Kill project buffers")
 
     "q" '(:wk "Quit")
