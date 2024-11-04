@@ -1576,13 +1576,8 @@ If optional arg DIRECTORY is nil, rgrep in default directory."
         (cl-letf ((compilation-buffer-name-function
                    (lambda (&rest _) (format "*consult-todo-%s*" directory))))
           (save-window-excursion
-            ;; (rgrep (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)) files directory)
-
-            ;;  FIXME: NAIVE TEXT MATCHING is stupid
-            ;; (replace-regexp-in-string "\\([A-Z]+\\)" " \\1:" (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)))
-
             ;;  HACK: use `lgrep' instead `find'
-            (lgrep (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)) files directory)
+            (lgrep (concat  "\\b" (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)) "\\b") files directory)
             ))))
     )
   )
