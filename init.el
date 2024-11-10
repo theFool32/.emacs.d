@@ -4758,14 +4758,15 @@ If prefix ARG, copy instead of move."
                              (cl-position-if (lambda (x) (string= x todo)) todo-seq)))
                          org-todo-keywords))))
 
-    (defun my/org-sort-key ()
-      (let* ((todo-max (apply #'max (mapcar #'length org-todo-keywords)))
-             (todo (org-entry-get (point) "TODO"))
-             (todo-int (if todo (todo-to-int todo) todo-max))
-             (priority (org-entry-get (point) "PRIORITY"))
-             (priority-int (if priority (string-to-char priority) org-default-priority)))
-        (format "%03d %03d" priority-int todo-int)))
 
+    (defun my/org-sort-key ()
+        (let* ((todo-max (apply #'max (mapcar #'length org-todo-keywords)))
+                (todo (org-entry-get (point) "TODO"))
+                (todo-int (if todo (todo-to-int todo) todo-max))
+                (priority (org-entry-get (point) "PRIORITY"))
+                (priority-int (if priority (string-to-char priority) org-default-priority))
+                (timestamp (or (org-entry-get (point) "SCHEDULED") (org-entry-get (point) "DEADLINE") "<2100-12-31>")))
+            (format "%03d %03d %s" priority-int todo-int timestamp)))
 
     (defun my/org-sort-entries ()
       (interactive)
