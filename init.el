@@ -4869,7 +4869,7 @@ the lines even if the ranges do not overlap."
         org-agenda-todo-ignore-scheduled 'future
         org-deadline-warning-days 60
         org-agenda-sorting-strategy
-        '((agenda time-up priority-down category-keep)
+        '((agenda habit-down time-up todo-state-down timestamp-up priority-down category-keep)
           (todo priority-down category-keep) (tags priority-down category-keep)
           (search category-keep))
         )
