@@ -2045,10 +2045,11 @@ It handles the case of remote files as well."
   )
 
 
-(use-package casual-dired
+(use-package casual
+  :ensure (:host github :repo "kickingvegas/casual" :files ("lisp/*.el"))
   :commands (casual-dired-tmenu casual-dired-sort-by-tmenu)
-  :after (evil dired dirvish)
   :init
+  (require 'casual-dired)
   (with-eval-after-load 'general
     (general-define-key :states '(normal)
                         :keymaps 'dired-mode-map
