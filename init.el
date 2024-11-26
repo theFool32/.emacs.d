@@ -111,7 +111,7 @@ REST and STATE."
                        (require ',name))
                    ((debug error)
                     (message "Failed to load deferred package %s: %s" ',name e)))
-                 (when-let (deferral-list (assq ',name +use-package--deferred-pkgs))
+                 (when-let* ((deferral-list (assq ',name +use-package--deferred-pkgs)))
                    (dolist (hook (cdr deferral-list))
                      (advice-remove hook #',fn)
                      (remove-hook hook #',fn))
@@ -179,7 +179,7 @@ REST and STATE."
 ;;;; elpaca
 
 ;;  FIXME: still slow when startup (~0.5s)
-(defvar elpaca-installer-version 0.7)
+(defvar elpaca-installer-version 0.8)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
@@ -196,9 +196,9 @@ REST and STATE."
     (make-directory repo t)
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                 ,@(when-let ((depth (plist-get order :depth)))
+                                                 ,@(when-let* ((depth (plist-get order :depth)))
                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
                                                  ,(plist-get order :repo) ,repo))))
                  ((zerop (call-process "git" nil buffer t "checkout"
@@ -904,14 +904,14 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
                      prop))
          (result
           (if arg
-              (if-let
-                  (handler
+              (if-let*
+                  ((handler
                    (intern-soft
                     (completing-read "Select lookup handler: "
                                      (delete-dups
                                       (remq t (append (symbol-value handlers)
                                                       (default-value handlers))))
-                                     nil t)))
+                                     nil t))))
                   (+lookup--run-handlers handler identifier origin)
                 (user-error "No lookup handler selected"))
             (run-hook-wrapped handlers #'+lookup--run-handlers identifier origin))))
@@ -1445,7 +1445,7 @@ targets."
         "rga --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --with-filename --line-number --search-zip")
 
   (defun +consult-ripgrep-at-point (&optional dir initial)
-    (interactive (list prefix-arg (when-let ((s (symbol-at-point)))
+    (interactive (list prefix-arg (when-let* ((s (symbol-at-point)))
                                     (symbol-name s))))
     (consult-ripgrep dir initial))
 
@@ -2121,16 +2121,16 @@ window that already exists in that direction. It will split otherwise."
     (let ((direction (or (alist-get 'direction alist)
                          +magit-open-windows-in-direction))
           (origin-window (selected-window)))
-      (if-let (window (window-in-direction direction))
+      (if-let* ((window (window-in-direction direction)))
           (unless magit-display-buffer-noselect
             (select-window window))
-        (if-let (window (and (not (one-window-p))
+        (if-let* ((window (and (not (one-window-p))
                              (window-in-direction
                               (pcase direction
                                 (`right 'left)
                                 (`left 'right)
                                 ((or `up `above) 'down)
-                                ((or `down `below) 'up)))))
+                                ((or `down `below) 'up))))))
             (unless magit-display-buffer-noselect
               (select-window window))
           (let ((window (split-window nil nil direction)))
@@ -3016,11 +3016,11 @@ Pretty symbols can be unset for emacs-lisp-mode with:
         (let ((key (pop plist)))
           (if (eq key :alist)
               (prependq! results (pop plist))
-            (when-let (char (plist-get +pretty-code-symbols key))
+            (when-let* ((char (plist-get +pretty-code-symbols key)))
               (push (cons (pop plist) char) results)))))
       (dolist (mode (doom-enlist modes))
         (setf (alist-get mode +pretty-code-symbols-alist)
-              (if-let (old-results (alist-get mode +pretty-code-symbols-alist))
+              (if-let* ((old-results (alist-get mode +pretty-code-symbols-alist)))
                   (dolist (cell results old-results)
                     (setf (alist-get (car cell) old-results) (cdr cell)))
                 results))))))
@@ -3718,7 +3718,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                         ("Makefile" "README.org" "README.md"))))
         (dolist (current-level pr-flags)
           (dolist (f current-level)
-            (when-let ((root (locate-dominating-file dir f)))
+            (when-let* ((root (locate-dominating-file dir f)))
               (throw 'ret (list 'local root))))))))
 
   (setq project-find-functions '(project-try-vc my/project-try-local))
@@ -3729,7 +3729,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                                                  (not (string-match-p "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:" (buffer-file-name)))
                                                  (not (string-match-p "straight/repos" (buffer-file-name)))
                                                  (fboundp 'project-current))
-                                        (when-let ((root (+my/project-root)))
+                                        (when-let* ((root (+my/project-root)))
                                           (project-remember-project (project-current)))))))
 
 
