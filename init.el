@@ -2707,21 +2707,6 @@ kill all magit buffers for this repo."
 (use-package smtpmail
   :ensure nil
   :config
-  (defvar +my-smtp-current-user nil)
-  (defvar +my-during-smtp-sending nil)
-  (advice-add 'user-login-name :around
-              (lambda (orig-fun &rest args)
-                (or
-                 (and
-                  (boundp '+my-during-smtp-sending)
-                  +my-during-smtp-sending
-                  (boundp '+my-smtp-current-user)
-                  +my-smtp-current-user)
-                 (apply orig-fun args))))
-
-  (advice-add 'smtpmail-send-it :before (lambda () (setq +my-during-smtp-sending t)))
-  (advice-add 'smtpmail-send-it :after (lambda () (setq +my-during-smtp-sending nil)))
-
   (defun fetch-access-token ()
     (with-temp-buffer
       (call-process "mutt_oauth2.py" nil t nil (expand-file-name "~/.mstoken"))
@@ -3618,7 +3603,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
     (+eglot-lookup-documentation nil))
 
   ;;  FIXME: currently, `eglot-imenu' can't work with `consult-imenu', load older implementation as workaround
-  (defun eglot-imenu ()
+  (defun eglot-imenu1 ()
     "EGLOT's `imenu-create-index-function'."
     (cl-labels
         ((visit (_name one-obj-array)
