@@ -1417,7 +1417,33 @@ targets."
                                                           (?p "Packages"  font-lock-constant-face)
                                                           (?t "Types"     font-lock-type-face)
                                                           (?h "Headings"  font-lock-doc-face)
-                                                          (?v "Variables" font-lock-variable-name-face))))))
+                                                          (?v "Variables" font-lock-variable-name-face)))))
+
+    ;;  HACK: for `breadcrumb' and `eglot'
+    (defun consult-imenu--compute ()
+      "Compute imenu candidates."
+      (consult--forbid-minibuffer)
+      (let* ((imenu-use-markers t)
+             ;; Generate imenu, see `imenu--make-index-alist'.
+             (items (imenu--truncate-items
+                     (save-excursion
+                       (without-restriction
+                         (funcall imenu-create-index-function)))))
+             (config (cdr (seq-find (lambda (x) (derived-mode-p (car x))) consult-imenu-config))))
+        ;; Fix toplevel items, e.g., emacs-lisp-mode toplevel items are functions
+        (when-let (toplevel (plist-get config :toplevel))
+          (let ((tops (seq-remove (lambda (x) (listp (cdr x))) items))
+                (rest (seq-filter (lambda (x) (listp (cdr x))) items)))
+            (setq items (nconc rest (and tops (list (cons toplevel tops)))))))
+        ;; Apply our flattening in order to ease searching the imenu.
+        (let ((fn (if (and (boundp 'eglot--managed-mode) eglot--managed-mode) #'consult-imenu--flatten-eglot #'consult-imenu--flatten)))
+          (funcall fn
+                   nil nil items
+                   (mapcar (pcase-lambda (`(,x ,y ,z)) (list y x z))
+                           (plist-get config :types)))
+          )
+        ))
+    )
 
   (defun +my/consult-set-evil-search-pattern (&optional condition)
     (let ((re
@@ -1514,6 +1540,81 @@ targets."
 
   (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-recent-file))
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
+
+  ;;  FIXME: WIP transform function for consult-imenu and eglot
+  (defun consult-imenu--flatten-eglot (prefix face list types)
+    "Flatten imenu LIST.
+PREFIX is prepended in front of all items.
+FACE is the item face.
+TYPES is the mode-specific types configuration."
+    (mapcan
+     (lambda (item)
+       (if (imenu--subalist-p item)
+           (progn
+             (append
+              (let* ((name (copy-sequence (car item)))
+                     (name-type (get-text-property 0 'breadcrumb-kind name))
+                     (type (assoc name-type types))
+                     (pos (consult-imenu--normalize (car (get-text-property 0 'breadcrumb-region name))))
+                     )
+                (setq key-name (if prefix
+                                   (let ((key (concat prefix " " name)))
+                                     (add-face-text-property (1+ (length prefix)) (length key)
+                                                             face 'append key)
+                                     key)
+                                 name))
+                (when type
+                  (setq key-name (concat (car type) " " key-name))
+                  (put-text-property 0 (length (car type)) 'consult--type (nth 1 type) key-name)
+                  )
+
+                (list (cons
+                       key-name
+                       pos))
+                )
+              (let* ((name (concat (car item)))
+                     (next-prefix name)
+                     (next-face face)
+                     (name-type (get-text-property 0 'breadcrumb-kind name))
+                     )
+                (add-face-text-property 0 (length name)
+                                        'consult-imenu-prefix 'append name)
+                (if prefix
+                    (setq next-prefix (concat prefix "/" name))
+                  (when-let (type (cdr (assoc name-type types)))
+                    ;; (put-text-property 0 (length name) 'consult--type (car type) name)
+                    (setq next-face (cadr type)))
+                  )
+                (consult-imenu--flatten next-prefix next-face (cdr item) types))
+              )
+             )
+
+         (let* ((name (car item))
+                (name-type (get-text-property 0 'breadcrumb-kind name))
+                (type (assoc name-type types))
+                (pos (consult-imenu--normalize (cdr item)))
+                )
+           (setq key-name (if prefix
+                              (let ((key (concat prefix " " name)))
+                                (add-face-text-property (1+ (length prefix)) (length key)
+                                                        face 'append key)
+                                key)
+                            name))
+           (when type
+             (setq key-name (concat (car type) " " key-name))
+             (put-text-property 0 (length (car type)) 'consult--type (nth 1 type) key-name)
+             )
+
+           (list (cons
+                  key-name
+                  pos))
+           )
+
+         )
+       )
+     list))
+
+
 
 
   )
@@ -3418,6 +3519,7 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                    (toggle-indent t))))
 
 (use-package indent-bars
+  :disabled
   :ensure (indent-bars :type git :host github :repo "jdtsmith/indent-bars")
   :hook (prog-mode . indent-bars-mode)
   :custom-face
@@ -3581,73 +3683,26 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (defun +eglot-lookup-documentation (_identifier)
     "Request documentation for the thing at point."
     (eglot--dbind ((Hover) contents range)
-                  (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
-                                   (eglot--TextDocumentPositionParams))
-                  (let ((blurb (and (not (seq-empty-p contents))
-                                    (eglot--hover-info contents range)))
-                        (hint (thing-at-point 'symbol)))
-                    (if blurb
-                        (with-current-buffer
-                            (or (and (buffer-live-p +eglot--help-buffer)
-                                     +eglot--help-buffer)
-                                (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
-                          (with-help-window (current-buffer)
-                            (rename-buffer (format "*eglot-help for %s*" hint))
-                            (with-current-buffer standard-output (insert blurb))
-                            (setq-local nobreak-char-display nil)))
-                      (display-local-help))))
+        (jsonrpc-request (eglot--current-server-or-lose) :textDocument/hover
+                         (eglot--TextDocumentPositionParams))
+      (let ((blurb (and (not (seq-empty-p contents))
+                        (eglot--hover-info contents range)))
+            (hint (thing-at-point 'symbol)))
+        (if blurb
+            (with-current-buffer
+                (or (and (buffer-live-p +eglot--help-buffer)
+                         +eglot--help-buffer)
+                    (setq +eglot--help-buffer (generate-new-buffer "*eglot-help*")))
+              (with-help-window (current-buffer)
+                (rename-buffer (format "*eglot-help for %s*" hint))
+                (with-current-buffer standard-output (insert blurb))
+                (setq-local nobreak-char-display nil)))
+          (display-local-help))))
     'deferred)
 
   (defun +eglot-help-at-point()
     (interactive)
     (+eglot-lookup-documentation nil))
-
-  ;;  FIXME: currently, `eglot-imenu' can't work with `consult-imenu', load older implementation as workaround
-  (defun eglot-imenu1 ()
-    "EGLOT's `imenu-create-index-function'."
-    (cl-labels
-        ((visit (_name one-obj-array)
-           (imenu-default-goto-function
-            nil (car (eglot--range-region
-                      (eglot--dcase (aref one-obj-array 0)
-                                    (((SymbolInformation) location)
-                                     (plist-get location :range))
-                                    (((DocumentSymbol) selectionRange)
-                                     selectionRange))))))
-         (unfurl (obj)
-           (eglot--dcase obj
-                         (((SymbolInformation)) (list obj))
-                         (((DocumentSymbol) name children)
-                          (cons obj
-                                (mapcar
-                                 (lambda (c)
-                                   (plist-put
-                                    c :containerName
-                                    (let ((existing (plist-get c :containerName)))
-                                      (if existing (format "%s::%s" name existing)
-                                        name))))
-                                 (mapcan #'unfurl children)))))))
-      (mapcar
-       (pcase-lambda (`(,kind . ,objs))
-         (cons
-          (alist-get kind eglot--symbol-kind-names "Unknown")
-          (mapcan (pcase-lambda (`(,container . ,objs))
-                    (let ((elems (mapcar (lambda (obj)
-                                           (list (plist-get obj :name)
-                                                 `[,obj] ;; trick
-                                                 #'visit))
-                                         objs)))
-                      (if container (list (cons container elems)) elems)))
-                  (seq-group-by
-                   (lambda (e) (plist-get e :containerName)) objs))))
-       (seq-group-by
-        (lambda (obj) (plist-get obj :kind))
-        (mapcan #'unfurl
-                (jsonrpc-request (eglot--current-server-or-lose)
-                                 :textDocument/documentSymbol
-                                 `(:textDocument
-                                   ,(eglot--TextDocumentIdentifier))
-                                 :cancel-on-input non-essential))))))
 
   (eglot-booster-mode +1)
   )
