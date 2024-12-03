@@ -197,17 +197,17 @@ REST and STATE."
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
         (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                 ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                 ,@(when-let* ((depth (plist-get order :depth)))
-                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                 ,(plist-get order :repo) ,repo))))
-                 ((zerop (call-process "git" nil buffer t "checkout"
-                                       (or (plist-get order :ref) "--"))))
-                 (emacs (concat invocation-directory invocation-name))
-                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                 ((require 'elpaca))
-                 ((elpaca-generate-autoloads "elpaca" repo)))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
             (progn (message "%s" (buffer-string)) (kill-buffer buffer))
           (error "%s" (with-current-buffer buffer (buffer-string))))
       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
@@ -650,11 +650,10 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 (dolist (hook '(conf-mode-hook conf-space-mode-hook emacs-lisp-mode-hook))
   (add-hook hook #'hexcolour-add-to-font-lock))
 
-(setq-default which-func-modes '(emacs-lisp-mode python-mode python-ts-mode org-mode latex-mode))
-(which-function-mode +1)
+;; (setq-default which-func-modes '(emacs-lisp-mode python-mode python-ts-mode org-mode latex-mode))
+;; (which-function-mode +1)
 
 (use-package breadcrumb
-  :disabled
   :ensure (:host github :repo "joaotavora/breadcrumb")
   :hook ((prog-mode org-mode LaTeX-mode) . breadcrumb-local-mode)
   )
@@ -906,12 +905,12 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
           (if arg
               (if-let*
                   ((handler
-                   (intern-soft
-                    (completing-read "Select lookup handler: "
-                                     (delete-dups
-                                      (remq t (append (symbol-value handlers)
-                                                      (default-value handlers))))
-                                     nil t))))
+                    (intern-soft
+                     (completing-read "Select lookup handler: "
+                                      (delete-dups
+                                       (remq t (append (symbol-value handlers)
+                                                       (default-value handlers))))
+                                      nil t))))
                   (+lookup--run-handlers handler identifier origin)
                 (user-error "No lookup handler selected"))
             (run-hook-wrapped handlers #'+lookup--run-handlers identifier origin))))
@@ -1541,77 +1540,45 @@ targets."
   (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-recent-file))
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
 
-  ;;  FIXME: WIP transform function for consult-imenu and eglot
+  (defun consult-imenu--create-key-name-eglot (prefix item types)
+    "Create a key-name with optional prefix and type annotations."
+    (let* ((name (copy-sequence (car item)))
+           (name-type (get-text-property 0 'breadcrumb-kind name))
+           (type (assoc name-type types))
+           (pos (consult-imenu--normalize (or (car (get-text-property 0 'breadcrumb-region name)) (cdr item))))
+           (key-name (concat (when prefix (concat prefix " ")) name)))
+
+      (when type
+        (add-face-text-property (if prefix (1+ (length prefix)) 0) (length key-name)
+                                (nth 2 type) 'append key-name)
+
+        (setq key-name (concat (car type) " " key-name))
+        (put-text-property 0 (length (car type)) 'consult--type (nth 1 type) key-name))
+
+      (list (cons key-name pos))))
+
+
   (defun consult-imenu--flatten-eglot (prefix face list types)
-  "Flatten imenu LIST.
+    "Flatten imenu LIST.
 PREFIX is prepended in front of all items.
 FACE is the item face.
 TYPES is the mode-specific types configuration."
-  (mapcan
-   (lambda (item)
-     (if (and (consp item) (stringp (car item)) (integer-or-marker-p (cdr item)))
-         (let* ((name (car item))
-                (name-type (get-text-property 0 'breadcrumb-kind name))
-                (type (assoc name-type types))
-                (pos (consult-imenu--normalize (cdr item)))
-                )
-           (setq key-name (if prefix
-                              (let ((key (concat prefix " " name)))
-                                (add-face-text-property (1+ (length prefix)) (length key)
-                                                        (nth 2 type) 'append key)
-                                key)
-                            name))
-           (when type
-             (setq key-name (concat (car type) " " key-name))
-             (put-text-property 0 (length (car type)) 'consult--type (nth 1 type) key-name)
-             )
+    (mapcan
+     (lambda (item)
+       (if (and (consp item) (stringp (car item)) (integer-or-marker-p (cdr item)))
+           (consult-imenu--create-key-name-eglot prefix item types)
 
-           (list (cons
-                  key-name
-                  pos))
-           )
-       (progn
-         (append
-          (let* ((name (copy-sequence (car item)))
-                 (name-type (get-text-property 0 'breadcrumb-kind name))
-                 (type (assoc name-type types))
-                 (pos (consult-imenu--normalize (car (get-text-property 0 'breadcrumb-region name))))
-                 )
-            (setq key-name (if prefix
-                               (let ((key (concat prefix " " name)))
-                                 (add-face-text-property (1+ (length prefix)) (length key)
-                                                         (nth 2 type) 'append key)
-                                 key)
-                             name))
-            (when type
-              (setq key-name (concat (car type) " " key-name))
-              (put-text-property 0 (length (car type)) 'consult--type (nth 1 type) key-name)
-              )
+         (progn
+           (append
+            (consult-imenu--create-key-name-eglot prefix item types)
 
-            (list (cons
-                   key-name
-                   pos))
-            )
-          (let* ((name (concat (car item)))
-                 (next-prefix name)
-                 (next-face face)
-                 (name-type (get-text-property 0 'breadcrumb-kind name))
-                 )
-            (add-face-text-property 0 (length name)
-                                    'consult-imenu-prefix 'append name)
-            (if prefix
-                (setq next-prefix (concat prefix "/" name))
-              )
-            (consult-imenu--flatten-eglot next-prefix next-face (cdr item) types))
-          )
-         )
-       )
-     )
-   list))
+            (let* ((name (concat (car item)))
+                   (next-prefix (if prefix (concat prefix "/" name) name)))
+              (add-face-text-property 0 (length name)
+                                      'consult-imenu-prefix 'append name)
 
-
-
-
+              (consult-imenu--flatten-eglot next-prefix face (cdr item) types))))))
+     list))
   )
 
 (use-package consult-jump-project
@@ -2221,12 +2188,12 @@ window that already exists in that direction. It will split otherwise."
           (unless magit-display-buffer-noselect
             (select-window window))
         (if-let* ((window (and (not (one-window-p))
-                             (window-in-direction
-                              (pcase direction
-                                (`right 'left)
-                                (`left 'right)
-                                ((or `up `above) 'down)
-                                ((or `down `below) 'up))))))
+                               (window-in-direction
+                                (pcase direction
+                                  (`right 'left)
+                                  (`left 'right)
+                                  ((or `up `above) 'down)
+                                  ((or `down `below) 'up))))))
             (unless magit-display-buffer-noselect
               (select-window window))
           (let ((window (split-window nil nil direction)))
@@ -3526,14 +3493,14 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
   (indent-bars-prefer-character t)
   (indent-bars-treesit-wrap
    '((python
-	    argument_list
-	    parameters ; for python, as an example
-	    list
-	    list_comprehension
-	    dictionary
-	    dictionary_comprehension
-	    parenthesized_expression
-	    subscript)))
+	  argument_list
+	  parameters ; for python, as an example
+	  list
+	  list_comprehension
+	  dictionary
+	  dictionary_comprehension
+	  parenthesized_expression
+	  subscript)))
   (indent-bars-no-stipple-char ?\⎸)
   :init
   (require 'indent-bars-ts)
@@ -4796,13 +4763,13 @@ If prefix ARG, copy instead of move."
 
 
     (defun my/org-sort-key ()
-        (let* ((todo-max (apply #'max (mapcar #'length org-todo-keywords)))
-                (todo (org-entry-get (point) "TODO"))
-                (todo-int (if todo (todo-to-int todo) todo-max))
-                (priority (org-entry-get (point) "PRIORITY"))
-                (priority-int (if priority (string-to-char priority) org-default-priority))
-                (timestamp (or (org-entry-get (point) "SCHEDULED") (org-entry-get (point) "DEADLINE") "<2100-12-31>")))
-            (format "%03d %03d %s" priority-int todo-int timestamp)))
+      (let* ((todo-max (apply #'max (mapcar #'length org-todo-keywords)))
+             (todo (org-entry-get (point) "TODO"))
+             (todo-int (if todo (todo-to-int todo) todo-max))
+             (priority (org-entry-get (point) "PRIORITY"))
+             (priority-int (if priority (string-to-char priority) org-default-priority))
+             (timestamp (or (org-entry-get (point) "SCHEDULED") (org-entry-get (point) "DEADLINE") "<2100-12-31>")))
+        (format "%03d %03d %s" priority-int todo-int timestamp)))
 
     (defun my/org-sort-entries ()
       (interactive)
