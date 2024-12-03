@@ -1543,52 +1543,13 @@ targets."
 
   ;;  FIXME: WIP transform function for consult-imenu and eglot
   (defun consult-imenu--flatten-eglot (prefix face list types)
-    "Flatten imenu LIST.
+  "Flatten imenu LIST.
 PREFIX is prepended in front of all items.
 FACE is the item face.
 TYPES is the mode-specific types configuration."
-    (mapcan
-     (lambda (item)
-       (if (imenu--subalist-p item)
-           (progn
-             (append
-              (let* ((name (copy-sequence (car item)))
-                     (name-type (get-text-property 0 'breadcrumb-kind name))
-                     (type (assoc name-type types))
-                     (pos (consult-imenu--normalize (car (get-text-property 0 'breadcrumb-region name))))
-                     )
-                (setq key-name (if prefix
-                                   (let ((key (concat prefix " " name)))
-                                     (add-face-text-property (1+ (length prefix)) (length key)
-                                                             face 'append key)
-                                     key)
-                                 name))
-                (when type
-                  (setq key-name (concat (car type) " " key-name))
-                  (put-text-property 0 (length (car type)) 'consult--type (nth 1 type) key-name)
-                  )
-
-                (list (cons
-                       key-name
-                       pos))
-                )
-              (let* ((name (concat (car item)))
-                     (next-prefix name)
-                     (next-face face)
-                     (name-type (get-text-property 0 'breadcrumb-kind name))
-                     )
-                (add-face-text-property 0 (length name)
-                                        'consult-imenu-prefix 'append name)
-                (if prefix
-                    (setq next-prefix (concat prefix "/" name))
-                  (when-let (type (cdr (assoc name-type types)))
-                    ;; (put-text-property 0 (length name) 'consult--type (car type) name)
-                    (setq next-face (cadr type)))
-                  )
-                (consult-imenu--flatten next-prefix next-face (cdr item) types))
-              )
-             )
-
+  (mapcan
+   (lambda (item)
+     (if (and (consp item) (stringp (car item)) (integer-or-marker-p (cdr item)))
          (let* ((name (car item))
                 (name-type (get-text-property 0 'breadcrumb-kind name))
                 (type (assoc name-type types))
@@ -1597,7 +1558,7 @@ TYPES is the mode-specific types configuration."
            (setq key-name (if prefix
                               (let ((key (concat prefix " " name)))
                                 (add-face-text-property (1+ (length prefix)) (length key)
-                                                        face 'append key)
+                                                        (nth 2 type) 'append key)
                                 key)
                             name))
            (when type
@@ -1609,10 +1570,44 @@ TYPES is the mode-specific types configuration."
                   key-name
                   pos))
            )
+       (progn
+         (append
+          (let* ((name (copy-sequence (car item)))
+                 (name-type (get-text-property 0 'breadcrumb-kind name))
+                 (type (assoc name-type types))
+                 (pos (consult-imenu--normalize (car (get-text-property 0 'breadcrumb-region name))))
+                 )
+            (setq key-name (if prefix
+                               (let ((key (concat prefix " " name)))
+                                 (add-face-text-property (1+ (length prefix)) (length key)
+                                                         (nth 2 type) 'append key)
+                                 key)
+                             name))
+            (when type
+              (setq key-name (concat (car type) " " key-name))
+              (put-text-property 0 (length (car type)) 'consult--type (nth 1 type) key-name)
+              )
 
+            (list (cons
+                   key-name
+                   pos))
+            )
+          (let* ((name (concat (car item)))
+                 (next-prefix name)
+                 (next-face face)
+                 (name-type (get-text-property 0 'breadcrumb-kind name))
+                 )
+            (add-face-text-property 0 (length name)
+                                    'consult-imenu-prefix 'append name)
+            (if prefix
+                (setq next-prefix (concat prefix "/" name))
+              )
+            (consult-imenu--flatten-eglot next-prefix next-face (cdr item) types))
+          )
          )
        )
-     list))
+     )
+   list))
 
 
 
