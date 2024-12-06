@@ -655,7 +655,8 @@ This is 0.3 red + 0.59 green + 0.11 blue and always between 0 and 255."
 
 (use-package breadcrumb
   :ensure (:host github :repo "joaotavora/breadcrumb")
-  :hook ((prog-mode org-mode LaTeX-mode) . breadcrumb-local-mode)
+  ;;  FIXME: it is slow..
+  ;; :hook ((prog-mode org-mode LaTeX-mode) . breadcrumb-local-mode)
   )
 
 (use-package server
@@ -1396,7 +1397,6 @@ targets."
 
   ;; consult-imenu
   (with-eval-after-load 'consult-imenu
-    ;;  FIXME: does not work since `eglot' use `breadcrumb-kind' instead
     (setq consult-imenu-config '((python-ts-mode :types
                                                  ((?c "Class"    font-lock-type-face)
                                                   (?C "Constant"    font-lock-constant-face)
@@ -1416,33 +1416,7 @@ targets."
                                                           (?p "Packages"  font-lock-constant-face)
                                                           (?t "Types"     font-lock-type-face)
                                                           (?h "Headings"  font-lock-doc-face)
-                                                          (?v "Variables" font-lock-variable-name-face)))))
-
-    ;;  HACK: for `breadcrumb' and `eglot'
-    (defun consult-imenu--compute ()
-      "Compute imenu candidates."
-      (consult--forbid-minibuffer)
-      (let* ((imenu-use-markers t)
-             ;; Generate imenu, see `imenu--make-index-alist'.
-             (items (imenu--truncate-items
-                     (save-excursion
-                       (without-restriction
-                         (funcall imenu-create-index-function)))))
-             (config (cdr (seq-find (lambda (x) (derived-mode-p (car x))) consult-imenu-config))))
-        ;; Fix toplevel items, e.g., emacs-lisp-mode toplevel items are functions
-        (when-let (toplevel (plist-get config :toplevel))
-          (let ((tops (seq-remove (lambda (x) (listp (cdr x))) items))
-                (rest (seq-filter (lambda (x) (listp (cdr x))) items)))
-            (setq items (nconc rest (and tops (list (cons toplevel tops)))))))
-        ;; Apply our flattening in order to ease searching the imenu.
-        (let ((fn (if (and (boundp 'eglot--managed-mode) eglot--managed-mode) #'consult-imenu--flatten-eglot #'consult-imenu--flatten)))
-          (funcall fn
-                   nil nil items
-                   (mapcar (pcase-lambda (`(,x ,y ,z)) (list y x z))
-                           (plist-get config :types)))
-          )
-        ))
-    )
+                                                          (?v "Variables" font-lock-variable-name-face))))))
 
   (defun +my/consult-set-evil-search-pattern (&optional condition)
     (let ((re
@@ -1579,6 +1553,31 @@ TYPES is the mode-specific types configuration."
 
               (consult-imenu--flatten-eglot next-prefix face (cdr item) types))))))
      list))
+
+  (defun my-consult-imenu--compute ()
+    "Compute imenu candidates."
+    (consult--forbid-minibuffer)
+    (let* ((imenu-use-markers t)
+           ;; Generate imenu, see `imenu--make-index-alist'.
+           (items (imenu--truncate-items
+                   (save-excursion
+                     (without-restriction
+                       (funcall imenu-create-index-function)))))
+           (config (cdr (seq-find (lambda (x) (derived-mode-p (car x))) consult-imenu-config))))
+      ;; Fix toplevel items, e.g., emacs-lisp-mode toplevel items are functions
+      (when-let (toplevel (plist-get config :toplevel))
+        (let ((tops (seq-remove (lambda (x) (listp (cdr x))) items))
+              (rest (seq-filter (lambda (x) (listp (cdr x))) items)))
+          (setq items (nconc rest (and tops (list (cons toplevel tops)))))))
+      ;; Apply our flattening in order to ease searching the imenu.
+      (let ((fn (if (and (boundp 'eglot--managed-mode) eglot--managed-mode) #'consult-imenu--flatten-eglot #'consult-imenu--flatten)))
+        (funcall fn
+                 nil nil items
+                 (mapcar (pcase-lambda (`(,x ,y ,z)) (list y x z))
+                         (plist-get config :types)))
+        )
+      ))
+  (advice-add 'consult-imenu--compute :override #'my-consult-imenu--compute)
   )
 
 (use-package consult-jump-project
@@ -2453,14 +2452,14 @@ kill all magit buffers for this repo."
     (save-excursion
       (call-interactively 'ebib-jump-to-entry)
       (ebib--execute-when
-       (entries
-        (let ((key (ebib--get-key-at-point)))
-          (with-temp-buffer
-            (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
-            (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-          (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
-       (default
-        (beep))))
+        (entries
+         (let ((key (ebib--get-key-at-point)))
+           (with-temp-buffer
+             (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
+             (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+           (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+        (default
+         (beep))))
     (yank))
 
   :config
