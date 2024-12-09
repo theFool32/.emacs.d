@@ -2399,7 +2399,7 @@ kill all magit buffers for this repo."
   :custom
   (ebib-file-associations '(("pdf" . "open")))
   (ebib-index-window-size 30)
-  (ebib-citation-description-function 'ebib-title-description)
+  (ebib-citation-description-function 'ebib-create-org-title)
   (ebib-preload-bib-files (list (concat +self/ebib-base-dir "ref.bib")))
   (ebib-file-search-dirs (list (concat +self/ebib-base-dir "pdfs/")))
   (ebib-notes-directory (concat +self/ebib-base-dir "notes/"))
