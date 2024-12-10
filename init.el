@@ -2367,7 +2367,6 @@ kill all magit buffers for this repo."
 ;; flymake
 (use-package flymake
   :ensure nil
-  :ensure nil
   ;; :hook ((prog-mode LaTeX-mode) . flymake-mode)
   :hook ((python-mode python-ts-mode LaTeX-mode) . flymake-mode)
   :config
@@ -2376,8 +2375,12 @@ kill all magit buffers for this repo."
   ;; (setq-local flymake-diagnostic-functions nil)
   (setq flymake-fringe-indicator-position 'right-fringe)
 
-  (setq python-flymake-command '("ruff" "--quiet" "--stdin-filename=stdin" "-"))
+  ;; (setq python-flymake-command '("ruff" "--quiet" "--stdin-filename=stdin" "-"))
   )
+
+(use-package flymake-ruff
+  :ensure t
+  :hook ((python-mode python-ts-mode) . flymake-ruff-load))
 
 (use-package flymake-popon
   :hook (flymake-mode . flymake-popon-mode))
