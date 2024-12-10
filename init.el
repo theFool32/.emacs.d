@@ -1850,6 +1850,7 @@ Quit if no candidate is selected."
 
 (use-package tmux-capf
   :ensure (:host github :repo "theFool32/tmux-capf" :files ("*.el" "*.sh"))
+  :bind (("C-x C-t" . tmux-capf))
   :after cape
   :commands tmux-capf)
 
@@ -2801,6 +2802,10 @@ kill all magit buffers for this repo."
   (setq pdf-view-resize-factor 1.1) ; more fine-grained zooming
   )
 
+
+;;;; GPT
+(use-package gptel
+  :ensure t)
 ;;; UI
 ;;;; UI-config
 ;; SmoothScroll
