@@ -1834,7 +1834,7 @@ Quit if no candidate is selected."
   :hook (elpaca-after-init . recentf-mode)
   :custom
   ;; (recentf-auto-cleanup "05:00am")
-  (recentf-max-saved-items 200)
+  (recentf-max-saved-items 2000)
   (recentf-exclude `(,(expand-file-name package-user-dir)
                      ,+self/org-base-dir
                      ,(expand-file-name "~\/.mail\/*")
@@ -1848,7 +1848,6 @@ Quit if no candidate is selected."
                      "persp-confs"
                      "recentf"
                      "undo-tree-hist"
-                     "url"
                      "COMMIT_EDITMSG\\'"))
   :config
   (defun recentd-track-opened-file ()
