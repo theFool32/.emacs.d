@@ -627,7 +627,7 @@ REST and STATE."
 (use-package breadcrumb
   :ensure (:host github :repo "joaotavora/breadcrumb")
   ;;  FIXME: it is slow..
-  ;; :hook ((prog-mode org-mode LaTeX-mode) . breadcrumb-local-mode)
+  :hook ((prog-mode org-mode LaTeX-mode) . breadcrumb-local-mode)
   )
 
 (use-package server
@@ -5156,6 +5156,50 @@ kill the current timer, this may be a break or a running pomodoro."
 (use-package markdown-mode
   :defer t
   :mode ("\\.md\\'" . markdown-mode))
+
+
+
+;;;;; Web
+(use-package web-mode
+  :mode
+  ("\\.phtml\\'" "\\.tpl\\.php\\'" "\\.[agj]sp\\'" "\\.as[cp]x\\'" "\\.vue\\'"
+   "\\.erb\\'" "\\.mustache\\'" "\\.djhtml\\'" "\\.[t]?html?\\'" "\\.wxml\\'")
+  :custom
+  (web-mode-style-padding 0)
+  (web-mode-script-padding 0)
+  (web-mode-block-padding 0)
+  (web-mode-part-padding 0)
+  :config
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-enable-comment-annotation t)
+  (setq web-mode-enable-comment-interpolation t)
+  (setq web-mode-enable-current-element-highlight t)
+  (setq web-mode-comment-formats '(("java" . "//") ("javascript" . "//") ("php" . "//")))
+  (modify-syntax-entry ?' "\"" web-mode-syntax-table)
+  (modify-syntax-entry ?` "\"" web-mode-syntax-table)
+  ;; "-" as word so company completes kabeb-case
+  (modify-syntax-entry ?_ "w" web-mode-syntax-table)
+  (modify-syntax-entry ?- "w" web-mode-syntax-table)
+  (modify-syntax-entry ?# "_" web-mode-syntax-table)
+  )
+
+(use-package css-mode
+  :ensure nil
+  :mode ("\\.css\\'" "\\.wxss\\'")
+  :init
+  (add-hook 'css-mode-hook #'rainbow-mode))
+
+;; EmmetPac
+(use-package emmet-mode
+  :hook (web-mode css-mode scss-mode sgml-mode rjsx-mode)
+  ;; :bind (:map web-mode-map
+  ;;             ("C-j" . emmet-expand-yas))
+  :config
+  (add-hook 'emmet-mode-hook (lambda()
+                               (setq emmet-indent-after-insert t))))
+;; -EmmetPac
 
 
 ;;;; Debug
