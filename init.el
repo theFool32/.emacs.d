@@ -2783,6 +2783,39 @@ kill all magit buffers for this repo."
 ;;;; GPT
 (use-package gptel
   :ensure t)
+
+;; install with straight
+(use-package minuet
+  :ensure (minuet :host github :repo "milanglacier/minuet-ai.el")
+  :bind
+  (("M-y" . #'minuet-complete-with-minibuffer) ;; use minibuffer for completion
+   ("M-i" . #'minuet-show-suggestion) ;; use overlay for completion
+
+   :map minuet-active-mode-map
+   ;; These keymaps activate only when a minuet suggestion is displayed in the current buffer
+   ("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
+   ("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
+   ("M-a" . #'minuet-accept-suggestion) ;; accept whole completion
+   ;; Accept the first line of completion, or N lines with a numeric-prefix:
+   ;; e.g. C-u 2 M-a will accepts 2 lines of completion.
+   ("M-f" . #'minuet-accept-suggestion-line)
+   ("M-d" . #'minuet-dismiss-suggestion))
+
+  :init
+  ;; if you want to enable auto suggestion.
+  ;; Note that you can manually invoke completions without enable minuet-auto-suggestion-mode
+  ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
+
+  :config
+  (setq minuet-provider 'openai-fim-compatible)
+
+  ;; Required when defining minuet-ative-mode-map in insert/normal states.
+  ;; Not required when defining minuet-active-mode-map without evil state.
+  (add-hook 'minuet-active-mode-hook #'evil-normalize-keymaps)
+
+  (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 256))
+
+
 ;;; UI
 ;;;; UI-config
 ;; SmoothScroll
@@ -5162,7 +5195,11 @@ kill the current timer, this may be a break or a running pomodoro."
 ;;;;; Markdown
 (use-package markdown-mode
   :defer t
-  :mode ("\\.md\\'" . markdown-mode))
+  :mode ("\\.md\\'" . markdown-mode)
+  :config
+  (add-to-list 'markdown-code-lang-modes '("python" . python-ts-mode))
+  (setq markdown-fontify-code-blocks-natively t)
+  )
 
 
 
@@ -5719,6 +5756,13 @@ begin and end of the block surrounding point."
     "oo" '((lambda () (interactive)(org-clock-out) (org-save-all-org-buffers)) :wk "Clock out")
     "op" '(org-pomodoro :wk "Pomodoro")
     "ou" '(browse-url :wk "Url")
+    "og" '(gptel :wk "GPT")
+
+    "a" '(:wk "AI")
+    "aa" '(gptel-add-file :wk "Add File")
+    "aA" '(gptel-add :wk "Add")
+    "as" '(gptel-send :wk "Add")
+    "ar" '(gptel-rewrite :wk "Add")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
