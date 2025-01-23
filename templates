@@ -81,3 +81,49 @@ python-ts-mode
 (ip "import " q)
 (fp "from " p " import " q)
 (fps "from " p " import " p " as " q)
+
+js-mode
+
+(if "if (" p ") {" n> r n> "}")
+(for "for (let " p " = 0; " p " < " r "; " p "++) {" n> r n> "}")
+(while "while (" p ") {" n> r n> "}")
+(fn "function " p "(" p ") {" n> r n> "}")
+(arrow "const " p " = (" p ") => {" n> r n> "}")
+(console "console.log(" r ")")
+(import "import " p " from '" r "'")
+(export "export default " r)
+(class "class " p " {" n> r n> "}")
+
+html-mode
+
+(div "<div>" n> r n> "</div>")
+(p "<p>" r "</p>")
+(a "<a href=\"" p "\">" r "</a>")
+(img "<img src=\"" p "\" alt=\"" r "\">")
+(ul "<ul>" n> "<li>" r "</li>" n> "</ul>")
+(ol "<ol>" n> "<li>" r "</li>" n> "</ol>")
+(table "<table>" n> "<tr>" n> "<td>" r "</td>" n> "</tr>" n> "</table>")
+(form "<form action=\"" p "\" method=\"" r "\">" n> "</form>")
+(input "<input type=\"" p "\" name=\"" r "\">")
+(button "<button type=\"" p "\">" r "</button>")
+
+sh-mode
+
+(if "if [ " p " ]; then" n> r n "fi")
+(for "for " p " in " r "; do" n> r n "done")
+(while "while [ " p " ]; do" n> r n "done")
+(case "case " p " in" n> r n "esac")
+(echo "echo \"" r "\"")
+(read "read -p \"" p "\" " r)
+(func "function " p "() {" n> r n "}")
+
+css-mode
+
+(sel "." p " {" n> r n> "}")
+(id "#" p " {" n> r n> "}")
+(media "@media (" p ") {" n> r n> "}")
+(keyframes "@keyframes " p " {" n> r n> "}")
+(anim "animation: " p " " r ";")
+(trans "transition: " p " " r ";")
+(flex "display: flex;" n> "flex-direction: " p ";" n> r)
+(grid "display: grid;" n> "grid-template-columns: " p ";" n> r)

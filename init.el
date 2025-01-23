@@ -2810,7 +2810,7 @@ kill all magit buffers for this repo."
 (use-package aider
   :straight (:host github :repo "tninja/aider.el" :files ("aider.el"))
   :config
-  (setq aider-args '("--model" "deepseek"))
+  (setq aider-args '("--no-auto-commits" "--model" "deepseek"))
   (when (boundp 'deepseek-key)
     (setenv "DEEPSEEK_API_KEY" deepseek-key))
   (global-set-key (kbd "C-c a") 'aider-transient-menu))
@@ -5761,8 +5761,8 @@ begin and end of the block surrounding point."
     "a" '(:wk "AI")
     "aa" '(gptel-add-file :wk "Add File")
     "aA" '(gptel-add :wk "Add")
-    "as" '(gptel-send :wk "Add")
-    "ar" '(gptel-rewrite :wk "Add")
+    "as" '(gptel-send :wk "Send")
+    "ar" '(gptel-rewrite :wk "Rewrite")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
