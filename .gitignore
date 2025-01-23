@@ -70,3 +70,4 @@ tree-sitter
 dirvish
 init.elc
 elpaca
+.aider*

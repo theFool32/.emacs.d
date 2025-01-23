@@ -52,6 +52,7 @@ org-mode
 (ep "#+begin_src emacs-lisp" n> r> n "#+end_src" :post (progn (org-edit-src-code) (evil-insert-state)))
 (link "[[" (s link) "][" r "]]")
 (table "|" p "|" r "|" n> "|-+-|" n> "|||")
+(ck "- [ ] " p)
 
 python-ts-mode
 

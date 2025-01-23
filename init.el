@@ -400,58 +400,51 @@ REST and STATE."
   (call-process-shell-command (concat "qlmanage -p \"" (expand-file-name file) "\"")))
 
 
-;;  TODO: act week/month
-;;  FIXME: polish the code
 (defun +my/org-datetree-find-date-create (&optional time)
   "Find or create date tree for TIME."
   (interactive)
-  (let ((time (or time (current-time))))
+  (let* ((time (or time (current-time)))
+         (goal-text "Daily Goals")
+         (archived-text "Archived")
+         (arg-time (decode-time time))
+         (today-time (decode-time (current-time)))
+         (same-day (and (= (nth 3 arg-time) (nth 3 today-time))
+                        (= (nth 4 arg-time) (nth 4 today-time))
+                        (= (nth 5 arg-time) (nth 5 today-time))))
+         (has-goal nil)
+         (has-archived nil)
+         (archived-point nil))
     (org-reverse-datetree-goto-date-in-file time)
     (org-fold-show-children)
-    (let* ((goal-text "Daily Goals")
-           (archieved-text "Archived")
-           has-goal has-archieved archieved-point
-           (arg-time (decode-time time))
-           (today-time (decode-time (current-time)))
-           (same-day (and
-                      (= (nth 3 arg-time) (nth 3 today-time))
-                      (= (nth 4 arg-time) (nth 4 today-time))
-                      (= (nth 5 arg-time) (nth 5 today-time)))))
-      (if (org-goto-first-child)
-          (progn
-            (let ((continue t))
-              (while continue
-                (let ((heading (org-element-property :title (org-element-at-point))))
-                  (when (string= heading goal-text)
-                    (setq has-goal t)
-                    (when same-day (org-toggle-tag "ACT_TODAY" 'on)
-                          ;; (org-schedule nil (current-time))
-                          ))
-                  (when (string= heading archieved-text)
-                    (setq archieved-point (point))
-                    (setq has-archieved t)))
-                (setq continue (org-goto-sibling))))
-            (when (not has-goal)
-              (org-insert-heading nil)
-              (insert goal-text)
-              (when same-day (org-toggle-tag "ACT_TODAY" 'on)
-                    ;; (org-schedule nil (current-time))
-                    ))
-            (when (not has-archieved)
-              (org-insert-heading nil)
-              (insert archieved-text)
-              (setq archieved-point (point))))
-        (org-insert-subheading nil)
-        (insert goal-text)
-        (when same-day
-          ;; (org-schedule nil (current-time))
-          (org-toggle-tag "ACT_TODAY" 'on))
-        (org-insert-heading-after-current)
-        (insert archieved-text)
-        (setq archieved-point (point)))
-      (goto-char archieved-point)
-      (end-of-line)
-      (point))))
+    (if (org-goto-first-child)
+        (progn
+          (while (progn
+                   (let ((heading (org-element-property :title (org-element-at-point))))
+                     (cond
+                      ((string= heading goal-text)
+                       (setq has-goal t)
+                       (when same-day (org-toggle-tag "ACT_TODAY" 'on)))
+                      ((string= heading archived-text)
+                       (setq has-archived t)
+                       (setq archived-point (point)))))
+                   (org-goto-sibling)))
+          (unless has-goal
+            (org-insert-heading nil)
+            (insert goal-text)
+            (when same-day (org-toggle-tag "ACT_TODAY" 'on)))
+          (unless has-archived
+            (org-insert-heading nil)
+            (insert archived-text)
+            (setq archived-point (point))))
+      (org-insert-subheading nil)
+      (insert goal-text)
+      (when same-day (org-toggle-tag "ACT_TODAY" 'on))
+      (org-insert-heading-after-current)
+      (insert archived-text)
+      (setq archived-point (point)))
+    (goto-char archived-point)
+    (end-of-line)
+    (point)))
 
 (defun +my/auto-act-today-and-current-week ()
   (let ((act-today-points '())
@@ -2809,11 +2802,18 @@ kill all magit buffers for this repo."
   :config
   (setq minuet-provider 'openai-fim-compatible)
 
-  ;; Required when defining minuet-ative-mode-map in insert/normal states.
-  ;; Not required when defining minuet-active-mode-map without evil state.
   (add-hook 'minuet-active-mode-hook #'evil-normalize-keymaps)
 
   (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 256))
+
+;;  TODO: a better workflow
+(use-package aider
+  :straight (:host github :repo "tninja/aider.el" :files ("aider.el"))
+  :config
+  (setq aider-args '("--model" "deepseek"))
+  (when (boundp 'deepseek-key)
+    (setenv "DEEPSEEK_API_KEY" deepseek-key))
+  (global-set-key (kbd "C-c a") 'aider-transient-menu))
 
 
 ;;; UI
