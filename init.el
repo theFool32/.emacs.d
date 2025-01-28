@@ -2673,7 +2673,7 @@ kill all magit buffers for this repo."
    )
 
   (setq mu4e-bookmarks
-        '( ("flag:unread AND NOT flag:trashed"      "Unread messages"   ?u)
+        '( ("flag:unread AND NOT flag:trashed and not (m:/Gmail/Trash OR m:/Gmail/[Gmail]/Trash OR m:/Outlook/Deleted OR m:/QQ/Deleted Messages OR m:/XMU/Trash)"      "Unread messages"   ?u)
            ("m:/Gmail/Inbox or m:/Outlook/Inbox or m:/XMU/Inbox" "Inbox" ?i)
            ("date:today..now"  "Today's messages"   ?t)
            ("date:7d..now"  "Last 7 days"           ?w)
@@ -3636,7 +3636,8 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
 
                                  (evil-define-key 'normal 'global
                                    "K" '+eglot-help-at-point)
-                                 (eglot-inlay-hints-mode -1)))
+                                 ;; (eglot-inlay-hints-mode -1)
+                                 ))
          ((python-mode python-ts-mode c-mode c++-mode LaTeX-mode) .
           (lambda ()
             (unless (my-project--ignored-p (buffer-file-name (current-buffer)))
@@ -4870,6 +4871,17 @@ the lines even if the ranges do not overlap."
       ;; generate duration
       (org-ctrl-c-ctrl-c)))
 
+    (add-hook 'org-capture-prepare-finalize-hook 'org-id-get-create)
+    (defun my/org-add-ids-to-headlines-in-file ()
+        "Add ID properties to all headlines in the current file which
+        do not already have one."
+        (interactive)
+        (org-map-entries 'org-id-get-create))
+
+    (add-hook 'org-mode-hook
+            (lambda ()
+                (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
+
   )
 ;; ;; -OrgPac
 
@@ -5759,8 +5771,7 @@ begin and end of the block surrounding point."
     "og" '(gptel :wk "GPT")
 
     "a" '(:wk "AI")
-    "aa" '(gptel-add-file :wk "Add File")
-    "aA" '(gptel-add :wk "Add")
+    "aa" '(gptel-add :wk "Add")
     "as" '(gptel-send :wk "Send")
     "ar" '(gptel-rewrite :wk "Rewrite")
 
