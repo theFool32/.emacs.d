@@ -4951,16 +4951,39 @@ the lines even if the ranges do not overlap."
       ;; generate duration
       (org-ctrl-c-ctrl-c)))
 
-    (add-hook 'org-capture-prepare-finalize-hook 'org-id-get-create)
-    (defun my/org-add-ids-to-headlines-in-file ()
-        "Add ID properties to all headlines in the current file which
-        do not already have one."
-        (interactive)
-        (org-map-entries 'org-id-get-create))
 
-    (add-hook 'org-mode-hook
+  (defun my/org-add-id-if-scheduled-or-deadline ()
+    "Add ID to the current entry if it has SCHEDULED or DEADLINE."
+    (when (or (org-entry-get nil "SCHEDULED")
+              (org-entry-get nil "DEADLINE"))
+      (org-id-get-create)))
+
+  (add-hook 'org-capture-prepare-finalize-hook 'my/org-add-id-if-scheduled-or-deadline)
+
+  (defun my/org-add-ids-to-headlines-in-file ()
+    "Add ID properties to all headlines in the current file which
+        have scheduled or deadline and do not already have an ID."
+    (interactive)
+    (org-map-entries
+     (lambda ()
+       (when (or (org-entry-get nil "SCHEDULED")
+                 (org-entry-get nil "DEADLINE"))
+         (org-id-get-create)))))
+
+  (add-hook 'org-mode-hook
             (lambda ()
-                (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
+              (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
+
+
+  (defun my/org-remove-ids-without-scheduled-or-deadline ()
+    "Remove ID properties from all headlines in the current file
+that do not have SCHEDULED or DEADLINE."
+    (interactive)
+    (org-map-entries
+     (lambda ()
+       (unless (or (org-entry-get nil "SCHEDULED")
+                   (org-entry-get nil "DEADLINE"))
+         (org-entry-delete nil "ID")))))
 
   )
 ;; ;; -OrgPac
