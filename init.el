@@ -5758,6 +5758,7 @@ begin and end of the block surrounding point."
     "x" '(org-capture :wk "Org capture")
     "r" '(er/expand-region :wk "expand-region")
     "k" '(+my/replace :wk "Replace")
+    "y" '(consult-yank-from-kill-ring :wk "Kill ring")
 
     "b" '(:wk "Buffer")
     "b[" '(previous-buffer :wk "Previous buffer")
@@ -5879,6 +5880,7 @@ begin and end of the block surrounding point."
     "aa" '(gptel-add :wk "Add")
     "as" '(gptel-send :wk "Send")
     "ar" '(gptel-rewrite :wk "Rewrite")
+    "ai" '(aider-transient-menu :wk "Aider")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
