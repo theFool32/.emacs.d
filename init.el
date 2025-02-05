@@ -583,7 +583,8 @@ REST and STATE."
                                       (when (or
                                              (derived-mode-p 'prog-mode)
                                              (derived-mode-p 'yaml-ts-mode))
-                                        (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
+                                        ;; (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
+                                        (call-process-shell-command "rs" nil 0)
                                         (call-process-shell-command "rc" nil 0))))))
 
 ;; _ as part of a word
@@ -5892,7 +5893,9 @@ begin and end of the block surrounding point."
 
     "u" '((lambda() (interactive)
             (call-process-shell-command "rc" nil 0)
-            (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)) :wk "Sync code")
+            (call-process-shell-command "rs" nil 0)
+            ;; (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
+            ) :wk "Sync code")
     )
   )
 
