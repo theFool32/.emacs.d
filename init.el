@@ -3502,14 +3502,14 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 (with-eval-after-load 'evil
   (defun my/evil-paren-range (count beg end type inclusive)
     "Get minimum range of paren text object.
-COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
-    (let* ((cur_point (point))
+    COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
+    (let* ((cur-point (point))
            (parens '("()" "[]" "{}" "<>"))
            (quotes '("\"" "'"))
            (pqs (append parens quotes))
            range
            found-range)
-      ;;  HACK: ' is widely used in lisp
+      ;; HACK: ' is widely used in lisp
       (when (derived-mode-p 'emacs-lisp-mode)
         (setq pqs (butlast pqs)))
       (dolist (p pqs)
@@ -3519,17 +3519,14 @@ COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive.
                 (setq range (evil-select-paren (aref p 0) (aref p 1) beg end type count inclusive))
               (setq range (evil-select-quote (aref p 0) beg end type count)))))
         (when (and range
-                   (<= (nth 0 range) cur_point)
-                   (>= (nth 1 range) cur_point))
-          (cond
-           (found-range
-            (when (and
-                   (< (- (nth 1 range) (nth 0 range))
-                      (- (nth 1 found-range) (nth 0 found-range))))
-              (setf (nth 0 found-range) (nth 0 range))
-              (setf (nth 1 found-range) (nth 1 range))))
-           (t
-            (setq found-range range)))))
+                   (<= (car range) cur-point)
+                   (>= (cadr range) cur-point))
+          (if found-range
+              (when (< (- (cadr range) (car range))
+                       (- (cadr found-range) (car found-range)))
+                (setf (car found-range) (car range))
+                (setf (cadr found-range) (cadr range)))
+            (setq found-range range))))
       found-range))
   (evil-define-text-object my/evil-a-paren (count &optional beg end type)
     "Select a paren."
@@ -5312,9 +5309,10 @@ kill the current timer, this may be a break or a running pomodoro."
 (use-package markdown-mode
   :defer t
   :mode ("\\.md\\'" . markdown-mode)
+  :init
+  (setq markdown-fontify-code-blocks-natively t)
   :config
   (add-to-list 'markdown-code-lang-modes '("python" . python-ts-mode))
-  (setq markdown-fontify-code-blocks-natively t)
   )
 
 
