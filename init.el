@@ -2506,14 +2506,14 @@ kill all magit buffers for this repo."
     (save-excursion
       (call-interactively 'ebib-jump-to-entry)
       (ebib--execute-when
-        (entries
-         (let ((key (ebib--get-key-at-point)))
-           (with-temp-buffer
-             (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
-             (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-           (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
-        (default
-         (beep))))
+       (entries
+        (let ((key (ebib--get-key-at-point)))
+          (with-temp-buffer
+            (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
+            (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+          (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+       (default
+        (beep))))
     (yank))
 
   :config
@@ -2890,9 +2890,13 @@ kill all magit buffers for this repo."
 (use-package aider
   :straight (:host github :repo "tninja/aider.el" :files ("aider.el"))
   :config
-  (setq aider-args '("--no-auto-commits" "--model" "deepseek"))
   (when (boundp 'deepseek-key)
     (setenv "DEEPSEEK_API_KEY" deepseek-key))
+  (if +self/use-original-deepseek
+      (setq aider-args '("--no-auto-commits" "--model" "deepseek"))
+    (setenv "OPENAI_API_KEY" deepseek-key)
+    (setenv "OPENAI_API_BASE" "https://api.siliconflow.cn/v1")
+    (setq aider-args '("--no-auto-commits" "--model" "openai/deepseek-ai/DeepSeek-V3")))
   (global-set-key (kbd "C-c a") 'aider-transient-menu))
 
 
