@@ -1,4 +1,12 @@
 .PHONY: env custom init	install
+
+install_emacs:
+	@brew tap jimeh/emacs-builds
+	@brew install --cask emacs-app-monthly
+	@curl https://raw.githubusercontent.com/theFool32/build-emacs-macos/icon/materials/emacs-big-sur.icns -o /Applications/Emacs.App/Contents/Resources/Emacs.icns
+	@touch /Applications/Emacs.app
+	@sudo killall Finder && sudo killall Finder
+
 env:
 	@printenv > ~/.emacs.d/env
 	@echo MU_PATH=`brew --prefix mu` >> ~/.emacs.d/env
