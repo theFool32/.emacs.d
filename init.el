@@ -179,12 +179,12 @@ REST and STATE."
 ;;;; elpaca
 
 ;;  FIXME: still slow when startup (~0.5s)
-(defvar elpaca-installer-version 0.8)
+(defvar elpaca-installer-version 0.9)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1
+                              :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
                               :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
@@ -258,6 +258,7 @@ REST and STATE."
   (elpaca--continue-build e))
 ;; Block until current queue processed.
 (elpaca-wait)
+
 
 ;;;; Benchmark [not-used]
 ;; (use-package benchmark-init
@@ -2112,8 +2113,7 @@ It handles the case of remote files as well."
   )
 
 (use-package dirvish  ;; `(' for details.
-  ;; :ensure (dirvish :type git :host github :repo "alexluigit/dirvish")
-  :ensure (dirvish :type git :host github :repo "dvzubarev/dirvish" :branch "ml-fix")
+  :ensure (dirvish :type git :host github :repo "alexluigit/dirvish")
   :hook ((+my/first-input . dirvish-override-dired-mode)
          (evil-collection-setup . (lambda (&rest a)
                                     (evil-define-key '(normal) dired-mode-map
@@ -2889,7 +2889,7 @@ kill all magit buffers for this repo."
 
 ;;  TODO: a better workflow
 (use-package aider
-  :straight (:host github :repo "tninja/aider.el" :files ("aider.el"))
+  :ensure (:host github :repo "tninja/aider.el" :files ("aider.el"))
   :config
   (when (boundp 'deepseek-key)
     (setenv "DEEPSEEK_API_KEY" deepseek-key))
