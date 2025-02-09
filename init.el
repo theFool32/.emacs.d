@@ -2019,6 +2019,7 @@ It handles the case of remote files as well."
         (save-all-buffers))))
   (advice-add 'super-save-command :override '+super-save-without-format))
 
+
 (use-package ztree
   :commands ztree-diff)
 
@@ -5847,6 +5848,8 @@ begin and end of the block surrounding point."
     "wr" '(winner-redo :wk "Redo window")
     "ws" '(ace-window :wk "Select window")
     "wo" '(delete-other-windows :wk "Maximize window")
+    "wR" '(desktop-read :wk "Restore session")
+    "wS" '(desktop-save-in-desktop-dir :wk "Save session")
 
     "t" '(:wk "Toggle")
     "tl" '(toggle-truncate-lines :wk "Line wrap")
