@@ -584,8 +584,8 @@ REST and STATE."
                                       (when (or
                                              (derived-mode-p 'prog-mode)
                                              (derived-mode-p 'yaml-ts-mode))
-                                        ;; (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
-                                        (call-process-shell-command "rs" nil 0)
+                                        (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
+                                        ;; (call-process-shell-command "rs" nil 0)
                                         (call-process-shell-command "rc" nil 0))))))
 
 ;; _ as part of a word
@@ -4081,7 +4081,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :custom
   (cdlatex-sub-super-scripts-outside-math-mode nil)
   :config
-  (add-to-list 'cdlatex-math-modify-alist-default '(?b "\\bm" nil t t nil))
+  (add-to-list 'cdlatex-math-modify-alist-default '(?b "\\bm" "\\textbf" t nil nil))
   (add-to-list 'cdlatex-math-modify-alist-default '(?B "\\mathbb" nil t t nil))
   )
 
@@ -5900,8 +5900,8 @@ begin and end of the block surrounding point."
 
     "u" '((lambda() (interactive)
             (call-process-shell-command "rc" nil 0)
-            (call-process-shell-command "rs" nil 0)
-            ;; (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
+            ;; (call-process-shell-command "rs" nil 0)
+            (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
             ) :wk "Sync code")
     )
   )
