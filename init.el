@@ -2881,11 +2881,7 @@ kill all magit buffers for this repo."
   ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
 
   :config
-  (setq minuet-provider 'openai-fim-compatible)
-
-  (add-hook 'minuet-active-mode-hook #'evil-normalize-keymaps)
-
-  (minuet-set-optional-options minuet-openai-fim-compatible-options :max_tokens 256))
+  (add-hook 'minuet-active-mode-hook #'evil-normalize-keymaps))
 
 ;;  TODO: a better workflow
 (use-package aider
