@@ -53,9 +53,11 @@ brew install ripgrep fd rga terminal-notifier
 #+begin_src bash
 # For Mac OS X
 brew install --cask font-jetbrains-mono
+brew install --cask font-caskaydia-cove-nerd-font
+brew install --cask font-sarasa-gothic
 
-brew tap laishulu/cask-fonts
-brew install --cask font-sarasa-nerd
+brew tap laishulu/homebrew
+brew install font-sarasa-nerd
 #+end_src
 
 *** Emacs-rime (Optional)

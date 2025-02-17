@@ -5050,8 +5050,8 @@ that do not have SCHEDULED or DEADLINE."
               (org-agenda-overriding-header "Today Goals:")
               (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
             (tags
-             "+SCHEDULED>=\"<today>\"&SCHEDULED<\"<+1d>\""
-             ((org-agenda-overriding-header "Today's Scheduled Tasks")))
+             "+SCHEDULED>=\"<today>\"&SCHEDULED<\"<+1d>\"|DEADLINE>=\"<today>\"&DEADLINE<\"<+1d>\""
+             ((org-agenda-overriding-header "Today's Tasks")))
             (agenda "" ((org-agenda-skip-function 'org/skip-daily-goals)))
             (alltodo "" ((org-agenda-files (list +org-capture-file-gtd))))))))
   (evil-set-initial-state 'org-agenda-mode 'motion)
