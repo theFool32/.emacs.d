@@ -5302,6 +5302,12 @@ kill the current timer, this may be a break or a running pomodoro."
                     (goto-char (point-min)))
                 (throw 'abort t))))))))
   )
+
+(use-package org-tidy
+  :ensure t
+  :hook
+  (org-mode . org-tidy-mode))
+
 ;;;;; Markdown
 (use-package markdown-mode
   :defer t
