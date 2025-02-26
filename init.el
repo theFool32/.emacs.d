@@ -2858,34 +2858,9 @@ kill all magit buffers for this repo."
 (use-package gptel
   :ensure t)
 
-;; install with straight
-(use-package minuet
-  :ensure (minuet :host github :repo "milanglacier/minuet-ai.el")
-  :bind
-  (("M-y" . #'minuet-complete-with-minibuffer) ;; use minibuffer for completion
-   ("M-i" . #'minuet-show-suggestion) ;; use overlay for completion
-
-   :map minuet-active-mode-map
-   ;; These keymaps activate only when a minuet suggestion is displayed in the current buffer
-   ("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
-   ("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
-   ("M-a" . #'minuet-accept-suggestion) ;; accept whole completion
-   ;; Accept the first line of completion, or N lines with a numeric-prefix:
-   ;; e.g. C-u 2 M-a will accepts 2 lines of completion.
-   ("M-f" . #'minuet-accept-suggestion-line)
-   ("M-d" . #'minuet-dismiss-suggestion))
-
-  :init
-  ;; if you want to enable auto suggestion.
-  ;; Note that you can manually invoke completions without enable minuet-auto-suggestion-mode
-  ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
-
-  :config
-  (add-hook 'minuet-active-mode-hook #'evil-normalize-keymaps))
-
 ;;  TODO: a better workflow
-(use-package aider
-  :ensure (:host github :repo "tninja/aider.el" :files ("aider.el"))
+(use-package aidermacs
+  :ensure (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
   :config
   (when (boundp 'deepseek-key)
     (setenv "DEEPSEEK_API_KEY" deepseek-key))
@@ -5872,7 +5847,7 @@ begin and end of the block surrounding point."
     "aa" '(gptel-add :wk "Add")
     "as" '(gptel-send :wk "Send")
     "ar" '(gptel-rewrite :wk "Rewrite")
-    "ai" '(aider-transient-menu :wk "Aider")
+    "ai" '(aidermacs-transient-menu :wk "Aider")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
