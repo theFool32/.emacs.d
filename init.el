@@ -2889,17 +2889,6 @@ kill all magit buffers for this repo."
   :config
   (when (boundp 'deepseek-key)
     (setenv "DEEPSEEK_API_KEY" deepseek-key))
-  (pcase +self/deepseek-provider
-    ('deepseek
-     (setq aider-args '("--no-auto-commits" "--model" "deepseek")))
-    ('tencent
-     (setenv "OPENAI_API_KEY" deepseek-key)
-     (setenv "OPENAI_API_BASE" "https://api.lkeap.cloud.tencent.com/v1")
-     (setq aider-args '("--no-auto-commits" "--model" "openai/deepseek-v3")))
-    ('siliconflow
-     (setenv "OPENAI_API_KEY" deepseek-key)
-     (setenv "OPENAI_API_BASE" "https://api.siliconflow.cn/v1")
-     (setq aider-args '("--no-auto-commits" "--model" "openai/deepseek-ai/DeepSeek-V3"))))
   (global-set-key (kbd "C-c a") 'aider-transient-menu))
 
 
