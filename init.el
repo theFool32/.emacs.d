@@ -2864,7 +2864,7 @@ kill all magit buffers for this repo."
   :config
   (when (boundp 'deepseek-key)
     (setenv "DEEPSEEK_API_KEY" deepseek-key))
-  (global-set-key (kbd "C-c a") 'aider-transient-menu))
+  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
 
 
 ;;; UI
