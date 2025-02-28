@@ -5270,7 +5270,10 @@ kill the current timer, this may be a break or a running pomodoro."
 (use-package org-tidy
   :ensure t
   :hook
-  (org-mode . org-tidy-mode))
+  (org-mode . org-tidy-mode)
+  :config
+  (setq org-tidy-properties-style 'invisible)
+  )
 
 ;;;;; Markdown
 (use-package markdown-mode
