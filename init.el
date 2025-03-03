@@ -4654,30 +4654,7 @@ If prefix ARG, copy instead of move."
     (general-define-key :states '(normal)
                         :keymaps 'org-mode-map
                         "<return>" #'+org/dwim-at-point
-                        ;; "i" '(lambda ()
-                        ;;        (interactive)
-                        ;;        (when (and (org-src--on-datum-p (org-element-at-point)) (org-in-src-block-p))
-                        ;;          (org-edit-special)
-                        ;;          (call-interactively 'evil-scroll-line-to-center))
-                        ;;        (evil-insert-state))
-                        ;; "o" '(lambda ()
-                        ;;        (interactive)
-                        ;;        (when (and (org-src--on-datum-p (org-element-at-point)) (org-in-src-block-p))
-                        ;;          (org-edit-special)
-                        ;;          (call-interactively 'evil-scroll-line-to-center))
-                        ;;        (call-interactively 'evil-open-below))
                         )
-
-
-    ;; inherit schedule time from parent
-    (defun my-org-insert-sub-task ()
-      (interactive)
-      (let ((parent-schedule (org-get-scheduled-time nil)))
-        (org-goto-sibling)
-        (org-insert-todo-subheading t)
-        (when parent-schedule
-          (org-schedule nil parent-schedule))))
-
     (local-leader-def
       :keymaps 'org-mode-map
       "'" 'org-edit-special
@@ -4822,32 +4799,32 @@ If prefix ARG, copy instead of move."
       "zs" 'org-download-screenshot
       )
 
-
-    (require 'dash)
-    (defun todo-to-int (todo)
-      (cl-first (-non-nil
-                 (mapcar (lambda (keywords)
-                           (let ((todo-seq
-                                  (-map (lambda (x) (cl-first (split-string  x "(")))
-                                        (cl-rest keywords))))
-                             (cl-position-if (lambda (x) (string= x todo)) todo-seq)))
-                         org-todo-keywords))))
-
-
-    (defun my/org-sort-key ()
-      (let* ((todo-max (apply #'max (mapcar #'length org-todo-keywords)))
-             (todo (org-entry-get (point) "TODO"))
-             (todo-int (if todo (todo-to-int todo) todo-max))
-             (priority (org-entry-get (point) "PRIORITY"))
-             (priority-int (if priority (string-to-char priority) org-default-priority))
-             (timestamp (or (org-entry-get (point) "SCHEDULED") (org-entry-get (point) "DEADLINE") "<2100-12-31>")))
-        (format "%03d %03d %s" priority-int todo-int timestamp)))
-
-    (defun my/org-sort-entries ()
-      (interactive)
-      (org-sort-entries nil ?f #'my/org-sort-key))
-
     )
+
+  (require 'dash)
+  (defun todo-to-int (todo)
+    (cl-first (-non-nil
+               (mapcar (lambda (keywords)
+                         (let ((todo-seq
+                                (-map (lambda (x) (cl-first (split-string  x "(")))
+                                      (cl-rest keywords))))
+                           (cl-position-if (lambda (x) (string= x todo)) todo-seq)))
+                       org-todo-keywords))))
+
+
+  (defun my/org-sort-key ()
+    (let* ((todo-max (apply #'max (mapcar #'length org-todo-keywords)))
+           (todo (org-entry-get (point) "TODO"))
+           (todo-int (if todo (todo-to-int todo) todo-max))
+           (priority (org-entry-get (point) "PRIORITY"))
+           (priority-int (if priority (string-to-char priority) org-default-priority))
+           (timestamp (or (org-entry-get (point) "SCHEDULED") (org-entry-get (point) "DEADLINE") "<2100-12-31>")))
+      (format "%03d %03d %s" priority-int todo-int timestamp)))
+
+  (defun my/org-sort-entries ()
+    (interactive)
+    (org-sort-entries nil ?f #'my/org-sort-key))
+
 
   ;; functions
 ;;;###autoload
@@ -4873,6 +4850,17 @@ If prefix ARG, copy instead of move."
             ;;  HACK: assuming level of: year, month, week, day, Achieved, items
             (org-paste-subtree 6))
           (save-buffer)))))
+
+
+  ;; inherit schedule time from parent
+  (defun my-org-insert-sub-task ()
+    (interactive)
+    (let ((parent-schedule (org-get-scheduled-time nil)))
+      (org-goto-sibling)
+      (org-insert-todo-subheading t)
+      (when parent-schedule
+        (org-schedule nil parent-schedule))))
+
 
 ;;;###autoload
   (defun org-clock-merge (arg)
