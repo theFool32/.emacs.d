@@ -1664,7 +1664,7 @@ TYPES is the mode-specific types configuration."
 
 ;;  TODO: consult-todo-project accept git files
 (use-package consult-todo
-  :ensure (:host github :repo "liuyinz/consult-todo")
+  :ensure (:host github :repo "theFool32/consult-todo" :branch "dev")
   :demand t
   :config
   (when *rg*
@@ -5030,6 +5030,15 @@ that do not have SCHEDULED or DEADLINE."
       "r" 'org-agenda-refile
       "t" 'org-agenda-todo)
     )
+
+  (defun my/org-save-after-command (&rest _)
+    "Save all org buffers after running a command."
+    (org-save-all-org-buffers))
+
+  (advice-add 'org-agenda-todo :after #'my/org-save-after-command)
+  (advice-add 'org-agenda-clock-in :after #'my/org-save-after-command)
+  (advice-add 'org-agenda-clock-out :after #'my/org-save-after-command)
+  (advice-add 'org-agenda-clock-cancel :after #'my/org-save-after-command)
 
   (run-with-timer 3 nil
                   (lambda ()
