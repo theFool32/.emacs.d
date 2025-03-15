@@ -5039,6 +5039,8 @@ that do not have SCHEDULED or DEADLINE."
   (advice-add 'org-agenda-clock-in :after #'my/org-save-after-command)
   (advice-add 'org-agenda-clock-out :after #'my/org-save-after-command)
   (advice-add 'org-agenda-clock-cancel :after #'my/org-save-after-command)
+  (advice-add 'org-agenda-schedule :after #'my/org-save-after-command)
+  (advice-add 'org-agenda-deadline :after #'my/org-save-after-command)
 
   (run-with-timer 3 nil
                   (lambda ()
