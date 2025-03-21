@@ -5128,7 +5128,7 @@ has no effect."
   :ensure nil
   :custom
   (org-habit-graph-column 1)
-  (org-habit-show-all-today t))
+  (org-habit-show-all-today nil))
 
 (use-package org-heatmap
   :ensure (:host github :repo "Elilif/org-heatmap")
