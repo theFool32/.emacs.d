@@ -1998,6 +1998,7 @@ It handles the case of remote files as well."
         (alist-get 'node vundo-glyph-alist) ?O))
 
 (use-package super-save
+  :ensure (:host github :repo "theFool32/super-save")
   :hook (window-setup . super-save-mode)
   :init
   (setq auto-save-default nil)
@@ -2014,7 +2015,7 @@ It handles the case of remote files as well."
   (add-to-list 'super-save-predicates (lambda () (not (and (boundp 'corfu--frame) (frame-live-p corfu--frame) (frame-visible-p corfu--frame)))))
   (add-to-list 'super-save-predicates (lambda () (not (and (boundp 'rime--preedit-overlay) rime--preedit-overlay))))
 
-  (defun +super-save-without-format ()
+  (defun +super-save-without-format (&optional idle-trigger)
     (let ((before-save-hook (remove 'format-all--buffer-from-hook before-save-hook)))
       (when (super-save-p)
         (save-all-buffers))))
