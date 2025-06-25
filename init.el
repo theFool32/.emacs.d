@@ -1979,7 +1979,12 @@ It handles the case of remote files as well."
   :defer 60
   :ensure nil
   :config
+  (setq remote-file-name-inhibit-locks t
+      tramp-use-scp-direct-remote-copying t
+      remote-file-name-inhibit-auto-save-visited t)
+
   (setq tramp-completion-use-auth-sources nil
+        tramp-copy-size-limit (* 1024 1024)
         tramp-verbose 0
         tramp-chunksize 2000
         tramp-use-ssh-controlmaster-options nil)
@@ -1987,7 +1992,18 @@ It handles the case of remote files as well."
         vc-ignore-dir-regexp
         (format "%s\\|%s"
                 vc-ignore-dir-regexp
-                tramp-file-name-regexp)))
+                tramp-file-name-regexp))
+
+    (connection-local-set-profile-variables
+    'remote-direct-async-process
+    '((tramp-direct-async-process . t)))
+
+    (connection-local-set-profiles
+    '(:application tramp :protocol "scp")
+    'remote-direct-async-process)
+
+    (setq magit-tramp-pipe-stty-settings 'pty)
+  )
 
 (use-package vundo
   :ensure (:host github :repo "casouri/vundo")
