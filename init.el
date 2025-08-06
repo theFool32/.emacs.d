@@ -2713,6 +2713,56 @@ kill all magit buffers for this repo."
                 (buffer-face-mode t))))
   )
 
+(use-package eat
+  :ensure (:host codeberg
+                 :repo "akib/emacs-eat"
+                 :files ("*.el" ("term" "term/*.el") "*.texi"
+                         "*.ti" ("terminfo/e" "terminfo/e/*")
+                         ("terminfo/65" "terminfo/65/*")
+                         ("integration" "integration/*")
+                         (:exclude ".dir-locals.el" "*-tests.el")))
+  :commands (eat-project eat my-eat-dwim)
+  :custom
+  (eat-shell "fish")
+  :bind
+  (("C-0" . #'eat-project)
+   ("C-9" . #'my-eat-dwim))
+  :init
+  (with-eval-after-load 'meow
+    (add-to-list 'meow-mode-state-list '(eat-mode . insert)))
+  :config
+  ;; For `eat-eshell-mode'.
+  (add-hook 'eshell-load-hook #'eat-eshell-mode)
+
+  ;; For `eat-eshell-visual-command-mode'.
+  (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
+
+  (defun my-eat-dwim ()
+    (interactive)
+    (let ((eat-buffer-name "eat-standalone"))
+      (my-create-term-cmd #'eat eat-buffer-name)))
+
+  (defun my-eat-find-file-dwim (filename)
+    (interactive)
+    (let ((dir default-directory))
+      (if (string= (buffer-name) "eat-standalone")
+          (progn
+            (tab-bar-switch-to-recent-tab)
+            (find-file (expand-file-name filename dir)))
+        (find-file-other-window filename))))
+
+  (defun my-eat-dired-dwim ()
+    (interactive)
+    (if (string= (buffer-name) "eat-standalone")
+        (progn
+          (tab-bar-switch-to-recent-tab)
+          (dirvish default-directory))
+      (dirvish default-directory)))
+
+  (add-to-list 'eat-message-handler-alist '("find-file" . my-eat-find-file-dwim))
+  (add-to-list 'eat-message-handler-alist '("dired" . my-eat-dired-dwim)))
+
+
 ;;;; Mail
 (defvar mu-path (format "%s%s" (getenv "MU_PATH") "/share/emacs/site-lisp/mu/mu4e"))
 (use-package mu4e
@@ -2890,7 +2940,7 @@ kill all magit buffers for this repo."
   :bind-keymap
   ("C-c c" . claude-code-command-map)
   :config
-  (setq claude-code-terminal-backend 'vterm)
+  (setq claude-code-terminal-backend 'eat)
   ;; (setq claude-code-program "ccr")
   ;; (setq claude-code-program-switches '("code"))
 
@@ -2901,6 +2951,7 @@ kill all magit buffers for this repo."
   :ensure (:type git :host github :repo "manzaltu/claude-code-ide.el")
   :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
   :config
+  (setq claude-code-ide-terminal-backend 'eat)
   (claude-code-ide-emacs-tools-setup))
 
 (use-package minuet
