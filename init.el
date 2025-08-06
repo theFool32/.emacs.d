@@ -2627,6 +2627,7 @@ kill all magit buffers for this repo."
                                   (lambda ()
                                     (and (rime-predicate-prog-in-code-p)
                                          (not (rime-predicate-in-code-string-p))
+                                         (not (derived-mode-p 'web-mode)) ;;  HACK: not for html-mode
                                          ))
                                   (lambda ()
                                     (and (> (point) (save-excursion (back-to-indentation) (point)))
