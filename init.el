@@ -2883,6 +2883,26 @@ kill all magit buffers for this repo."
     (setenv "DEEPSEEK_API_KEY" deepseek-key))
   (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
 
+(use-package claude-code
+  :disabled
+  :straight (:type git :host github :repo "stevemolitor/claude-code.el" :branch "main" :depth 1
+                   :files ("*.el" (:exclude "images/*")))
+  :bind-keymap
+  ("C-c c" . claude-code-command-map)
+  :config
+  (setq claude-code-terminal-backend 'vterm)
+  ;; (setq claude-code-program "ccr")
+  ;; (setq claude-code-program-switches '("code"))
+
+  (claude-code-mode))
+
+
+(use-package claude-code-ide
+  :ensure (:type git :host github :repo "manzaltu/claude-code-ide.el")
+  :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+  :config
+  (claude-code-ide-emacs-tools-setup))
+
 (use-package minuet
     :bind
     (("M-y" . #'minuet-complete-with-minibuffer) ;; use minibuffer for completion
