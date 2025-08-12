@@ -1401,6 +1401,7 @@ targets."
 (use-package emacs
   :ensure nil
   :init
+  (global-auto-revert-mode -1)
   ;; Add prompt indicator to `completing-read-multiple'.
   ;; Alternatively try `consult-completing-read-multiple'.
   (defun crm-indicator (args)
@@ -2102,7 +2103,6 @@ It handles the case of remote files as well."
   :config
   (setq insert-directory-program "gls" dired-use-ls-dired t)
   (setq dired-listing-switches "-al --group-directories-first")
-  ;; Enable global auto-revert
   ;; Reuse same dired buffer, to prevent numerous buffers while navigating in dired
   (put 'dired-find-alternate-file 'disabled nil)
 
