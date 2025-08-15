@@ -1401,7 +1401,7 @@ targets."
 (use-package emacs
   :ensure nil
   :init
-  (global-auto-revert-mode -1)
+  ;; (global-auto-revert-mode -1)
   ;; Add prompt indicator to `completing-read-multiple'.
   ;; Alternatively try `consult-completing-read-multiple'.
   (defun crm-indicator (args)
