@@ -5378,6 +5378,7 @@ kill the current timer, this may be a break or a running pomodoro."
   )
 
 (use-package org-tidy
+  :disabled
   :ensure t
   :hook
   (org-mode . org-tidy-mode)
