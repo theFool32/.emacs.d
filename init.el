@@ -1507,45 +1507,36 @@ targets."
       (apply args)))
   (advice-add #'consult-ripgrep :around #'consult--with-orderless)
 
-  ;; Shorten candidates in consult-buffer:
-  ;; See: https://emacs-china.org/t/21-emacs-vertico-orderless-marginalia-embark-consult/19683/50
-  (defun vmacs-consult--source-recentf-items ()
-    (let ((ht (consult--buffer-file-hash))
-          file-name-handler-alist ;; No Tramp slowdown please.
-          items)
-      (dolist (file recentf-list (nreverse items))
-        ;; Emacs 29 abbreviates file paths by default, see
-        ;; `recentf-filename-handlers'.
-        (unless (eq (aref file 0) ?/)
-          (setq file (expand-file-name file)))
-        (unless (gethash file ht)
-          (push (propertize
-                 (vmacs-short-filename file)
-                 'multi-category `(file . ,file))
-                items)))))
 
-  (defun vmacs-short-filename(file)
-    "return filename with one parent directory.
-/a/b/c/d-> c/d"
-    (let* ((file (directory-file-name file))
-           (filename (file-name-nondirectory file))
-           (dir (file-name-directory file))
-           short-name)
-      (setq short-name
-            (if dir
-                (format "%s/%s" (file-name-nondirectory (directory-file-name dir)) filename)
-              filename))
-      (propertize short-name 'multi-category `(file . ,file))))
-
-  (plist-put consult--source-recent-file
-             :items #'vmacs-consult--source-recentf-items)
-
-
-  (advice-add 'marginalia--annotate-local-file :override
-              (defun marginalia--annotate-local-file-advice (cand)
-                (marginalia--fields
-                 ((marginalia--full-candidate cand)
-                  :face 'marginalia-size ))))
+  (defvar consult--source-project-file
+    `( :name     "Project File"
+       :narrow   ?p
+       :category file
+       :face     consult-file
+       :history  file-name-history
+       :state    ,#'consult--file-state
+       :new
+       ,(lambda (file)
+          (consult--file-action
+           (expand-file-name file (consult--project-root))))
+       :enabled
+       ,(lambda ()
+          consult-project-function)
+       :items ,#'consult-project--project-files)
+    "Project file source for `consult-buffer'.")
+  (setq consult-project-buffer-sources '(consult--source-project-buffer-hidden
+                                         consult--source-project-file
+                                         consult--source-project-root-hidden))
+  (defun consult-project--project-files ()
+    "Compute the project files given the ROOT."
+    (let* ((root (consult--project-root))
+           (project (project--find-in-directory root))
+           (files (project-files project)))
+      (mapcar (lambda (f)
+                (let* ((filename (file-relative-name f root))
+                       (abs-filename (expand-file-name f root))
+                       (result filename))
+                  (propertize result 'multi-category `(file . ,(abbreviate-file-name abs-filename))))) files)))
 
 
   (autoload 'org-buffer-list "org")
@@ -1557,7 +1548,7 @@ targets."
                 :hidden   t
                 :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
 
-  (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-recent-file))
+  (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-recent-file consult--source-project-file))
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
 
   (defun consult-imenu--create-key-name-eglot (prefix item types)
@@ -1977,8 +1968,8 @@ It handles the case of remote files as well."
   :ensure nil
   :config
   (setq remote-file-name-inhibit-locks t
-      tramp-use-scp-direct-remote-copying t
-      remote-file-name-inhibit-auto-save-visited t)
+        tramp-use-scp-direct-remote-copying t
+        remote-file-name-inhibit-auto-save-visited t)
 
   (setq tramp-completion-use-auth-sources nil
         tramp-copy-size-limit (* 1024 1024)
@@ -1991,15 +1982,15 @@ It handles the case of remote files as well."
                 vc-ignore-dir-regexp
                 tramp-file-name-regexp))
 
-    (connection-local-set-profile-variables
-    'remote-direct-async-process
-    '((tramp-direct-async-process . t)))
+  (connection-local-set-profile-variables
+   'remote-direct-async-process
+   '((tramp-direct-async-process . t)))
 
-    (connection-local-set-profiles
-    '(:application tramp :protocol "scp")
-    'remote-direct-async-process)
+  (connection-local-set-profiles
+   '(:application tramp :protocol "scp")
+   'remote-direct-async-process)
 
-    (setq magit-tramp-pipe-stty-settings 'pty)
+  (setq magit-tramp-pipe-stty-settings 'pty)
   )
 
 (use-package vundo
@@ -2520,14 +2511,14 @@ kill all magit buffers for this repo."
     (save-excursion
       (call-interactively 'ebib-jump-to-entry)
       (ebib--execute-when
-        (entries
-         (let ((key (ebib--get-key-at-point)))
-           (with-temp-buffer
-             (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
-             (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-           (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
-        (default
-         (beep))))
+       (entries
+        (let ((key (ebib--get-key-at-point)))
+          (with-temp-buffer
+            (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
+            (kill-new (buffer-substring-no-properties (point-min) (point-max))))
+          (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+       (default
+        (beep))))
     (yank))
 
   :config
@@ -2952,26 +2943,26 @@ kill all magit buffers for this repo."
   (claude-code-ide-emacs-tools-setup))
 
 (use-package minuet
-    :bind
-    (("M-y" . #'minuet-complete-with-minibuffer) ;; use minibuffer for completion
-     ("M-i" . #'minuet-show-suggestion) ;; use overlay for completion
-     ("C-c m" . #'minuet-configure-provider)
-     :map minuet-active-mode-map
-     ;; These keymaps activate only when a minuet suggestion is displayed in the current buffer
-     ("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
-     ("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
-     ("M-d" . #'minuet-accept-suggestion) ;; accept
-     ;; Accept the first line of completion, or N lines with a numeric-prefix:
-     ;; e.g. C-u 2 M-a will accepts 2 lines of completion.
-     ("M-a" . #'minuet-accept-suggestion-line)
-     ("M-e" . #'minuet-dismiss-suggestion))
+  :bind
+  (("M-y" . #'minuet-complete-with-minibuffer) ;; use minibuffer for completion
+   ("M-i" . #'minuet-show-suggestion) ;; use overlay for completion
+   ("C-c m" . #'minuet-configure-provider)
+   :map minuet-active-mode-map
+   ;; These keymaps activate only when a minuet suggestion is displayed in the current buffer
+   ("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
+   ("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
+   ("M-d" . #'minuet-accept-suggestion) ;; accept
+   ;; Accept the first line of completion, or N lines with a numeric-prefix:
+   ;; e.g. C-u 2 M-a will accepts 2 lines of completion.
+   ("M-a" . #'minuet-accept-suggestion-line)
+   ("M-e" . #'minuet-dismiss-suggestion))
 
-    :init
-    ;; if you want to enable auto suggestion.
-    ;; Note that you can manually invoke completions without enable minuet-auto-suggestion-mode
-    ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
-    
-    )
+  :init
+  ;; if you want to enable auto suggestion.
+  ;; Note that you can manually invoke completions without enable minuet-auto-suggestion-mode
+  ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
+
+  )
 
 ;;; UI
 ;;;; UI-config
@@ -4509,11 +4500,11 @@ If prefix ARG, copy instead of move."
     (require 'consult-org)
     (consult--read
      (consult--with-increased-gc
-      (-filter (lambda (item)
-                 (not (member
-                       (car (cdr (get-text-property 0 'consult-org--heading item)))
-                       '("DONE" "CANCELED" "UNDONE"))))
-               (consult-org--headings nil nil (list +org-capture-file-gtd +org-capture-file-routine)))) ;; Only retrieve entries from `gtd' and `routine'
+       (-filter (lambda (item)
+                  (not (member
+                        (car (cdr (get-text-property 0 'consult-org--heading item)))
+                        '("DONE" "CANCELED" "UNDONE"))))
+                (consult-org--headings nil nil (list +org-capture-file-gtd +org-capture-file-routine)))) ;; Only retrieve entries from `gtd' and `routine'
      :prompt "Go to heading: "
      :category 'consult-org-heading
      :sort nil
@@ -5042,16 +5033,16 @@ that do not have SCHEDULED or DEADLINE."
           (search category-keep))
         )
   :config
-(defvar my/org-habit-show-graphs-everywhere t
-  "If non-nil, show habit graphs in all types of agenda buffers.
+  (defvar my/org-habit-show-graphs-everywhere t
+    "If non-nil, show habit graphs in all types of agenda buffers.
 
 Normally, habits display consistency graphs only in
 \"agenda\"-type agenda buffers, not in other types of agenda
 buffers.  Set this variable to any non-nil variable to show
 consistency graphs in all Org mode agendas.")
 
-(defun my/org-agenda-mark-habits ()
-  "Mark all habits in current agenda for graph display.
+  (defun my/org-agenda-mark-habits ()
+    "Mark all habits in current agenda for graph display.
 
 This function enforces `my/org-habit-show-graphs-everywhere' by
 marking all habits in the current agenda as such.  When run just
@@ -5061,20 +5052,20 @@ of displaying consistency graphs for these habits.
 
 When `my/org-habit-show-graphs-everywhere' is nil, this function
 has no effect."
-  (when (and my/org-habit-show-graphs-everywhere
-         (not (get-text-property (point) 'org-series)))
-    (let ((cursor (point))
-          item data)
-      (while (setq cursor (next-single-property-change cursor 'org-marker))
-        (setq item (get-text-property cursor 'org-marker))
-        (when (and item (org-is-habit-p item))
-          (with-current-buffer (marker-buffer item)
-            (setq data (org-habit-parse-todo item)))
-          (put-text-property cursor
-                             (next-single-property-change cursor 'org-marker)
-                             'org-habit-p data))))))
+    (when (and my/org-habit-show-graphs-everywhere
+               (not (get-text-property (point) 'org-series)))
+      (let ((cursor (point))
+            item data)
+        (while (setq cursor (next-single-property-change cursor 'org-marker))
+          (setq item (get-text-property cursor 'org-marker))
+          (when (and item (org-is-habit-p item))
+            (with-current-buffer (marker-buffer item)
+              (setq data (org-habit-parse-todo item)))
+            (put-text-property cursor
+                               (next-single-property-change cursor 'org-marker)
+                               'org-habit-p data))))))
 
-(advice-add #'org-agenda-finalize :before #'my/org-agenda-mark-habits)
+  (advice-add #'org-agenda-finalize :before #'my/org-agenda-mark-habits)
 
   (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
   (defun org/skip-daily-goals (&optional time)
@@ -5485,6 +5476,10 @@ kill the current timer, this may be a break or a running pomodoro."
   )
 
 ;;; Edit
+(use-package ediff
+  :ensure nil
+  :hook (ediff-quit . winner-undo))
+
 ;;;; Fold
 ;; Used for fold
 ;; Copy from doom-emacs
