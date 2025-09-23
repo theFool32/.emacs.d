@@ -1626,10 +1626,6 @@ TYPES is the mode-specific types configuration."
   (advice-add 'consult-imenu--compute :override #'my-consult-imenu--compute)
   )
 
-(use-package consult-jump-project
-  :ensure (consult-jump-project :type git :host github :repo "jdtsmith/consult-jump-project")
-  :custom (consult-jump-direct-jump-modes '(dired-mode)))
-
 (use-package consult-dir
   :after consult
   :bind (("C-x C-d" . consult-dir)
