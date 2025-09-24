@@ -1529,7 +1529,7 @@ targets."
                                          consult--source-project-root-hidden))
   (defun consult-project--project-files ()
     "Compute the project files given the ROOT."
-    (let* ((root (consult--project-root))
+    (when-let* ((root (consult--project-root))
            (project (project--find-in-directory root))
            (files (project-files project)))
       (mapcar (lambda (f)
