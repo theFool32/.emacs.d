@@ -140,49 +140,6 @@ REST and STATE."
 (setq use-package-keywords (use-package-list-insert :after-call use-package-keywords :after))
 (defalias 'use-package-normalize/:after-call #'use-package-normalize-symlist)
 
-;;;; Straight [not-used]
-
-;; (setq straight--process-log nil
-;;       straight-vc-git-default-clone-depth 1
-;;       straight-repository-branch "develop"
-;;       straight-use-package-by-default t
-;;       ;; straight-check-for-modifications '(check-on-save find-when-checking)
-;;       straight-check-for-modifications nil)
-
-;; (unless (featurep 'straight)
-;;   (defvar bootstrap-version)
-
-;;   (let ((bootstrap-file (concat user-emacs-directory
-;;                                 "straight/repos/straight.el/bootstrap.el"))
-;;         (bootstrap-version 5))
-;;     (unless (file-exists-p bootstrap-file)
-;;       (with-current-buffer
-;;           (url-retrieve-synchronously
-;;            "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-;;            'silent 'inhibit-cookies)
-;;         (goto-char (point-max))
-;;         (eval-print-last-sexp)))
-;;     (load bootstrap-file nil 'nomessage)))
-
-;; ;; (defun +set-github-mirror (oldfunc &rest args)
-;; ;;   (let ((url (apply oldfunc args)))
-;; ;;     (replace-regexp-in-string (rx (group "github.com"))
-;; ;;                               "hub.fastgit.org" url nil nil 1)))
-;; ;; (advice-add 'straight-vc-git--encode-url :around #'+set-github-mirror)
-
-;; (add-to-list 'straight-built-in-pseudo-packages 'eglot)
-;; (add-to-list 'straight-built-in-pseudo-packages 'tramp)
-;; (add-to-list 'straight-built-in-pseudo-packages 'use-package)
-;; (add-to-list 'straight-built-in-pseudo-packages 'project)
-;; (add-to-list 'straight-built-in-pseudo-packages 'org)
-;; (add-to-list 'straight-built-in-pseudo-packages 'xref)
-;; ;; -Straight
-
-;; (defun +my/check-straight-repos ()
-;;   (interactive)
-;;   (find-file (read-file-name "Repos: " "~/.emacs.d/straight/repos/")))
-
-
 ;;;; elpaca
 
 ;;  FIXME: still slow when startup (~0.5s)
@@ -265,13 +222,6 @@ REST and STATE."
   (elpaca--continue-build e))
 ;; Block until current queue processed.
 (elpaca-wait)
-
-
-;;;; Benchmark [not-used]
-;; (use-package benchmark-init
-;;   :demand t
-;;   :config
-;;   (add-hook '+my/first-input-hook 'benchmark-init/deactivate))
 
 ;;; Helper Functions
 ;;;###autoload
@@ -789,49 +739,6 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
 ;;;; English
 
 ;;  FIXME: hang
-(use-package maple-translate
-  :disabled
-  :ensure (:host github :repo "honmaple/emacs-maple-translate")
-  :commands (maple-translate maple-translate+ maple-translate-posframe)
-  :custom
-  (maple-translate-buffer " *maple-translate* ")
-  :config
-  ;; (setq maple-translate-engine '(google dictcn youdao))
-  (setq maple-translate-engine '(google))
-
-  ;; with google translate
-  (setq maple-translate-google-url "https://translate.googleapis.com/translate_a/single")
-
-
-  (defun maple-translate-posframe-tip (result)
-    "Show STRING using posframe-show."
-    (unless (and (require 'posframe nil t) (posframe-workable-p))
-      (error "Posframe not workable"))
-
-    (if result
-        (progn
-          (with-current-buffer (get-buffer-create maple-translate-buffer)
-            (let ((inhibit-read-only t))
-              (erase-buffer)
-              (insert result)
-              (maple-translate-mode)
-              (goto-char (point-min))))
-          (posframe-show maple-translate-buffer
-                         :left-fringe 8
-                         :right-fringe 8
-                         :internal-border-color (face-foreground 'default)
-                         :internal-border-width 1)
-          (unwind-protect
-              (push (read-event) unread-command-events)
-            (progn
-              (posframe-hide maple-translate-buffer))))
-      (message "Nothing to look up")))
-
-  (defun maple-translate-posframe(word)
-    "Translate WORD and display result in posframe."
-    (interactive (list (maple-translate-word)))
-    (maple-translate-show word 'maple-translate-posframe-tip)))
-
 (use-package go-translate
   ;; :bind (("C-c g"   . gt-do-translate)
   ;;        ("C-c G"   . gt-do-translate-prompt)
@@ -911,236 +818,11 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
 
 ;;;; Look up
 
-(defun +lookup--run-handler (handler identifier)
-  (if (commandp handler)
-      (call-interactively handler)
-    (funcall handler identifier)))
-
-(defun +lookup--run-handlers (handler identifier origin)
-  (message "Looking up '%s' with '%s'" identifier handler)
-  (condition-case-unless-debug e
-      (let ((wconf (current-window-configuration))
-            (result (condition-case-unless-debug e
-                        (+lookup--run-handler handler identifier)
-                      (error
-                       (message "Lookup handler %S threw an error: %s" handler e)
-                       'fail))))
-        (cond ((eq result 'fail)
-               (set-window-configuration wconf)
-               nil)
-              ((or (get handler '+lookup-async)
-                   (eq result 'deferred)))
-              ((or result
-                   (null origin)
-                   (/= (point-marker) origin))
-               (prog1 (point-marker)
-                 (set-window-configuration wconf)))))
-    ((error user-error)
-     (message "Lookup handler %S: %s" handler e)
-     nil)))
-
-(defun +lookup--jump-to (prop identifier &optional display-fn arg)
-  (let* ((origin (point-marker))
-         (handlers
-          (plist-get (list :definition '+lookup-definition-functions
-                           :implementations '+lookup-implementations-functions
-                           :type-definition '+lookup-type-definition-functions
-                           :references '+lookup-references-functions
-                           :documentation '+lookup-documentation-functions
-                           :file '+lookup-file-functions)
-                     prop))
-         (result
-          (if arg
-              (if-let*
-                  ((handler
-                    (intern-soft
-                     (completing-read "Select lookup handler: "
-                                      (delete-dups
-                                       (remq t (append (symbol-value handlers)
-                                                       (default-value handlers))))
-                                      nil t))))
-                  (+lookup--run-handlers handler identifier origin)
-                (user-error "No lookup handler selected"))
-            (run-hook-wrapped handlers #'+lookup--run-handlers identifier origin))))
-    (unwind-protect
-        (when (cond ((null result)
-                     (message "No lookup handler could find %S" identifier)
-                     nil)
-                    ((markerp result)
-                     (funcall (or display-fn #'switch-to-buffer)
-                              (marker-buffer result))
-                     (goto-char result)
-                     result)
-                    (result))
-          (with-current-buffer (marker-buffer origin)
-            (better-jumper-set-jump (marker-position origin)))
-          result)
-      (set-marker origin nil))))
-
-
-;;
-;; Lookup backends
-
-(autoload 'xref--show-defs "xref")
-(defun +lookup--xref-show (fn identifier &optional show-fn)
-  (let ((xrefs (funcall fn
-                        (xref-find-backend)
-                        identifier)))
-    (when xrefs
-      (let* ((jumped nil)
-             (xref-after-jump-hook
-              (cons (lambda () (setq jumped t))
-                    xref-after-jump-hook)))
-        (funcall (or show-fn #'xref--show-defs)
-                 (lambda () xrefs)
-                 nil)
-        (if (cdr xrefs)
-            'deferred
-          jumped)))))
-
-(defun +lookup-xref-definitions-backend-fn (identifier)
-  "Non-interactive wrapper for `xref-find-definitions'"
-  (condition-case _
-      (+lookup--xref-show 'xref-backend-definitions identifier #'xref--show-defs)
-    (cl-no-applicable-method nil)))
-
-(defun +lookup-xref-references-backend-fn (identifier)
-  "Non-interactive wrapper for `xref-find-references'"
-  (condition-case _
-      (+lookup--xref-show 'xref-backend-references identifier #'xref--show-xrefs)
-    (cl-no-applicable-method nil)))
-
-(defun +lookup-dumb-jump-backend-fn (_identifier)
-  "Look up the symbol at point (or selection) with `dumb-jump', which conducts a
-project search with ag, rg, pt, or git-grep, combined with extra heuristics to
-reduce false positives.
-This backend prefers \"just working\" over accuracy."
-  (and (require 'dumb-jump nil t)
-       (dumb-jump-go)))
-
-(defun +lookup-project-search-backend-fn (identifier)
-  (when identifier
-    (+consult-ripgrep-at-point (+my/project-root) identifier)
-    t))
-
-(defun +lookup-ffap-backend-fn (identifier)
-  (require 'ffap)
-  (let ((guess
-         (cond ((doom-region-active-p)
-                (buffer-substring-no-properties
-                 (doom-region-beginning)
-                 (doom-region-end)))
-               ((ffap-guesser))
-               ((thing-at-point 'filename t))
-               (identifier))))
-    (when (and (stringp guess)
-               (or (file-exists-p guess)
-                   (ffap-url-p guess)))
-      (find-file-at-point guess))))
-
-;;
-;; Main commands
-
-;;;###autoload
-(defun +lookup/definition (identifier &optional arg)
-  "Jump to the definition of IDENTIFIER (defaults to the symbol at point).
-Each function in `+lookup-definition-functions' is tried until one changes the
-point or current buffer. Falls back to dumb-jump, naive
-ripgrep/the_silver_searcher text search, then `evil-goto-definition' if
-evil-mode is active."
-  (interactive (list (doom-thing-at-point-or-region)
-                     current-prefix-arg))
-  (cond ((null identifier) (user-error "Nothing under point"))
-        ((+lookup--jump-to :definition identifier nil arg))
-        ((error "Couldn't find the definition of %S" identifier))))
-
-;;;###autoload
-(defun +lookup/references (identifier &optional arg)
-  "Show a list of usages of IDENTIFIER (defaults to the symbol at point)
-Tries each function in `+lookup-references-functions' until one changes the
-point and/or current buffer. Falls back to a naive ripgrep/the_silver_searcher
-search otherwise."
-  (interactive (list (doom-thing-at-point-or-region)
-                     current-prefix-arg))
-  (cond ((null identifier) (user-error "Nothing under point"))
-        ((+lookup--jump-to :references identifier nil arg))
-        ((error "Couldn't find references of %S" identifier))))
-
-
-;;;###autoload
-(defun doom-region-active-p ()
-  "Return non-nil if selection is active.
-Detects evil visual mode as well."
-  (declare (side-effect-free t))
-  (or (use-region-p)
-      (and (bound-and-true-p evil-local-mode)
-           (evil-visual-state-p))))
-
-
-;;;###autoload
-(defun doom-region-beginning ()
-  "Return beginning position of selection.
-Uses `evil-visual-beginning' if available."
-  (declare (side-effect-free t))
-  (or (and (bound-and-true-p evil-local-mode)
-           (markerp evil-visual-beginning)
-           (marker-position evil-visual-beginning))
-      (region-beginning)))
-
-;;;###autoload
-(defun doom-region-end ()
-  "Return end position of selection.
-Uses `evil-visual-end' if available."
-  (declare (side-effect-free t))
-  (if (bound-and-true-p evil-local-mode)
-      evil-visual-end
-    (region-end)))
-
-;;;###autoload
-(defun doom-thing-at-point-or-region (&optional thing prompt)
-  "Grab the current selection, THING at point, or xref identifier at point.
-Returns THING if it is a string. Otherwise, if nothing is found at point and
-PROMPT is non-nil, prompt for a string (if PROMPT is a string it'll be used as
-the prompting string). Returns nil if all else fails.
-NOTE: Don't use THING for grabbing symbol-at-point. The xref fallback is smarter
-in some cases."
-  (declare (side-effect-free t))
-  (cond ((stringp thing)
-         thing)
-        ((doom-region-active-p)
-         (buffer-substring-no-properties
-          (doom-region-beginning)
-          (doom-region-end)))
-        (thing
-         (thing-at-point thing t))
-        ((require 'xref nil t)
-         ;; Eglot, nox (a fork of eglot), and elpy implementations for
-         ;; `xref-backend-identifier-at-point' betray the documented purpose of
-         ;; the interface. Eglot/nox return a hardcoded string and elpy prepends
-         ;; the line number to the symbol.
-         (if (memq (xref-find-backend) '(eglot elpy nox))
-             (thing-at-point 'symbol t)
-           ;; A little smarter than using `symbol-at-point', though in most
-           ;; cases, xref ends up using `symbol-at-point' anyway.
-           (xref-backend-identifier-at-point (xref-find-backend))))
-        (prompt
-         (read-string (if (stringp prompt) prompt "")))))
-
-
-(defvar +lookup-definition-functions
-  '(+lookup-xref-definitions-backend-fn
-    +lookup-dumb-jump-backend-fn
-    +lookup-ffap-backend-fn
-    +lookup-project-search-backend-fn))
-
-(defvar +lookup-references-functions
-  '(+lookup-xref-references-backend-fn
-    +lookup-project-search-backend-fn))
-
 ;;
 ;; dumb-jump
 
 (use-package dumb-jump
+  :hook (xref-backend-functions . dumb-jump-xref-activate)
   :commands dumb-jump-result-follow
   :config
   (setq dumb-jump-default-project "~/.emacs.d/"
@@ -5606,7 +5288,8 @@ kill the current timer, this may be a break or a running pomodoro."
     "/" '+my/consult-line
     "?" '+my/consult-line-symbol-at-point
     "gd" 'xref-find-definitions
-    "gr" 'xref-find-references)
+    "gr" 'xref-find-references
+    "gD" 'xref-find-definitions-other-window)
 
   ;; Navigation
   (general-def 'insert
