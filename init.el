@@ -25,6 +25,13 @@
   (remove-hook 'pre-command-hook '+my/first-input-hook-fun))
 (add-hook 'pre-command-hook '+my/first-input-hook-fun)
 
+(defvar default-file-name-handler-alist file-name-handler-alist)
+(setq file-name-handler-alist nil)
+
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq file-name-handler-alist default-file-name-handler-alist)))
+
 
 ;;; Const
 ;; Load env
@@ -2020,7 +2027,7 @@ It handles the case of remote files as well."
   :init
   (setq auto-save-default nil)
   :config
-  (add-to-list 'super-save-triggers 'switch-window)
+  ;; (add-to-list 'super-save-triggers 'switch-window)
   (add-to-list 'super-save-triggers 'switch-to-buffer)
   (add-to-list 'super-save-triggers 'eglot-rename)
   (add-to-list 'super-save-triggers 'consult-buffer)
@@ -4582,7 +4589,7 @@ If prefix ARG, copy instead of move."
   (setq
    org-src-window-setup 'current-window
    org-element--cache-self-verify nil
-   org-element-use-cache nil
+   org-element-use-cache t
    org-src-preserve-indentation nil
    org-edit-src-content-indentation 0
    org-capture-bookmark nil
