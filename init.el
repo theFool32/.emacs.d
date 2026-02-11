@@ -454,41 +454,36 @@ REST and STATE."
     (end-of-line)
     (point)))
 
+
 (defun +my/auto-act-today-and-current-week ()
-  (let ((act-today-points '())
-        (act-month-points '())
-        (act-week-points '())
-        (act-month-tag ":ACT_MONTH:")
-        (act-today-tag ":ACT_TODAY:")
-        (act-week-tag ":ACT_WEEK:"))
+  "Keep only the FIRST occurrence of ACT tags in the file, removing duplicates downstream.
+Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
+  (interactive)
+  (let* ((target-tags '("ACT_TODAY" "ACT_WEEK" "ACT_MONTH"))
+         ;; 使用 alist 记录标签是否已出现过: (("ACT_TODAY" . nil) ...)
+         (seen-status (mapcar (lambda (tag) (cons tag nil)) target-tags)))
+
     (org-map-entries
      (lambda ()
-       (let ((tag-string (car (last (org-heading-components)))))
-         (when tag-string
-           (when (string= tag-string act-today-tag)
-             (push (point) act-today-points))
-           (when (string= tag-string act-week-tag)
-             (push (point) act-week-points))
-           (when (string= tag-string act-month-tag)
-             (push (point) act-month-points))))))
+       (let* ((current-tags (org-get-tags nil t)) ; 获取当前标题的本地标签（不含继承）
+              (original-tags current-tags)        ; 保存副本用于比对
+              (tags-modified nil))
 
-    (when (length> act-month-points 1)
-      (dolist (p (cdr (reverse act-month-points)))
-        (save-excursion
-          (goto-char p)
-          (org-toggle-tag (substring act-month-tag 1 -1)))))
-    (when (length> act-today-points 1)
-      (dolist (p (cdr (reverse act-today-points)))
-        (save-excursion
-          (goto-char p)
-          (org-toggle-tag (substring act-today-tag 1 -1)))))
-    (when (length> act-week-points 1)
-      (dolist (p (cdr (reverse act-week-points)))
-        (save-excursion
-          (goto-char p)
-          (org-toggle-tag (substring act-week-tag 1 -1)))))
-    ))
+         ;; 遍历我们需要检查的目标标签
+         (dolist (target target-tags)
+           (when (member target current-tags)
+             ;; 检查该标签是否在这个文件中已经出现过
+             (if (alist-get target seen-status nil nil #'equal)
+                 ;; Case 1: 之前已经出现过（即当前是重复项），需要删除
+                 (setq current-tags (delete target current-tags)
+                       tags-modified t)
+               ;; Case 2: 第一次出现，标记状态为“已见”，保留该标签
+               (setf (alist-get target seen-status nil nil #'equal) t))))
 
+         ;; 只有当标签列表确实发生变化时，才执行写入操作
+         (when tags-modified
+           (org-set-tags current-tags))))
+     nil 'file)))
 
 (defvar project--ignore-list
   '("/opt/homebrew/"))
