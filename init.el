@@ -1206,8 +1206,16 @@ in some cases."
   )
 
 (use-package avy
-
   :commands (avy-goto-char avy-goto-line))
+
+(use-package flash-emacs
+  :ensure (:host github :repo "JiaweiChenC/flash-emacs")
+  :config
+  (defun flash-emacs--set-jump-before-jump (&rest _args)
+    "Set a jump point before running `flash-emacs-jump`."
+    (better-jumper-set-jump))
+  (advice-add 'flash-emacs-jump :before #'flash-emacs--set-jump-before-jump))
+
 
 (use-package wgrep
   :demand t
@@ -5865,7 +5873,8 @@ begin and end of the block surrounding point."
     "fEs" '(set-buffer-file-coding-system :wk "Set encoding")
 
     "j" '(:wk "Jump")
-    "jj" '(evil-avy-goto-char :wk "Jump to character")
+    ;; "jj" '(evil-avy-goto-char :wk "Jump to character")
+    "jj" '(flash-emacs-jump :wk "Flash Jump")
     "jl" '(evil-avy-goto-line :wk "Jump to line")
     "je" '(+vertico/jump-list :wk "Jump-list")
 
