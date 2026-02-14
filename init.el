@@ -739,7 +739,7 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
 ;;;; English
 
 ;;  FIXME: hang
-(use-package go-translate
+(use-package gt
   ;; :bind (("C-c g"   . gt-do-translate)
   ;;        ("C-c G"   . gt-do-translate-prompt)
   ;;        ("C-c u"   . gt-do-text-utility)
@@ -1240,7 +1240,7 @@ targets."
                 :hidden   t
                 :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
 
-  (setq consult-buffer-sources '(consult--source-buffer consult--source-hidden-buffer consult--source-recent-file consult--source-project-file))
+  (setq consult-buffer-sources '(consult-source-buffer consult-source-hidden-buffer consult-source-recent-file consult--source-project-file))
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
 
   (defun consult-imenu--create-key-name-eglot (prefix item types)
@@ -2839,15 +2839,15 @@ kill all magit buffers for this repo."
             (delete-window window)))))
     (advice-add #'keyboard-quit :before #'popper-close-window-hack)))
 
-
 (use-package ef-themes
-  :ensure (:host github :repo "protesilaos/ef-themes")
-  :init
-  ;;  HACK: do not load unused themes
-  (dolist (theme '(ef-winter ef-tritanopia-dark ef-trio-dark ef-night ef-duo-dark ef-deuteranopia-dark ef-dark ef-cherie ef-bio ef-autumn ef-tritanopia-light ef-summer ef-spring ef-light ef-frost ef-duo-light ef-deuteranopia-light ef-day ef-cyprus ef-trio-light))
-    (add-to-list 'custom-known-themes theme))
-  (ef-themes-select 'ef-trio-light)
+  :ensure t
+  :hook (window-setup . ef-themes-take-over-modus-themes-mode)
   :config
+  ;; All customisations here.
+  (setq modus-themes-mixed-fonts t)
+  (setq modus-themes-italic-constructs t)
+  (modus-themes-load-theme 'ef-owl)
+
   (with-eval-after-load 'org
     ;; (custom-set-faces '(org-done ((t (:foreground "gray")))))
     (setq org-todo-keyword-faces
