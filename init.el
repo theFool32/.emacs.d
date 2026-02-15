@@ -842,12 +842,6 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
   (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
   :hook ((xref-after-return xref-after-jump) . recenter))
 
-
-;; The lookup commands are superior, and will consult xref if there are no
-;; better backends available.
-(global-set-key [remap xref-find-definitions] #'+lookup/definition)
-(global-set-key [remap xref-find-references]  #'+lookup/references)
-
 (use-package better-jumper
   :hook (+my/first-input . better-jumper-mode)
   :commands doom-set-jump-a
@@ -886,6 +880,8 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
   :commands (avy-goto-char avy-goto-line))
 
 (use-package flash-emacs
+  :after evil
+  :commands (flash-emacs-jump)
   :ensure (:host github :repo "JiaweiChenC/flash-emacs")
   :config
   (defun flash-emacs--set-jump-before-jump (&rest _args)
@@ -1222,8 +1218,8 @@ targets."
   (defun consult-project--project-files ()
     "Compute the project files given the ROOT."
     (when-let* ((root (consult--project-root))
-           (project (project--find-in-directory root))
-           (files (project-files project)))
+                (project (project--find-in-directory root))
+                (files (project-files project)))
       (mapcar (lambda (f)
                 (let* ((filename (file-relative-name f root))
                        (abs-filename (expand-file-name f root))
@@ -1342,33 +1338,13 @@ TYPES is the mode-specific types configuration."
   :custom
   (consult-git-log-grep-open-function #'magit-show-commit))
 
-;;  TODO: consult-todo-project accept git files
 (use-package consult-todo
-  :ensure (:host github :repo "theFool32/consult-todo" :branch "dev")
+  ;; :ensure (:host github :repo "theFool32/consult-todo" :branch "dev")
+  :ensure (:host local :repo "/Users/lijie/dev/consult-todo/")
   :demand t
   :config
-  (when *rg*
-    ;;  HACK: speed up with `ripgrep'
-    ;; (grep-apply-setting 'grep-find-template "find <D> <X> -type f <F> -exec rg <C> --no-heading -H  <R> /dev/null {} +")
-    (grep-apply-setting 'grep-template "rg --no-heading -H <R> <D>")
-
-    (defun consult-todo-dir (&optional directory files)
-      "Jump to hl-todo keywords in FILES in DIRECTORY.
-If optinal arg FILES is nil, search in all files.
-If optional arg DIRECTORY is nil, rgrep in default directory."
-      (interactive)
-      (let* ((files (or files "* .*"))
-             (directory (or directory default-directory)))
-        (add-hook 'compilation-finish-functions #'consult-todo--candidates-rgrep)
-        (cl-letf ((compilation-buffer-name-function
-                   (lambda (&rest _) (format "*consult-todo-%s*" directory))))
-          (save-window-excursion
-            ;;  HACK: use `lgrep' instead `find'
-            (lgrep (concat  "\\b" (replace-regexp-in-string "\\\\[<>]*" "" (hl-todo--regexp)) "\\b") files directory)
-            ))))
-    )
+  (consult-todo-use-rg t)
   )
-
 
 (use-package orderless
   :after-call elpaca-after-init-hook
@@ -1647,13 +1623,6 @@ It handles the case of remote files as well."
 
 (use-package restart-emacs
   :commands restart-emacs)
-
-(use-package atomic-chrome
-  :defer
-  :commands (atomic-chrome-start-server)
-  :config
-  (setq atomic-chrome-url-major-mode-alist
-	    '(("overleaf\\.com" . LaTeX-mode))))
 
 (use-package tramp
   :defer 60
@@ -5277,6 +5246,7 @@ kill the current timer, this may be a break or a running pomodoro."
 
   (local-leader-def
     "w" 'evil-avy-goto-word-1
+    "f" 'flash-emacs-jump
     "/" 'evilnc-comment-or-uncomment-lines)
 
   (general-evil-define-key 'normal
