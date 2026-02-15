@@ -1499,19 +1499,8 @@ Quit if no candidate is selected."
   (defun my/convert-super-capf (arg-capf)
     (list
      #'cape-file
-     ;; (cape-capf-buster
-     (if +self/use-tabnine
-         (cape-capf-super
-          arg-capf
-          #'tabnine-capf)
-       (cape-capf-super
-        arg-capf)
-       )
-     ;; 'equal)
+     (cape-capf-super arg-capf)
      #'tmux-capf
-     ;; #'cape-dabbrev
-     ;; #'eng-capf
-     ;; #'cape-dict
      ))
 
   (defun my/set-basic-capf ()
@@ -1538,15 +1527,6 @@ Quit if no candidate is selected."
   :config
   (fset 'eng-capf (cape-capf-interactive #'corfu-english-helper-search))
   )
-
-(use-package tabnine-capf
-  :if +self/use-tabnine
-  :after cape
-  :commands (tabnine-capf tabnine-capf-start-process)
-  :ensure (:host github :repo "50ways2sayhard/tabnine-capf" :files ("*.el" "*.sh" "*.py"))
-  :hook ((kill-emacs . tabnine-capf-kill-process))
-  :config
-  (defalias 'tabnine-capf 'tabnine-completion-at-point))
 
 (use-package tmux-capf
   :ensure (:host github :repo "theFool32/tmux-capf" :files ("*.el" "*.sh"))
@@ -2570,37 +2550,27 @@ kill all magit buffers for this repo."
 
 
 ;;;; GPT
-(use-package gptel
-  :ensure t)
+(use-package gptel :ensure t)
 
-;;  TODO: a better workflow
-(use-package aidermacs
-  :ensure (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
-  :config
-  (when (boundp 'deepseek-key)
-    (setenv "DEEPSEEK_API_KEY" deepseek-key))
-  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
+(use-package agent-shell
+  :hook (agent-shell-mode . (lambda () (add-to-list 'completion-at-point-functions #'cape-dabbrev)))
+  :commands (agent-shell agent-shell-toggle)
+  :bind (:map agent-shell-mode-map
+              ("C-c m" . agent-shell-help-menu))
+  :custom
+  (agent-shell-file-completion-enabled t)
+  (agent-shell-display-action '((display-buffer-in-side-window)
+                                (side . right)
+                                (slot . 0)
+                                (window-width . 0.27)
+                                (dedicated . t)
+                                (window-parameters . ((no-delete-other-windows . t)))))
+  )
 
-(use-package claude-code
-  :disabled
-  :straight (:type git :host github :repo "stevemolitor/claude-code.el" :branch "main" :depth 1
-                   :files ("*.el" (:exclude "images/*")))
-  :bind-keymap
-  ("C-c c" . claude-code-command-map)
-  :config
-  (setq claude-code-terminal-backend 'eat)
-  ;; (setq claude-code-program "ccr")
-  ;; (setq claude-code-program-switches '("code"))
-
-  (claude-code-mode))
-
-
-(use-package claude-code-ide
-  :ensure (:type git :host github :repo "manzaltu/claude-code-ide.el")
-  :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
-  :config
-  (setq claude-code-ide-terminal-backend 'eat)
-  (claude-code-ide-emacs-tools-setup))
+(use-package opencode
+  :ensure (opencode :type git :host codeberg :repo "sczi/opencode.el")
+  :bind (:map comint-mode-map
+              ("s-<RET>" . newline)))
 
 (use-package minuet
   :bind
@@ -2739,7 +2709,6 @@ kill all magit buffers for this repo."
           (unit :style "cod" :icon "symbol_ruler" :face font-lock-constant-face)
           (value :style "cod" :icon "symbol_field" :face font-lock-builtin-face)
           (variable :style "cod" :icon "symbol_variable" :face font-lock-variable-name-face)
-          (tabnine :style "cod" :icon "hubot" :face font-lock-warning-face)
           (unknown :style "cod" :icon "code" :face font-lock-warning-face)
           (t :style "cod" :icon "code" :face font-lock-warning-face)))
   (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
@@ -5408,7 +5377,8 @@ kill the current timer, this may be a break or a running pomodoro."
     "aa" '(gptel-add :wk "Add")
     "as" '(gptel-send :wk "Send")
     "ar" '(gptel-rewrite :wk "Rewrite")
-    "ai" '(aidermacs-transient-menu :wk "Aider")
+    "ao" '(opencode :wk "OpenCode")
+    "ag" '(agent-shell :wk "Agent Shell")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
