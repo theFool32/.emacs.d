@@ -1339,8 +1339,7 @@ TYPES is the mode-specific types configuration."
   (consult-git-log-grep-open-function #'magit-show-commit))
 
 (use-package consult-todo
-  ;; :ensure (:host github :repo "theFool32/consult-todo" :branch "dev")
-  :ensure (:host local :repo "/Users/lijie/dev/consult-todo/")
+  :ensure (:host github :repo "theFool32/consult-todo" :branch "dev")
   :demand t
   :config
   (consult-todo-use-rg t)
