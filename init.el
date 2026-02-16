@@ -2562,15 +2562,19 @@ kill all magit buffers for this repo."
   (agent-shell-display-action '((display-buffer-in-side-window)
                                 (side . right)
                                 (slot . 0)
-                                (window-width . 0.27)
+                                (window-width . 0.38)
                                 (dedicated . t)
                                 (window-parameters . ((no-delete-other-windows . t)))))
   )
 
+
+;;  FIXME: 显示不正确
 (use-package opencode
   :ensure (opencode :type git :host codeberg :repo "sczi/opencode.el")
   :bind (:map comint-mode-map
-              ("s-<RET>" . newline)))
+              ("s-<RET>" . newline))
+  :config
+  (setq opencode-auto-start-server t))
 
 (use-package minuet
   :bind
