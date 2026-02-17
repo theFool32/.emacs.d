@@ -71,3 +71,5 @@ dirvish
 init.elc
 elpaca
 .aider*
+.agent-shell
+AGENTS.md
