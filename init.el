@@ -35,38 +35,34 @@
 
 ;;; Const
 ;; Load env
-(let ((my-env-file (concat user-emacs-directory "env")))
-  (when (and (or (display-graphic-p)
-                 (daemonp))
-             (file-exists-p my-env-file))
-    (if (file-readable-p my-env-file)
-        (let (envvars environment)
-          (with-temp-buffer
-            (save-excursion
-              (insert "\n")
-              (insert-file-contents my-env-file))
-            (while (re-search-forward "\n *\\([^#= \n]*\\)=" nil t)
-              (push (match-string 1) envvars)
-              (push (buffer-substring
-                     (match-beginning 1)
-                     (1- (or (save-excursion
-                               (when (re-search-forward "^\\([^= ]+\\)=" nil t)
-                                 (line-beginning-position)))
-                             (point-max))))
-                    environment)))
-          (when environment
-            (setq process-environment
-                  (append (nreverse environment) process-environment)
-                  exec-path
-                  (if (member "PATH" envvars)
-                      (append (split-string (getenv "PATH") path-separator t)
-                              (list exec-directory))
-                    exec-path)
-                  shell-file-name
-                  (if (member "SHELL" envvars)
-                      (or (getenv "SHELL") shell-file-name)
-                    shell-file-name))
-            envvars)))))
+(let ((my-env-file (expand-file-name "env" user-emacs-directory)))
+  ;; 仅在 GUI 或 Daemon 模式下，且文件存在时运行
+  (when (and (or (display-graphic-p) (daemonp))
+             (file-readable-p my-env-file))
+    (with-temp-buffer
+      (insert-file-contents my-env-file)
+      ;; 按行处理，更清晰
+      (dolist (line (split-string (buffer-string) "\n" t))
+        ;; 忽略注释行 (#开头) 和空行
+        (unless (string-prefix-p "#" line)
+          (let ((parts (split-string line "=" t)))
+            ;; 确保至少有一个 "=" 分割 key 和 value
+            (when (cdr parts)
+              (let ((key (car parts))
+                    ;; Value 可能是 "A=B=C" 这种形式，需要把剩下的拼回去
+                    (val (mapconcat #'identity (cdr parts) "=")))
+                ;; 使用 Emacs 内置 API 设置环境变量
+                (setenv key val)))))))
+
+    ;; 环境变量加载完毕后，根据新的 PATH 更新 exec-path
+    (let ((new-path (getenv "PATH")))
+      (when new-path
+        (setq exec-path (split-string new-path path-separator))))
+
+    ;; 根据新的 SHELL 更新 shell-file-name
+    (let ((new-shell (getenv "SHELL")))
+      (when new-shell
+        (setq shell-file-name new-shell)))))
 
 ;; UserInfo
 (setq user-full-name "theFool32")
@@ -100,44 +96,53 @@
 
 ;;; Package Manager
 ;;;; Use-package after-call
-(defvar +use-package--deferred-pkgs '(t))
+(require 'use-package-core)
+
 (defun use-package-handler/:after-call (name _keyword hooks rest state)
   "Add keyword `:after-call' to `use-package'.
-The purpose of this keyword is to expand the lazy-loading
-capabilities of `use-package'.  Consult `use-package-concat' and
-`use-package-process-keywords' for documentations of NAME, HOOKS,
-REST and STATE."
+Trigger loading of the package when any symbol in HOOKS is called
+or triggered (if it is a hook variable)."
   (if (plist-get state :demand)
       (use-package-process-keywords name rest state)
-    (let ((fn (make-symbol (format "grandview--after-call-%s-h" name))))
+    (let ((fn-sym (make-symbol (format "use-package--after-call-%s-h" name)))
+          (hook-forms nil)
+          (advice-forms nil)
+          (cleanup-forms nil))
+
+      ;; 1. 编译期预处理：区分 Hook 和 Advice
+      (dolist (sym hooks)
+        (if (string-match-p "-\\(?:functions\\|hook\\)$" (symbol-name sym))
+            ;; 处理 Hook 变量
+            (progn
+              (push `(add-hook ',sym #',fn-sym) hook-forms)
+              (push `(remove-hook ',sym #',fn-sym) cleanup-forms))
+          ;; 处理函数 Advice
+          (push `(advice-add #',sym :before #',fn-sym) advice-forms)
+          (push `(advice-remove #',sym #',fn-sym) cleanup-forms)))
+
       (use-package-concat
-       `((fset ',fn
+       ;; 2. 定义一次性处理函数
+       `((fset ',fn-sym
                (lambda (&rest _)
+                 ;; 移除自身的清理逻辑 (Self-cleanup)
+                 ,@cleanup-forms
+                 ;; 加载包
                  (condition-case e
                      (let ((default-directory user-emacs-directory))
                        (require ',name))
                    ((debug error)
-                    (message "Failed to load deferred package %s: %s" ',name e)))
-                 (when-let* ((deferral-list (assq ',name +use-package--deferred-pkgs)))
-                   (dolist (hook (cdr deferral-list))
-                     (advice-remove hook #',fn)
-                     (remove-hook hook #',fn))
-                   (setq +use-package--deferred-pkgs
-                         (delq deferral-list +use-package--deferred-pkgs))
-                   (unintern ',fn nil)))))
-       (cl-loop for hook in hooks
-                collect (if (string-match-p "-\\(?:functions\\|hook\\)$" (symbol-name hook))
-                            `(add-hook ',hook #',fn)
-                          `(advice-add #',hook :before #',fn)))
-       `((unless (assq ',name +use-package--deferred-pkgs)
-           (push '(,name) +use-package--deferred-pkgs))
-         (nconc (assq ',name +use-package--deferred-pkgs)
-                '(,@hooks)))
+                    (message "Failed to load deferred package %s: %s" ',name e))))))
+       ;; 3. 注册 Hook 和 Advice
+       hook-forms
+       advice-forms
+       ;; 4. 继续处理后续关键字
        (use-package-process-keywords name rest state)))))
-;; (require 'use-package-core)
-(require 'use-package)
-(push :after-call use-package-deferring-keywords)
+
+;; 注册关键字
+(add-to-list 'use-package-deferring-keywords :after-call)
 (setq use-package-keywords (use-package-list-insert :after-call use-package-keywords :after))
+
+;; 定义规范化逻辑 (确保参数总是列表)
 (defalias 'use-package-normalize/:after-call #'use-package-normalize-symlist)
 
 ;;;; elpaca
@@ -357,52 +362,62 @@ REST and STATE."
       (read-file-name "File:" default-directory buffer-file-name))))
   (call-process-shell-command (concat "qlmanage -p \"" (expand-file-name file) "\"")))
 
-
 (defun +my/org-datetree-find-date-create (&optional time)
-  "Find or create date tree for TIME."
+  "Find or create date tree for TIME.
+Ensure 'Daily Goals' and 'Archived' exist as children of the date."
   (interactive)
   (let* ((time (or time (current-time)))
+         (is-today (string= (format-time-string "%F" time)
+                            (format-time-string "%F" (current-time))))
          (goal-text "Daily Goals")
          (archived-text "Archived")
-         (arg-time (decode-time time))
-         (today-time (decode-time (current-time)))
-         (same-day (and (= (nth 3 arg-time) (nth 3 today-time))
-                        (= (nth 4 arg-time) (nth 4 today-time))
-                        (= (nth 5 arg-time) (nth 5 today-time))))
-         (has-goal nil)
-         (has-archived nil)
-         (archived-point nil))
+         parent-level
+         target-level-stars)
+
+    ;; 1. 定位到日期节点
     (org-reverse-datetree-goto-date-in-file time)
-    (org-fold-show-children)
-    (if (org-goto-first-child)
-        (progn
-          (while (progn
-                   (let ((heading (org-element-property :title (org-element-at-point))))
-                     (cond
-                      ((string= heading goal-text)
-                       (setq has-goal t)
-                       (when same-day (org-toggle-tag "ACT_TODAY" 'on)))
-                      ((string= heading archived-text)
-                       (setq has-archived t)
-                       (setq archived-point (point)))))
-                   (org-goto-sibling)))
-          (unless has-goal
-            (org-insert-heading nil)
-            (insert goal-text)
-            (when same-day (org-toggle-tag "ACT_TODAY" 'on)))
-          (unless has-archived
-            (org-insert-heading nil)
-            (insert archived-text)
-            (setq archived-point (point))))
-      (org-insert-subheading nil)
-      (insert goal-text)
-      (when same-day (org-toggle-tag "ACT_TODAY" 'on))
-      (org-insert-heading-after-current)
-      (insert archived-text)
-      (setq archived-point (point)))
-    (goto-char archived-point)
-    (end-of-line)
-    (point)))
+    (org-fold-show-subtree) ;; 展开子树，确保可见
+
+    ;; 2. 关键修复：获取当前日期节点的层级，并计算子节点应有的星号数量
+    (setq parent-level (org-current-level))
+    (setq target-level-stars (make-string (1+ parent-level) ?*))
+
+    ;; 3. 限制搜索范围在当前日期内
+    (save-restriction
+      (org-narrow-to-subtree)
+
+      ;; --- 处理 Daily Goals ---
+      (goto-char (point-min))
+      ;; 使用精确的正则搜索：开头必须是 N+1 个星号 + 空格 + 标题
+      (if (re-search-forward
+           (format "^%s +%s *$" (regexp-quote target-level-stars) (regexp-quote goal-text))
+           nil t)
+          ;; Case A: 找到了，确保 Tag 存在
+          (when is-today (org-toggle-tag "ACT_TODAY" 'on))
+
+        ;; Case B: 没找到，在末尾创建
+        (goto-char (point-max))
+        ;; 确保在新的一行
+        (unless (bolp) (insert "\n"))
+        ;; 显式插入 N+1 个星号，保证层级正确
+        (insert target-level-stars " " goal-text)
+        (when is-today (org-toggle-tag "ACT_TODAY" 'on)))
+
+      ;; --- 处理 Archived ---
+      (goto-char (point-min))
+      (if (re-search-forward
+           (format "^%s +%s *$" (regexp-quote target-level-stars) (regexp-quote archived-text))
+           nil t)
+          ;; Case A: 找到了
+          (end-of-line)
+
+        ;; Case B: 没找到
+        (goto-char (point-max))
+        (unless (bolp) (insert "\n"))
+        (insert "\n" target-level-stars " " archived-text))
+
+      ;; 返回当前点（即 Archived 的末尾）
+      (point))))
 
 
 (defun +my/auto-act-today-and-current-week ()
@@ -738,7 +753,6 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
 ;;; Search
 ;;;; English
 
-;;  FIXME: hang
 (use-package gt
   ;; :bind (("C-c g"   . gt-do-translate)
   ;;        ("C-c G"   . gt-do-translate-prompt)
@@ -748,7 +762,7 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
   ;;        ("C-c d p" . gt-do-speak)
   ;;        ("C-c d s" . gt-do-setup)
   ;;        ("C-c d u" . gt-do-text-utility))
-  :commands (gt-do-translate-prompt gt-do-text-utility)
+  :commands (gt-do-translate-prompt gt-do-text-utility gt-translate)
   :init
   (setq gt-langs '(en zh)
         gt-buffer-render-follow-p t
@@ -3203,32 +3217,43 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 (with-eval-after-load 'evil
   (defun my/evil-paren-range (count beg end type inclusive)
     "Get minimum range of paren text object.
-    COUNT, BEG, END, TYPE is used.  If INCLUSIVE is t, the text object is inclusive."
+    Optimized version of my/evil-paren-range."
     (let* ((cur-point (point))
-           (parens '("()" "[]" "{}" "<>"))
-           (quotes '("\"" "'"))
-           (pqs (append parens quotes))
-           range
-           found-range)
-      ;; HACK: ' is widely used in lisp
-      (when (derived-mode-p 'emacs-lisp-mode)
-        (setq pqs (butlast pqs)))
-      (dolist (p pqs)
-        (save-excursion
-          (ignore-errors
-            (if (member p parens)
-                (setq range (evil-select-paren (aref p 0) (aref p 1) beg end type count inclusive))
-              (setq range (evil-select-quote (aref p 0) beg end type count)))))
-        (when (and range
-                   (<= (car range) cur-point)
-                   (>= (cadr range) cur-point))
-          (if found-range
-              (when (< (- (cadr range) (car range))
-                       (- (cadr found-range) (car found-range)))
-                (setf (car found-range) (car range))
-                (setf (cadr found-range) (cadr range)))
-            (setq found-range range))))
-      found-range))
+           ;; 定义所有待检测的符号及其对应的处理函数
+           ;; 格式: (开符号 闭符号 处理函数)
+           (candidates `((?( ?) ,#'evil-select-paren)
+                         (?[ ?] ,#'evil-select-paren)
+                         (?{ ?} ,#'evil-select-paren)
+                         (?< ?> ,#'evil-select-paren)
+                         (?\" ?\" ,#'evil-select-quote)))
+           ;; 结果变量
+           (min-range nil)
+           ;; 初始化最小长度为最大整数，方便比较
+           (min-length most-positive-fixnum))
+
+      ;; 除非在 emacs-lisp-mode，否则加入单引号检测
+      (unless (derived-mode-p 'emacs-lisp-mode)
+        (push '(?\' ?\' evil-select-quote) candidates))
+
+      (dolist (cand candidates)
+        (cl-destructuring-bind (open close func) cand
+          ;; 每次检测前保护现场，防止 evil 函数移动光标影响下一次检测
+          (save-excursion
+            (ignore-errors
+              (let ((range (if (eq func #'evil-select-quote)
+                               (funcall func open beg end type count)
+                             (funcall func open close beg end type count inclusive))))
+                ;; 检查 range 是否有效且包围了当前光标
+                (when (and range
+                           (<= (car range) cur-point)
+                           (>= (cadr range) cur-point))
+                  (let ((len (- (cadr range) (car range))))
+                    ;; 如果找到更小的范围，更新结果
+                    (when (< len min-length)
+                      (setq min-length len
+                            min-range range)))))))))
+      min-range))
+
   (evil-define-text-object my/evil-a-paren (count &optional beg end type)
     "Select a paren."
     :extend-selection t
@@ -3243,19 +3268,25 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 
   (defun my/edit-kill ()
     (interactive)
-    (let* ((parens '("(" ")" "[" "]" "{" "}" "<" ">" "\""))
-           (char (string (char-after))))
-      ;;  HACK: ' is widely used in lisp
-      (when (not (derived-mode-p 'emacs-lisp-mode))
-        (push "'" parens))
-      (setq unread-command-events
-            (append (apply 'vconcat (mapcar 'kbd
-                                            (if (and (not (nth 3 (syntax-ppss)))
-                                                     (member char parens))
-                                                `("d" "a" ,char)
-                                              ;; '("d" "i" "g")
-                                              '("v" "i" "g" "x")
-                                              ))) nil))))
+    (let* ((char (char-after))
+           ;; 1. 使用字符字面量 (Integers) 代替字符串列表，大幅减少转换和内存开销
+           (parens '(?\( ?\) ?\[ ?\] ?\{ ?\} ?\< ?\> ?\"))
+           ;; 2. 提前计算按键序列，逻辑与副作用分离
+           (keys
+            (if (and (not (nth 3 (syntax-ppss))) ; 不在字符串内
+                     (or (memq char parens)      ; 是定义的包围符
+                         ;; 3. HACK: 非 Elisp 模式下包含单引号
+                         (and (not (derived-mode-p 'emacs-lisp-mode))
+                              (eq char ?'))))
+                ;; 分支 A: 如果是包围符，模拟 "da" + 字符
+                (vector ?d ?a char)
+              ;; 分支 B: 否则模拟 "vigx" (选中 inner g? 并剪切)
+              (vconcat "vigx"))))
+
+      ;; 4. 标准化设置未读事件
+      (setq unread-command-events (listify-key-sequence keys))))
+
+
   (with-eval-after-load 'general
     (general-define-key
      :keymaps '(evil-normal-state-map)
@@ -5360,7 +5391,7 @@ kill the current timer, this may be a break or a running pomodoro."
 
     "o" '(:wk "Open")
     "om" '((lambda () (interactive) (mu4e)) :wk "Mail")
-    "oy" '(gt-do-translate :wk "Translate at point")
+    "oy" '(gt-translate :wk "Translate at point")
     "oY" '(gt-do-translate-prompt :wk "Translate")
     ;; "oY" '((lambda () (interactive) (maple-translate+ (read-from-minibuffer "Translate word: "))):wk "Translate")
     "oe" '((lambda() (interactive)(if (get-buffer "vterm") (switch-to-buffer "vterm") (call-interactively #'vterm))) :wk "Shell")
