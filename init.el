@@ -2235,7 +2235,7 @@ kill all magit buffers for this repo."
   :after-call toggle-input-method
   :if +self/use-rime
   :init
-  (setq rime-librime-root "~/.emacs.d/librime/dist/"
+  (setq rime-librime-root (or (getenv "LIBRIME_PATH") "~/.emacs.d/librime/dist/")
         rime-user-data-dir "~/.emacs.d/Rime/"
         default-input-method "rime")
 

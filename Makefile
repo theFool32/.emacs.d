@@ -10,6 +10,7 @@ install_emacs:
 env:
 	@printenv > ~/.emacs.d/env
 	@echo MU_PATH=`brew --prefix mu` >> ~/.emacs.d/env
+	@echo LIBRIME_PATH=`brew --prefix librime` >> ~/.emacs.d/env
 
 custom:
 	@test -f init-custom.el || cp init-custom-example.el init-custom.el
