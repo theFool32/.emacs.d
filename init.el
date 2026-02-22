@@ -148,7 +148,7 @@ or triggered (if it is a hook variable)."
 ;;;; elpaca
 
 ;;  FIXME: still slow when startup (~0.5s)
-(defvar elpaca-installer-version 0.9)
+(defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
@@ -3221,8 +3221,8 @@ Otherwise it builds `prettify-code-symbols-alist' according to
     (let* ((cur-point (point))
            ;; 定义所有待检测的符号及其对应的处理函数
            ;; 格式: (开符号 闭符号 处理函数)
-           (candidates `((?( ?) ,#'evil-select-paren)
-                         (?[ ?] ,#'evil-select-paren)
+           (candidates `((?\( ?\) ,#'evil-select-paren)
+                         (?\[ ?\] ,#'evil-select-paren)
                          (?{ ?} ,#'evil-select-paren)
                          (?< ?> ,#'evil-select-paren)
                          (?\" ?\" ,#'evil-select-quote)))
