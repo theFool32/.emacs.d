@@ -388,9 +388,12 @@ Ensure 'Daily Goals' and 'Archived' exist as children of the date."
 
       ;; --- 处理 Daily Goals ---
       (goto-char (point-min))
-      ;; 使用精确的正则搜索：开头必须是 N+1 个星号 + 空格 + 标题
+      ;; [修复核心]: 使用兼容 Org Tags 的正则表达式
+      ;; `\\(?:[ \t]+:[[:alnum:]_@#:]+:\\)?` 允许标题后跟标准的标签格式
       (if (re-search-forward
-           (format "^%s +%s *$" (regexp-quote target-level-stars) (regexp-quote goal-text))
+           (format "^%s +%s\\(?:[ \t]+:[[:alnum:]_@#:]+:\\)?[ \t]*$"
+                   (regexp-quote target-level-stars)
+                   (regexp-quote goal-text))
            nil t)
           ;; Case A: 找到了，确保 Tag 存在
           (when is-today (org-toggle-tag "ACT_TODAY" 'on))
@@ -405,8 +408,11 @@ Ensure 'Daily Goals' and 'Archived' exist as children of the date."
 
       ;; --- 处理 Archived ---
       (goto-char (point-min))
+      ;; 同样让 Archived 也兼容可能存在的标签，以防以后手动打标签
       (if (re-search-forward
-           (format "^%s +%s *$" (regexp-quote target-level-stars) (regexp-quote archived-text))
+           (format "^%s +%s\\(?:[ \t]+:[[:alnum:]_@#:]+:\\)?[ \t]*$"
+                   (regexp-quote target-level-stars)
+                   (regexp-quote archived-text))
            nil t)
           ;; Case A: 找到了
           (end-of-line)
@@ -414,11 +420,11 @@ Ensure 'Daily Goals' and 'Archived' exist as children of the date."
         ;; Case B: 没找到
         (goto-char (point-max))
         (unless (bolp) (insert "\n"))
-        (insert "\n" target-level-stars " " archived-text))
+        ;; [修复]: 去掉了开头的 "\n"，防止产生不必要的空行
+        (insert target-level-stars " " archived-text))
 
       ;; 返回当前点（即 Archived 的末尾）
       (point))))
-
 
 (defun +my/auto-act-today-and-current-week ()
   "Keep only the FIRST occurrence of ACT tags in the file, removing duplicates downstream.
