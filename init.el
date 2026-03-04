@@ -2809,6 +2809,8 @@ kill all magit buffers for this repo."
   (setq modus-themes-italic-constructs t)
   (modus-themes-load-theme 'ef-owl)
 
+  (set-face-background 'region "darkcyan")
+
   (with-eval-after-load 'org
     ;; (custom-set-faces '(org-done ((t (:foreground "gray")))))
     (setq org-todo-keyword-faces
