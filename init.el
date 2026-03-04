@@ -3542,10 +3542,13 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 
 
 (use-package format-all
-
   :commands format-all-buffer
   :hook ((prog-mode . format-all-ensure-formatter)
          (prog-mode . format-all-mode))
+  :config
+  (setq-default format-all-formatters
+                '(("Python" ruff)))
+
   )
 
 ;;;; Language
