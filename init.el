@@ -3780,7 +3780,14 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   (cdlatex-sub-super-scripts-outside-math-mode nil)
   :config
   (add-to-list 'cdlatex-math-modify-alist-default '(?b "\\bm" "\\textbf" t nil nil))
+  (add-to-list 'cdlatex-math-modify-alist-default '(?u nil "\\textul" t nil nil))
   (add-to-list 'cdlatex-math-modify-alist-default '(?B "\\mathbb" nil t t nil))
+
+    (with-eval-after-load 'evil
+    (with-eval-after-load 'cdlatex
+        ;; 同时在 normal, visual, motion 状态下重定向 ' 键
+        (evil-define-key '(normal visual motion) cdlatex-mode-map
+        (kbd "'") 'cdlatex-math-modify)))
   )
 
 (use-package asymbol
