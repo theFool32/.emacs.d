@@ -3467,7 +3467,9 @@ Otherwise it builds `prettify-code-symbols-alist' according to
         eglot-events-buffer-config '(:size 0 :format full)
         ;; NOTE We disable eglot-auto-display-help-buffer because :select t in
         ;;      its popup rule causes eglot to steal focus too often.
-        eglot-auto-display-help-buffer nil)
+        eglot-auto-display-help-buffer nil
+        eglot-watch-files-outside-project-root nil
+        )
   (setq eldoc-echo-area-use-multiline-p nil)
   (setq eglot-ignored-server-capabilities '(:documentHighlightProvider :foldingRangeProvider :colorProvider :codeLensProvider :documentOnTypeFormattingProvider :executeCommandProvider))
   (add-to-list 'eglot-server-programs '((latex-mode Tex-latex-mode texmode context-mode texinfo-mode bibtex-mode) "texlab"))
