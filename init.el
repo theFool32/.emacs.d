@@ -3453,7 +3453,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
                                    "cD" '(eglot-find-typeDefinition :wk "Find type definition"))
                                  ;; (eglot-inlay-hints-mode -1)
                                  ))
-         ((python-mode python-ts-mode c-mode c++-mode LaTeX-mode) .
+         ((python-mode python-ts-mode c-mode c++-mode) .
           (lambda ()
             (unless (my-project--ignored-p (buffer-file-name (current-buffer)))
               (eglot-ensure)))))
@@ -3808,6 +3808,10 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   (add-hook 'org-cdlatex-mode-hook
             (lambda () (define-key org-cdlatex-mode-map "`" 'asymbol-insert-text-or-symbol)))
   )
+
+(use-package citar
+  :hook
+  (LaTeX-mode . citar-capf-setup))
 
 
 ;;;;; Org
