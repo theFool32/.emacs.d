@@ -4197,6 +4197,45 @@ If prefix ARG, copy instead of move."
       (goto-char (line-beginning-position))
       (org-archive-subtree))))
 
+(defun +my/org-capture-find-or-create-container (target-level container-name tag)
+  "自动导航到 target-level 层级，并寻找/创建名为 container-name 且带有 tag 的容器节点。"
+  (set-buffer (org-capture-target-buffer +org-capture-file-diary))
+  ;; 1. 利用逆序树功能先定位到今天，这能保证年、月、周、日的骨架被正确生成
+  (org-reverse-datetree-goto-date-in-file (current-time))
+
+  ;; 2. 不断向上跳转，直到到达目标层级 (Month=2级, Week=3级)
+  (while (> (org-current-level) target-level)
+    (org-up-heading-safe))
+
+  ;; 3. 在当前节点下寻找或创建目标容器 (容器层级 = 目标层级 + 1)
+  (let* ((child-level (1+ target-level))
+         (stars (make-string child-level ?*))
+         ;; 正则匹配容器标题，兼容带有 tag 的情况
+         (regex (format "^%s +%s\\(?:[ \t]+:[[:alnum:]_@#:]+:\\)?[ \t]*$"
+                        (regexp-quote stars)
+                        (regexp-quote container-name))))
+    (save-restriction
+      (org-narrow-to-subtree)
+      (goto-char (point-min))
+      (if (re-search-forward regex nil t)
+          ;; 找到了，把光标停在这个容器标题上
+          (goto-char (line-beginning-position))
+        ;; 没找到，就在当前目标层级的下方（紧贴着父节点）创建这个容器
+        (goto-char (point-min))
+        (org-end-of-meta-data t) ;; 越过父节点的 PROPERTIES 抽屉或日志，保持格式干净
+        (insert stars " " container-name " :" tag ":\n")
+        ;; 将光标移回刚刚创建的容器标题上
+        (forward-line -1)))))
+
+;; 定义专门的月度和每周定位函数
+(defun +my/capture-goto-monthly-container ()
+  ;; Month 是第 2 级，所以传 2
+  (+my/org-capture-find-or-create-container 2 "Monthly Goals" "ACT_MONTH"))
+
+(defun +my/capture-goto-weekly-container ()
+  ;; Week 是第 3 级，所以传 3
+  (+my/org-capture-find-or-create-container 3 "Weekly Goals" "ACT_WEEK"))
+
 (with-eval-after-load 'consult
   (defun +my/retrieve-todo-entries ()
     (require 'consult-org)
@@ -4386,6 +4425,20 @@ If prefix ARG, copy instead of move."
                  ;; 直接用 %a 作为标题，Org 会将其渲染为可点击的文本
                  "* TODO %a\n  %U\n  %?"
                  :empty-lines 1)
+          ("m" "🎯 Monthly Goal (本月目标)" entry
+                 (file+function +org-capture-file-diary +my/capture-goto-monthly-container)
+                 ;; 永远写一颗星，Org 会自动将其调整为容器的下一级 (**** TODO)
+                 "* TODO %?\n"
+                 :empty-lines 1
+                 ;; :prepend t 会将新目标插在容器的最上方。如果你喜欢新目标排在最后，删掉这行即可
+                 :prepend t)
+
+          ("W" "📅 Weekly Goal (本周目标)" entry
+                (file+function +org-capture-file-diary +my/capture-goto-weekly-container)
+                ;; 自动调整为 ***** TODO
+                "* TODO %?\n"
+                :empty-lines 1
+                :prepend t)
           ))
   (setq org-todo-keywords
         '((sequence
