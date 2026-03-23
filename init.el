@@ -2043,29 +2043,42 @@ kill all magit buffers for this repo."
     "m" '(smerge-keep-mine :wk "Keep mine")
     "A" '(smerge-keep-all :wk "Keep all")))
 
-(defvar gitmoji--all-emoji
-  '(("增加新特性" . "feat:")
-    ("bug 修复" . "fix:")
-    ("文档改动" . "docs:")
-    ("功能、交互优化" . "improve:")
-    ("格式改动（不影响代码运行的变动，例如加空格、换行、分号等）" . "style:")
-    ("重构代码" . "refactor:")
-    ("性能相关优化" . "perf:")
-    ("测试代码" . "test:")
-    ("构建过程或辅助工具变动" . "chore:")
-    ("回滚" . "revert:")
-    ("合并" . "merge:")
-    ("上传资源文件" . "resource:")))
+(defvar my-commit-types
+  '(("feat"     . "✨ 新增功能 (New feature)")
+    ("fix"      . "🐛 修复缺陷 (Bug fix)")
+    ("docs"     . "📝 文档更新 (Documentation)")
+    ("style"    . "💄 代码格式 (不影响逻辑的变动，如空格、分号)")
+    ("refactor" . "♻️  代码重构 (既非新增功能也非修复 bug)")
+    ("perf"     . "⚡️ 性能优化 (Performance improvement)")
+    ("test"     . "✅ 测试相关 (添加或修改测试用例)")
+    ("build"    . "👷 构建系统或依赖变动 (如 npm, webpack, pip)")
+    ("ci"       . "🔧 持续集成变动 (如 GitHub Actions, Travis)")
+    ("chore"    . "🎫 杂项日常 (不影响源代码或测试的改动)")
+    ("revert"   . "⏪ 代码回滚 (Revert a commit)")))
 
-(defun gitmoji-picker ()
-  "Choose a gitmoji."
+(defun my-conventional-commit-picker ()
+  "交互式生成符合 Conventional Commits 规范的 Git 前缀。"
   (interactive)
-  (let* ((choices gitmoji--all-emoji)
-         (candidates (mapcar (lambda (cell)
-                               (cons (format "%s — %s" (cdr cell) (car cell)) (concat (cdr cell) " ")))
-                             choices)))
-    (insert (cdr (assoc (completing-read "Choose a gitmoji " candidates) candidates)))
-    (evil-insert-state)))
+  (let* (;; 1. 格式化候选菜单：将 "feat" 和 "说明" 拼接，方便搜索时看清描述
+         (candidates (mapcar (lambda (item)
+                               (cons (format "%-10s %s" (car item) (cdr item))
+                                     (car item)))
+                             my-commit-types))
+         ;; 2. 让用户选择 Type
+         (selected-type (cdr (assoc (completing-read "选择提交类型 (Type): " candidates nil t) candidates)))
+         ;; 3. 让用户输入可选的 Scope
+         (scope (read-string "输入作用域 (Scope) [可选，直接回车跳过]: "))
+         ;; 4. 拼接最终前缀字符串
+         (prefix (if (string-empty-p (string-trim scope))
+                     (format "%s: " selected-type)
+                   (format "%s(%s): " selected-type (string-trim scope)))))
+
+    ;; 插入文本
+    (insert prefix)
+
+    ;; 兼容 Evil 模式，插入后自动进入 Insert 状态
+    (when (fboundp 'evil-insert-state)
+      (evil-insert-state))))
 
 (use-package blamer
   :ensure (:host github :repo "artawower/blamer.el")
@@ -5581,7 +5594,7 @@ kill the current timer, this may be a break or a running pomodoro."
     "gF" '(magit-pull :wk "pull")
     "gl" '(magit-log :wk "log")
     "go" '(magit-open-repo :wk "open repo")
-    "gm" '(gitmoji-picker :wk "open repo")
+    "gm" '(my-conventional-commit-picker :wk "git message")
 
     "w" '(:wk "Window")
     ;; :sp
