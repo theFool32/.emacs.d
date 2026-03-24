@@ -2600,15 +2600,6 @@ kill all magit buffers for this repo."
                                 (window-parameters . ((no-delete-other-windows . t)))))
   )
 
-
-;;  FIXME: 显示不正确
-(use-package opencode
-  :ensure (opencode :type git :host codeberg :repo "sczi/opencode.el")
-  :bind (:map comint-mode-map
-              ("s-<RET>" . newline))
-  :config
-  (setq opencode-auto-start-server t))
-
 (use-package minuet
   :bind
   (("M-y" . #'minuet-complete-with-minibuffer) ;; use minibuffer for completion
@@ -3803,10 +3794,10 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   (add-to-list 'cdlatex-math-modify-alist-default '(?u nil "\\textul" t nil nil))
   (add-to-list 'cdlatex-math-modify-alist-default '(?B "\\mathbb" nil t t nil))
 
-    (with-eval-after-load 'evil
+  (with-eval-after-load 'evil
     (with-eval-after-load 'cdlatex
-        ;; 同时在 normal, visual, motion 状态下重定向 ' 键
-        (evil-define-key '(normal visual motion) cdlatex-mode-map
+      ;; 同时在 normal, visual, motion 状态下重定向 ' 键
+      (evil-define-key '(normal visual motion) cdlatex-mode-map
         (kbd "'") 'cdlatex-math-modify)))
   )
 
@@ -4434,24 +4425,24 @@ If prefix ARG, copy instead of move."
            (file+headline +org-capture-file-idea "Ideas")
            "* %u %?\n%i" :prepend t :kill-buffer t)
           ("g" "GTD Task linked to Goal" entry
-                 (file +org-capture-file-gtd)
-                 ;; 直接用 %a 作为标题，Org 会将其渲染为可点击的文本
-                 "* TODO %a\n  %U\n  %?"
-                 :empty-lines 1)
+           (file +org-capture-file-gtd)
+           ;; 直接用 %a 作为标题，Org 会将其渲染为可点击的文本
+           "* TODO %a\n  %U\n  %?"
+           :empty-lines 1)
           ("m" "🎯 Monthly Goal (本月目标)" entry
-                 (file+function +org-capture-file-diary +my/capture-goto-monthly-container)
-                 ;; 永远写一颗星，Org 会自动将其调整为容器的下一级 (**** TODO)
-                 "* TODO %?\n"
-                 :empty-lines 1
-                 ;; :prepend t 会将新目标插在容器的最上方。如果你喜欢新目标排在最后，删掉这行即可
-                 :prepend t)
+           (file+function +org-capture-file-diary +my/capture-goto-monthly-container)
+           ;; 永远写一颗星，Org 会自动将其调整为容器的下一级 (**** TODO)
+           "* TODO %?\n"
+           :empty-lines 1
+           ;; :prepend t 会将新目标插在容器的最上方。如果你喜欢新目标排在最后，删掉这行即可
+           :prepend t)
 
           ("W" "📅 Weekly Goal (本周目标)" entry
-                (file+function +org-capture-file-diary +my/capture-goto-weekly-container)
-                ;; 自动调整为 ***** TODO
-                "* TODO %?\n"
-                :empty-lines 1
-                :prepend t)
+           (file+function +org-capture-file-diary +my/capture-goto-weekly-container)
+           ;; 自动调整为 ***** TODO
+           "* TODO %?\n"
+           :empty-lines 1
+           :prepend t)
           ))
   (setq org-todo-keywords
         '((sequence
@@ -4780,35 +4771,35 @@ that do not have SCHEDULED or DEADLINE."
          (org-entry-delete nil "ID")))))
 
 
-(defun +my/sync-gtd-state-to-goal ()
-  "当 GTD 任务的状态改变时，如果标题中包含指向 Goal 的 id 链接，则静默同步更新 Goal 的状态。"
-  ;; org-state 是在这个 hook 中动态绑定的变量，代表变更后的新状态（如 "DONE"）
-  (let ((new-state org-state)
-        ;; 获取当前没有任何 Tag 和 TODO 关键字的纯标题文本
-        (heading (org-get-heading t t t t)))
-    ;; 1. 使用正则检查标题中是否包含形如 [[id:xxxx][yyyy]] 的链接
-    (when (and heading
-               (string-match "\\[\\[id:\\([^]]+\\)\\]\\[.*?\\]\\]" heading))
-      ;; 2. 提取出链接中的目标 ID
-      (let* ((goal-id (match-string 1 heading))
-             ;; 查找该 ID 所在的文件和位置，返回 (file . position) 结构
-             (id-loc (org-id-find goal-id)))
-        (when id-loc
-          (let ((file (car id-loc))
-                (pos (cdr id-loc)))
-            ;; 3. 在后台默默打开/切换到目标文件，不干扰当前的屏幕焦点
-            (with-current-buffer (find-file-noselect file)
-              (save-excursion
-                (goto-char pos)
-                ;; [极其重要]: 临时禁用该 hook，防止目标修改状态时再次触发 hook 导致无限死循环
-                (let ((org-after-todo-state-change-hook nil))
-                  (org-todo new-state))
-                ;; 自动保存目标文件，确保状态落盘
-                (save-buffer)))
-            (message "已同步更新关联的 Goal 状态为: %s" new-state)))))))
+  (defun +my/sync-gtd-state-to-goal ()
+    "当 GTD 任务的状态改变时，如果标题中包含指向 Goal 的 id 链接，则静默同步更新 Goal 的状态。"
+    ;; org-state 是在这个 hook 中动态绑定的变量，代表变更后的新状态（如 "DONE"）
+    (let ((new-state org-state)
+          ;; 获取当前没有任何 Tag 和 TODO 关键字的纯标题文本
+          (heading (org-get-heading t t t t)))
+      ;; 1. 使用正则检查标题中是否包含形如 [[id:xxxx][yyyy]] 的链接
+      (when (and heading
+                 (string-match "\\[\\[id:\\([^]]+\\)\\]\\[.*?\\]\\]" heading))
+        ;; 2. 提取出链接中的目标 ID
+        (let* ((goal-id (match-string 1 heading))
+               ;; 查找该 ID 所在的文件和位置，返回 (file . position) 结构
+               (id-loc (org-id-find goal-id)))
+          (when id-loc
+            (let ((file (car id-loc))
+                  (pos (cdr id-loc)))
+              ;; 3. 在后台默默打开/切换到目标文件，不干扰当前的屏幕焦点
+              (with-current-buffer (find-file-noselect file)
+                (save-excursion
+                  (goto-char pos)
+                  ;; [极其重要]: 临时禁用该 hook，防止目标修改状态时再次触发 hook 导致无限死循环
+                  (let ((org-after-todo-state-change-hook nil))
+                    (org-todo new-state))
+                  ;; 自动保存目标文件，确保状态落盘
+                  (save-buffer)))
+              (message "已同步更新关联的 Goal 状态为: %s" new-state)))))))
 
-;; 将函数挂载到 TODO 状态变更钩子上
-(add-hook 'org-after-todo-state-change-hook #'+my/sync-gtd-state-to-goal)
+  ;; 将函数挂载到 TODO 状态变更钩子上
+  (add-hook 'org-after-todo-state-change-hook #'+my/sync-gtd-state-to-goal)
 
   )
 ;; ;; -OrgPac
@@ -4840,35 +4831,35 @@ that do not have SCHEDULED or DEADLINE."
         )
   :config
 
-(defun +my/generate-gtd-stats-header ()
-  "统计 Agenda 文件中各种状态的数量，返回美化的报表头部字符串"
-  (let ((todo-cnt 0)
-        (done-cnt 0)
-        (cancel-cnt 0)
-        (undone-cnt 0))
-    ;; 限定只扫描核心文件，保证打开报表时的毫秒级速度
-    (let ((org-agenda-files (list +org-capture-file-gtd +org-capture-file-diary)))
-      (org-map-entries
-       (lambda ()
-         (let ((state (org-get-todo-state)))
-           (when state
-             (cond
-              ;; 1. 判定是否为“完成”状态组 (DONE, CANCEL 等)
-              ((member state org-done-keywords)
-               (if (member state '("CANCEL" "CANCELLED" "KILL" "ABORT"))
-                   (setq cancel-cnt (1+ cancel-cnt))
-                 (setq done-cnt (1+ done-cnt))))
-              ;; 2. 非完成状态即为 UNDONE 组
-              (t
-               (setq undone-cnt (1+ undone-cnt))
-               ;; 严格统计名为 "TODO" 的关键字
-               (when (string= state "TODO")
-                 (setq todo-cnt (1+ todo-cnt))))))))
-       t 'agenda))
+  (defun +my/generate-gtd-stats-header ()
+    "统计 Agenda 文件中各种状态的数量，返回美化的报表头部字符串"
+    (let ((todo-cnt 0)
+          (done-cnt 0)
+          (cancel-cnt 0)
+          (undone-cnt 0))
+      ;; 限定只扫描核心文件，保证打开报表时的毫秒级速度
+      (let ((org-agenda-files (list +org-capture-file-gtd +org-capture-file-diary)))
+        (org-map-entries
+         (lambda ()
+           (let ((state (org-get-todo-state)))
+             (when state
+               (cond
+                ;; 1. 判定是否为“完成”状态组 (DONE, CANCEL 等)
+                ((member state org-done-keywords)
+                 (if (member state '("CANCEL" "CANCELLED" "KILL" "ABORT"))
+                     (setq cancel-cnt (1+ cancel-cnt))
+                   (setq done-cnt (1+ done-cnt))))
+                ;; 2. 非完成状态即为 UNDONE 组
+                (t
+                 (setq undone-cnt (1+ undone-cnt))
+                 ;; 严格统计名为 "TODO" 的关键字
+                 (when (string= state "TODO")
+                   (setq todo-cnt (1+ todo-cnt))))))))
+         t 'agenda))
 
-    ;; 拼接并返回漂亮的 ASCII 数据面板
-    (format "📊 任务状态全局看板 \n========================================================\n 🟩 DONE (已完成): %d  |  🟥 CANCEL (已取消): %d\n 🟧 TODO (纯待办): %d  |  🟨 UNDONE (总计未完): %d\n========================================================"
-            done-cnt cancel-cnt todo-cnt undone-cnt)))
+      ;; 拼接并返回漂亮的 ASCII 数据面板
+      (format "📊 任务状态全局看板 \n========================================================\n 🟩 DONE (已完成): %d  |  🟥 CANCEL (已取消): %d\n 🟧 TODO (纯待办): %d  |  🟨 UNDONE (总计未完): %d\n========================================================"
+              done-cnt cancel-cnt todo-cnt undone-cnt)))
 
   (defvar my/org-habit-show-graphs-everywhere t
     "If non-nil, show habit graphs in all types of agenda buffers.
@@ -4937,30 +4928,30 @@ has no effect."
             (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header "Habits")))
             (alltodo "" ((org-agenda-files (list +org-capture-file-gtd))))))
           ;; 新增 "r" 作为回顾和报表视图
-        ("r" "Weekly & Monthly Report"
-         (;; 1. 查看本月已完成的 Month Goals
-          (tags "STYLE=\"DUMMY_BLOCK_FOR_STATS\""
-                ((org-agenda-overriding-header (+my/generate-gtd-stats-header))))
-          (tags "ACT_MONTH/DONE|CLOSED"
-                ((org-agenda-overriding-header "\n🏆 Completed Monthly Goals:")
-                 ;; 如果存档了，需要包含存档文件一起搜索
-                 (org-agenda-files (list +org-capture-file-diary
-                                         (concat +org-capture-file-diary "_archive")))))
+          ("r" "Weekly & Monthly Report"
+           (;; 1. 查看本月已完成的 Month Goals
+            (tags "STYLE=\"DUMMY_BLOCK_FOR_STATS\""
+                  ((org-agenda-overriding-header (+my/generate-gtd-stats-header))))
+            (tags "ACT_MONTH/DONE|CLOSED"
+                  ((org-agenda-overriding-header "\n🏆 Completed Monthly Goals:")
+                   ;; 如果存档了，需要包含存档文件一起搜索
+                   (org-agenda-files (list +org-capture-file-diary
+                                           (concat +org-capture-file-diary "_archive")))))
 
-          ;; 2. 查看本周已完成的 Week Goals
-          (tags "ACT_WEEK/DONE|CLOSED"
-                ((org-agenda-overriding-header "\n✅ Completed Weekly Goals:")
-                 (org-agenda-files (list +org-capture-file-diary
-                                         (concat +org-capture-file-diary "_archive")))))
+            ;; 2. 查看本周已完成的 Week Goals
+            (tags "ACT_WEEK/DONE|CLOSED"
+                  ((org-agenda-overriding-header "\n✅ Completed Weekly Goals:")
+                   (org-agenda-files (list +org-capture-file-diary
+                                           (concat +org-capture-file-diary "_archive")))))
 
-          ;; 3. 利用 Org Log Mode 抓取过去 7 天内所有的完成记录 (基于时间戳)
-          (agenda ""
-                  ((org-agenda-start-day "-1w")     ;; 从一周前开始
-                   (org-agenda-span 7)              ;; 跨度 7 天
-                   (org-agenda-show-log 'closed)    ;; 开启日志模式，只看 closed (完成) 的记录
-                   ;; 过滤掉没有被标记为完成的任务，保持报表干净
-                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo 'done))
-                   (org-agenda-overriding-header "\n📈 All GTD Tasks Completed Last 7 Days:")))))
+            ;; 3. 利用 Org Log Mode 抓取过去 7 天内所有的完成记录 (基于时间戳)
+            (agenda ""
+                    ((org-agenda-start-day "-1w")     ;; 从一周前开始
+                     (org-agenda-span 7)              ;; 跨度 7 天
+                     (org-agenda-show-log 'closed)    ;; 开启日志模式，只看 closed (完成) 的记录
+                     ;; 过滤掉没有被标记为完成的任务，保持报表干净
+                     (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo 'done))
+                     (org-agenda-overriding-header "\n📈 All GTD Tasks Completed Last 7 Days:")))))
           ))
   (evil-set-initial-state 'org-agenda-mode 'motion)
   (setq-default
@@ -5049,39 +5040,39 @@ has no effect."
   (cond (*sys/mac*
          (setq org-download-screenshot-method "screencapture -i %s")))
 
-(require 'cl-lib)
+  (require 'cl-lib)
 
-(defun +org/cleanup-orphaned-images-safe ()
-  "安全清理当前目录下所有 Org 文件未引用的图片文件（防止跨文件误删）。"
-  (interactive)
-  ;; 确保当前 buffer 有关联的真实文件，并且是 org-mode
-  (when (and (buffer-file-name) (eq major-mode 'org-mode))
-    (let* ((current-dir (file-name-directory (buffer-file-name)))
-           ;; 动态获取当前 org-download 的图片目录
-           (img-dir (expand-file-name (or (bound-and-true-p org-download-image-dir) "img/") current-dir))
-           (referenced-images (make-hash-table :test 'equal))
-           (deleted-count 0))
+  (defun +org/cleanup-orphaned-images-safe ()
+    "安全清理当前目录下所有 Org 文件未引用的图片文件（防止跨文件误删）。"
+    (interactive)
+    ;; 确保当前 buffer 有关联的真实文件，并且是 org-mode
+    (when (and (buffer-file-name) (eq major-mode 'org-mode))
+      (let* ((current-dir (file-name-directory (buffer-file-name)))
+             ;; 动态获取当前 org-download 的图片目录
+             (img-dir (expand-file-name (or (bound-and-true-p org-download-image-dir) "img/") current-dir))
+             (referenced-images (make-hash-table :test 'equal))
+             (deleted-count 0))
 
-      (when (file-directory-p img-dir)
-        ;; A. 扫描当前目录下所有的 .org 文件建立白名单
-        (dolist (org-file (directory-files current-dir t "\\.org$"))
-          (with-temp-buffer
-            (insert-file-contents org-file)
-            (goto-char (point-min))
-            (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
-              (let ((path (expand-file-name (match-string 1) current-dir)))
-                (puthash path t referenced-images)))))
+        (when (file-directory-p img-dir)
+          ;; A. 扫描当前目录下所有的 .org 文件建立白名单
+          (dolist (org-file (directory-files current-dir t "\\.org$"))
+            (with-temp-buffer
+              (insert-file-contents org-file)
+              (goto-char (point-min))
+              (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+                (let ((path (expand-file-name (match-string 1) current-dir)))
+                  (puthash path t referenced-images)))))
 
-        ;; B. 遍历 img 目录，清理不在白名单中的真实图片
-        (dolist (file (directory-files img-dir t "\\(?:png\\|jpe?g\\|gif\\|svg\\|webp\\|bmp\\)$"))
-          (unless (or (file-directory-p file) (gethash file referenced-images))
-            (delete-file file)
-            (message "🧹 [Auto-GC] 已自动清理无用图片: %s" (file-name-nondirectory file))
-            (cl-incf deleted-count)))
+          ;; B. 遍历 img 目录，清理不在白名单中的真实图片
+          (dolist (file (directory-files img-dir t "\\(?:png\\|jpe?g\\|gif\\|svg\\|webp\\|bmp\\)$"))
+            (unless (or (file-directory-p file) (gethash file referenced-images))
+              (delete-file file)
+              (message "🧹 [Auto-GC] 已自动清理无用图片: %s" (file-name-nondirectory file))
+              (cl-incf deleted-count)))
 
-        ;; C. 只有在真正删除了图片时，才在底部状态栏提示，避免日常保存时的噪音干扰
-        (when (> deleted-count 0)
-          (message "✅ 保存触发: 自动清理完成！共移除了 %d 张废弃图片。" deleted-count))))))
+          ;; C. 只有在真正删除了图片时，才在底部状态栏提示，避免日常保存时的噪音干扰
+          (when (> deleted-count 0)
+            (message "✅ 保存触发: 自动清理完成！共移除了 %d 张废弃图片。" deleted-count))))))
 
   )
 
