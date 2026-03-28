@@ -1206,7 +1206,7 @@ targets."
   (advice-add #'consult-ripgrep :around #'consult--with-orderless)
 
 
-  (defvar consult--source-project-file
+  (defvar consult-source-project-file
     `( :name     "Project File"
        :narrow   ?p
        :category file
@@ -1222,9 +1222,9 @@ targets."
           consult-project-function)
        :items ,#'consult-project--project-files)
     "Project file source for `consult-buffer'.")
-  (setq consult-project-buffer-sources '(consult--source-project-buffer-hidden
-                                         consult--source-project-file
-                                         consult--source-project-root-hidden))
+  (setq consult-project-buffer-sources '(consult-source-project-buffer-hidden
+                                         consult-source-project-file
+                                         consult-source-project-root-hidden))
   (defun consult-project--project-files ()
     "Compute the project files given the ROOT."
     (when-let* ((root (consult--project-root))
@@ -1246,7 +1246,7 @@ targets."
                 :hidden   t
                 :items    ,(lambda () (mapcar #'buffer-name (org-buffer-list)))))
 
-  (setq consult-buffer-sources '(consult-source-buffer consult-source-hidden-buffer consult-source-recent-file consult--source-project-file))
+  (setq consult-buffer-sources '(consult-source-buffer consult-source-hidden-buffer consult-source-recent-file consult-source-project-file))
   (add-to-list 'consult-buffer-sources 'org-buffer-source 'append)
 
   (defun consult-imenu--create-key-name-eglot (prefix item types)
