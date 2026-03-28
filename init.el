@@ -557,7 +557,7 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
                                       (when (or
                                              (derived-mode-p 'prog-mode)
                                              (derived-mode-p 'yaml-ts-mode))
-                                        (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
+                                        ;; (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
                                         ;; (call-process-shell-command "rs" nil 0)
                                         (call-process-shell-command "rc" nil 0))))))
 
@@ -5643,7 +5643,7 @@ kill the current timer, this may be a break or a running pomodoro."
     "u" '((lambda() (interactive)
             (call-process-shell-command "rc" nil 0)
             ;; (call-process-shell-command "rs" nil 0)
-            (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
+            ;; (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
             ) :wk "Sync code")
     )
   )
