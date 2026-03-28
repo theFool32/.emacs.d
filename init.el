@@ -899,16 +899,6 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
 (use-package avy
   :commands (avy-goto-char avy-goto-line))
 
-(use-package flash-emacs
-  :after evil
-  :commands (flash-emacs-jump)
-  :ensure (:host github :repo "JiaweiChenC/flash-emacs")
-  :config
-  (defun flash-emacs--set-jump-before-jump (&rest _args)
-    "Set a jump point before running `flash-emacs-jump`."
-    (better-jumper-set-jump))
-  (advice-add 'flash-emacs-jump :before #'flash-emacs--set-jump-before-jump))
-
 
 (use-package wgrep
   :demand t
@@ -5475,7 +5465,6 @@ kill the current timer, this may be a break or a running pomodoro."
 
   (local-leader-def
     "w" 'evil-avy-goto-word-1
-    "f" 'flash-emacs-jump
     "/" 'evilnc-comment-or-uncomment-lines)
 
   (general-evil-define-key 'normal
@@ -5543,8 +5532,7 @@ kill the current timer, this may be a break or a running pomodoro."
     "fEs" '(set-buffer-file-coding-system :wk "Set encoding")
 
     "j" '(:wk "Jump")
-    ;; "jj" '(evil-avy-goto-char :wk "Jump to character")
-    "jj" '(flash-emacs-jump :wk "Flash Jump")
+    "jj" '(evil-avy-goto-char :wk "Jump to character")
     "jl" '(evil-avy-goto-line :wk "Jump to line")
     "je" '(+vertico/jump-list :wk "Jump-list")
 
