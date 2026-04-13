@@ -65,6 +65,7 @@
       ;; use-package-verbose (not (bound-and-true-p byte-compile-current-file))
       use-package-verbose nil
       use-package-expand-minimally t
+      use-package-always-ensure t
       use-package-compute-statistics nil)
 
 (setq warning-minimum-level :emergency)
