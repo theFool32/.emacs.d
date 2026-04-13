@@ -2290,129 +2290,20 @@ kill all magit buffers for this repo."
   )
 
 ;;;; Shell
-(when (and module-file-suffix
-           (executable-find "cmake")
-           (executable-find "libtool")
-           (executable-find "make"))
-  (use-package vterm
-    :commands (vterm--internal vterm-posframe-toggle +my/smart-switch-to-vterm-tab)
-    :init
-    (setq vterm-always-compile-module t)
-    (setq vterm-shell "tmux")
-    (setq vterm-timer-delay 0.001
-          process-adaptive-read-buffering nil)
-    :config
-    (evil-define-key 'insert vterm-mode-map (kbd "C-c") 'vterm-send-C-c)
-    (evil-define-key 'normal vterm-mode-map (kbd "<escape>") 'vterm-send-escape)
-
-    (defun +my/smart-switch-to-vterm-tab ()
-      "Switch to vterm tab if exists, otherwise create a new vterm tab."
-      (interactive)
-      (let ((vterm-buffer-name "vterm-tab"))
-        (if (get-buffer vterm-buffer-name)
-            (progn
-              (tab-bar-select-tab-by-name "vterm")
-              (switch-to-buffer vterm-buffer-name))
-          (tab-new)
-          (tab-bar-rename-tab "vterm")
-          (call-interactively #'vterm)
-          (delete-other-windows))))
-
-    (with-no-warnings
-      (defvar vterm-posframe--frame nil)
-
-      (defun vterm-posframe-hidehandler (_)
-        "Hidehandler used by `vterm-posframe-toggle'."
-        (not (eq (selected-frame) posframe--frame)))
-
-      (defun vterm-posframe-toggle ()
-        "Toggle `vterm' child frame."
-        (interactive)
-        (let* ((vterm-posframe-buffer-name "vterm-posframe")
-               (buffer (or (get-buffer vterm-posframe-buffer-name) (vterm--internal #'ignore vterm-posframe-buffer-name)))
-               (width  (max 80 (/ (frame-width) 2)))
-               (height (/ (frame-height) 2)))
-          (if (and vterm-posframe--frame
-                   (frame-live-p vterm-posframe--frame)
-                   (frame-visible-p vterm-posframe--frame))
-              (progn
-                (posframe-hide buffer)
-                ;; Focus the parent frame
-                (select-frame-set-input-focus (frame-parent vterm-posframe--frame)))
-            (setq vterm-posframe--frame
-                  (posframe-show
-                   buffer
-                   :poshandler #'posframe-poshandler-frame-center
-                   :hidehandler #'vterm-posframe-hidehandler
-                   :left-fringe 8
-                   :right-fringe 8
-                   :width width
-                   :height height
-                   :min-width width
-                   :min-height height
-                   :internal-border-width 3
-                   :internal-border-color (face-foreground 'font-lock-comment-face nil t)
-                   :background-color (face-background 'tooltip nil t)
-                   :override-parameters '((cursor-type . 't))
-                   :accept-focus t))
-            ;; Focus the child frame
-            (select-frame-set-input-focus vterm-posframe--frame))))
-      )
-    (add-hook 'vterm-mode-hook
-              (lambda ()
-                (set (make-local-variable 'buffer-face-mode-face) '(:family "JetBrains Mono"))
-                (buffer-face-mode t))))
-  )
-
-(use-package eat
-  :ensure (:host codeberg
-                 :repo "akib/emacs-eat"
-                 :files ("*.el" ("term" "term/*.el") "*.texi"
-                         "*.ti" ("terminfo/e" "terminfo/e/*")
-                         ("terminfo/65" "terminfo/65/*")
-                         ("integration" "integration/*")
-                         (:exclude ".dir-locals.el" "*-tests.el")))
-  :commands (eat-project eat my-eat-dwim)
-  :custom
-  (eat-shell "fish")
+(use-package ghostel
+  :ensure (:host github :url "dakra/ghostel" :rev :newest)
+  :commands (ghostel-dwim)
   :bind
-  (("C-0" . #'eat-project)
-   ("C-9" . #'my-eat-dwim))
-  :init
-  (with-eval-after-load 'meow
-    (add-to-list 'meow-mode-state-list '(eat-mode . insert)))
+  (("C-0" . #'ghostel-project)
+   ("C-9" . #'ghostel-dwim))
+  :custom
+  (ghostel-enable-title-tracking nil)
   :config
-  ;; For `eat-eshell-mode'.
-  (add-hook 'eshell-load-hook #'eat-eshell-mode)
-
-  ;; For `eat-eshell-visual-command-mode'.
-  (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
-
-  (defun my-eat-dwim ()
-    (interactive)
-    (let ((eat-buffer-name "eat-standalone"))
-      (my-create-term-cmd #'eat eat-buffer-name)))
-
-  (defun my-eat-find-file-dwim (filename)
-    (interactive)
-    (let ((dir default-directory))
-      (if (string= (buffer-name) "eat-standalone")
-          (progn
-            (tab-bar-switch-to-recent-tab)
-            (find-file (expand-file-name filename dir)))
-        (find-file-other-window filename))))
-
-  (defun my-eat-dired-dwim ()
-    (interactive)
-    (if (string= (buffer-name) "eat-standalone")
-        (progn
-          (tab-bar-switch-to-recent-tab)
-          (dirvish default-directory))
-      (dirvish default-directory)))
-
-  (add-to-list 'eat-message-handler-alist '("find-file" . my-eat-find-file-dwim))
-  (add-to-list 'eat-message-handler-alist '("dired" . my-eat-dired-dwim)))
-
+  )
+(use-package evil-ghostel
+  :ensure nil
+  :after (ghostel evil)
+  :hook (ghostel-mode . evil-ghostel-mode))
 
 ;;;; Mail
 (defvar mu-path (format "%s%s" (getenv "MU_PATH") "/share/emacs/site-lisp/mu/mu4e"))
@@ -3069,7 +2960,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :ensure nil
   :custom-face (hl-line ((t (:extend t))))
   :hook ((elpaca-after-init . global-hl-line-mode)
-         ((term-mode vterm-mode) . hl-line-unload-function)))
+         ((term-mode ghostel-mode vterm-mode) . hl-line-unload-function)))
 
 ;; Highlight symbols
 (use-package symbol-overlay
@@ -5445,7 +5336,6 @@ kill the current timer, this may be a break or a running pomodoro."
     "r" '(tab-bar-rename-tab :wk "Rename")
     "d" '(tab-bar-close-tab :wk "Close")
     "s" '(tab-bar-select-tab-by-name :wk "Select")
-    "t" '(+my/smart-switch-to-vterm-tab :wk "Vterm")
     "1" '((lambda () (interactive) (tab-bar-select-tab 1)) :wk "Select 1")
     "2" '((lambda () (interactive) (tab-bar-select-tab 2)) :wk "Select 2")
     "3" '((lambda () (interactive) (tab-bar-select-tab 3)) :wk "Select 3")
@@ -5597,7 +5487,6 @@ kill the current timer, this may be a break or a running pomodoro."
     "td" '(toggle-debug-on-error :wk "Debug on error")
     "tt" '(dirvish :wk "Dirvish")
     "ts" '(dirvish-side :wk "Dirvish side")
-    "te" '(vterm-posframe-toggle :wk "Shell")
     "tc" '(olivetti-mode :wk "Center")
     "ti" '(toggle-indent :wk "Indent")
     "tp" '(+my/profiler-toggle :wk "Profiler")
@@ -5608,8 +5497,7 @@ kill the current timer, this may be a break or a running pomodoro."
     "oy" '(gt-translate :wk "Translate at point")
     "oY" '(gt-do-translate-prompt :wk "Translate")
     ;; "oY" '((lambda () (interactive) (maple-translate+ (read-from-minibuffer "Translate word: "))):wk "Translate")
-    "oe" '((lambda() (interactive)(if (get-buffer "vterm") (switch-to-buffer "vterm") (call-interactively #'vterm))) :wk "Shell")
-    "ov" '(vterm-other-window :wk "Shell in window")
+    "oe" '(ghostel :wk "Shell")
     "ot" '(org-todo-list :wk "Org Todo")
     "ox" '(org-agenda :wk "Org agenda")
     "ob" '(ebib :wk "Ebib")
