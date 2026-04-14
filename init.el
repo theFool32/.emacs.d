@@ -4243,24 +4243,26 @@ If prefix ARG, copy instead of move."
 
   ;; babel
   (defun my/org-babel-execute-src-block (&optional _arg info _params)
-    "Load language if needed"
-    (let* ((lang (nth 0 info))
-           (sym (cond
-                 ((member (downcase lang) '("c" "cpp" "c++"))
-                  'C)
-                 ((string-prefix-p "jupyter" (downcase lang))
-                  (intern "jupyter"))
-                 (t
-                  (intern lang))))
-           (backup-languages org-babel-load-languages)
-           (pair (assoc sym backup-languages)))
-      ;; - `(LANG . nil)' 是有意义的，不宜覆盖，详见 `org-babel-do-load-languages'。
-      ;; - 只加载当前语言，「按需」到底。
-      (unwind-protect
-          (org-babel-do-load-languages 'org-babel-load-languages (list (cons sym t)))
+    "Load the current Org Babel language on demand."
+    (let* ((lang (downcase (or (nth 0 info) "")))
+            (sym (cond
+                ((member lang '("c" "cpp" "c++"))
+                    'C)
+                ((member lang '("sh" "shell" "bash" "zsh" "fish" "dash" "ksh" "mksh" "ash" "csh"))
+                    'shell)
+                ((string-prefix-p "jupyter" lang)
+                    'jupyter)
+                (t
+                    (intern lang))))
+            (backup-languages org-babel-load-languages)
+            (pair (assoc sym backup-languages)))
+        (unwind-protect
+            (org-babel-do-load-languages
+            'org-babel-load-languages
+            (list (cons sym t)))
         (setq-default org-babel-load-languages
-                      (if pair
-                          backup-languages
+                        (if pair
+                            backup-languages
                         (append (list (cons sym t)) backup-languages))))))
   (advice-add 'org-babel-execute-src-block :before #'my/org-babel-execute-src-block )
 
