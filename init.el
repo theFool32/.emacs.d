@@ -2601,6 +2601,7 @@ Persists the registration via `customize-save-variable'."
   :bind (:map agent-shell-mode-map
               ("C-c m" . agent-shell-help-menu))
   :custom
+  (agent-shell-session-strategy 'prompt)
   (agent-shell-file-completion-enabled t)
   (agent-shell-display-action '((display-buffer-in-side-window)
                                 (side . right)
