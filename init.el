@@ -699,7 +699,6 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
         evil-escape-key-sequence "jk"
         evil-escape-delay 0.15)
   (evil-define-key* '(insert replace visual operator) 'global "\C-g" #'evil-escape)
-  (add-hook 'pre-command-hook 'evil-escape-pre-command-hook)
   :config
   ;; no `evil-escape' in minibuffer
   (add-hook 'evil-escape-inhibit-functions #'minibufferp)
