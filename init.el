@@ -2286,19 +2286,6 @@ kill all magit buffers for this repo."
                                   ))
   )
 
-(use-package rimel
-  :disabled
-  :ensure (:host github :repo "jixiuf/rimel")
-  :init
-  (setq liberime-user-data-dir "~/.emacs.d/Rime/")
-  (setq liberime-auto-build t)
-  (setq default-input-method "rimel")
-  (setq rimel-schema "double_pinyin_flypy")
-  (setq rimel-show-candidate 'posframe)
-  (setq rimel-highlight-first t)
-  (setq rimel-posframe-style 'horizontal)
-  )
-
 ;;;; Shell
 (use-package ghostel
   :ensure (:host github :url "dakra/ghostel" :rev :newest)
