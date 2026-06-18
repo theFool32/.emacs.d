@@ -736,7 +736,7 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
   :init
   (setq evil-want-keybinding nil)
   :config
-  (let ((modes '(atomic-chrome calc calendar consult debug devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler replace sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired wgrep which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
+  (let ((modes '(atomic-chrome calc calendar consult debug devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler replace sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
     (evil-collection-init modes))
   )
 
@@ -899,12 +899,6 @@ Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
 (use-package avy
   :commands (avy-goto-char avy-goto-line))
 
-
-(use-package wgrep
-  :demand t
-  :after (evil embark)
-  :config
-  (evil-set-initial-state 'grep-mode 'normal))
 
 ;;; Completion
 ;;;; Vertico
@@ -2298,7 +2292,6 @@ kill all magit buffers for this repo."
   :config
   )
 (use-package evil-ghostel
-  :ensure nil
   :after (ghostel evil)
   :hook (ghostel-mode . evil-ghostel-mode))
 
