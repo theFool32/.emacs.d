@@ -1666,7 +1666,7 @@ It handles the case of remote files as well."
   (defun +super-save-without-format (&optional idle-trigger)
     (let ((before-save-hook (remove 'format-all--buffer-from-hook before-save-hook)))
       (when (super-save-p)
-        (save-all-buffers))))
+        (save-buffer))))
   (advice-add 'super-save-command :override '+super-save-without-format))
 
 
@@ -1809,9 +1809,10 @@ It handles the case of remote files as well."
 
 (use-package casual
   :ensure (:host github :repo "kickingvegas/casual" :files ("lisp/*.el"))
-  :commands (casual-dired-tmenu casual-dired-sort-by-tmenu)
+  :defer t
   :init
-  (require 'casual-dired)
+  (autoload 'casual-dired-tmenu "casual-dired" nil t)
+  (autoload 'casual-dired-sort-by-tmenu "casual-dired-sort-by" nil t)
   (with-eval-after-load 'general
     (general-define-key :states '(normal)
                         :keymaps 'dired-mode-map
@@ -1830,7 +1831,8 @@ It handles the case of remote files as well."
 
 ;;;; Magit
 
-(use-package transient)
+(use-package transient
+  :defer t)
 
 ;; MagitPac
 (use-package magit
@@ -1969,14 +1971,14 @@ kill all magit buffers for this repo."
       (save-buffer))
     (magit-stage-modified)
     (magit-diff-staged)
-    (setq msg (read-string "Commit Message: "))
-    (when (length= msg 0)
-      (setq msg (format-time-string "commit by magit in emacs@%Y-%m-%d %H:%M:%S"
-                                    (current-time))))
-    (magit-call-git "commit" "-m" msg)
-    (when (magit-get "remote" "origin" "url")
-      (magit-push-current-to-upstream nil)
-      (message "now do async push to %s" (magit-get "remote" "origin" "url")))
+    (let ((msg (read-string "Commit Message: ")))
+      (when (length= msg 0)
+        (setq msg (format-time-string "commit by magit in emacs@%Y-%m-%d %H:%M:%S"
+                                      (current-time))))
+      (magit-call-git "commit" "-m" msg)
+      (when (magit-get "remote" "origin" "url")
+        (magit-push-current-to-upstream nil)
+        (message "now do async push to %s" (magit-get "remote" "origin" "url"))))
     (magit-mode-bury-buffer))
   )
 ;; -MagitPac
@@ -2619,6 +2621,7 @@ focus-guard which reclaims focus back to the posframe."
 
 (use-package smtpmail
   :ensure nil
+  :commands (smtpmail-send-it)
   :config
   (defun fetch-access-token ()
     (with-temp-buffer
@@ -2651,7 +2654,9 @@ focus-guard which reclaims focus back to the posframe."
 
 
 ;;;; GPT
-(use-package gptel :ensure t)
+(use-package gptel
+  :ensure t
+  :commands (gptel gptel-send))
 
 (use-package agent-shell
   :hook (agent-shell-mode . (lambda () (add-to-list 'completion-at-point-functions #'cape-dabbrev)))
@@ -3552,7 +3557,8 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   (eglot-booster-mode +1)
   )
 
-(use-package consult-eglot)
+(use-package consult-eglot
+  :commands (consult-eglot-symbols))
 
 (use-package eglot-booster
   :ensure (:host github :repo "jdtsmith/eglot-booster")
@@ -3658,7 +3664,8 @@ Otherwise it builds `prettify-code-symbols-alist' according to
                             (add-hook 'before-save-hook
                                       (lambda ()
                                         (when (evil-normal-state-p)
-                                          (call-interactively #'py-isort-buffer)))))))
+                                          (call-interactively #'py-isort-buffer)))
+                                      nil t))))
 
 
 ;;;;; Latex
@@ -4039,7 +4046,7 @@ re-align the table if necessary. (Necessary because org-mode has a
 ;; Commands
 
 ;;;###autoload
-(defun +org/dwim-at-point ()
+(defun +org/dwim-at-point (&optional arg)
   "Do-what-I-mean at point.
 
 If on a:
@@ -4056,7 +4063,7 @@ If on a:
 - latex fragment: toggle it.
 - link: follow it
 - otherwise, refresh all inline images in current tree."
-  (interactive)
+  (interactive "P")
   (let* ((context (org-element-context))
          (type (org-element-type context)))
     ;; skip over unimportant contexts
