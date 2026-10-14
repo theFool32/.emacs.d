@@ -1368,6 +1368,7 @@ TYPES is the mode-specific types configuration."
         ([backtab] . corfu-previous))
   :config
   (advice-add #'keyboard-quit :before #'corfu-quit)
+  (require 'corfu-auto nil t) ; Corfu 2.8+ defines auto settings here.
   (add-to-list 'corfu-auto-commands 'end-of-visual-line)
 
   (add-hook 'evil-insert-state-exit-hook #'corfu-quit)
@@ -2258,6 +2259,7 @@ kill all magit buffers for this repo."
   :config
   )
 (use-package evil-ghostel
+  :ensure nil ; Bundled with ghostel, not a separate package.
   :after (ghostel evil)
   :hook (ghostel-mode . evil-ghostel-mode))
 
