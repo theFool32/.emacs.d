@@ -42,6 +42,64 @@ make env
 
 Enjoy hacking!
 
+** Org Plans
+Capture tasks in =gtd.org=, select their periods, and update the original
+task's state. The task pool shows only unfinished entries from =gtd.org=.
+The regular agenda uses the original file list: =gtd.org=, =diary.org=, and
+=routine.org=. Project files are not included.
+
+Plan selection and the =pd/pw/pm= capture templates add the =plan= tag.
+Use =M-x org-tags-view= and search for =plan= to find planned tasks.
+The tag remains while any =FOCUS_*= or =PLAN_*= selection is recorded,
+including past periods, and is removed when no selections remain. Dates and
+day/week/month distinctions continue to use the properties.
+
+Use =SPC ;= to open day, week, and month plans, in that order. Every row refers
+to the original task. Changes made in the agenda update its state and refresh
+progress counts.
+Only =DONE= counts as completed; =UNDONE= and =CANCELED= are shown separately.
+
+In an Org task or agenda, use these local-leader shortcuts:
+
+| Keys | Action                         |
+|------+--------------------------------|
+| , v d | Toggle today's plan           |
+| , v w | Toggle this week's plan       |
+| , v m | Toggle this month's plan      |
+| , v h | View a past day/week/month    |
+
+In the agenda, mark several tasks with =m=, then apply a plan shortcut once.
+A mixed selection is added to the plan; if all selected tasks are already in
+the current plan, they are removed. Selection does not change scheduled or
+deadline dates. Week identifiers follow ISO weeks, starting on Monday.
+
+For a new task, use =SPC x= and select =p d=, =p w=, or =p m= to capture
+directly into today's, this week's, or this month's plan. Dates are filled
+automatically. Planning does not automatically select parent periods or carry
+unfinished tasks into the next period; select them explicitly when reviewing.
+
+To view a past plan, use =, v h=, choose =d=, =w=, or =m=, and select a date.
+Any date in the desired week or month selects that entire period. The agenda
+shows recorded membership and the tasks' current states. Historical searches
+include archives and =done.org=. No separate review file is created.
+
+To archive a closed task, open its original Org entry and press =, D=.
+The entire subtree is moved into =diary.org= under the =CLOSED= date's
+=Archived= heading, keeping IDs and plan properties. The source and diary
+are saved. This explicit command is the only plan-related operation that
+writes to the diary; no existing diary or done entries are migrated.
+
+Replanning a task retains its previous selections in =PLAN_DAYS=,
+=PLAN_WEEKS=, and =PLAN_MONTHS=. Removing a selection removes only the current
+period. Dates overwritten before this support was added cannot be recovered.
+
+The old diary-goal capture templates, ACT tag planning, and cross-entry state
+copier have been retired. Existing =diary.org= and =done.org= content is
+preserved; plan selection and historical queries do not modify these files.
+No old records are migrated or rewritten. Plan selection changes only
+=gtd.org=. Historical views do not reconstruct past task states; progress
+counts selected entries.
+
 
 ** Dependency
 *** Tools

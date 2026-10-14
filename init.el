@@ -363,98 +363,62 @@ or triggered (if it is a hook variable)."
   (call-process-shell-command (concat "qlmanage -p \"" (expand-file-name file) "\"")))
 
 (defun +my/org-datetree-find-date-create (&optional time)
-  "Find or create date tree for TIME.
-Ensure 'Daily Goals' and 'Archived' exist as children of the date."
-  (interactive)
-  (let* ((time (or time (current-time)))
-         (is-today (string= (format-time-string "%F" time)
-                            (format-time-string "%F" (current-time))))
-         (goal-text "Daily Goals")
-         (archived-text "Archived")
-         parent-level
-         target-level-stars)
-
-    ;; 1. 定位到日期节点
-    (org-reverse-datetree-goto-date-in-file time)
-    (org-fold-show-subtree) ;; 展开子树，确保可见
-
-    ;; 2. 关键修复：获取当前日期节点的层级，并计算子节点应有的星号数量
-    (setq parent-level (org-current-level))
-    (setq target-level-stars (make-string (1+ parent-level) ?*))
-
-    ;; 3. 限制搜索范围在当前日期内
-    (save-restriction
+  "Return the Archived container under TIME's diary date, creating it if needed."
+  (require 'org-reverse-datetree)
+  (save-restriction
+    (widen)
+    (org-reverse-datetree-goto-date-in-file (or time (current-time)))
+    (let* ((level (1+ (org-current-level)))
+           (stars (make-string level ?*)))
       (org-narrow-to-subtree)
-
-      ;; --- 处理 Daily Goals ---
       (goto-char (point-min))
-      ;; [修复核心]: 使用兼容 Org Tags 的正则表达式
-      ;; `\\(?:[ \t]+:[[:alnum:]_@#:]+:\\)?` 允许标题后跟标准的标签格式
-      (if (re-search-forward
-           (format "^%s +%s\\(?:[ \t]+:[[:alnum:]_@#:]+:\\)?[ \t]*$"
-                   (regexp-quote target-level-stars)
-                   (regexp-quote goal-text))
-           nil t)
-          ;; Case A: 找到了，确保 Tag 存在
-          (when is-today (org-toggle-tag "ACT_TODAY" 'on))
-
-        ;; Case B: 没找到，在末尾创建
-        (goto-char (point-max))
-        ;; 确保在新的一行
-        (unless (bolp) (insert "\n"))
-        ;; 显式插入 N+1 个星号，保证层级正确
-        (insert target-level-stars " " goal-text)
-        (when is-today (org-toggle-tag "ACT_TODAY" 'on)))
-
-      ;; --- 处理 Archived ---
-      (goto-char (point-min))
-      ;; 同样让 Archived 也兼容可能存在的标签，以防以后手动打标签
-      (if (re-search-forward
-           (format "^%s +%s\\(?:[ \t]+:[[:alnum:]_@#:]+:\\)?[ \t]*$"
-                   (regexp-quote target-level-stars)
-                   (regexp-quote archived-text))
-           nil t)
-          ;; Case A: 找到了
-          (end-of-line)
-
-        ;; Case B: 没找到
+      (unless (re-search-forward
+               (concat "^" (regexp-quote stars)
+                       " +Archived\\(?:[ \t]+:[^ \t\n]+:\\)?[ \t]*$")
+               nil t)
         (goto-char (point-max))
         (unless (bolp) (insert "\n"))
-        ;; [修复]: 去掉了开头的 "\n"，防止产生不必要的空行
-        (insert target-level-stars " " archived-text))
+        (insert stars " Archived\n")
+        (forward-line -1))
+      (line-beginning-position))))
 
-      ;; 返回当前点（即 Archived 的末尾）
-      (point))))
-
-(defun +my/auto-act-today-and-current-week ()
-  "Keep only the FIRST occurrence of ACT tags in the file, removing duplicates downstream.
-Optimized for performance by using a single pass and avoiding `org-toggle-tag'."
+(defun +my-org/mark-done ()
+  "Move the closed task at point into diary.org under its CLOSED date.
+Preserve the subtree, IDs, and plan properties; save the source and diary."
   (interactive)
-  (let* ((target-tags '("ACT_TODAY" "ACT_WEEK" "ACT_MONTH"))
-         ;; 使用 alist 记录标签是否已出现过: (("ACT_TODAY" . nil) ...)
-         (seen-status (mapcar (lambda (tag) (cons tag nil)) target-tags)))
-
-    (org-map-entries
-     (lambda ()
-       (let* ((current-tags (org-get-tags nil t)) ; 获取当前标题的本地标签（不含继承）
-              (original-tags current-tags)        ; 保存副本用于比对
-              (tags-modified nil))
-
-         ;; 遍历我们需要检查的目标标签
-         (dolist (target target-tags)
-           (when (member target current-tags)
-             ;; 检查该标签是否在这个文件中已经出现过
-             (if (alist-get target seen-status nil nil #'equal)
-                 ;; Case 1: 之前已经出现过（即当前是重复项），需要删除
-                 (setq current-tags (delete target current-tags)
-                       tags-modified t)
-               ;; Case 2: 第一次出现，标记状态为“已见”，保留该标签
-               (setf (alist-get target seen-status nil nil #'equal) t))))
-
-         ;; 只有当标签列表确实发生变化时，才执行写入操作
-         (when tags-modified
-           (org-set-tags current-tags))))
-     nil 'file)))
+  (unless (derived-mode-p 'org-mode)
+    (user-error "Archive a closed task from its Org buffer"))
+  (require 'org-refile)
+  (require 'org-id)
+  (org-back-to-heading t)
+  (barf-if-buffer-read-only)
+  (unless (and (org-entry-is-done-p) (org-entry-get nil "CLOSED"))
+    (user-error "Mark the task as completed before archiving (CLOSED is required)"))
+  (when (and buffer-file-name
+             (equal (file-truename buffer-file-name)
+                    (file-truename +org-capture-file-diary)))
+    (user-error "The task is already in diary.org"))
+  (let* ((source (current-buffer))
+         (closed (org-time-string-to-time (org-entry-get nil "CLOSED")))
+         (ids (save-restriction
+                (org-narrow-to-subtree)
+                (delq nil (org-map-entries
+                           (lambda () (org-entry-get nil "ID"))))))
+         (diary (find-file-noselect +org-capture-file-diary))
+         (target (with-current-buffer diary
+                   (barf-if-buffer-read-only)
+                   (+my/org-datetree-find-date-create closed)))
+         (org-refile-keep nil)
+         (org-log-refile nil)
+         (org-reverse-note-order t)
+         (mark-active nil))
+    (org-refile nil nil (list "Archived" +org-capture-file-diary nil target))
+    (dolist (id ids)
+      (org-id-add-location id +org-capture-file-diary))
+    (with-current-buffer diary (save-buffer))
+    (with-current-buffer source
+      (when buffer-file-name (save-buffer)))
+    (message "Archived task to diary.org: %s" (format-time-string "%F" closed))))
 
 (defvar project--ignore-list
   '("/opt/homebrew/"))
@@ -2674,28 +2638,6 @@ focus-guard which reclaims focus back to the posframe."
                                 (window-parameters . ((no-delete-other-windows . t)))))
   )
 
-(use-package minuet
-  :bind
-  (("M-y" . #'minuet-complete-with-minibuffer) ;; use minibuffer for completion
-   ("M-i" . #'minuet-show-suggestion) ;; use overlay for completion
-   ("C-c m" . #'minuet-configure-provider)
-   :map minuet-active-mode-map
-   ;; These keymaps activate only when a minuet suggestion is displayed in the current buffer
-   ("M-p" . #'minuet-previous-suggestion) ;; invoke completion or cycle to next completion
-   ("M-n" . #'minuet-next-suggestion) ;; invoke completion or cycle to previous completion
-   ("M-d" . #'minuet-accept-suggestion) ;; accept
-   ;; Accept the first line of completion, or N lines with a numeric-prefix:
-   ;; e.g. C-u 2 M-a will accepts 2 lines of completion.
-   ("M-a" . #'minuet-accept-suggestion-line)
-   ("M-e" . #'minuet-dismiss-suggestion))
-
-  :init
-  ;; if you want to enable auto suggestion.
-  ;; Note that you can manually invoke completions without enable minuet-auto-suggestion-mode
-  ;; (add-hook 'prog-mode-hook #'minuet-auto-suggestion-mode)
-
-  )
-
 ;;; UI
 ;;;; UI-config
 ;; SmoothScroll
@@ -4279,45 +4221,6 @@ If prefix ARG, copy instead of move."
       (goto-char (line-beginning-position))
       (org-archive-subtree))))
 
-(defun +my/org-capture-find-or-create-container (target-level container-name tag)
-  "自动导航到 target-level 层级，并寻找/创建名为 container-name 且带有 tag 的容器节点。"
-  (set-buffer (org-capture-target-buffer +org-capture-file-diary))
-  ;; 1. 利用逆序树功能先定位到今天，这能保证年、月、周、日的骨架被正确生成
-  (org-reverse-datetree-goto-date-in-file (current-time))
-
-  ;; 2. 不断向上跳转，直到到达目标层级 (Month=2级, Week=3级)
-  (while (> (org-current-level) target-level)
-    (org-up-heading-safe))
-
-  ;; 3. 在当前节点下寻找或创建目标容器 (容器层级 = 目标层级 + 1)
-  (let* ((child-level (1+ target-level))
-         (stars (make-string child-level ?*))
-         ;; 正则匹配容器标题，兼容带有 tag 的情况
-         (regex (format "^%s +%s\\(?:[ \t]+:[[:alnum:]_@#:]+:\\)?[ \t]*$"
-                        (regexp-quote stars)
-                        (regexp-quote container-name))))
-    (save-restriction
-      (org-narrow-to-subtree)
-      (goto-char (point-min))
-      (if (re-search-forward regex nil t)
-          ;; 找到了，把光标停在这个容器标题上
-          (goto-char (line-beginning-position))
-        ;; 没找到，就在当前目标层级的下方（紧贴着父节点）创建这个容器
-        (goto-char (point-min))
-        (org-end-of-meta-data t) ;; 越过父节点的 PROPERTIES 抽屉或日志，保持格式干净
-        (insert stars " " container-name " :" tag ":\n")
-        ;; 将光标移回刚刚创建的容器标题上
-        (forward-line -1)))))
-
-;; 定义专门的月度和每周定位函数
-(defun +my/capture-goto-monthly-container ()
-  ;; Month 是第 2 级，所以传 2
-  (+my/org-capture-find-or-create-container 2 "Monthly Goals" "ACT_MONTH"))
-
-(defun +my/capture-goto-weekly-container ()
-  ;; Week 是第 3 级，所以传 3
-  (+my/org-capture-find-or-create-container 3 "Weekly Goals" "ACT_WEEK"))
-
 (with-eval-after-load 'consult
   (defun +my/retrieve-todo-entries ()
     (require 'consult-org)
@@ -4378,6 +4281,247 @@ If prefix ARG, copy instead of move."
                          +org-capture-file-diary
                          +org-capture-file-routine
                          +org-capture-file-proj))
+
+;; Select plans on the original task instead of copying TODO entries.
+(defun +my/org-plan-period (period &optional time)
+  "Return the current PERIOD identifier for TIME, using ISO weeks."
+  (format-time-string
+   (pcase period
+     ('day "%F")
+     ('week "%G-W%V")
+     ('month "%Y-%m")
+     (_ (user-error "Unknown plan period: %s" period)))
+   (or time (current-time))))
+
+(defun +my/org-plan-property (period)
+  "Return the property used to select a task for PERIOD."
+  (pcase period
+    ('day "FOCUS_DAY")
+    ('week "FOCUS_WEEK")
+    ('month "FOCUS_MONTH")
+    (_ (user-error "Unknown plan period: %s" period))))
+
+(defun +my/org-plan-history-property (period)
+  "Return the property retaining selected PERIOD identifiers."
+  (pcase period
+    ('day "PLAN_DAYS")
+    ('week "PLAN_WEEKS")
+    ('month "PLAN_MONTHS")
+    (_ (user-error "Unknown plan period: %s" period))))
+
+(defun +my/org-plan-selections (period)
+  "Read retained PERIOD selections and the current task's FOCUS value."
+  (delete-dups
+   (append (split-string
+            (or (org-entry-get nil (+my/org-plan-history-property period)) "")
+            "[ \t]+" t)
+           (when-let* ((value (org-entry-get nil (+my/org-plan-property period))))
+             (list value)))))
+
+(defun +my/org-plan-sync-tag ()
+  "Keep the local plan tag while this task has any recorded plan selection."
+  (let* ((tags (org-get-tags nil t))
+         (planned (cl-some #'+my/org-plan-selections '(day week month)))
+         (updated (if planned
+                      (if (member "plan" tags) tags (append tags '("plan")))
+                    (remove "plan" tags))))
+    (unless (equal tags updated)
+      (org-set-tags updated))))
+
+(defun +my/org-plan-match (period &optional time)
+  "Build a PERIOD query for TIME, including retained selections.
+Without TIME, use the current date each time the agenda is refreshed."
+  (let ((value (+my/org-plan-period period time)))
+    (format "%s=\"%s\"|%s={\\b%s\\b}"
+            (+my/org-plan-property period) value
+            (+my/org-plan-history-property period) (regexp-quote value))))
+
+(defun +my/org-plan-history-files ()
+  "Include agenda files, their archives, and the existing done.org history."
+  (cl-remove-if-not
+   #'file-exists-p
+   (delete-dups
+    (append (org-agenda-files t t)
+            (list (expand-file-name
+                   "done.org"
+                   (file-name-directory (expand-file-name +org-capture-file-gtd))))))))
+
+(defun +my/org-plan-protected-file-p (file)
+  "Return non-nil when FILE is the existing diary.org or done.org."
+  (and file
+       (member (file-truename file)
+               (mapcar #'file-truename
+                       (delq nil
+                             (list (and (boundp '+org-capture-file-diary)
+                                        +org-capture-file-diary)
+                                   (and (boundp '+org-capture-file-gtd)
+                                        +org-capture-file-gtd
+                                        (expand-file-name
+                                         "done.org"
+                                         (file-name-directory
+                                          (expand-file-name +org-capture-file-gtd))))))))))
+
+(defun +my/org-plan-writable-task-p ()
+  "Allow plan changes only on gtd.org tasks, preserving historical files."
+  (or (not buffer-file-name)
+      (and +org-capture-file-gtd
+           (equal (file-truename buffer-file-name)
+                  (file-truename +org-capture-file-gtd)))))
+
+(defun +my/org-plan-entries (period &optional time)
+  "Read selected tasks for PERIOD at TIME without modifying source files."
+  (let ((org-agenda-files (+my/org-plan-history-files))
+        (org-use-property-inheritance nil)
+        entries)
+    (org-map-entries
+     (lambda ()
+       (when-let* ((state (org-get-todo-state)))
+         (push (list :title (org-link-display-format (org-get-heading t t t t))
+                     :state state :closed (org-entry-get nil "CLOSED"))
+               entries)))
+     (+my/org-plan-match period time) 'agenda)
+    (nreverse entries)))
+
+(defun +my/org-plan-stats (entries)
+  "Count DONE, open, UNDONE, and CANCELED entries separately."
+  (let ((done 0) (open 0) (undone 0) (canceled 0))
+    (dolist (entry entries)
+      (pcase (plist-get entry :state)
+        ("DONE" (cl-incf done))
+        ("UNDONE" (cl-incf undone))
+        ((or "CANCELED" "CANCELLED" "CANCEL") (cl-incf canceled))
+        (_ (cl-incf open))))
+    (let ((total (length entries)))
+      (list :total total :done done :open open :undone undone :canceled canceled
+            :percent (if (zerop total) 0 (/ (* 100 done) total))))))
+
+(defun +my/org-plan-summary (entries)
+  "Format completion progress for ENTRIES without counting cancellations as DONE."
+  (let ((stats (+my/org-plan-stats entries)))
+    (format "DONE %d/%d (%d%%) | Open %d | UNDONE %d | CANCELED %d"
+            (plist-get stats :done) (plist-get stats :total)
+            (plist-get stats :percent) (plist-get stats :open)
+            (plist-get stats :undone) (plist-get stats :canceled))))
+
+(defun +my/org-plan-header (period &optional time)
+  "Show the selected PERIOD and its actual task completion counts."
+  (format "%s %s: %s"
+          (capitalize (symbol-name period)) (+my/org-plan-period period time)
+          (+my/org-plan-summary (+my/org-plan-entries period time))))
+
+(defun +my/org-plan-read-period-and-date ()
+  "Read a day, week, or month, and a date, defaulting to the previous period."
+  (require 'org)
+  (let* ((period (pcase (read-char-choice
+                        "Plan period: [d]ay, [w]eek, [m]onth: " '(?d ?w ?m))
+                   (?d 'day) (?w 'week) (?m 'month)))
+         (org-read-date-prefer-future nil))
+    (list period
+          (org-read-date
+           nil t nil "Plan date (any day in that week/month): " nil
+           (pcase period ('day "-1d") ('week "-1w") ('month "-1m"))))))
+
+(defun +my/org-plan-history (period time)
+  "View tasks selected for PERIOD containing TIME, showing current states."
+  (interactive (+my/org-plan-read-period-and-date))
+  (require 'org-agenda)
+  (let* ((identifier (+my/org-plan-period period time))
+         (title (format "%s Plan: %s (current task states)"
+                        (capitalize (symbol-name period)) identifier))
+         (files (+my/org-plan-history-files))
+         ;; Keep the selected period when rebuilding this historical view.
+         (org-agenda-custom-commands
+          `(("h" ,title
+             ((tags ,(+my/org-plan-match period time)
+                    ((org-agenda-overriding-header
+                      ,(concat title "\n" (+my/org-plan-summary
+                                           (+my/org-plan-entries period time))))
+                     (org-use-property-inheritance nil)
+                     (org-agenda-skip-function
+                      '(org-agenda-skip-entry-if 'nottodo '("*"))))))
+             ((org-agenda-files ',files))))))
+    (org-agenda nil "h")))
+
+(defun +my/org-plan-toggle (period)
+  "Toggle the task at point in the current PERIOD plan.
+In an agenda, operate on bulk-marked tasks when there are any.
+If every selected task is already in this plan, remove them all;
+otherwise add them all.  Task states and scheduling stay independent."
+  (require 'org)
+  (require 'org-agenda)
+  (let* ((agenda (derived-mode-p 'org-agenda-mode))
+         (property (+my/org-plan-property period))
+         (value (+my/org-plan-period period))
+         (markers
+          (cond
+           (agenda
+            (or (copy-sequence org-agenda-bulk-marked-entries)
+                (list (org-get-at-bol 'org-hd-marker))))
+           ((derived-mode-p 'org-mode)
+            (list (save-excursion
+                    (org-back-to-heading t)
+                    (point-marker))))
+           (t (user-error "Select a task in Org or an agenda"))))
+         buffers remove)
+    (setq markers (cl-remove-duplicates markers :test #'equal))
+    ;; Validate the whole selection before changing any task.
+    (dolist (marker markers)
+      (unless (and (markerp marker) (marker-buffer marker))
+        (user-error "No task at point, or the marked task is unavailable"))
+      (org-with-point-at marker
+        (unless (and (derived-mode-p 'org-mode)
+                     (org-at-heading-p) (org-get-todo-state))
+          (user-error "Only TODO entries can be selected for a plan"))
+        (unless (+my/org-plan-writable-task-p)
+          (user-error "Plan tasks in gtd.org; other files stay unchanged"))
+        (barf-if-buffer-read-only)))
+    (setq remove
+          (cl-every
+           (lambda (marker)
+             (org-with-point-at marker
+               (member value (+my/org-plan-selections period))))
+           markers))
+    (dolist (marker markers)
+      (org-with-point-at marker
+        (let* ((history-property (+my/org-plan-history-property period))
+               (selections (+my/org-plan-selections period)))
+          (if remove
+              (progn
+                (setq selections (delete value selections))
+                (when (equal (org-entry-get nil property) value)
+                  (org-entry-delete nil property)))
+            (cl-pushnew value selections :test #'equal)
+            (org-entry-put nil property value))
+          (if selections
+              (org-entry-put nil history-property
+                             (mapconcat #'identity (sort selections #'string<) " "))
+            (org-entry-delete nil history-property))
+          (+my/org-plan-sync-tag))
+        (cl-pushnew (current-buffer) buffers)))
+    (dolist (buffer buffers)
+      (with-current-buffer buffer
+        (when buffer-file-name (save-buffer))))
+    (when agenda
+      (org-agenda-bulk-unmark-all)
+      (org-agenda-redo t))
+    (message "%s %d task(s) %s plan %s"
+             (if remove "Removed" "Added") (length markers)
+             (if remove "from" "to") value)))
+
+(defun +my/org-plan-today ()
+  "Toggle selected tasks in today's plan."
+  (interactive)
+  (+my/org-plan-toggle 'day))
+
+(defun +my/org-plan-this-week ()
+  "Toggle selected tasks in this ISO week's plan."
+  (interactive)
+  (+my/org-plan-toggle 'week))
+
+(defun +my/org-plan-this-month ()
+  "Toggle selected tasks in this month's plan."
+  (interactive)
+  (+my/org-plan-toggle 'month))
 
 (use-package org
   :ensure nil
@@ -4487,7 +4631,7 @@ If prefix ARG, copy instead of move."
   (setq org-refile-use-outline-path 'file)
   (setq org-refile-targets '((+org-capture-file-gtd :level . 3)
                              (+org-capture-file-someday :level . 3)))
-  (setq org-tag-alist '(("academic" . ?a) ("personal" . ?p) ("emacs" . ?e) ("work" . ?w) ("company" . ?c) ("habit" . ?h) ("joy" . ?j) ("computer" . ?C) ("program" . ?P) ("home" . ?H) ("ACT_MONTH" . ?m) ("ACT_WEEK" . ?W) ("ACT_TODAY" . ?d)))
+  (setq org-tag-alist '(("academic" . ?a) ("personal" . ?p) ("emacs" . ?e) ("work" . ?w) ("company" . ?c) ("habit" . ?h) ("joy" . ?j) ("computer" . ?C) ("program" . ?P) ("home" . ?H) ("plan" . ?l)))
   (setq org-capture-templates
         '(("t" "Todo" entry
            (file +org-capture-file-gtd)
@@ -4504,25 +4648,19 @@ If prefix ARG, copy instead of move."
           ("i" "Idea" entry
            (file+headline +org-capture-file-idea "Ideas")
            "* %u %?\n%i" :prepend t :kill-buffer t)
-          ("g" "GTD Task linked to Goal" entry
+          ("p" "Planned task")
+          ("pd" "Today" entry
            (file +org-capture-file-gtd)
-           ;; 直接用 %a 作为标题，Org 会将其渲染为可点击的文本
-           "* TODO %a\n  %U\n  %?"
-           :empty-lines 1)
-          ("m" "🎯 Monthly Goal (本月目标)" entry
-           (file+function +org-capture-file-diary +my/capture-goto-monthly-container)
-           ;; 永远写一颗星，Org 会自动将其调整为容器的下一级 (**** TODO)
-           "* TODO %?\n"
-           :empty-lines 1
-           ;; :prepend t 会将新目标插在容器的最上方。如果你喜欢新目标排在最后，删掉这行即可
-           :prepend t)
-
-          ("W" "📅 Weekly Goal (本周目标)" entry
-           (file+function +org-capture-file-diary +my/capture-goto-weekly-container)
-           ;; 自动调整为 ***** TODO
-           "* TODO %?\n"
-           :empty-lines 1
-           :prepend t)
+           "* TODO %? :plan:\n:PROPERTIES:\n:FOCUS_DAY: %(+my/org-plan-period 'day)\n:CREATED: %U\n:END:\n"
+           :prepend t :empty-lines 1)
+          ("pw" "This week" entry
+           (file +org-capture-file-gtd)
+           "* TODO %? :plan:\n:PROPERTIES:\n:FOCUS_WEEK: %(+my/org-plan-period 'week)\n:CREATED: %U\n:END:\n"
+           :prepend t :empty-lines 1)
+          ("pm" "This month" entry
+           (file +org-capture-file-gtd)
+           "* TODO %? :plan:\n:PROPERTIES:\n:FOCUS_MONTH: %(+my/org-plan-period 'month)\n:CREATED: %U\n:END:\n"
+           :prepend t :empty-lines 1)
           ))
   (setq org-todo-keywords
         '((sequence
@@ -4642,7 +4780,13 @@ If prefix ARG, copy instead of move."
       "dp" 'org-timestamp-up
       "dn" 'org-timestamp-down
 
-      "D" '+my-org/mark-done
+      "D" '(+my-org/mark-done :wk "Archive to diary")
+
+      "v" '(:wk "plan")
+      "vd" '(+my/org-plan-today :wk "Today (toggle)")
+      "vw" '(+my/org-plan-this-week :wk "This week (toggle)")
+      "vm" '(+my/org-plan-this-month :wk "This month (toggle)")
+      "vh" '(+my/org-plan-history :wk "Past day/week/month")
 
       "g" '(:wk "goto")
       "gc" 'org-clock-goto
@@ -4689,7 +4833,6 @@ If prefix ARG, copy instead of move."
       "sA" 'org-archive-subtree
       "sN" 'widen
       "sS" 'org-sort
-      "sw" '(lambda () (interactive) (+my/org-datetree-find-date-create (current-time)))
 
       "p" '(:wk "priority")
       "pd" 'org-priority-down
@@ -4739,26 +4882,9 @@ If prefix ARG, copy instead of move."
   (defun +my/open-org-agenda ()
     "open org agenda in left window"
     (interactive)
-    (org-agenda nil "n")
+    (org-agenda nil "p")
     ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
     (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE")))
-
-  (defun +my-org/mark-done ()
-    (interactive)
-    (when (derived-mode-p 'org-mode)
-      (org-back-to-heading)
-      (when-let* ((close-time (org-entry-get (point) "CLOSED"))
-                  (close-time (org-time-string-to-time close-time)))
-        (org-cut-subtree)
-        (with-current-buffer (find-file-noselect +org-capture-file-diary)
-          (+my/org-datetree-find-date-create close-time)
-          (save-restriction
-            (widen)
-            (org-fold-show-all)
-            ;;  HACK: assuming level of: year, month, week, day, Achieved, items
-            (org-paste-subtree 6))
-          (save-buffer)))))
-
 
   ;; inherit schedule time from parent
   (defun my-org-insert-sub-task ()
@@ -4838,54 +4964,10 @@ the lines even if the ranges do not overlap."
   (add-hook 'org-mode-hook
             (lambda ()
               (add-hook 'before-save-hook 'my/org-add-ids-to-headlines-in-file nil 'local)))
-
-
-  (defun my/org-remove-ids-without-scheduled-or-deadline ()
-    "Remove ID properties from all headlines in the current file
-that do not have SCHEDULED or DEADLINE."
-    (interactive)
-    (org-map-entries
-     (lambda ()
-       (unless (or (org-entry-get nil "SCHEDULED")
-                   (org-entry-get nil "DEADLINE"))
-         (org-entry-delete nil "ID")))))
-
-
-  (defun +my/sync-gtd-state-to-goal ()
-    "当 GTD 任务的状态改变时，如果标题中包含指向 Goal 的 id 链接，则静默同步更新 Goal 的状态。"
-    ;; org-state 是在这个 hook 中动态绑定的变量，代表变更后的新状态（如 "DONE"）
-    (let ((new-state org-state)
-          ;; 获取当前没有任何 Tag 和 TODO 关键字的纯标题文本
-          (heading (org-get-heading t t t t)))
-      ;; 1. 使用正则检查标题中是否包含形如 [[id:xxxx][yyyy]] 的链接
-      (when (and heading
-                 (string-match "\\[\\[id:\\([^]]+\\)\\]\\[.*?\\]\\]" heading))
-        ;; 2. 提取出链接中的目标 ID
-        (let* ((goal-id (match-string 1 heading))
-               ;; 查找该 ID 所在的文件和位置，返回 (file . position) 结构
-               (id-loc (org-id-find goal-id)))
-          (when id-loc
-            (let ((file (car id-loc))
-                  (pos (cdr id-loc)))
-              ;; 3. 在后台默默打开/切换到目标文件，不干扰当前的屏幕焦点
-              (with-current-buffer (find-file-noselect file)
-                (save-excursion
-                  (goto-char pos)
-                  ;; [极其重要]: 临时禁用该 hook，防止目标修改状态时再次触发 hook 导致无限死循环
-                  (let ((org-after-todo-state-change-hook nil))
-                    (org-todo new-state))
-                  ;; 自动保存目标文件，确保状态落盘
-                  (save-buffer)))
-              (message "已同步更新关联的 Goal 状态为: %s" new-state)))))))
-
-  ;; 将函数挂载到 TODO 状态变更钩子上
-  (add-hook 'org-after-todo-state-change-hook #'+my/sync-gtd-state-to-goal)
-
   )
 ;; ;; -OrgPac
 
 (use-package org-agenda
-  :ensure nil
   :ensure nil
   :after org
   ;; :bind
@@ -4910,36 +4992,6 @@ that do not have SCHEDULED or DEADLINE."
           (search category-keep))
         )
   :config
-
-  (defun +my/generate-gtd-stats-header ()
-    "统计 Agenda 文件中各种状态的数量，返回美化的报表头部字符串"
-    (let ((todo-cnt 0)
-          (done-cnt 0)
-          (cancel-cnt 0)
-          (undone-cnt 0))
-      ;; 限定只扫描核心文件，保证打开报表时的毫秒级速度
-      (let ((org-agenda-files (list +org-capture-file-gtd +org-capture-file-diary)))
-        (org-map-entries
-         (lambda ()
-           (let ((state (org-get-todo-state)))
-             (when state
-               (cond
-                ;; 1. 判定是否为“完成”状态组 (DONE, CANCEL 等)
-                ((member state org-done-keywords)
-                 (if (member state '("CANCEL" "CANCELLED" "KILL" "ABORT"))
-                     (setq cancel-cnt (1+ cancel-cnt))
-                   (setq done-cnt (1+ done-cnt))))
-                ;; 2. 非完成状态即为 UNDONE 组
-                (t
-                 (setq undone-cnt (1+ undone-cnt))
-                 ;; 严格统计名为 "TODO" 的关键字
-                 (when (string= state "TODO")
-                   (setq todo-cnt (1+ todo-cnt))))))))
-         t 'agenda))
-
-      ;; 拼接并返回漂亮的 ASCII 数据面板
-      (format "📊 任务状态全局看板 \n========================================================\n 🟩 DONE (已完成): %d  |  🟥 CANCEL (已取消): %d\n 🟧 TODO (纯待办): %d  |  🟨 UNDONE (总计未完): %d\n========================================================"
-              done-cnt cancel-cnt todo-cnt undone-cnt)))
 
   (defvar my/org-habit-show-graphs-everywhere t
     "If non-nil, show habit graphs in all types of agenda buffers.
@@ -4976,70 +5028,42 @@ has no effect."
   (advice-add #'org-agenda-finalize :before #'my/org-agenda-mark-habits)
 
   (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
-  (defun org/skip-daily-goals (&optional time)
-    (let* ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
-           (subtree-end (save-excursion (org-end-of-subtree t)))
-           (heading (nth 4 (org-heading-components)))
-           (subtree-valid (not (string= "Daily Goals" heading))))
-      (unless subtree-valid
-        next-headline)))
   (setq org-agenda-custom-commands
-        '(("n" "Agenda"
-           (
-            (tags
-             "ACT_MONTH"
-             ((org-agenda-files (list +org-capture-file-diary))
-              (org-agenda-overriding-header "Month Goals:")
-              (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
-            (tags
-             "ACT_WEEK"
-             ((org-agenda-files (list +org-capture-file-diary))
-              (org-agenda-overriding-header "Week Goals:")
-              (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
-            (tags
-             "ACT_TODAY"
-             ((org-agenda-files (list +org-capture-file-diary))
-              (org-agenda-overriding-header "Today Goals:")
-              (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
-            (tags
-             "+SCHEDULED>=\"<today>\"&SCHEDULED<\"<+1d>\"|DEADLINE>=\"<today>\"&DEADLINE<\"<+1d>\""
-             ((org-agenda-overriding-header "Today's Tasks")))
-            (agenda "" ((org-agenda-skip-function 'org/skip-daily-goals)))
+        '(("p" "Plans"
+           ((tags (+my/org-plan-match 'day)
+                  ((org-agenda-files (+my/org-plan-history-files))
+                   (org-agenda-overriding-header (+my/org-plan-header 'day))
+                   (org-use-property-inheritance nil)
+                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+            (tags (+my/org-plan-match 'week)
+                  ((org-agenda-files (+my/org-plan-history-files))
+                   (org-agenda-overriding-header (+my/org-plan-header 'week))
+                   (org-use-property-inheritance nil)
+                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+            (tags (+my/org-plan-match 'month)
+                  ((org-agenda-files (+my/org-plan-history-files))
+                   (org-agenda-overriding-header (+my/org-plan-header 'month))
+                   (org-use-property-inheritance nil)
+                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+            (agenda "")
             (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header "Habits")))
-            (alltodo "" ((org-agenda-files (list +org-capture-file-gtd))))))
-          ;; 新增 "r" 作为回顾和报表视图
-          ("r" "Weekly & Monthly Report"
-           (;; 1. 查看本月已完成的 Month Goals
-            (tags "STYLE=\"DUMMY_BLOCK_FOR_STATS\""
-                  ((org-agenda-overriding-header (+my/generate-gtd-stats-header))))
-            (tags "ACT_MONTH/DONE|CLOSED"
-                  ((org-agenda-overriding-header "\n🏆 Completed Monthly Goals:")
-                   ;; 如果存档了，需要包含存档文件一起搜索
-                   (org-agenda-files (list +org-capture-file-diary
-                                           (concat +org-capture-file-diary "_archive")))))
-
-            ;; 2. 查看本周已完成的 Week Goals
-            (tags "ACT_WEEK/DONE|CLOSED"
-                  ((org-agenda-overriding-header "\n✅ Completed Weekly Goals:")
-                   (org-agenda-files (list +org-capture-file-diary
-                                           (concat +org-capture-file-diary "_archive")))))
-
-            ;; 3. 利用 Org Log Mode 抓取过去 7 天内所有的完成记录 (基于时间戳)
-            (agenda ""
-                    ((org-agenda-start-day "-1w")     ;; 从一周前开始
-                     (org-agenda-span 7)              ;; 跨度 7 天
-                     (org-agenda-show-log 'closed)    ;; 开启日志模式，只看 closed (完成) 的记录
-                     ;; 过滤掉没有被标记为完成的任务，保持报表干净
-                     (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo 'done))
-                     (org-agenda-overriding-header "\n📈 All GTD Tasks Completed Last 7 Days:")))))
-          ))
+            (alltodo "" ((org-agenda-overriding-header "Task Pool (m to mark, , v d/w/m to plan):")
+                         (org-agenda-files (list +org-capture-file-gtd))))))))
   (evil-set-initial-state 'org-agenda-mode 'motion)
   (setq-default
    org-agenda-inhibit-startup nil
    org-agenda-skip-unavailable-files t)
   (with-eval-after-load 'general
+    (general-define-key :states '(motion)
+                        :keymaps 'org-agenda-mode-map
+                        "m" 'org-agenda-bulk-mark)
     (local-leader-def
       :keymaps 'org-agenda-mode-map
+      "v" '(:wk "plan")
+      "vd" '(+my/org-plan-today :wk "Today (toggle)")
+      "vw" '(+my/org-plan-this-week :wk "This week (toggle)")
+      "vm" '(+my/org-plan-this-month :wk "This month (toggle)")
+      "vh" '(+my/org-plan-history :wk "Past day/week/month")
       "d" '(:wk "date/deadline")
       "dd" 'org-agenda-deadline
       "ds" 'org-agenda-schedule
@@ -5063,8 +5087,16 @@ has no effect."
     )
 
   (defun my/org-save-after-command (&rest _)
-    "Save all org buffers after running a command."
-    (org-save-all-org-buffers))
+    "Save Org changes, preserving the old diary and done files, then refresh."
+    (dolist (buffer (org-buffer-list))
+      (with-current-buffer buffer
+        (when (and buffer-file-name (buffer-modified-p)
+                   (not (+my/org-plan-protected-file-p buffer-file-name)))
+          (save-buffer))))
+    (when (fboundp 'org-id-locations-save)
+      (org-id-locations-save))
+    (when (derived-mode-p 'org-agenda-mode)
+      (org-agenda-redo t)))
 
   (advice-add 'org-agenda-todo :after #'my/org-save-after-command)
   (advice-add 'org-agenda-clock-in :after #'my/org-save-after-command)
@@ -5246,12 +5278,10 @@ kill the current timer, this may be a break or a running pomodoro."
   )
 
 (use-package org-reverse-datetree
-  :commands (my-org-reverse-datetree-cleanup-empty-dates)
   :ensure (:host github :repo "theFool32/org-reverse-datetree")
   :after org
   :init
 
-  (setq org-reverse-datetree-ignored-heading-text '("Weekly Goals" "Monthly Goals"))
   (setq-default org-reverse-datetree-level-formats
                 '("%Y"                    ; year
                   (lambda (time) (format-time-string "%Y-%m %B" (org-reverse-datetree-sunday time))) ; month
@@ -5262,76 +5292,6 @@ kill the current timer, this may be a break or a running pomodoro."
                             (format-time-string "%Y-%m-%d" (org-reverse-datetree-last-dow 13 time))
                             )) ; month
                   "%Y-%m-%d %A"))
-  :config
-  (cl-defun my-org-reverse-datetree-cleanup-empty-dates (&key noconfirm
-                                                              ancestors)
-    (interactive)
-    (unless (derived-mode-p 'org-mode)
-      (user-error "Not in org-mode"))
-    (when (and (or noninteractive
-                   (not (called-interactively-p 'any)))
-               (not noconfirm))
-      (error "Please set NOCONFIRM when called non-interactively"))
-    (let ((levels (length (org-reverse-datetree--get-level-formats t)))
-          count)
-      (when (> levels 0)
-        (org-save-outline-visibility t
-          (outline-hide-sublevels (1+ levels))
-          (when (or noconfirm
-                    (and (not (org-before-first-heading-p))
-                         (yes-or-no-p "Start from the beginning?")))
-            (goto-char (point-min)))
-          (catch 'abort
-            (while (> levels 0)
-              (setq count 0)
-
-              (while (re-search-forward
-                      (rx-to-string `(and bol
-                                          (group (= ,levels "*")
-                                                 (+ " ")
-                                                 (*? nonl)
-                                                 (+ "\n")
-                                                 (opt
-                                                  (and "***** Daily Goals"
-                                                       (*? nonl)
-                                                       (+ "\n")
-                                                       "***** Archived"
-                                                       (*? nonl)
-                                                       (+ "\n"))))
-                                          (or string-end
-                                              (and (** 1 ,levels "*")
-                                                   " "))))
-                      nil t)
-                (let ((begin (match-beginning 1))
-                      (end (match-end 1)))
-                  (cond
-                   (noconfirm
-                    (delete-region begin end)
-                    (cl-incf count)
-                    (goto-char begin))
-                   ((not noninteractive)
-                    (goto-char begin)
-                    (push-mark end)
-                    (setq mark-active t)
-                    (if (yes-or-no-p "Delete this empty entry?")
-                        (progn
-                          (call-interactively #'delete-region)
-                          (cl-incf count)
-                          (goto-char begin))
-                      (goto-char end))))))
-              (when (= count 0)
-                (message "No trees were deleted. Aborting")
-                (throw 'abort t))
-              (if (and (> levels 1)
-                       (or (and ancestors
-                                noconfirm)
-                           (and (not noninteractive)
-                                (called-interactively-p 'any)
-                                (yes-or-no-p "Clean up the upper level as well?"))))
-                  (progn
-                    (cl-decf levels)
-                    (goto-char (point-min)))
-                (throw 'abort t))))))))
   )
 
 (use-package org-tidy
