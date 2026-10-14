@@ -58,6 +58,9 @@ Use =SPC ;= to open day, week, and month plans, in that order. Every row refers
 to the original task. Changes made in the agenda update its state and refresh
 progress counts.
 Only =DONE= counts as completed; =UNDONE= and =CANCELED= are shown separately.
+Current plans and their progress counts use the daily agenda files and their
+archives. The legacy =done.org= file is read only when explicitly viewing a
+historical plan, so opening the startup agenda does not scan old records.
 
 In an Org task or agenda, use these local-leader shortcuts:
 
@@ -66,7 +69,7 @@ In an Org task or agenda, use these local-leader shortcuts:
 | , v d | Toggle today's plan           |
 | , v w | Toggle this week's plan       |
 | , v m | Toggle this month's plan      |
-| , v h | View a past day/week/month    |
+| , v h | Review the past month/year    |
 
 In the agenda, mark several tasks with =m=, then apply a plan shortcut once.
 A mixed selection is added to the plan; if all selected tasks are already in
@@ -78,10 +81,19 @@ directly into today's, this week's, or this month's plan. Dates are filled
 automatically. Planning does not automatically select parent periods or carry
 unfinished tasks into the next period; select them explicitly when reviewing.
 
-To view a past plan, use =, v h=, choose =d=, =w=, or =m=, and select a date.
-Any date in the desired week or month selects that entire period. The agenda
-shows recorded membership and the tasks' current states. Historical searches
-include archives and =done.org=. No separate review file is created.
+Use =, v h= to open the review directly, with no period or date prompts.
+It shows a rolling month's closed-task records, followed by a
+rolling year's monthly outcome totals and task records. Both ranges end
+on today's date; month-end start dates are clamped to the last valid day.
+The first and last calendar months in the yearly table can be partial.
+Records are ordered by their =CLOSED= date, newest first; press =RET= to
+visit the original task. =DONE=, =UNDONE=, and =CANCELED= are counted separately.
+This review uses closing dates and current ended states, so legacy records
+work without =FOCUS_*= or =PLAN_*= properties. Tasks without a =CLOSED= date
+and tasks that are still open are outside these outcome totals. Reviewing
+reads archives and =done.org= on demand and does not modify source files.
+Refreshing the agenda recalculates the ranges and outcome totals.
+No separate review file is created.
 
 To archive a closed task, open its original Org entry and press =, D=.
 The entire subtree is moved into =diary.org= under the =CLOSED= date's
@@ -97,8 +109,8 @@ The old diary-goal capture templates, ACT tag planning, and cross-entry state
 copier have been retired. Existing =diary.org= and =done.org= content is
 preserved; plan selection and historical queries do not modify these files.
 No old records are migrated or rewritten. Plan selection changes only
-=gtd.org=. Historical views do not reconstruct past task states; progress
-counts selected entries.
+=gtd.org=. Reviews do not reconstruct past task states; their outcome counts use
+closing dates and the recorded tasks' current ended states.
 
 
 ** Dependency

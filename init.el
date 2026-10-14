@@ -700,7 +700,7 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
   :init
   (setq evil-want-keybinding nil)
   :config
-  (let ((modes '(atomic-chrome calc calendar consult debug devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine grep help helpful buffer image image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler replace sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
+  (let ((modes '(atomic-chrome calc calendar consult debug devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine grep help helpful buffer (image image-mode) image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler replace sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
     (evil-collection-init modes))
   )
 
@@ -1308,7 +1308,7 @@ TYPES is the mode-specific types configuration."
 
 (use-package consult-todo
   :ensure (:host github :repo "theFool32/consult-todo" :branch "dev")
-  :demand t
+  :commands (consult-todo consult-todo-dir consult-todo-all consult-todo-project)
   :config
   (setq consult-todo-use-rg t)
   )
@@ -3002,10 +3002,18 @@ besides what is listed.")
 ;; When you get to the right edge, it goes back to how it normally prints
 (setq prettify-symbols-unprettify-at-point 'right-edge)
 
+(defun +pretty-code-enable-on-display-h (window)
+  "Enable deferred pretty symbols when WINDOW displays the source buffer."
+  (when (eq (current-buffer) (window-buffer window))
+    (remove-hook 'window-buffer-change-functions #'+pretty-code-enable-on-display-h t)
+    (let ((org-inhibit-startup nil))
+      (+pretty-code-init-pretty-symbols-h))))
+
 (defun +pretty-code-init-pretty-symbols-h ()
   "Enable `prettify-symbols-mode'.
 If in fundamental-mode, or a mode derived from special, comint, eshell or term
 modes, this function does nothing.
+For Org files read only for an agenda, wait until the buffer is displayed.
 Otherwise it builds `prettify-code-symbols-alist' according to
 `+pretty-code-symbols-alist' for the current major-mode."
   (unless (or (eq major-mode 'fundamental-mode)
@@ -3015,12 +3023,15 @@ Otherwise it builds `prettify-code-symbols-alist' according to
               (if (eq (car +pretty-code-enabled-modes) 'not)
                   (not (memq major-mode (cdr +pretty-code-enabled-modes)))
                 (memq major-mode +pretty-code-enabled-modes)))
-      (setq prettify-symbols-alist
-            (append (cdr (assq major-mode +pretty-code-symbols-alist))
-                    (default-value 'prettify-symbols-alist)))
-      (when prettify-symbols-mode
-        (prettify-symbols-mode -1))
-      (prettify-symbols-mode +1))))
+      (if (and (bound-and-true-p org-inhibit-startup)
+               (not (get-buffer-window (current-buffer) t)))
+          (add-hook 'window-buffer-change-functions #'+pretty-code-enable-on-display-h nil t)
+        (setq prettify-symbols-alist
+              (append (cdr (assq major-mode +pretty-code-symbols-alist))
+                      (default-value 'prettify-symbols-alist)))
+        (when prettify-symbols-mode
+          (prettify-symbols-mode -1))
+        (prettify-symbols-mode +1)))))
 
 (add-hook 'after-change-major-mode-hook #'+pretty-code-init-pretty-symbols-h)
 
@@ -4338,12 +4349,25 @@ Without TIME, use the current date each time the agenda is refreshed."
             (+my/org-plan-property period) value
             (+my/org-plan-history-property period) (regexp-quote value))))
 
+(defun +my/org-plan-current-files ()
+  "Use daily agenda files and their archives for current plans.
+Read the legacy done.org file only when viewing a historical plan."
+  (let ((legacy-file (file-truename
+                      (expand-file-name
+                       "done.org"
+                       (file-name-directory (expand-file-name +org-capture-file-gtd))))))
+    (cl-remove-if
+     (lambda (file)
+       (or (not (file-exists-p file))
+           (equal (file-truename file) legacy-file)))
+     (delete-dups (org-agenda-files t t)))))
+
 (defun +my/org-plan-history-files ()
   "Include agenda files, their archives, and the existing done.org history."
   (cl-remove-if-not
    #'file-exists-p
    (delete-dups
-    (append (org-agenda-files t t)
+    (append (+my/org-plan-current-files)
             (list (expand-file-name
                    "done.org"
                    (file-name-directory (expand-file-name +org-capture-file-gtd))))))))
@@ -4371,8 +4395,9 @@ Without TIME, use the current date each time the agenda is refreshed."
                   (file-truename +org-capture-file-gtd)))))
 
 (defun +my/org-plan-entries (period &optional time)
-  "Read selected tasks for PERIOD at TIME without modifying source files."
-  (let ((org-agenda-files (+my/org-plan-history-files))
+  "Read PERIOD's tasks, including legacy history only when TIME is supplied."
+  (let ((org-agenda-files (if time (+my/org-plan-history-files)
+                           (+my/org-plan-current-files)))
         (org-use-property-inheritance nil)
         entries)
     (org-map-entries
@@ -4405,44 +4430,166 @@ Without TIME, use the current date each time the agenda is refreshed."
             (plist-get stats :percent) (plist-get stats :open)
             (plist-get stats :undone) (plist-get stats :canceled))))
 
+(defvar +my/org-plan-header-cache nil
+  "Plan headers cached only while building one agenda series.")
+
+(defun +my/org-plan-headers (&optional time)
+  "Calculate day, week, and month progress for TIME in one file scan."
+  (let* ((periods '(day week month))
+         (org-agenda-files (if time (+my/org-plan-history-files)
+                             (+my/org-plan-current-files)))
+         (org-use-property-inheritance nil)
+         (queries (mapcar (lambda (period)
+                            (cons period (+my/org-plan-match period time)))
+                          periods))
+         (matchers (mapcar (lambda (query)
+                            (cons (car query) (cdr (org-make-tags-matcher (cdr query)))))
+                          queries))
+         entries)
+    (org-map-entries
+     (lambda ()
+       (when-let* ((state (org-get-todo-state)))
+         (dolist (matcher matchers)
+           (when (funcall (cdr matcher) state nil (org-reduced-level (org-current-level)))
+             (push (list :state state) (alist-get (car matcher) entries))))))
+     (mapconcat #'cdr queries "|") 'agenda)
+    (mapcar (lambda (period)
+              (cons period
+                    (format "%s %s: %s"
+                            (capitalize (symbol-name period)) (+my/org-plan-period period time)
+                            (+my/org-plan-summary (alist-get period entries)))))
+            periods)))
+
+(defun +my/org-plan-cache-headers (fn &rest args)
+  "Share plan progress within FN's agenda build; recalculate on every refresh."
+  (let ((+my/org-plan-header-cache (make-hash-table :test #'equal)))
+    (apply fn args)))
+
 (defun +my/org-plan-header (period &optional time)
   "Show the selected PERIOD and its actual task completion counts."
-  (format "%s %s: %s"
-          (capitalize (symbol-name period)) (+my/org-plan-period period time)
-          (+my/org-plan-summary (+my/org-plan-entries period time))))
+  (if +my/org-plan-header-cache
+      (alist-get period
+                 (or (gethash time +my/org-plan-header-cache)
+                     (puthash time (+my/org-plan-headers time) +my/org-plan-header-cache)))
+    (format "%s %s: %s"
+            (capitalize (symbol-name period)) (+my/org-plan-period period time)
+            (+my/org-plan-summary (+my/org-plan-entries period time)))))
 
-(defun +my/org-plan-read-period-and-date ()
-  "Read a day, week, or month, and a date, defaulting to the previous period."
-  (require 'org)
-  (let* ((period (pcase (read-char-choice
-                        "Plan period: [d]ay, [w]eek, [m]onth: " '(?d ?w ?m))
-                   (?d 'day) (?w 'week) (?m 'month)))
-         (org-read-date-prefer-future nil))
-    (list period
-          (org-read-date
-           nil t nil "Plan date (any day in that week/month): " nil
-           (pcase period ('day "-1d") ('week "-1w") ('month "-1m"))))))
+(defun +my/org-plan-review-start (months now)
+  "Return the start date MONTHS before NOW, clamping month-end dates."
+  (require 'calendar)
+  (let* ((date (decode-time now))
+         (day (decoded-time-day date))
+         (month (decoded-time-month date))
+         (year (decoded-time-year date)))
+    (calendar-increment-month month year (- months))
+    (encode-time 0 0 0 (min day (calendar-last-day-of-month month year)) month year)))
 
-(defun +my/org-plan-history (period time)
-  "View tasks selected for PERIOD containing TIME, showing current states."
-  (interactive (+my/org-plan-read-period-and-date))
+(defun +my/org-plan-review-match (start end)
+  "Match tasks closed from START, inclusive, to END, exclusive."
+  (format "CLOSED>=\"<%s>\"&CLOSED<\"<%s>\""
+          (format-time-string "%F" start) (format-time-string "%F" end)))
+
+(defun +my/org-plan-review-records (start end)
+  "Read ended tasks in the review range without changing source files."
+  (let ((org-use-property-inheritance nil)
+        records)
+    (org-map-entries
+     (lambda ()
+       (when (org-entry-is-done-p)
+         (when-let* ((closed (org-entry-get nil "CLOSED"))
+                     (time (condition-case nil (org-time-string-to-time closed) (error nil))))
+           (push (list :state (org-get-todo-state) :time time
+                       :marker (point-marker))
+                 records))))
+     (+my/org-plan-review-match start end) 'agenda)
+    (nreverse records)))
+
+(defun +my/org-plan-review-summary (records)
+  "Summarize ended task states without treating cancellations as completion."
+  (let ((stats (+my/org-plan-stats records)))
+    (format "完成 %d | 未完成 %d | 取消 %d"
+            (plist-get stats :done) (plist-get stats :undone)
+            (plist-get stats :canceled))))
+
+(defun +my/org-plan-review-year-header (start end now records)
+  "Format the past year's monthly outcome totals."
+  (let* ((date (decode-time start))
+         (month (decoded-time-month date))
+         (year (decoded-time-year date))
+         groups rows)
+    (dolist (record records)
+      (push record (alist-get (format-time-string "%Y-%m" (plist-get record :time))
+                              groups nil nil #'equal)))
+    (while (time-less-p (encode-time 0 0 0 1 month year) end)
+      (let* ((identifier (format "%04d-%02d" year month))
+             (stats (+my/org-plan-stats (alist-get identifier groups nil nil #'equal))))
+        (push (format "%s    %5d    %6d    %4d"
+                      identifier (plist-get stats :done)
+                      (plist-get stats :undone) (plist-get stats :canceled))
+              rows))
+      (calendar-increment-month month year 1))
+    (concat (format "过去一年  %s — %s\n%s\n"
+                    (format-time-string "%F" start) (format-time-string "%F" now)
+                    (+my/org-plan-review-summary records))
+            "月份          完成    未完成    取消\n"
+            (mapconcat #'identity (nreverse rows) "\n")
+            "\n\n全年记录（按关闭日期倒序）：")))
+
+(defun +my/org-plan-review-closed-date ()
+  "Return the current task's CLOSED date for the agenda prefix."
+  (when-let* ((closed (org-entry-get nil "CLOSED")))
+    (when (string-match "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}" closed)
+      (match-string 0 closed))))
+
+(defun +my/org-plan-history (&optional now)
+  "Show the past month and year directly, using CLOSED dates.
+Read legacy archives only on demand.  NOW is the reference date for tests
+or programmatic use; interactive use never prompts for a period or date."
+  (interactive)
   (require 'org-agenda)
-  (let* ((identifier (+my/org-plan-period period time))
-         (title (format "%s Plan: %s (current task states)"
-                        (capitalize (symbol-name period)) identifier))
+  (let* ((reference now)
+         (now (or now (current-time)))
+         (month-start (+my/org-plan-review-start 1 now))
+         (year-start (+my/org-plan-review-start 12 now))
+         (date (decode-time now))
+         (end (encode-time 0 0 0 (1+ (decoded-time-day date))
+                           (decoded-time-month date) (decoded-time-year date)))
          (files (+my/org-plan-history-files))
-         ;; Keep the selected period when rebuilding this historical view.
+         (org-agenda-files files)
+         (records (+my/org-plan-review-records year-start end))
+         (month-records (cl-remove-if
+                         (lambda (record) (time-less-p (plist-get record :time) month-start))
+                         records))
+         (times (make-hash-table :test #'equal))
+         (month-header (format "过去一个月  %s — %s\n%s\n按 CLOSED 关闭日期统计当前结束状态；RET 跳转原任务。"
+                               (format-time-string "%F" month-start)
+                               (format-time-string "%F" now)
+                               (+my/org-plan-review-summary month-records)))
+         (year-header (+my/org-plan-review-year-header year-start end now records))
          (org-agenda-custom-commands
-          `(("h" ,title
-             ((tags ,(+my/org-plan-match period time)
-                    ((org-agenda-overriding-header
-                      ,(concat title "\n" (+my/org-plan-summary
-                                           (+my/org-plan-entries period time))))
-                     (org-use-property-inheritance nil)
-                     (org-agenda-skip-function
-                      '(org-agenda-skip-entry-if 'nottodo '("*"))))))
-             ((org-agenda-files ',files))))))
-    (org-agenda nil "h")))
+          `(("h" "历史复盘：过去一个月 / 过去一年"
+             ((tags ,(+my/org-plan-review-match month-start end)
+                    ((org-agenda-overriding-header ,month-header)))
+              (tags ,(+my/org-plan-review-match year-start end)
+                    ((org-agenda-overriding-header ,year-header))))
+             ((org-agenda-files ',files)
+              (org-use-property-inheritance nil)
+              (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo 'done))
+              (org-agenda-prefix-format '((tags . "%(+my/org-plan-review-closed-date) ")))
+              (org-agenda-sorting-strategy '(user-defined-down))
+              (org-agenda-cmp-user-defined
+               (lambda (a b)
+                 (let ((a-time (gethash (get-text-property 0 'org-hd-marker a) ,times 0))
+                       (b-time (gethash (get-text-property 0 'org-hd-marker b) ,times 0)))
+                   (cond ((> a-time b-time) 1) ((< a-time b-time) -1))))))))))
+    (dolist (record records)
+      (puthash (plist-get record :marker) (float-time (plist-get record :time)) times))
+    (org-agenda nil "h")
+    (let ((redo (list '+my/org-plan-history (list 'quote reference)))
+          (inhibit-read-only t))
+      (setq org-agenda-redo-command redo)
+      (put-text-property (point-min) (point-max) 'org-series-redo-cmd redo))))
 
 (defun +my/org-plan-toggle (period)
   "Toggle the task at point in the current PERIOD plan.
@@ -4788,7 +4935,7 @@ otherwise add them all.  Task states and scheduling stay independent."
       "vd" '(+my/org-plan-today :wk "Today (toggle)")
       "vw" '(+my/org-plan-this-week :wk "This week (toggle)")
       "vm" '(+my/org-plan-this-month :wk "This month (toggle)")
-      "vh" '(+my/org-plan-history :wk "Past day/week/month")
+      "vh" '(+my/org-plan-history :wk "Review month/year")
 
       "g" '(:wk "goto")
       "gc" 'org-clock-goto
@@ -4995,6 +5142,8 @@ the lines even if the ranges do not overlap."
         )
   :config
 
+  (advice-add 'org-agenda-run-series :around #'+my/org-plan-cache-headers)
+
   (defvar my/org-habit-show-graphs-everywhere t
     "If non-nil, show habit graphs in all types of agenda buffers.
 
@@ -5033,17 +5182,17 @@ has no effect."
   (setq org-agenda-custom-commands
         '(("p" "Plans"
            ((tags (+my/org-plan-match 'day)
-                  ((org-agenda-files (+my/org-plan-history-files))
+                  ((org-agenda-files (+my/org-plan-current-files))
                    (org-agenda-overriding-header (+my/org-plan-header 'day))
                    (org-use-property-inheritance nil)
                    (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
             (tags (+my/org-plan-match 'week)
-                  ((org-agenda-files (+my/org-plan-history-files))
+                  ((org-agenda-files (+my/org-plan-current-files))
                    (org-agenda-overriding-header (+my/org-plan-header 'week))
                    (org-use-property-inheritance nil)
                    (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
             (tags (+my/org-plan-match 'month)
-                  ((org-agenda-files (+my/org-plan-history-files))
+                  ((org-agenda-files (+my/org-plan-current-files))
                    (org-agenda-overriding-header (+my/org-plan-header 'month))
                    (org-use-property-inheritance nil)
                    (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
@@ -5053,7 +5202,7 @@ has no effect."
                          (org-agenda-files (list +org-capture-file-gtd))))))))
   (evil-set-initial-state 'org-agenda-mode 'motion)
   (setq-default
-   org-agenda-inhibit-startup nil
+   org-agenda-inhibit-startup t
    org-agenda-skip-unavailable-files t)
   (with-eval-after-load 'general
     (general-define-key :states '(motion)
@@ -5065,7 +5214,7 @@ has no effect."
       "vd" '(+my/org-plan-today :wk "Today (toggle)")
       "vw" '(+my/org-plan-this-week :wk "This week (toggle)")
       "vm" '(+my/org-plan-this-month :wk "This month (toggle)")
-      "vh" '(+my/org-plan-history :wk "Past day/week/month")
+      "vh" '(+my/org-plan-history :wk "Review month/year")
       "d" '(:wk "date/deadline")
       "dd" 'org-agenda-deadline
       "ds" 'org-agenda-schedule
