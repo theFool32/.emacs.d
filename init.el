@@ -2261,7 +2261,7 @@ kill all magit buffers for this repo."
   :config
   )
 (use-package evil-ghostel
-  :ensure nil ; Bundled with ghostel, not a separate package.
+  :ensure t ; Separate package, even though it shares Ghostel's repository.
   :after (ghostel evil)
   :hook (ghostel-mode . evil-ghostel-mode))
 
