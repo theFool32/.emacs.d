@@ -49,17 +49,47 @@ class InstallerTests(unittest.TestCase):
         self.custom.write_text(";;; Personal settings\n(setq test-value 42)\n")
         self.agent = self.home / "Library/LaunchAgents/local.emacs.daemon.plist"
 
-    def run_installer(self, *arguments, state=None):
+    def run_installer(self, *arguments, state=None, registered=False, replies=None):
+        loaded = registered
+        retiring = 0
+
+        def fake_run(command, **_):
+            nonlocal loaded, retiring
+            if command[0] == "/bin/launchctl":
+                action = command[1]
+                if action == "print":
+                    if retiring:
+                        retiring -= 1
+                        if retiring == 0:
+                            loaded = False
+                    return subprocess.CompletedProcess(command, 0 if loaded else 113, "", "")
+                if action == "bootout":
+                    retiring = 3
+                elif action == "bootstrap":
+                    if loaded:
+                        return subprocess.CompletedProcess(command, 5, "", "Operation already in progress")
+                    loaded = True
+            return subprocess.CompletedProcess(command, 0, "", "")
+
         with ExitStack() as stack:
             stack.enter_context(patch.object(installer, "REPOSITORY", self.root))
             stack.enter_context(patch.object(installer.Path, "home", return_value=self.home))
             stack.enter_context(patch.object(installer.sys, "platform", "darwin"))
             stack.enter_context(patch.object(sys, "argv", ["install-emacs-daemon", "--emacs-app", str(self.app), *arguments]))
-            run = stack.enter_context(patch.object(installer.subprocess, "run", return_value=subprocess.CompletedProcess([], 1)))
-            evaluate = stack.enter_context(patch.object(installer, "evaluate", return_value=state))
+            run = stack.enter_context(patch.object(installer.subprocess, "run", side_effect=fake_run))
+            evaluate = stack.enter_context(patch.object(installer, "evaluate", return_value=state, side_effect=replies))
+            stack.enter_context(patch.object(installer.time, "sleep"))
             stack.enter_context(redirect_stdout(io.StringIO()))
             installer.main()
             return run, evaluate
+
+    def test_restart_waits_for_launchd_to_remove_the_old_service(self):
+        run, evaluate = self.run_installer("--restart", registered=True,
+                                           replies=["1", "t", None, None])
+        actions = [call.args[0][1] for call in run.call_args_list
+                   if call.args[0][0] == "/bin/launchctl"]
+        self.assertEqual(actions, ["print", "bootout", "print", "print", "print", "bootstrap"])
+        self.assertTrue(any(call.args[1] == "(kill-emacs)" for call in evaluate.call_args_list))
 
     def test_preview_writes_nothing_and_does_not_contact_emacs_or_launchd(self):
         original = self.hs.read_bytes()
@@ -128,6 +158,50 @@ class InstallerTests(unittest.TestCase):
     def test_hammerspoon_unknown_binding_is_not_overwritten(self):
         with self.assertRaisesRegex(RuntimeError, "Unrecognized"):
             installer.hammerspoon_config("hs.hotkey.bind({'cmd', 'ctrl'}, '.', anotherAction)", self.root, self.home)
+
+
+class LaunchdTests(unittest.TestCase):
+    def test_bootstrap_retries_a_transient_io_or_in_progress_error(self):
+        results = [subprocess.CompletedProcess([], code, "", "Operation already in progress")
+                   for code in (5, 37, 0)]
+        with patch.object(installer.subprocess, "run", side_effect=results) as run, \
+                patch.object(installer.time, "sleep") as sleep:
+            installer.bootstrap_service(Path("/tmp/Emacs agent.plist"), "gui/501")
+            self.assertEqual(run.call_count, 3)
+            self.assertEqual(sleep.call_count, 2)
+            self.assertEqual(run.call_args.args[0], ["/bin/launchctl", "bootstrap", "gui/501", "/tmp/Emacs agent.plist"])
+
+    def test_bootstrap_preserves_permanent_errors_without_retrying(self):
+        result = subprocess.CompletedProcess([], 13, "", "Permission denied for this file")
+        with patch.object(installer.subprocess, "run", return_value=result) as run, \
+                patch.object(installer.time, "sleep") as sleep:
+            with self.assertRaisesRegex(RuntimeError, "bootstrap failed.*13.*Permission denied"):
+                installer.bootstrap_service(Path("/tmp/agent.plist"), "gui/501")
+            run.assert_called_once()
+            sleep.assert_not_called()
+
+    def test_bootstrap_stops_after_six_failed_attempts(self):
+        result = subprocess.CompletedProcess([], 5, "", "Persistent bootstrap failure")
+        with patch.object(installer.subprocess, "run", return_value=result) as run, \
+                patch.object(installer.time, "sleep") as sleep:
+            with self.assertRaisesRegex(RuntimeError, "bootstrap failed.*Persistent bootstrap failure"):
+                installer.bootstrap_service(Path("/tmp/agent.plist"), "gui/501")
+            self.assertEqual(run.call_count, 6)
+            self.assertEqual(sleep.call_count, 5)
+
+    def test_service_probe_errors_are_not_treated_as_a_missing_service(self):
+        result = subprocess.CompletedProcess([], 1, "", "Operation not permitted")
+        with patch.object(installer.subprocess, "run", return_value=result):
+            with self.assertRaisesRegex(RuntimeError, "print failed.*Operation not permitted"):
+                installer.service_registered("gui/501/local.emacs.daemon")
+
+    def test_unload_timeout_does_not_attempt_to_bootstrap(self):
+        result = subprocess.CompletedProcess([], 0, "", "still registered")
+        with patch.object(installer.subprocess, "run", return_value=result) as run, \
+                patch.object(installer.time, "monotonic", side_effect=[0, 16]):
+            with self.assertRaisesRegex(RuntimeError, "still unloading.*no bootstrap was attempted"):
+                installer.remove_service("gui/501/local.emacs.daemon")
+            self.assertEqual([call.args[0][1] for call in run.call_args_list], ["bootout", "print"])
 
 
 class LauncherTests(unittest.TestCase):

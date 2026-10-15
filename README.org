@@ -62,6 +62,10 @@ before a graceful restart. If a normal GUI Emacs owns the default server,
 save and quit it yourself first. Installation without =--restart= retains
 an already managed daemon.
 
+Restarts wait for launchd to remove the old service before registering it
+again. A transient =bootstrap= error 5 or 37 is retried a limited number of
+times. Run the installer as the logged-in user, without =sudo=.
+
 For a nonstandard app location, add =--emacs-app /path/to/Emacs.app=.
 The installer derives paths from the current checkout, home directory and
 Emacs.app; no username is hardcoded. It can be rerun after syncing updates.

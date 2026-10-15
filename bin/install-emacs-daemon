@@ -78,6 +78,50 @@ def evaluate(client, expression):
     return result.stdout.strip() if result.returncode == 0 else None
 
 
+def launchctl(*arguments):
+    return subprocess.run(["/bin/launchctl", *map(str, arguments)],
+                          capture_output=True, text=True, timeout=15)
+
+
+def launchctl_failure(action, result):
+    detail = (result.stderr or result.stdout or "No diagnostic output").strip()
+    return RuntimeError(f"launchctl {action} failed (exit {result.returncode}): {detail}")
+
+
+def service_registered(service):
+    result = launchctl("print", service)
+    if result.returncode == 0:
+        return True
+    if result.returncode == 113:  # launchctl: service not found in this domain
+        return False
+    raise launchctl_failure("print", result)
+
+
+def remove_service(service):
+    result = launchctl("bootout", service)
+    if result.returncode != 0 and service_registered(service):
+        raise launchctl_failure("bootout", result)
+    # bootout can return while launchd still owns the retiring service label.
+    deadline = time.monotonic() + 15
+    while service_registered(service):
+        if time.monotonic() >= deadline:
+            raise RuntimeError("Emacs LaunchAgent is still unloading after 15 seconds; "
+                               "no bootstrap was attempted. Rerun the installer after it exits.")
+        time.sleep(0.1)
+
+
+def bootstrap_service(agent, domain):
+    for attempt in range(6):
+        result = launchctl("bootstrap", domain, agent)
+        if result.returncode == 0:
+            return
+        # launchd can report EALREADY (37) as the generic I/O error (5).
+        # Its registration cleanup can briefly outlive a successful print probe.
+        if result.returncode not in (5, 37) or attempt == 5:
+            raise launchctl_failure("bootstrap", result)
+        time.sleep(min(0.2 * 2 ** attempt, 2))
+
+
 def with_binding_cookie(contents):
     """Declare the old dynamic binding without changing private settings."""
     if re.search(rb"\blexical-binding\s*:", contents):
@@ -152,7 +196,7 @@ def main():
         raise RuntimeError("Installation is supported on macOS only")
 
     service = f"gui/{os.getuid()}/{LABEL}"
-    registered = subprocess.run(["/bin/launchctl", "print", service], capture_output=True).returncode == 0
+    registered = service_registered(service)
     state = evaluate(client, "(if (daemonp) 1 0)")
     if state == "0":
         raise RuntimeError("A GUI Emacs owns the default server. Save and quit that GUI, then rerun; this script will not close it.")
@@ -207,12 +251,14 @@ def main():
                     raise RuntimeError("Daemon has not exited; no forced termination was attempted")
                 time.sleep(0.1)
         if registered:
-            subprocess.run(["/bin/launchctl", "bootout", service], check=True)
+            remove_service(service)
         registered = False
     if registered:
-        subprocess.run(["/bin/launchctl", "kickstart", service], check=True)
+        result = launchctl("kickstart", service)
+        if result.returncode != 0:
+            raise launchctl_failure("kickstart", result)
     else:
-        subprocess.run(["/bin/launchctl", "bootstrap", f"gui/{os.getuid()}", str(agent)], check=True)
+        bootstrap_service(agent, f"gui/{os.getuid()}")
 
     register = Path("/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister")
     if register.exists():
