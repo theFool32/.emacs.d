@@ -2251,19 +2251,18 @@ kill all magit buffers for this repo."
 
 ;;;; Shell
 (use-package ghostel
-  :ensure (:host github :url "dakra/ghostel" :rev :newest)
-  :commands (ghostel-dwim)
+  :ensure (:host github :repo "dakra/ghostel")
+  :commands (ghostel ghostel-project)
   :bind
   (("C-0" . #'ghostel-project)
-   ("C-9" . #'ghostel-dwim))
+   ("C-9" . #'ghostel))
   :custom
   (ghostel-enable-title-tracking nil)
   :config
-  )
-(use-package evil-ghostel
-  :ensure t ; Separate package, even though it shares Ghostel's repository.
-  :after (ghostel evil)
-  :hook (ghostel-mode . evil-ghostel-mode))
+  ;; This integration ships with Ghostel.  Load it before the first terminal
+  ;; runs its mode hook, without asking Elpaca to install another package.
+  (require 'evil-ghostel)
+  (add-hook 'ghostel-mode-hook #'evil-ghostel-mode))
 
 (use-package popterm
   :commands (+popterm-toggle-dwim +popterm-register-shortcut)
