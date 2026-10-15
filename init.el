@@ -4485,111 +4485,285 @@ Read the legacy done.org file only when viewing a historical plan."
     (calendar-increment-month month year (- months))
     (encode-time 0 0 0 (min day (calendar-last-day-of-month month year)) month year)))
 
-(defun +my/org-plan-review-match (start end)
-  "Match tasks closed from START, inclusive, to END, exclusive."
-  (format "CLOSED>=\"<%s>\"&CLOSED<\"<%s>\""
-          (format-time-string "%F" start) (format-time-string "%F" end)))
+(defun +my/org-plan-review-date (period value)
+  "Read a plan PERIOD's VALUE; legacy weeks may use their starting date."
+  (condition-case nil
+      (if (and (eq period 'week)
+               (string-match "\\`\\([0-9]\\{4\\}\\)-W\\([0-9]\\{2\\}\\)\\'" value))
+          (let ((year (string-to-number (match-string 1 value)))
+                (week (string-to-number (match-string 2 value))))
+            (require 'cal-iso)
+            (pcase-let* ((`(,month ,day ,year)
+                          (calendar-gregorian-from-absolute
+                           (calendar-iso-to-absolute (list week 1 year))))
+                         (time (encode-time 0 0 0 day month year)))
+              (when (equal value (+my/org-plan-period 'week time)) time)))
+        (when (string-match-p
+               (if (eq period 'month) "\\`[0-9]\\{4\\}-[0-9]\\{2\\}\\'"
+                 "\\`[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\'") value)
+          (let ((time (org-time-string-to-time
+                       (concat "<" value (if (eq period 'month) "-01" "") ">"))))
+            (when (equal value (format-time-string
+                               (if (eq period 'month) "%Y-%m" "%F") time)) time))))
+    (error nil)))
+
+(defun +my/org-plan-review-legacy-selection ()
+  "Read this goal's period from its old Goals parent and date-tree context.
+Only direct goal items or explicitly ACT-tagged items qualify; subtasks and
+ordinary Archived items do not become goals by inheritance."
+  (let* ((level (org-current-level))
+         (tags (org-get-tags nil t))
+         (period (cond ((member "ACT_TODAY" tags) 'day)
+                       ((member "ACT_WEEK" tags) 'week)
+                       ((member "ACT_MONTH" tags) 'month)))
+         value)
+    (save-excursion
+      (when (org-up-heading-safe)
+        (when (= (org-current-level) (1- level))
+          (setq period
+                (or period
+                    (cdr (assoc (org-get-heading t t t t)
+                                '(("Daily Goals" . day) ("Weekly Goals" . week)
+                                  ("Weakly Goals" . week) ("Weeakly Goals" . week)
+                                  ("Monthly Goals" . month)))))))
+        (when period
+          (while (and (not value)
+                      (let* ((heading (org-get-heading t t t t))
+                             (regexp (pcase period
+                                       ('day "\\`\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\(?: \\|$\\)")
+                                       ('week "\\`W[0-9]+ (\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)")
+                                       ('month "\\`\\([0-9]\\{4\\}-[0-9]\\{2\\}\\)\\(?: \\|$\\)"))))
+                        (when (string-match regexp heading)
+                          (setq value (match-string 1 heading)))
+                        (org-up-heading-safe)))))))
+    (when value (cons period value))))
 
 (defun +my/org-plan-review-records (start end)
-  "Read ended tasks in the review range without changing source files."
+  "Read Goals selected for periods overlapping START..END, without writing.
+Merge FOCUS/PLAN properties with dated legacy goal items.  A shared ID or
+the same source entry counts once; ordinary closed tasks are excluded."
   (let ((org-use-property-inheritance nil)
+        (seen (make-hash-table :test #'equal))
+        (first-month (format-time-string "%Y-%m" start))
         records)
     (org-map-entries
      (lambda ()
-       (when (org-entry-is-done-p)
-         (when-let* ((closed (org-entry-get nil "CLOSED"))
-                     (time (condition-case nil (org-time-string-to-time closed) (error nil))))
-           (push (list :state (org-get-todo-state) :time time
-                       :marker (point-marker))
-                 records))))
-     (+my/org-plan-review-match start end) 'agenda)
-    (nreverse records)))
+       (when-let* ((state (org-get-todo-state)))
+         (let ((legacy (+my/org-plan-review-legacy-selection))
+               selections plans)
+           (dolist (period '(day week month))
+             (dolist (value (+my/org-plan-selections period))
+               (push (cons period value) selections)))
+           (dolist (selection (delete-dups (append selections (when legacy (list legacy)))))
+             (let* ((period (car selection))
+                    (value (cdr selection))
+                    (time (+my/org-plan-review-date period value)))
+               (when time
+                 (let* ((date (decode-time time))
+                        (next (if (eq period 'month) (+my/org-plan-review-start -1 time)
+                                (encode-time 0 0 0 (+ (decoded-time-day date)
+                                                      (if (eq period 'week) 7 1))
+                                             (decoded-time-month date) (decoded-time-year date))))
+                        (month (format-time-string "%Y-%m" time)))
+                   (when (and (time-less-p time end) (time-less-p start next)
+                              (not (string-lessp month first-month)))
+                     (push (list :period period :value value :time time :month month) plans))))))
+           (when plans
+             (let* ((key (or (org-entry-get nil "ID") (list (current-buffer) (point))))
+                    (record (gethash key seen))
+                    (origins (append (when selections '("FOCUS/PLAN"))
+                                     (when legacy '("旧 Goals")))))
+               (if record
+                   (progn
+                     (plist-put record :plans (delete-dups (append (plist-get record :plans) plans)))
+                     (plist-put record :origins (delete-dups (append (plist-get record :origins) origins))))
+                 (setq record (list :state state :plans plans :origins origins
+                                    :title (org-link-display-format (org-get-heading t t t t))
+                                    :marker (point-marker)))
+                 (puthash key record seen)
+                 (push record records)))))))
+     nil 'agenda)
+    (dolist (record records)
+      (plist-put record :time
+                 (apply #'max (mapcar (lambda (plan) (float-time (plist-get plan :time)))
+                                     (plist-get record :plans)))))
+    (cl-stable-sort
+     records
+     (lambda (a b)
+       (if (time-equal-p (plist-get a :time) (plist-get b :time))
+           (string-lessp (plist-get a :title) (plist-get b :title))
+         (time-less-p (plist-get b :time) (plist-get a :time)))))))
 
 (defun +my/org-plan-review-summary (records)
-  "Summarize ended task states without treating cancellations as completion."
+  "Show goal completion, including open goals, with semantic state colors."
   (let ((stats (+my/org-plan-stats records)))
-    (format "完成 %d | 未完成 %d | 取消 %d"
-            (plist-get stats :done) (plist-get stats :undone)
-            (plist-get stats :canceled))))
+    (if (zerop (plist-get stats :total))
+        (propertize "无 Goals" 'face 'shadow)
+      (concat (propertize (format "✓ 完成 %d/%d（%d%%）"
+                                  (plist-get stats :done) (plist-get stats :total)
+                                  (plist-get stats :percent)) 'face 'success)
+              "  " (propertize (format "○ 待完成 %d" (plist-get stats :open)) 'face 'warning)
+              "  " (propertize (format "× 未达成 %d" (plist-get stats :undone)) 'face 'error)
+              "  " (propertize (format "− 取消 %d" (plist-get stats :canceled)) 'face 'shadow)))))
 
-(defun +my/org-plan-review-year-header (start end now records)
-  "Format the past year's monthly outcome totals."
-  (let* ((date (decode-time start))
-         (month (decoded-time-month date))
-         (year (decoded-time-year date))
-         groups rows)
-    (dolist (record records)
-      (push record (alist-get (format-time-string "%Y-%m" (plist-get record :time))
-                              groups nil nil #'equal)))
-    (while (time-less-p (encode-time 0 0 0 1 month year) end)
-      (let* ((identifier (format "%04d-%02d" year month))
-             (stats (+my/org-plan-stats (alist-get identifier groups nil nil #'equal))))
-        (push (format "%s    %5d    %6d    %4d"
-                      identifier (plist-get stats :done)
-                      (plist-get stats :undone) (plist-get stats :canceled))
-              rows))
-      (calendar-increment-month month year 1))
-    (concat (format "过去一年  %s — %s\n%s\n"
-                    (format-time-string "%F" start) (format-time-string "%F" now)
-                    (+my/org-plan-review-summary records))
-            "月份          完成    未完成    取消\n"
-            (mapconcat #'identity (nreverse rows) "\n")
-            "\n\n全年记录（按关闭日期倒序）：")))
+(defun +my/org-plan-review-insert-month (month records)
+  "Insert MONTH's summary and foldable state groups for sorted RECORDS."
+  (insert (propertize (format "* %s    " month)
+                      'face '(:inherit font-lock-keyword-face :weight bold))
+          (+my/org-plan-review-summary records) "\n")
+  (when records
+    (dolist (period '(month week day))
+      (insert (format "  %s  " (pcase period ('month "月 Goals") ('week "周 Goals") ('day "日 Goals")))
+              (+my/org-plan-review-summary
+               (cl-remove-if-not
+                (lambda (record) (cl-find period (plist-get record :plans)
+                                         :key (lambda (plan) (plist-get plan :period)))) records))
+              "\n")))
+  (dolist (group '(("○ 待完成" warning :open) ("× 未达成" error "UNDONE")
+                   ("✓ 已完成" success "DONE")
+                   ("− 已取消" shadow "CANCELED" "CANCELLED" "CANCEL")))
+    (let ((tasks (cl-remove-if-not
+                  (lambda (record)
+                    (if (eq (nth 2 group) :open)
+                        (not (member (plist-get record :state)
+                                     '("DONE" "UNDONE" "CANCELED" "CANCELLED" "CANCEL")))
+                      (member (plist-get record :state) (cddr group))))
+                  records)))
+      (when tasks
+        (insert (propertize (format "** %s（%d）\n" (car group) (length tasks))
+                            'face (list :inherit (cadr group) :weight 'bold)))
+        (dolist (record tasks)
+          (let ((marker (plist-get record :marker)))
+            (insert (propertize
+                     (concat (propertize
+                              (format "  %s [%s] "
+                                      (format-time-string "%m-%d" (plist-get record :time))
+                                      (mapconcat (lambda (period)
+                                                   (pcase period ('month "月") ('week "周") ('day "日")))
+                                                 (cl-remove-if-not
+                                                  (lambda (period)
+                                                    (cl-find period (plist-get record :plans)
+                                                             :key (lambda (plan) (plist-get plan :period))))
+                                                  '(month week day)) "/"))
+                              'face 'shadow)
+                             (propertize (plist-get record :title) 'face (cadr group))
+                             (propertize (format "  · %s\n" (mapconcat #'identity (plist-get record :origins) "/"))
+                                         'face 'shadow))
+                     'org-marker marker 'org-hd-marker marker
+                     'todo-state (plist-get record :state) 'type "tags"
+                     'mouse-face 'highlight 'help-echo "RET 跳转原任务"))))))))
 
-(defun +my/org-plan-review-closed-date ()
-  "Return the current task's CLOSED date for the agenda prefix."
-  (when-let* ((closed (org-entry-get nil "CLOSED")))
-    (when (string-match "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}" closed)
-      (match-string 0 closed))))
+(defun +my/org-plan-review-toggle ()
+  "Expand or collapse the review month or state group at point."
+  (interactive)
+  (when-let* ((month (org-get-at-bol 'org-plan-review-month)))
+    (goto-char (point-min))
+    (re-search-forward (concat "^\\* " (regexp-quote month) "[ \t]")))
+  (outline-back-to-heading t)
+  (if (outline-invisible-p (line-end-position))
+      (outline-show-subtree)
+    (outline-hide-subtree)))
+
+(defun +my/org-plan-review-open ()
+  "Visit the original task, or toggle the review heading at point."
+  (interactive)
+  (if (org-get-at-bol 'org-marker)
+      (org-agenda-switch-to)
+    (+my/org-plan-review-toggle)))
 
 (defun +my/org-plan-history (&optional now)
-  "Show the past month and year directly, using CLOSED dates.
+  "Review Goals by their planned periods, supporting legacy and FOCUS/PLAN.
 Read legacy archives only on demand.  NOW is the reference date for tests
 or programmatic use; interactive use never prompts for a period or date."
   (interactive)
   (require 'org-agenda)
+  (require 'outline)
   (let* ((reference now)
          (now (or now (current-time)))
-         (month-start (+my/org-plan-review-start 1 now))
          (year-start (+my/org-plan-review-start 12 now))
          (date (decode-time now))
+         (month-start (encode-time 0 0 0 1 (decoded-time-month date) (decoded-time-year date)))
+         (previous-start (+my/org-plan-review-start 1 month-start))
          (end (encode-time 0 0 0 (1+ (decoded-time-day date))
                            (decoded-time-month date) (decoded-time-year date)))
-         (files (+my/org-plan-history-files))
-         (org-agenda-files files)
+         (org-agenda-files (+my/org-plan-history-files))
          (records (+my/org-plan-review-records year-start end))
-         (month-records (cl-remove-if
-                         (lambda (record) (time-less-p (plist-get record :time) month-start))
-                         records))
-         (times (make-hash-table :test #'equal))
-         (month-header (format "过去一个月  %s — %s\n%s\n按 CLOSED 关闭日期统计当前结束状态；RET 跳转原任务。"
-                               (format-time-string "%F" month-start)
-                               (format-time-string "%F" now)
-                               (+my/org-plan-review-summary month-records)))
-         (year-header (+my/org-plan-review-year-header year-start end now records))
-         (org-agenda-custom-commands
-          `(("h" "历史复盘：过去一个月 / 过去一年"
-             ((tags ,(+my/org-plan-review-match month-start end)
-                    ((org-agenda-overriding-header ,month-header)))
-              (tags ,(+my/org-plan-review-match year-start end)
-                    ((org-agenda-overriding-header ,year-header))))
-             ((org-agenda-files ',files)
-              (org-use-property-inheritance nil)
-              (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo 'done))
-              (org-agenda-prefix-format '((tags . "%(+my/org-plan-review-closed-date) ")))
-              (org-agenda-sorting-strategy '(user-defined-down))
-              (org-agenda-cmp-user-defined
-               (lambda (a b)
-                 (let ((a-time (gethash (get-text-property 0 'org-hd-marker a) ,times 0))
-                       (b-time (gethash (get-text-property 0 'org-hd-marker b) ,times 0)))
-                   (cond ((> a-time b-time) 1) ((< a-time b-time) -1))))))))))
+         (groups (make-hash-table :test #'equal))
+         (first-month (concat (format-time-string "%Y-%m" year-start) "-01"))
+         (cursor month-start)
+         (buffer (get-buffer-create org-agenda-buffer-name)))
     (dolist (record records)
-      (puthash (plist-get record :marker) (float-time (plist-get record :time)) times))
-    (org-agenda nil "h")
-    (let ((redo (list '+my/org-plan-history (list 'quote reference)))
-          (inhibit-read-only t))
-      (setq org-agenda-redo-command redo)
-      (put-text-property (point-min) (point-max) 'org-series-redo-cmd redo))))
+      (dolist (month (delete-dups (mapcar (lambda (plan) (plist-get plan :month))
+                                        (plist-get record :plans))))
+        (let* ((copy (copy-sequence record))
+               (plans (cl-remove-if-not (lambda (plan) (equal (plist-get plan :month) month))
+                                        (plist-get record :plans))))
+          (plist-put copy :plans plans)
+          (plist-put copy :time (apply #'max (mapcar (lambda (plan) (float-time (plist-get plan :time))) plans)))
+          (push copy (gethash month groups)))))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+        (remove-overlays)
+        (erase-buffer)
+        (org-agenda-mode)
+        (setq-local org-agenda-this-buffer-name (buffer-name)
+                    org-agenda-type 'tags
+                    truncate-lines t
+                    outline-regexp "^\\(\\*+\\) "
+                    outline-level (lambda () (length (match-string 1))))
+        (insert (propertize (format "Goals 复盘  截至 %s\n\n" (format-time-string "%F" now))
+                            'face '(:inherit org-agenda-structure :height 1.15 :weight bold)))
+        (insert (propertize
+                 (format "%s  %s — %s\n  %s\n\n"
+                         (propertize "这个月" 'face '(:inherit font-lock-keyword-face :weight bold))
+                         (format-time-string "%F" month-start) (format-time-string "%F" now)
+                         (+my/org-plan-review-summary (gethash (format-time-string "%Y-%m" month-start) groups)))
+                 'org-plan-review-month (format-time-string "%Y-%m" month-start))
+                (propertize
+                 (format "%s  %s — %s\n  %s\n\n"
+                         (propertize "上个月" 'face '(:inherit font-lock-keyword-face :weight bold))
+                         (format-time-string "%F" previous-start)
+                         (format-time-string "%F" (time-subtract month-start 1))
+                         (+my/org-plan-review-summary (gethash (format-time-string "%Y-%m" previous-start) groups)))
+                 'org-plan-review-month (format-time-string "%Y-%m" previous-start))
+                (format "%s  %s — %s\n  %s\n\n"
+                        (propertize "过去一年" 'face '(:inherit font-lock-keyword-face :weight bold))
+                        (format-time-string "%F" year-start) (format-time-string "%F" now)
+                        (+my/org-plan-review-summary records))
+                "仅统计已选 Goals：旧日期树 + FOCUS/PLAN；按计划周期归月，读取当前记录状态。\n"
+                "总览按任务去重；展开后分列月/周/日进度，周目标按周起始日归月。\n"
+                "TAB / RET 展开月份或状态组；任务上 RET 跳转；r 刷新。\n\n")
+        (while (not (string-lessp (format-time-string "%F" cursor) first-month))
+          (let ((month (format-time-string "%Y-%m" cursor)))
+            (+my/org-plan-review-insert-month
+             month (cl-stable-sort
+                    (gethash month groups)
+                    (lambda (a b)
+                      (if (= (plist-get a :time) (plist-get b :time))
+                          (string-lessp (plist-get a :title) (plist-get b :title))
+                        (> (plist-get a :time) (plist-get b :time)))))))
+          (setq cursor (+my/org-plan-review-start 1 cursor)))
+        (let ((redo (list '+my/org-plan-history (list 'quote reference))))
+          (setq-local org-agenda-redo-command redo)
+          (put-text-property (point-min) (point-max) 'org-series-redo-cmd redo))
+        (use-local-map (copy-keymap (current-local-map)))
+        (dolist (binding '(("TAB" . +my/org-plan-review-toggle)
+                           ("<tab>" . +my/org-plan-review-toggle)
+                           ("RET" . +my/org-plan-review-open)
+                           ("<return>" . +my/org-plan-review-open)
+                           ("r" . org-agenda-redo)))
+          (local-set-key (kbd (car binding)) (cdr binding))
+          (when (fboundp 'evil-define-key*)
+            (evil-define-key* '(motion normal) (current-local-map)
+                              (kbd (car binding)) (cdr binding))))
+        (when (fboundp 'evil-normalize-keymaps)
+          (evil-normalize-keymaps))
+        (outline-minor-mode 1)
+        (goto-char (point-min))
+        (outline-hide-sublevels 1)
+        (setq buffer-read-only t)
+        (set-buffer-modified-p nil)))
+    (pop-to-buffer-same-window buffer)))
 
 (defun +my/org-plan-toggle (period)
   "Toggle the task at point in the current PERIOD plan.

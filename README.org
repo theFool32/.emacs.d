@@ -69,7 +69,7 @@ In an Org task or agenda, use these local-leader shortcuts:
 | , v d | Toggle today's plan           |
 | , v w | Toggle this week's plan       |
 | , v m | Toggle this month's plan      |
-| , v h | Review the past month/year    |
+| , v h | Review this/last month and year |
 
 In the agenda, mark several tasks with =m=, then apply a plan shortcut once.
 A mixed selection is added to the plan; if all selected tasks are already in
@@ -82,17 +82,36 @@ automatically. Planning does not automatically select parent periods or carry
 unfinished tasks into the next period; select them explicitly when reviewing.
 
 Use =, v h= to open the review directly, with no period or date prompts.
-It shows a rolling month's closed-task records, followed by a
-rolling year's monthly outcome totals and task records. Both ranges end
-on today's date; month-end start dates are clamped to the last valid day.
-The first and last calendar months in the yearly table can be partial.
-Records are ordered by their =CLOSED= date, newest first; press =RET= to
-visit the original task. =DONE=, =UNDONE=, and =CANCELED= are counted separately.
-This review uses closing dates and current ended states, so legacy records
-work without =FOCUS_*= or =PLAN_*= properties. Tasks without a =CLOSED= date
-and tasks that are still open are outside these outcome totals. Reviewing
-reads archives and =done.org= on demand and does not modify source files.
-Refreshing the agenda recalculates the ranges and outcome totals.
+The top compares this calendar month through today with the full previous
+calendar month. Below it, a rolling year's monthly Goals totals appear newest
+first, with task details collapsed by default. The first and last calendar
+months in that yearly range can be partial.
+
+Press =TAB= or =RET= on a month to see separate month/week/day Goals progress
+and tasks grouped as pending, missed, completed, and canceled. Green, amber,
+red, and gray distinguish the states; progress shows completed Goals divided
+by all selected Goals, including pending, missed, and canceled Goals.
+Groups sort by the latest selected plan date, newest first, then by title.
+=TAB= also folds individual state groups; =RET= visits the original entry.
+Each task is listed once per month, and
+=r= refreshes the review. No additional package or saved report is needed.
+
+Only Goals qualify: modern tasks with =FOCUS_DAY/WEEK/MONTH= or retained
+=PLAN_DAYS/WEEKS/MONTHS= selections, and legacy goal items directly under
+=Daily/Weekly/Monthly Goals= in dated trees. Legacy weekly spelling variants
+and explicitly =ACT_*= tagged items with date-tree context are supported.
+Ordinary archived tasks, inherited subtasks, and a lone =plan= tag do not
+qualify. =CLOSED= is neither required nor used to choose a Goal's month.
+
+Plans determine membership: daily dates, month identifiers, and week starts
+(ISO Monday for modern plans, recorded start dates for legacy weeks).
+A late completion remains in its planned month. Same-ID copies are merged,
+and day/week/month selections count once in the combined monthly total;
+their separate progress can overlap. The yearly total counts unique Goals,
+so it need not equal the sum of monthly totals for multi-month Goals.
+
+Reviewing reads archives and =done.org= on demand and does not modify source
+files. Refreshing recalculates the ranges and Goal totals.
 No separate review file is created.
 
 To archive a closed task, open its original Org entry and press =, D=.
@@ -109,8 +128,8 @@ The old diary-goal capture templates, ACT tag planning, and cross-entry state
 copier have been retired. Existing =diary.org= and =done.org= content is
 preserved; plan selection and historical queries do not modify these files.
 No old records are migrated or rewritten. Plan selection changes only
-=gtd.org=. Reviews do not reconstruct past task states; their outcome counts use
-closing dates and the recorded tasks' current ended states.
+=gtd.org=. Reviews read current or archived goal states; they do not reconstruct
+the state as it was at a past period's deadline.
 
 
 ** Dependency
