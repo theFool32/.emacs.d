@@ -567,7 +567,9 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
   :defer 5
   :commands (server-running-p)
   :config
-  (or (server-running-p) (server-start)))
+  ;; Daemon startup starts its own server after loading the init file.
+  (unless (daemonp)
+    (or (server-running-p) (server-start))))
 
 (use-package ws-butler
   :hook (prog-mode . ws-butler-mode))
@@ -2681,28 +2683,103 @@ focus-guard which reclaims focus back to the posframe."
 ;; (display-battery-mode 1)
 ;; -DisTimeBat
 
-;;Font
+;; Fonts are also initialized before a daemon has a graphical frame.
+(set-face-attribute 'default t :family "CaskaydiaCove Nerd Font" :height 140)
+(add-to-list 'face-font-rescale-alist '("Sarasa Term SC" . 1.1))
 
-(when (display-graphic-p)
-  ;; (add-to-list 'default-frame-alist '(font . "CaskaydiaCove Nerd Font-14"))
-  ;; (set-face-attribute 'default nil
-  ;;                     :font "CaskaydiaCove Nerd Font"
-  ;;                     :height 140)
-  ;; (set-fontset-font t '(#x4e00 . #x9fff) "Sarasa Mono SC")
+(defvar +my/desktop-ready nil
+  "Non-nil once package startup has finished and a client can show the agenda.")
 
-  (defun max/set-font (FONT-NAME CN-FONT-NAME &optional INITIAL-SIZE CN-FONT-RESCALE-RATIO)
-    "Set different font-family for Latin and Chinese charactors."
-    (let* ((size (or INITIAL-SIZE 14))
-	       (ratio (or CN-FONT-RESCALE-RATIO 0.0))
-	       (main (font-spec :name FONT-NAME :size size))
-	       (cn (font-spec :name CN-FONT-NAME)))
-      (set-face-attribute 'default nil :font main)
+(defun +my/desktop-frame-p (frame)
+  "Return non-nil for a regular graphical FRAME, excluding popup frames."
+  (and (frame-live-p frame)
+       (display-graphic-p frame)
+       (not (frame-parameter frame 'parent-frame))
+       (not (eq (frame-parameter frame 'minibuffer) 'only))))
+
+(defun +my/desktop-setup-frame (frame)
+  "Apply fonts and refresh the modeline after graphical FRAME is ready."
+  (when (+my/desktop-frame-p frame)
+    (with-selected-frame frame
+      (set-face-attribute 'default frame
+                          :font (font-spec :name "CaskaydiaCove Nerd Font" :size 14))
       (dolist (charset '(kana han symbol cjk-misc bopomofo))
-        (set-fontset-font t charset cn))
-      (setq face-font-rescale-alist (if (/= ratio 0.0) `((,CN-FONT-NAME . ,ratio)) nil))))
+        ;; Keep the original default-fontset fallback, including symbol fonts.
+        (set-fontset-font t charset (font-spec :name "Sarasa Term SC") frame))
+      ;; The terminal frame has no highlight background during daemon startup.
+      (when (facep 'diff-hl-change)
+        (set-face-attribute 'diff-hl-change frame
+                            :foreground (or (face-background 'highlight frame t)
+                                            'unspecified)))
+      (when +my/desktop-ready
+        (+my/desktop-setup-modeline))
+      (unless (frame-parameter frame '+my/desktop-initialized)
+        (set-frame-parameter frame 'fullscreen 'maximized)
+        (set-frame-parameter frame '+my/desktop-initialized t)))))
 
-  (max/set-font "CaskaydiaCove Nerd Font" "Sarasa Term SC" 14 1.1)
-  )
+(defun +my/desktop-setup-modeline ()
+  "Load the modeline on a graphical frame, after its fonts and theme are ready."
+  ;; Its default height uses `window-font-height' when the package is loaded.
+  (unless (bound-and-true-p doom-modeline-mode)
+    (doom-modeline-mode 1))
+  (when (fboundp 'doom-modeline--reset-font-height-cache)
+    (doom-modeline--reset-font-height-cache))
+  (doom-modeline-refresh-bars)
+  (when (fboundp 'doom-modeline-invalidate-huds)
+    (doom-modeline-invalidate-huds))
+  (when (and (equal (buffer-name) "*scratch*") (null mode-line-format))
+    (doom-modeline-set-main-modeline))
+  (force-mode-line-update t))
+
+(defun +my/desktop-setup-current-frame ()
+  "Finalize the first GUI frame after startup has applied frame parameters."
+  (+my/desktop-setup-frame (selected-frame)))
+
+(add-hook 'after-make-frame-functions #'+my/desktop-setup-frame)
+(add-hook 'window-setup-hook #'+my/desktop-setup-current-frame t)
+
+(defun +my/desktop-activate-frame (frame)
+  "Bring regular graphical FRAME and its application to the foreground."
+  (when (+my/desktop-frame-p frame)
+    (make-frame-visible frame)
+    (select-frame frame)
+    (when (and (eq (window-system frame) 'ns) (fboundp 'ns-hide-emacs))
+      ;; `activate-front' is GNUstep-only in nsfns.m.  Cocoa treats that
+      ;; non-nil argument as a request to hide Emacs, despite its docstring.
+      (ns-hide-emacs 'activate))
+    ;; Activating the application can raise a different Emacs window first.
+    (select-frame-set-input-focus frame)
+    t))
+
+(defun +my/desktop-client-frame-ready ()
+  "Activate a client after its initial buffer and GUI frame are ready."
+  (+my/desktop-activate-frame (selected-frame)))
+
+(add-hook 'server-after-make-frame-hook #'+my/desktop-client-frame-ready t)
+
+(defun +my/desktop-focus-frame ()
+  "Focus an existing graphical frame, returning nil when a client is needed."
+  (when-let* ((frame (seq-find #'+my/desktop-frame-p (frame-list))))
+    (+my/desktop-activate-frame frame)))
+
+(defun +my/desktop-initial-buffer ()
+  "Show the agenda for an empty client; explicit file requests take precedence."
+  (if (and +my/desktop-ready (display-graphic-p))
+      (let ((default-directory (file-name-as-directory (expand-file-name "~"))))
+        (+my/open-org-agenda)
+        ;; Org restores the calling buffer after displaying the agenda.  The
+        ;; server switches to our return value, so return the displayed buffer.
+        (let ((buffer (window-buffer (selected-window))))
+          (with-current-buffer buffer
+            (setq default-directory (file-name-as-directory (expand-file-name "~"))))
+          buffer))
+    (get-scratch-buffer-create)))
+
+(setq initial-buffer-choice #'+my/desktop-initial-buffer)
+
+(when *sys/mac*
+  ;; Closing the last client frame leaves the daemon running.
+  (global-set-key (kbd "s-q") #'save-buffers-kill-terminal))
 
 (setq split-width-threshold 0
       split-height-threshold nil)
@@ -2825,9 +2902,10 @@ focus-guard which reclaims focus back to the posframe."
 
 (use-package ef-themes
   :ensure t
-  :hook (window-setup . ef-themes-take-over-modus-themes-mode)
+  :demand t
   :config
   ;; All customisations here.
+  (ef-themes-take-over-modus-themes-mode 1)
   (setq modus-themes-mixed-fonts t)
   (setq modus-themes-italic-constructs t)
   (modus-themes-load-theme 'ef-owl)
@@ -2854,7 +2932,7 @@ focus-guard which reclaims focus back to the posframe."
 ;; DoomModeline
 (use-package doom-modeline
   :ensure t
-  :hook (window-setup . doom-modeline-mode)
+  :commands (doom-modeline-mode)
   :custom-face
   (doom-modeline-buffer-modified ((t (:inherit (error bold) :background unspecified))))
   :custom
@@ -3162,7 +3240,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 ;; Highlight uncommitted changes using VC
 (use-package diff-hl
   :custom-face
-  (diff-hl-change ((t (:foreground ,(face-background 'highlight) :background unspecified))))
+  (diff-hl-change ((t (:foreground unspecified :background unspecified))))
   (diff-hl-insert ((t (:background unspecified))))
   (diff-hl-delete ((t (:background unspecified))))
   :hook ((find-file . diff-hl-mode)
@@ -6025,10 +6103,32 @@ kill the current timer, this may be a break or a running pomodoro."
 
 ;;; End
 
-(add-hook 'elpaca-after-init-hook
-          #'(lambda ()
-              (+my/open-org-agenda)
-              (message "Start in %s s with %d gc" (float-time (time-subtract (current-time) +my/start-time)) gcs-done)))
+(defun +my/desktop-preload-rime ()
+  "Warm Rime's native engine in a daemon without activating an input method."
+  (when (and (daemonp) (bound-and-true-p +self/use-rime))
+    (condition-case error-data
+        (progn
+          (require 'rime)
+          (unless (bound-and-true-p rime--lib-loaded)
+            ;; A first-time deployment prompts for confirmation.  Leave that
+            ;; setup to an interactive frame instead of blocking the daemon.
+            (unless (file-directory-p (expand-file-name rime-user-data-dir))
+              (error "Initialize Rime interactively first: %s" rime-user-data-dir))
+            (rime--load-dynamic-module)))
+      (error (message "Rime preload failed: %s" (error-message-string error-data))))))
+
+(defun +my/desktop-startup-finished ()
+  "Finish startup without opening an agenda on the daemon's terminal frame."
+  (+my/desktop-preload-rime)
+  (setq +my/desktop-ready t)
+  (mapc #'+my/desktop-setup-frame (frame-list))
+  (when (and (not (daemonp)) (display-graphic-p)
+             (not (buffer-file-name)))
+    (+my/open-org-agenda))
+  (message "Start in %s s with %d gc"
+           (float-time (time-subtract (current-time) +my/start-time)) gcs-done))
+
+(add-hook 'elpaca-after-init-hook #'+my/desktop-startup-finished)
 
 (provide 'init)
 

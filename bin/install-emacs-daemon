@@ -1,0 +1,233 @@
+#!/usr/bin/env python3
+"""Install this checkout's macOS daemon and client launchers; no GUI automation."""
+from pathlib import Path
+import argparse
+import datetime
+import json
+import os
+import plistlib
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+
+REPOSITORY = Path(__file__).resolve().parent.parent
+LABEL = "local.emacs.daemon"
+BEGIN = "-- BEGIN emacs-daemon launcher (managed)"
+END = "-- END emacs-daemon launcher (managed)"
+OLD_HOTKEY = '''hs.hotkey.bind({'ctrl', 'cmd'}, '.', function () hs.application.launchOrFocus("Emacs") end)'''
+
+
+def config_directory(user_home):
+    conventional = user_home / ".emacs.d"
+    if conventional.exists() and conventional.samefile(REPOSITORY):
+        return conventional
+    return REPOSITORY
+
+
+def render_agent(config_root, user_home, app):
+    values = {"@EMACS@": str(app / "Contents/MacOS/Emacs"),
+              "@INIT_DIR@": str(config_root), "@HOME@": str(user_home),
+              "@LOG_DIR@": str(user_home / "Library/Logs/Emacs")}
+    data = plistlib.loads((REPOSITORY / "macos/local.emacs.daemon.plist.in").read_bytes())
+
+    def replace(value):
+        if isinstance(value, dict):
+            return {key: replace(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [replace(item) for item in value]
+        if isinstance(value, str):
+            for token, actual in values.items():
+                value = value.replace(token, actual)
+        return value
+
+    return plistlib.dumps(replace(data))
+
+
+def hammerspoon_config(text, config_root, user_home):
+    module = config_root / "macos/hammerspoon-emacs.lua"
+    try:
+        suffix = "/" + str(module.relative_to(user_home))
+        expression = 'os.getenv("HOME") .. ' + json.dumps(suffix, ensure_ascii=False)
+    except ValueError:
+        expression = json.dumps(str(module), ensure_ascii=False)
+    block = f"{BEGIN}\ndofile({expression})\n{END}"
+    pattern = re.escape(BEGIN) + r".*?" + re.escape(END)
+    if re.search(pattern, text, re.S):
+        return re.sub(pattern, lambda _: block, text, flags=re.S)
+    if OLD_HOTKEY in text:
+        if text.count(OLD_HOTKEY) != 1:
+            raise RuntimeError("Multiple Emacs hotkeys found; keep one before installing")
+        return text.replace(OLD_HOTKEY, block)
+    # Migrate the earlier inline client binding without changing other hotkeys.
+    old_client = r"^local emacsClientTask\n.*?^end\)"
+    if re.search(old_client, text, re.M | re.S):
+        return re.sub(old_client, lambda _: block, text, count=1, flags=re.M | re.S)
+    if any("hotkey.bind" in line and "ctrl" in line and "cmd" in line
+           and ("'.'" in line or '\".\"' in line) for line in text.splitlines()):
+        raise RuntimeError("Unrecognized Ctrl-Cmd-. binding; refusing to duplicate it")
+    return text + ("" if text.endswith("\n") or not text else "\n") + "\n" + block + "\n"
+
+
+def evaluate(client, expression):
+    result = subprocess.run([str(client), "--alternate-editor=false", "--eval", expression],
+                            capture_output=True, text=True, timeout=10)
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def with_binding_cookie(contents):
+    """Declare the old dynamic binding without changing private settings."""
+    if re.search(rb"\blexical-binding\s*:", contents):
+        return contents
+    return b";;; -*- lexical-binding: nil; -*-\n" + contents
+
+
+def write_file(path, contents, backup, mode=0o644):
+    target = path.resolve()
+    if target.exists() and target.read_bytes() == contents:
+        return
+    if target.exists():
+        mode = target.stat().st_mode & 0o777
+        saved = backup / str(path).lstrip("/")
+        saved.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(target, saved)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary = tempfile.mkstemp(prefix=".emacs-install-", dir=target.parent)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(contents)
+        os.chmod(temporary, mode)
+        os.replace(temporary, target)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--emacs-app", type=Path, default=None,
+                        help="Emacs.app location (default: /Applications or ~/Applications)")
+    parser.add_argument("--dry-run", action="store_true", help="Print the plan; write nothing")
+    parser.add_argument("--restart", action="store_true",
+                        help="Gracefully restart an existing daemon after checking for unsaved work")
+    args = parser.parse_args()
+    user_home = Path.home()
+    config_root = config_directory(user_home)
+    candidates = [args.emacs_app] if args.emacs_app else [Path("/Applications/Emacs.app"), user_home / "Applications/Emacs.app"]
+    app = next((candidate.expanduser().absolute() for candidate in candidates
+                if candidate and (candidate.expanduser() / "Contents/MacOS/Emacs").is_file()), None)
+    if not app:
+        raise RuntimeError("Emacs.app not found; provide --emacs-app /path/to/Emacs.app")
+    client = app / "Contents/MacOS/bin/emacsclient"
+    if not client.is_file():
+        raise RuntimeError(f"Matching emacsclient not found: {client}")
+    agent = user_home / f"Library/LaunchAgents/{LABEL}.plist"
+    client_app = user_home / "Applications/Emacs Client.app"
+    hs_config = user_home / ".hammerspoon/init.lua"
+    hs_text = hs_config.read_text() if hs_config.exists() else ""
+    use_hammerspoon = hs_config.exists() or Path("/Applications/Hammerspoon.app").exists() or (user_home / "Applications/Hammerspoon.app").exists()
+    hs_new = hammerspoon_config(hs_text, config_root, user_home) if use_hammerspoon else None
+    agent_data = render_agent(config_root, user_home, app)
+    custom = config_root / "init-custom.el"
+    custom_data = with_binding_cookie(custom.read_bytes()) if custom.exists() else None
+
+    if (client_app / "Contents/Info.plist").exists():
+        info = plistlib.loads((client_app / "Contents/Info.plist").read_bytes())
+        if info.get("CFBundleIdentifier") != "local.emacs.client":
+            raise RuntimeError(f"Refusing to overwrite an unrelated app: {client_app}")
+    if agent.exists() and plistlib.loads(agent.read_bytes()).get("Label") != LABEL:
+        raise RuntimeError(f"Refusing to overwrite an unrelated LaunchAgent: {agent}")
+    print(f"Config: {config_root}\nEmacs: {app}\nLogin service: {agent}\nRaycast app: {client_app}")
+    if use_hammerspoon:
+        print(f"Hammerspoon: update only Ctrl-Cmd-. in {hs_config}")
+    if custom_data is not None and custom_data != custom.read_bytes():
+        print(f"Local settings: add the missing lexical-binding: nil declaration to {custom}")
+    if args.dry_run:
+        print("Dry run: no files, services, applications or running Emacs sessions changed.")
+        return
+    if sys.platform != "darwin":
+        raise RuntimeError("Installation is supported on macOS only")
+
+    service = f"gui/{os.getuid()}/{LABEL}"
+    registered = subprocess.run(["/bin/launchctl", "print", service], capture_output=True).returncode == 0
+    state = evaluate(client, "(if (daemonp) 1 0)")
+    if state == "0":
+        raise RuntimeError("A GUI Emacs owns the default server. Save and quit that GUI, then rerun; this script will not close it.")
+    if state == "1" and not registered and not args.restart:
+        raise RuntimeError("An unmanaged daemon is running; use --restart to migrate it")
+    if state == "1" and args.restart:
+        clean = evaluate(client, '''(and
+          (not (bound-and-true-p org-clock-current-task))
+          (not (seq-some
+            (lambda (b) (with-current-buffer b
+              (or
+                (and (buffer-modified-p)
+                     (or buffer-file-name
+                         (and (> (buffer-size) 0)
+                              (or (equal (buffer-name) "*scratch*")
+                                  (not (string-match-p "\\\\`[ *]" (buffer-name)))))))
+                (and (get-buffer-process b)
+                     (process-live-p (get-buffer-process b))
+                     (derived-mode-p 'term-mode 'vterm-mode 'shell-mode 'eshell-mode 'ghostel-mode)))))
+            (buffer-list))))''')
+        if clean != "t":
+            raise RuntimeError("Save modified buffers and finish active terminal sessions or Org clocks before restarting")
+
+    backup_root = config_root / "var/desktop-backups"
+    backup_root.mkdir(parents=True, exist_ok=True)
+    backup = Path(tempfile.mkdtemp(prefix=datetime.datetime.now().strftime("%Y%m%d-"),
+                                   dir=backup_root))
+    write_file(agent, agent_data, backup)
+    if custom_data is not None:
+        write_file(custom, custom_data, backup)
+    write_file(config_root / "var/emacs-desktop.json",
+               (json.dumps({"app": str(app)}, indent=2) + "\n").encode(), backup, 0o600)
+    write_file(client_app / "Contents/Info.plist",
+               (REPOSITORY / "macos/emacs-client-app.plist").read_bytes(), backup)
+    # GUI applications do not inherit the shell's PATH or Python installation.
+    executable = ("#!/bin/sh\nexec " + shlex.quote(sys.executable) + " "
+                  + shlex.quote(str(config_root / "bin/emacs-client")) + ' "$@"\n')
+    write_file(client_app / "Contents/MacOS/emacs-client", executable.encode(), backup, 0o755)
+    icon = app / "Contents/Resources/Emacs.icns"
+    if icon.exists():
+        write_file(client_app / "Contents/Resources/Emacs.icns", icon.read_bytes(), backup)
+    if hs_new is not None:
+        write_file(hs_config, hs_new.encode(), backup)
+    (user_home / "Library/Logs/Emacs").mkdir(parents=True, exist_ok=True)
+
+    if args.restart:
+        if state == "1":
+            evaluate(client, "(kill-emacs)")
+            deadline = time.monotonic() + 10
+            while evaluate(client, "(if (daemonp) 1 0)") is not None:
+                if time.monotonic() >= deadline:
+                    raise RuntimeError("Daemon has not exited; no forced termination was attempted")
+                time.sleep(0.1)
+        if registered:
+            subprocess.run(["/bin/launchctl", "bootout", service], check=True)
+        registered = False
+    if registered:
+        subprocess.run(["/bin/launchctl", "kickstart", service], check=True)
+    else:
+        subprocess.run(["/bin/launchctl", "bootstrap", f"gui/{os.getuid()}", str(agent)], check=True)
+
+    register = Path("/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister")
+    if register.exists():
+        subprocess.run([str(register), "-f", str(client_app)], check=True)
+    print(f"Installed. Backups: {backup}")
+    if use_hammerspoon:
+        print("Choose Reload Config in Hammerspoon once to load the shared binding.")
+    print("In Raycast, use Emacs Client. The original Emacs.app remains available for direct GUI startup.")
+    if registered and not args.restart:
+        print("The running daemon was retained; use --restart when ready to apply init.el changes.")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as error:
+        print(f"Emacs setup: {error}", file=sys.stderr)
+        sys.exit(1)

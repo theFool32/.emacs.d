@@ -42,6 +42,69 @@ make env
 
 Enjoy hacking!
 
+** macOS Desktop Startup
+
+After syncing this checkout to a Mac, install Emacs.app, Python 3,
+CaskaydiaCove Nerd Font and Sarasa Term SC. Prepare the configuration as
+described above, then preview the desktop setup:
+#+begin_src sh
+~/.emacs.d/bin/install-emacs-daemon --dry-run
+#+end_src
+
+Apply it yourself with:
+#+begin_src sh
+~/.emacs.d/bin/install-emacs-daemon
+#+end_src
+
+Use =--restart= to apply updated =init.el= to an existing daemon. The script
+checks for modified user buffers, active terminal processes and Org clocks
+before a graceful restart. If a normal GUI Emacs owns the default server,
+save and quit it yourself first. Installation without =--restart= retains
+an already managed daemon.
+
+For a nonstandard app location, add =--emacs-app /path/to/Emacs.app=.
+The installer derives paths from the current checkout, home directory and
+Emacs.app; no username is hardcoded. It can be rerun after syncing updates.
+Existing files are backed up under =var/desktop-backups/=; machine-specific
+paths stay in ignored =var/emacs-desktop.json=. If =init-custom.el= has no
+binding declaration, the installer adds =lexical-binding: nil=, preserving
+its existing dynamic binding and settings. The example file includes it too.
+
+The script installs:
+
+- =~/Library/LaunchAgents/local.emacs.daemon.plist= from the shared template.
+  It runs =--fg-daemon= at login, restarts after a crash, and logs to
+  =~/Library/Logs/Emacs/daemon.log=. Standard =emacsclient -c= also works.
+- =~/Applications/Emacs Client.app=, which Raycast can find as *Emacs Client*.
+  Use that entry for client startup. The original Emacs.app remains available.
+- A small include in =~/.hammerspoon/init.lua=, if Hammerspoon is installed.
+  It loads =macos/hammerspoon-emacs.lua= for =Ctrl-Cmd-.=; other bindings stay
+  intact. Choose *Reload Config* in Hammerspoon once after installation.
+
+Both launchers call =bin/emacs-client= through the generated app entry
+point. They focus an existing window without replacing its buffers, or
+create a client frame when no graphical window remains. An empty new client
+shows the displayed agenda buffer, with the home directory as its working
+directory. Desktop launches start from home instead of Hammerspoon/Raycast's
+directory; explicit file arguments retain the caller's directory and show
+those files. After client initialization, Emacs uses the native macOS
+activation function with ='activate=, then raises and focuses the target
+frame. Avoid ='activate-front=: in Cocoa builds its implementation falls
+through to hiding Emacs, despite the function's docstring.
+=Cmd-Q= and =C-x C-c= close the client frame while the daemon keeps running.
+
+Direct GUI startup and client frames use the same ef-owl theme, 14pt Latin
+font and CJK font scaled by 1.1. Font setup runs after GUI frame parameters
+are applied. Doom Modeline loads on the first graphical frame, after fonts
+and the theme are ready, so its height uses GUI font metrics. Child frames
+keep their own fonts.
+
+When =+self/use-rime= is enabled, daemon startup preloads Rime and its native
+engine after packages are ready, before accepting desktop launcher requests.
+This moves initialization off the first input-method toggle without enabling
+Chinese input in existing buffers. Direct GUI startup keeps lazy loading.
+Preload failures are logged; a first-time deployment remains interactive.
+
 ** Org Plans
 Capture tasks in =gtd.org=, select their periods, and update the original
 task's state. The task pool shows only unfinished entries from =gtd.org=.

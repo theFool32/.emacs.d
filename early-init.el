@@ -6,7 +6,8 @@
       file-name-handler-alist nil
       site-run-file nil
       default-frame-alist
-      '((vertical-scroll-bars . nil)
+      '((font . "CaskaydiaCove Nerd Font-14")
+        (vertical-scroll-bars . nil)
         (menu-bar-lines . 0)
         (tool-bar-lines . 0)
 

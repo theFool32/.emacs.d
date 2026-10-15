@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""Focus or create an Emacs client window without starting a second GUI Emacs."""
+from pathlib import Path
+import json
+import os
+import subprocess
+import sys
+import time
+
+
+def main():
+    arguments = sys.argv[1:]
+    # Desktop launchers inherit Hammerspoon/Raycast's cwd.  Explicit arguments
+    # keep the caller's cwd so relative filenames still work from a terminal.
+    if not arguments:
+        os.chdir(Path.home())
+    root = Path(__file__).resolve().parent.parent
+    config_file = root / "var/emacs-desktop.json"
+    config = json.loads(config_file.read_text()) if config_file.exists() else {}
+    app = Path(os.environ.get("EMACS_APP", config.get("app", "/Applications/Emacs.app")))
+    client = app / "Contents/MacOS/bin/emacsclient"
+    if not client.is_file():
+        raise RuntimeError("Run bin/install-emacs-daemon with --emacs-app pointing to Emacs.app")
+
+    def evaluate(expression):
+        result = subprocess.run(
+            [str(client), "--alternate-editor=false", "--eval", expression],
+            capture_output=True, text=True, timeout=10)
+        return result.stdout.strip() if result.returncode == 0 else None
+
+    expression = "(and (daemonp) (bound-and-true-p +my/desktop-ready))"
+    if evaluate(expression) != "t":
+        subprocess.run(["/bin/launchctl", "kickstart",
+                        f"gui/{os.getuid()}/local.emacs.daemon"], check=True)
+        deadline = time.monotonic() + 45
+        while evaluate(expression) != "t":
+            if time.monotonic() >= deadline:
+                raise RuntimeError("Daemon not ready; see ~/Library/Logs/Emacs/daemon.log")
+            time.sleep(0.2)
+
+    focused = evaluate("(+my/desktop-focus-frame)") == "t"
+    if focused and not arguments:
+        return
+    command = [str(client), "--alternate-editor=false", "--no-wait"]
+    if not focused:
+        command.append("--create-frame")
+    os.execv(str(client), command + arguments)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (RuntimeError, subprocess.SubprocessError, OSError, ValueError) as error:
+        print(f"Emacs client: {error}", file=sys.stderr)
+        sys.exit(1)

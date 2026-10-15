@@ -1,4 +1,4 @@
-;;; init-custom-example.el ---
+;;; init-custom-example.el --- -*- lexical-binding: nil; -*-
 ;;
 ;;   Copy this file to `init-custom.el', and customize options for yourself.
 
