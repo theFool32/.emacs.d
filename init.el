@@ -2136,7 +2136,6 @@ kill all magit buffers for this repo."
         ("x" . ebib-delete-entry)
         ("s"   . ebib-save-all-databases)
         ("S"   . +my/search-ebib-notes)
-        ("B"   . ebib-import-ref)
         :map ebib-multiline-mode-map
         ("C-c C-c" . ebib-quit-multiline-buffer-and-save)
         ("C-c C-q" . ebib-cancel-multiline-buffer)
@@ -2177,12 +2176,6 @@ kill all magit buffers for this repo."
 (let ((setup (locate-user-emacs-file "var/ebib-bridge/emacs-init.el")))
   (when (file-readable-p setup) (load setup nil t)))
 
-(defun ebib-import-ref (url)
-  "Collect URL metadata through the browser integration, without downloading PDFs."
-  (interactive "s论文 URL: ")
-  (unless (fboundp 'ebib-browser-collect-url)
-    (user-error "请先安装 ~/Dropbox/codex/ebib/native/install.py 桥接，并在下次启动加载配置"))
-  (ebib-browser-collect-url url))
 ;;;; Rime
 ;; karabiner: shift for emacs-rime
 ;; #+begin_src json
@@ -6025,7 +6018,6 @@ kill the current timer, this may be a break or a running pomodoro."
     "ot" '(org-todo-list :wk "Org Todo")
     "ox" '(org-agenda :wk "Org agenda")
     "ob" '(ebib :wk "Ebib")
-    "oB" '(ebib-import-ref :wk "Ebib import")
     "oc" '(cfw:open-org-calendar :wk "Calendar")
     "od" '(consult-mark-done :wk "Mark done")
     "oi" '(consult-clock-in :wk "Clock in")
