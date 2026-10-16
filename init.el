@@ -2133,9 +2133,9 @@ kill all magit buffers for this repo."
         ("/" . ebib-jump-to-entry)
         ("?" . ebib-swiper)
         ;; ("?" . ebib-search)
-        ("x" . ebib-delete-entry-with-file)
+        ("x" . ebib-delete-entry)
         ("s"   . ebib-save-all-databases)
-        ("S"   . +my/search-pdf)
+        ("S"   . +my/search-ebib-notes)
         ("B"   . ebib-import-ref)
         :map ebib-multiline-mode-map
         ("C-c C-c" . ebib-quit-multiline-buffer-and-save)
@@ -2148,11 +2148,9 @@ kill all magit buffers for this repo."
     (interactive)
     (progn (consult-line) (ebib--update-entry-buffer)))
 
-  ;;  TODO: search only the current pdf
-  ;;  TODO: split the files and the contents
-  (defun +my/search-pdf ()
+  (defun +my/search-ebib-notes ()
     (interactive)
-    (consult-ripgrep (concat +self/ebib-base-dir "/pdfs") ""))
+    (consult-ripgrep (expand-file-name "notes/" +self/ebib-base-dir) ""))
 
   (defun insert-to-bib ()
     (interactive)
@@ -2176,30 +2174,15 @@ kill all magit buffers for this repo."
     "lb" 'org-ebib-insert-link)
   )
 
-;;  HACK: lexical-let not work here
+(let ((setup (locate-user-emacs-file "var/ebib-bridge/emacs-init.el")))
+  (when (file-readable-p setup) (load setup nil t)))
+
 (defun ebib-import-ref (url)
-  (interactive "sUrl:")
-  (let ((buffername (concat "*ref-" (org-id-uuid) "*"))
-        (pdf-url url))
-    (run-with-idle-timer
-     0.1
-     nil
-     (lambda ()
-       (let ((tempbuff (get-buffer-create buffername)))
-         (make-process
-          :name ""
-          :buffer tempbuff
-          :command (list "ref_down.py" pdf-url (concat +self/ebib-base-dir "/pdfs"))
-          :sentinel (lambda (process event)
-                      ;; Render result to content buffer when subprocess finish.
-                      (when (string= (substring event 0 -1) "finished")
-                        (let ((buffer (process-buffer process)))
-                          ;; Do nothing if process buffer has killed.
-                          (when (get-buffer buffer)
-                            (with-current-buffer buffer
-                              (ebib-import-entries)
-                              (kill-buffer buffer)
-                              (ebib--update-buffers))))))))))))
+  "Collect URL metadata through the browser integration, without downloading PDFs."
+  (interactive "s论文 URL: ")
+  (unless (fboundp 'ebib-browser-collect-url)
+    (user-error "请先安装 ~/Dropbox/codex/ebib/native/install.py 桥接，并在下次启动加载配置"))
+  (ebib-browser-collect-url url))
 ;;;; Rime
 ;; karabiner: shift for emacs-rime
 ;; #+begin_src json
