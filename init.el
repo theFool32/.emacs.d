@@ -1577,6 +1577,23 @@ It handles the case of remote files as well."
 (use-package restart-emacs
   :commands restart-emacs)
 
+(defun +my/desktop-restart ()
+  "Restart a regular Emacs, or restart the daemon and reopen its client."
+  (interactive)
+  (if (not (daemonp))
+      (call-interactively #'restart-emacs)
+    (let ((script (expand-file-name "bin/restart-emacs-daemon" user-emacs-directory))
+          (default-directory (expand-file-name "~/")))
+      (unless (file-executable-p script)
+        (user-error "重启脚本不存在或不可执行：%s" script))
+      ;; This launcher detaches the worker before the installer stops Emacs.
+      (with-temp-buffer
+        (let ((status (call-process script nil (list (current-buffer) t) nil)))
+          (unless (and (integerp status) (zerop status))
+            (user-error "无法启动重启任务：%s" (string-trim (buffer-string))))))
+      (message "正在重启 daemon，完成后自动打开 client；日志：%s"
+               (expand-file-name "var/desktop-restart.log" user-emacs-directory)))))
+
 (use-package tramp
   :defer 60
   :ensure nil
@@ -6050,7 +6067,7 @@ kill the current timer, this may be a break or a running pomodoro."
     "q" '(:wk "Quit")
     ;; "qq" '(kill-emacs :wk "Quit")
     "qq" '(save-buffers-kill-terminal :wk "Quit")
-    "qr" '(restart-emacs :wk "Restart")
+    "qr" '(+my/desktop-restart :wk "Restart")
 
     "u" '((lambda() (interactive)
             (call-process-shell-command "rc" nil 0)
