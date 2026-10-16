@@ -2259,12 +2259,15 @@ kill all magit buffers for this repo."
   (("C-0" . #'ghostel-project)
    ("C-9" . #'ghostel))
   :custom
-  (ghostel-enable-title-tracking nil)
-  :config
-  ;; This integration ships with Ghostel.  Load it before the first terminal
-  ;; runs its mode hook, without asking Elpaca to install another package.
-  (require 'evil-ghostel)
-  (add-hook 'ghostel-mode-hook #'evil-ghostel-mode))
+  (ghostel-enable-title-tracking nil))
+
+(use-package evil-ghostel
+  ;; The extension shares Ghostel's repository, but has its own build files.
+  :ensure (:host github :repo "dakra/ghostel"
+           :files ("extensions/evil-ghostel/evil-ghostel.el"))
+  :after (ghostel evil)
+  :demand t
+  :hook (ghostel-mode . evil-ghostel-mode))
 
 (use-package popterm
   :commands (+popterm-toggle-dwim +popterm-register-shortcut)
