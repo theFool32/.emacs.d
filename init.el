@@ -1658,11 +1658,13 @@ It handles the case of remote files as well."
 
 (use-package tab-bar
   :ensure nil
-  :ensure nil
+  :demand t
   :commands (tab-new tab-bar-rename-tab tab-bar-close-tab tab-bar-select-tab-by-name)
-  ;; :hook (elpaca-after-init . tab-bar-mode)
+  :init
+  ;; Keep tabs active in both normal and daemon startup, with no top tab strip.
+  (setq tab-bar-show nil)
   :config
-  (setq tab-bar-show nil))
+  (tab-bar-mode 1))
 
 (use-package ace-window
   :commands ace-window
@@ -2939,6 +2941,7 @@ focus-guard which reclaims focus back to the posframe."
   (doom-modeline-icon t)
   (doom-modeline-env-version t)
   (doom-modeline-major-mode-color-icon t)
+  (doom-modeline-workspace-name t)
   ;; (doom-modeline-height 15)
   (doom-modeline-bar-width 1)
   (doom-modeline-time-icon nil)
