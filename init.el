@@ -2785,8 +2785,8 @@ focus-guard which reclaims focus back to the posframe."
   ;; Closing the last client frame leaves the daemon running.
   (global-set-key (kbd "s-q") #'save-buffers-kill-terminal))
 
-(setq split-width-threshold 0
-      split-height-threshold nil)
+;; (setq split-width-threshold 0
+;;       split-height-threshold nil)
 
 ;; ATIPac
 (use-package nerd-icons
@@ -5386,6 +5386,7 @@ the lines even if the ranges do not overlap."
 
         ;; org-agenda-window-setup 'only-window
         org-agenda-window-setup 'current-window
+        org-agenda-block-separator ?-
         org-agenda-span 3
         org-agenda-start-with-log-mode t
         org-agenda-start-with-clockreport-mode nil
