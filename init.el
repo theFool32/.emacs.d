@@ -2866,6 +2866,7 @@ focus-guard which reclaims focus back to the posframe."
           "\\*Org Links\\*"
           "\\*gt-result\\*"
 
+          cfw:details-mode
           bookmark-bmenu-mode
           compilation-mode
           help-mode helpful-mode
@@ -5613,13 +5614,16 @@ has no effect."
 
 (use-package calfw
   :commands (cfw:open-org-calendar cfw:open-org-week-calendar)
-  :ensure (calfw :includes (calfw-org calfw-cal) :host github :repo "theFool32/emacs-calfw" :files ("*.el"))
+  :ensure (calfw :includes (calfw-org calfw-cal) :host github :repo "theFool32/emacs-calfw" :branch "codex/macos-calendar-modern-ui" :files ("*.el" "calfw-macos.swift"))
   :bind (:map cfw:calendar-mode-map
               ("s" . cfw:show-details-command))
   :custom
   (cfw:display-calendar-holidays nil)
   (cfw:display-item-separators nil)
   (cfw:org-calendar-default-view 'two-weeks)
+  (cfw:display-style 'modern)
+  (cfw:macos-helper-directory
+     (expand-file-name "var/calfw-macos/" user-emacs-directory))
   ;; (cfw:org-calendar-default-view 'month)
   :config
   (require 'calfw-org)
