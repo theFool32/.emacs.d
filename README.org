@@ -58,13 +58,17 @@ Apply it yourself with:
 
 Use =--restart= to apply updated =init.el= to an existing daemon. The script
 checks for modified user buffers, active terminal processes and Org clocks
-before a graceful restart. If a normal GUI Emacs owns the default server,
-save and quit it yourself first. Installation without =--restart= retains
-an already managed daemon.
+before a graceful restart. =*scratch*= is disposable and is not saved or
+restored. If restart is blocked, the script lists the specific buffers or
+sessions and exits with an error. If a normal GUI Emacs owns the default
+server, save and quit it yourself first. Installation without =--restart=
+retains an already managed daemon.
 
 Restarts wait for launchd to remove the old service before registering it
 again. A transient =bootstrap= error 5 or 37 is retried a limited number of
-times. Run the installer as the logged-in user, without =sudo=.
+times. Success is reported only after the old process exits and a new daemon
+is ready, with the old/new PIDs and current uptime printed for verification.
+Run the installer as the logged-in user, without =sudo=.
 
 For a nonstandard app location, add =--emacs-app /path/to/Emacs.app=.
 The installer derives paths from the current checkout, home directory and

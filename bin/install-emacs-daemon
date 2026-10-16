@@ -78,6 +78,73 @@ def evaluate(client, expression):
     return result.stdout.strip() if result.returncode == 0 else None
 
 
+def daemon_pid(client, ready=False):
+    expression = ("(and (daemonp) (bound-and-true-p +my/desktop-ready) (emacs-pid))"
+                  if ready else "(emacs-pid)")
+    reply = evaluate(client, expression)
+    if reply in (None, "nil"):
+        return None
+    if not reply.isdecimal() or int(reply) <= 0:
+        raise RuntimeError(f"Unexpected Emacs PID response: {reply!r}")
+    return int(reply)
+
+
+def restart_blockers(client):
+    # Scratch and generated views are disposable; real files and ordinary
+    # untitled user buffers remain protected. Report what actually blocked exit.
+    reply = evaluate(client, r'''(let (blockers)
+      (when (bound-and-true-p org-clock-current-task)
+        (push "Active Org clock" blockers))
+      (dolist (buffer (buffer-list))
+        (with-current-buffer buffer
+          (when (and (buffer-modified-p)
+                     (or buffer-file-name
+                         (and (> (buffer-size) 0)
+                              (not (derived-mode-p 'special-mode))
+                              (not (string-match-p "\\`[ *]" (buffer-name))))))
+            (push (concat "Unsaved buffer: " (buffer-name)) blockers))
+          (when (and (get-buffer-process buffer)
+                     (process-live-p (get-buffer-process buffer))
+                     (derived-mode-p 'term-mode 'vterm-mode 'shell-mode 'eshell-mode 'ghostel-mode))
+            (push (concat "Active terminal: " (buffer-name)) blockers))))
+      (json-encode (vconcat (nreverse blockers))))''')
+    if reply is None:
+        raise RuntimeError("Cannot check unsaved work; no restart was attempted")
+    try:
+        # emacsclient prints the Lisp string containing the JSON array.
+        blockers = json.loads(json.loads(reply))
+    except (TypeError, ValueError) as error:
+        raise RuntimeError("Cannot decode the restart safety check; no restart was attempted") from error
+    if not isinstance(blockers, list) or not all(isinstance(item, str) for item in blockers):
+        raise RuntimeError("Invalid restart safety check; no restart was attempted")
+    return blockers
+
+
+def wait_for_exit(pid):
+    deadline = time.monotonic() + 10
+    while True:
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            return
+        if time.monotonic() >= deadline:
+            raise RuntimeError(f"Daemon PID {pid} has not exited; no forced termination was attempted")
+        time.sleep(0.1)
+
+
+def wait_for_daemon(client, previous_pid=None):
+    deadline = time.monotonic() + 45
+    while True:
+        pid = daemon_pid(client, ready=True)
+        if pid is not None and pid != previous_pid:
+            return pid
+        if time.monotonic() >= deadline:
+            detail = f" (old PID {previous_pid} is still responding)" if pid == previous_pid and pid else ""
+            raise RuntimeError("New Emacs daemon did not become ready after 45 seconds" + detail
+                               + "; see ~/Library/Logs/Emacs/daemon.log")
+        time.sleep(0.2)
+
+
 def launchctl(*arguments):
     return subprocess.run(["/bin/launchctl", *map(str, arguments)],
                           capture_output=True, text=True, timeout=15)
@@ -156,7 +223,7 @@ def main():
                         help="Emacs.app location (default: /Applications or ~/Applications)")
     parser.add_argument("--dry-run", action="store_true", help="Print the plan; write nothing")
     parser.add_argument("--restart", action="store_true",
-                        help="Gracefully restart an existing daemon after checking for unsaved work")
+                        help="Gracefully restart after checking unsaved work; discard *scratch*")
     args = parser.parse_args()
     user_home = Path.home()
     config_root = config_directory(user_home)
@@ -198,27 +265,28 @@ def main():
     service = f"gui/{os.getuid()}/{LABEL}"
     registered = service_registered(service)
     state = evaluate(client, "(if (daemonp) 1 0)")
+    if state not in (None, "0", "1"):
+        raise RuntimeError(f"Unexpected Emacs daemon status: {state!r}")
     if state == "0":
         raise RuntimeError("A GUI Emacs owns the default server. Save and quit that GUI, then rerun; this script will not close it.")
     if state == "1" and not registered and not args.restart:
         raise RuntimeError("An unmanaged daemon is running; use --restart to migrate it")
+    previous_pid = None
+    if args.restart and state is None and registered:
+        result = launchctl("print", service)
+        if result.returncode != 0:
+            raise launchctl_failure("print", result)
+        if re.search(r"^\s*pid = \d+\s*$", result.stdout, re.M):
+            raise RuntimeError("The registered Emacs process is running but its server cannot be queried; "
+                               "no restart was attempted")
     if state == "1" and args.restart:
-        clean = evaluate(client, '''(and
-          (not (bound-and-true-p org-clock-current-task))
-          (not (seq-some
-            (lambda (b) (with-current-buffer b
-              (or
-                (and (buffer-modified-p)
-                     (or buffer-file-name
-                         (and (> (buffer-size) 0)
-                              (or (equal (buffer-name) "*scratch*")
-                                  (not (string-match-p "\\\\`[ *]" (buffer-name)))))))
-                (and (get-buffer-process b)
-                     (process-live-p (get-buffer-process b))
-                     (derived-mode-p 'term-mode 'vterm-mode 'shell-mode 'eshell-mode 'ghostel-mode)))))
-            (buffer-list))))''')
-        if clean != "t":
-            raise RuntimeError("Save modified buffers and finish active terminal sessions or Org clocks before restarting")
+        previous_pid = daemon_pid(client)
+        if previous_pid is None:
+            raise RuntimeError("Cannot identify the running daemon; no restart was attempted")
+        blockers = restart_blockers(client)
+        if blockers:
+            raise RuntimeError("Restart cancelled; save modified buffers and finish active sessions:\n  "
+                               + "\n  ".join(blockers))
 
     backup_root = config_root / "var/desktop-backups"
     backup_root.mkdir(parents=True, exist_ok=True)
@@ -244,12 +312,9 @@ def main():
 
     if args.restart:
         if state == "1":
+            print(f"Restarting Emacs PID {previous_pid}; *scratch* is disposable.", flush=True)
             evaluate(client, "(kill-emacs)")
-            deadline = time.monotonic() + 10
-            while evaluate(client, "(if (daemonp) 1 0)") is not None:
-                if time.monotonic() >= deadline:
-                    raise RuntimeError("Daemon has not exited; no forced termination was attempted")
-                time.sleep(0.1)
+            wait_for_exit(previous_pid)
         if registered:
             remove_service(service)
         registered = False
@@ -259,6 +324,15 @@ def main():
             raise launchctl_failure("kickstart", result)
     else:
         bootstrap_service(agent, f"gui/{os.getuid()}")
+
+    if args.restart or not registered:
+        current_pid = wait_for_daemon(client, previous_pid)
+        uptime = evaluate(client, "(emacs-uptime)")
+        uptime = json.loads(uptime) if uptime else "unavailable"
+        if previous_pid:
+            print(f"Restarted Emacs: PID {previous_pid} -> {current_pid}; uptime: {uptime}")
+        else:
+            print(f"Started Emacs: PID {current_pid}; uptime: {uptime}")
 
     register = Path("/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister")
     if register.exists():

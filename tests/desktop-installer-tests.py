@@ -49,7 +49,7 @@ class InstallerTests(unittest.TestCase):
         self.custom.write_text(";;; Personal settings\n(setq test-value 42)\n")
         self.agent = self.home / "Library/LaunchAgents/local.emacs.daemon.plist"
 
-    def run_installer(self, *arguments, state=None, registered=False, replies=None):
+    def run_installer(self, *arguments, state=None, registered=False, blockers=()):
         loaded = registered
         retiring = 0
 
@@ -71,21 +71,32 @@ class InstallerTests(unittest.TestCase):
                     loaded = True
             return subprocess.CompletedProcess(command, 0, "", "")
 
+        def fake_evaluate(_client, expression):
+            if expression == "(if (daemonp) 1 0)":
+                return state
+            if expression == "(emacs-pid)":
+                return "101"
+            if expression == "(emacs-uptime)":
+                return '"0 seconds"'
+            return None
+
         with ExitStack() as stack:
             stack.enter_context(patch.object(installer, "REPOSITORY", self.root))
             stack.enter_context(patch.object(installer.Path, "home", return_value=self.home))
             stack.enter_context(patch.object(installer.sys, "platform", "darwin"))
             stack.enter_context(patch.object(sys, "argv", ["install-emacs-daemon", "--emacs-app", str(self.app), *arguments]))
             run = stack.enter_context(patch.object(installer.subprocess, "run", side_effect=fake_run))
-            evaluate = stack.enter_context(patch.object(installer, "evaluate", return_value=state, side_effect=replies))
+            evaluate = stack.enter_context(patch.object(installer, "evaluate", side_effect=fake_evaluate))
+            stack.enter_context(patch.object(installer, "restart_blockers", return_value=list(blockers)))
+            stack.enter_context(patch.object(installer, "wait_for_exit"))
+            stack.enter_context(patch.object(installer, "wait_for_daemon", return_value=202))
             stack.enter_context(patch.object(installer.time, "sleep"))
             stack.enter_context(redirect_stdout(io.StringIO()))
             installer.main()
             return run, evaluate
 
     def test_restart_waits_for_launchd_to_remove_the_old_service(self):
-        run, evaluate = self.run_installer("--restart", registered=True,
-                                           replies=["1", "t", None, None])
+        run, evaluate = self.run_installer("--restart", registered=True, state="1")
         actions = [call.args[0][1] for call in run.call_args_list
                    if call.args[0][0] == "/bin/launchctl"]
         self.assertEqual(actions, ["print", "bootout", "print", "print", "print", "bootstrap"])
@@ -140,8 +151,8 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(original, self.hs.read_bytes())
 
     def test_modified_daemon_stops_before_writing_files(self):
-        with self.assertRaisesRegex(RuntimeError, "Save modified buffers"):
-            self.run_installer("--restart", state="1")
+        with self.assertRaisesRegex(RuntimeError, "Restart cancelled.*\n  Unsaved buffer: notes.org"):
+            self.run_installer("--restart", state="1", blockers=["Unsaved buffer: notes.org"])
         self.assertFalse(self.agent.exists())
         self.assertFalse((self.root / "var").exists())
 
@@ -158,6 +169,85 @@ class InstallerTests(unittest.TestCase):
     def test_hammerspoon_unknown_binding_is_not_overwritten(self):
         with self.assertRaisesRegex(RuntimeError, "Unrecognized"):
             installer.hammerspoon_config("hs.hotkey.bind({'cmd', 'ctrl'}, '.', anotherAction)", self.root, self.home)
+
+
+class RestartTests(unittest.TestCase):
+    def blocker_check(self, setup):
+        emacs = Path("/Applications/Emacs.app/Contents/MacOS/Emacs")
+        if not emacs.is_file():
+            self.skipTest("Emacs batch executable unavailable")
+
+        def evaluate(_client, expression):
+            result = subprocess.run(
+                [str(emacs), "--batch", "-Q", "--eval",
+                 "(progn (require 'json) " + setup + " (prin1 " + expression + "))"],
+                capture_output=True, text=True, check=True, timeout=10)
+            return result.stdout.strip()
+
+        with patch.object(installer, "evaluate", side_effect=evaluate):
+            return installer.restart_blockers("unused")
+
+    def test_modified_scratch_does_not_prevent_restart(self):
+        blockers = self.blocker_check('''
+          (with-current-buffer (get-buffer-create "*scratch*")
+            (erase-buffer) (insert "Disposable scratch text") (set-buffer-modified-p t))''')
+        self.assertEqual(blockers, [])
+
+    def test_safety_check_identifies_unsaved_files_and_untitled_buffers(self):
+        blockers = self.blocker_check('''
+          (with-current-buffer (get-buffer-create "notes.org")
+            (setq buffer-file-name "/tmp/not-written.org")
+            (insert "Unsaved file text") (set-buffer-modified-p t))
+          (with-current-buffer (get-buffer-create "draft")
+            (insert "Untitled user text") (set-buffer-modified-p t))''')
+        self.assertEqual(blockers, ["Unsaved buffer: notes.org", "Unsaved buffer: draft"])
+
+    def test_generated_special_views_are_ignored_but_their_files_are_protected(self):
+        blockers = self.blocker_check('''
+          (with-current-buffer (get-buffer-create "magit: .emacs.d")
+            (special-mode)
+            (let ((inhibit-read-only t)) (insert "Generated status"))
+            (set-buffer-modified-p t))
+          (with-current-buffer (get-buffer-create "notes.org")
+            (special-mode)
+            (setq buffer-file-name "/tmp/not-written.org")
+            (let ((inhibit-read-only t)) (insert "Unsaved file"))
+            (set-buffer-modified-p t))''')
+        self.assertEqual(blockers, ["Unsaved buffer: notes.org"])
+
+    def test_clock_blocker_is_explicit(self):
+        self.assertEqual(self.blocker_check('(setq org-clock-current-task "Task")'),
+                         ["Active Org clock"])
+
+    def test_unavailable_safety_check_never_means_safe(self):
+        with patch.object(installer, "evaluate", return_value=None):
+            with self.assertRaisesRegex(RuntimeError, "Cannot check unsaved work"):
+                installer.restart_blockers("unused")
+
+    def test_exit_wait_checks_the_original_pid(self):
+        with patch.object(installer.os, "kill", side_effect=[None, ProcessLookupError]) as kill, \
+                patch.object(installer.time, "sleep"):
+            installer.wait_for_exit(101)
+        self.assertEqual([call.args for call in kill.call_args_list], [(101, 0), (101, 0)])
+
+    def test_exit_timeout_never_forces_termination(self):
+        with patch.object(installer.os, "kill") as kill, \
+                patch.object(installer.time, "monotonic", side_effect=[0, 11]):
+            with self.assertRaisesRegex(RuntimeError, "PID 101 has not exited"):
+                installer.wait_for_exit(101)
+        kill.assert_called_once_with(101, 0)
+
+    def test_ready_wait_requires_a_different_pid(self):
+        with patch.object(installer, "daemon_pid", side_effect=[None, 101, 202]) as pid, \
+                patch.object(installer.time, "sleep"):
+            self.assertEqual(installer.wait_for_daemon("client", 101), 202)
+        self.assertTrue(all(call.kwargs == {"ready": True} for call in pid.call_args_list))
+
+    def test_unchanged_pid_is_reported_as_a_failed_restart(self):
+        with patch.object(installer, "daemon_pid", return_value=101), \
+                patch.object(installer.time, "monotonic", side_effect=[0, 46]):
+            with self.assertRaisesRegex(RuntimeError, "old PID 101 is still responding"):
+                installer.wait_for_daemon("client", 101)
 
 
 class LaunchdTests(unittest.TestCase):
