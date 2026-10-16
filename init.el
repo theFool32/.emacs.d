@@ -702,8 +702,7 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
   :init
   (setq evil-want-keybinding nil)
   :config
-  (let ((modes '(atomic-chrome calc calendar consult debug devdocs diff-hl diff-mode dired doc-view ebib edebug ediff eglot eldoc elisp-mode eval-sexp-fu evil-mc flymake  git-timemachine grep help helpful buffer (image image-mode) image-dired image+ imenu imenu-list (indent "indent")  info log-view man (magit magit-repos magit-submodule) magit-section markdown-mode mu4e mu4e-conversation org (pdf pdf-view) popup proced (process-menu simple) profiler replace sh-script shortdoc so-long tab-bar tablist tabulated-list tar-mode thread timer-list vc-annotate vc-dir vc-git vdiff vertico view vterm vundo wdired which-key xref yaml-mode (ztree ztree-diff ztree-dir))))
-    (evil-collection-init modes))
+  (evil-collection-init)
   )
 
 ;; indent textobj
@@ -1098,6 +1097,10 @@ targets."
 
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
+
+  (with-eval-after-load 'evil
+    (define-key evil-ex-completion-map (kbd "C-r") #'consult-history)
+    )
 
   ;; consult-imenu
   (with-eval-after-load 'consult-imenu
@@ -2264,7 +2267,7 @@ kill all magit buffers for this repo."
 (use-package evil-ghostel
   ;; The extension shares Ghostel's repository, but has its own build files.
   :ensure (:host github :repo "dakra/ghostel"
-           :files ("extensions/evil-ghostel/evil-ghostel.el"))
+                 :files ("extensions/evil-ghostel/evil-ghostel.el"))
   :after (ghostel evil)
   :demand t
   :hook (ghostel-mode . evil-ghostel-mode))
@@ -3342,82 +3345,73 @@ Otherwise it builds `prettify-code-symbols-alist' according to
                                  (,electric-pair-inhibit-predicate c)))))))
 
 (with-eval-after-load 'evil
+  (defconst my/evil-paren-pairs
+    '((?\( . ?\)) (?\[ . ?\]) (?\{ . ?\}) (?< . ?>) (?\" . ?\") (?\' . ?\'))
+    "Delimiter pairs used by `ig', `ag' and `my/edit-kill'.")
+
+  (defun my/evil-select-pair (pair count beg end type inclusive)
+    "Select PAIR with Evil, preserving point and match data."
+    (save-excursion
+      (save-match-data
+        (condition-case nil
+            (if (= (car pair) (cdr pair))
+                (evil-select-quote (car pair) beg end type count inclusive)
+              (evil-select-paren (car pair) (cdr pair) beg end type count inclusive))
+          (error nil)))))
+
   (defun my/evil-paren-range (count beg end type inclusive)
-    "Get minimum range of paren text object.
-    Optimized version of my/evil-paren-range."
-    (let* ((cur-point (point))
-           ;; 定义所有待检测的符号及其对应的处理函数
-           ;; 格式: (开符号 闭符号 处理函数)
-           (candidates `((?\( ?\) ,#'evil-select-paren)
-                         (?\[ ?\] ,#'evil-select-paren)
-                         (?{ ?} ,#'evil-select-paren)
-                         (?< ?> ,#'evil-select-paren)
-                         (?\" ?\" ,#'evil-select-quote)))
-           ;; 结果变量
-           (min-range nil)
-           ;; 初始化最小长度为最大整数，方便比较
-           (min-length most-positive-fixnum))
-
-      ;; 除非在 emacs-lisp-mode，否则加入单引号检测
-      (unless (derived-mode-p 'emacs-lisp-mode)
-        (push '(?\' ?\' evil-select-quote) candidates))
-
-      (dolist (cand candidates)
-        (cl-destructuring-bind (open close func) cand
-          ;; 每次检测前保护现场，防止 evil 函数移动光标影响下一次检测
-          (save-excursion
-            (ignore-errors
-              (let ((range (if (eq func #'evil-select-quote)
-                               (funcall func open beg end type count)
-                             (funcall func open close beg end type count inclusive))))
-                ;; 检查 range 是否有效且包围了当前光标
-                (when (and range
-                           (<= (car range) cur-point)
-                           (>= (cadr range) cur-point))
-                  (let ((len (- (cadr range) (car range))))
-                    ;; 如果找到更小的范围，更新结果
-                    (when (< len min-length)
-                      (setq min-length len
-                            min-range range)))))))))
-      min-range))
+    "Select the smallest enclosing pair, including delimiters if INCLUSIVE."
+    (let (smallest selected)
+      (dolist (pair my/evil-paren-pairs)
+        ;; In Lisp, a single quote is a reader prefix, not a string delimiter.
+        (unless (and (= (car pair) ?\') (derived-mode-p 'emacs-lisp-mode))
+          ;; a" includes adjacent whitespace; compare the actual quote bounds.
+          (let* ((quote-p (= (car pair) (cdr pair)))
+                 (range (my/evil-select-pair pair (if quote-p 2 count)
+                                             beg end type (not quote-p))))
+            (when (and range (<= (car range) (point)) (< (point) (cadr range))
+                       (or (null smallest)
+                           (< (- (cadr range) (car range))
+                              (- (cadr smallest) (car smallest)))))
+              (setq smallest range selected pair)))))
+      (when selected (my/evil-select-pair selected count beg end type inclusive))))
 
   (evil-define-text-object my/evil-a-paren (count &optional beg end type)
-    "Select a paren."
+    "Select the smallest enclosing pair and its delimiters."
     :extend-selection t
     (my/evil-paren-range count beg end type t))
 
   (evil-define-text-object my/evil-inner-paren (count &optional beg end type)
-    "Select 'inner' paren."
+    "Select the contents of the smallest enclosing pair."
     :extend-selection nil
     (my/evil-paren-range count beg end type nil))
   (define-key evil-inner-text-objects-map "g" #'my/evil-inner-paren)
   (define-key evil-outer-text-objects-map "g" #'my/evil-a-paren)
 
-  (defun my/edit-kill ()
-    (interactive)
+  (evil-define-command my/edit-kill (count)
+    "Delete the pair at point, or the innermost pair's contents.
+Use Evil's delete registers and support repeating with `.'."
+    :repeat t
+    (interactive "p")
+    (barf-if-buffer-read-only)
     (let* ((char (char-after))
-           ;; 1. 使用字符字面量 (Integers) 代替字符串列表，大幅减少转换和内存开销
-           (parens '(?\( ?\) ?\[ ?\] ?\{ ?\} ?\< ?\> ?\"))
-           ;; 2. 提前计算按键序列，逻辑与副作用分离
-           (keys
-            (if (and (not (nth 3 (syntax-ppss))) ; 不在字符串内
-                     (or (memq char parens)      ; 是定义的包围符
-                         ;; 3. HACK: 非 Elisp 模式下包含单引号
-                         (and (not (derived-mode-p 'emacs-lisp-mode))
-                              (eq char ?'))))
-                ;; 分支 A: 如果是包围符，模拟 "da" + 字符
-                (vector ?d ?a char)
-              ;; 分支 B: 否则模拟 "vigx" (选中 inner g? 并剪切)
-              (vconcat "vigx"))))
-
-      ;; 4. 标准化设置未读事件
-      (setq unread-command-events (listify-key-sequence keys))))
-
+           (pair (and (not (save-excursion
+                             (nth 5 (syntax-ppss))))
+                      (cl-find-if (lambda (pair) (memq char (list (car pair) (cdr pair))))
+                                  my/evil-paren-pairs)))
+           (pair (unless (and pair (= char ?\') (derived-mode-p 'emacs-lisp-mode)) pair))
+           (range (if pair (my/evil-select-pair pair count nil nil nil t)
+                    (my/evil-paren-range count nil nil nil nil))))
+      (unless (and range (or (null pair)
+                            (<= (car range) (point) (1- (cadr range)))))
+        (user-error "光标不在成对括号或引号中"))
+      (evil-delete (evil-range-beginning range) (evil-range-end range)
+                   (evil-type range))))
 
   (with-eval-after-load 'general
     (general-define-key
-     :keymaps '(evil-normal-state-map)
-     "C-k" 'my/edit-kill)))
+     :states 'normal :keymaps 'override
+     "C-k" #'my/edit-kill)))
 
 ;;;; Indent
 (setq-default indent-tabs-mode nil)
@@ -4481,7 +4475,7 @@ Read the legacy done.org file only when viewing a historical plan."
 (defun +my/org-plan-entries (period &optional time)
   "Read PERIOD's tasks, including legacy history only when TIME is supplied."
   (let ((org-agenda-files (if time (+my/org-plan-history-files)
-                           (+my/org-plan-current-files)))
+                            (+my/org-plan-current-files)))
         (org-use-property-inheritance nil)
         entries)
     (org-map-entries
@@ -4527,8 +4521,8 @@ Read the legacy done.org file only when viewing a historical plan."
                             (cons period (+my/org-plan-match period time)))
                           periods))
          (matchers (mapcar (lambda (query)
-                            (cons (car query) (cdr (org-make-tags-matcher (cdr query)))))
-                          queries))
+                             (cons (car query) (cdr (org-make-tags-matcher (cdr query)))))
+                           queries))
          entries)
     (org-map-entries
      (lambda ()
@@ -4588,7 +4582,7 @@ Read the legacy done.org file only when viewing a historical plan."
           (let ((time (org-time-string-to-time
                        (concat "<" value (if (eq period 'month) "-01" "") ">"))))
             (when (equal value (format-time-string
-                               (if (eq period 'month) "%Y-%m" "%F") time)) time))))
+                                (if (eq period 'month) "%Y-%m" "%F") time)) time))))
     (error nil)))
 
 (defun +my/org-plan-review-legacy-selection ()
@@ -4670,7 +4664,7 @@ the same source entry counts once; ordinary closed tasks are excluded."
     (dolist (record records)
       (plist-put record :time
                  (apply #'max (mapcar (lambda (plan) (float-time (plist-get plan :time)))
-                                     (plist-get record :plans)))))
+                                      (plist-get record :plans)))))
     (cl-stable-sort
      records
      (lambda (a b)
@@ -4701,7 +4695,7 @@ the same source entry counts once; ordinary closed tasks are excluded."
               (+my/org-plan-review-summary
                (cl-remove-if-not
                 (lambda (record) (cl-find period (plist-get record :plans)
-                                         :key (lambda (plan) (plist-get plan :period)))) records))
+                                          :key (lambda (plan) (plist-get plan :period)))) records))
               "\n")))
   (dolist (group '(("○ 待完成" warning :open) ("× 未达成" error "UNDONE")
                    ("✓ 已完成" success "DONE")
@@ -4778,7 +4772,7 @@ or programmatic use; interactive use never prompts for a period or date."
          (buffer (get-buffer-create org-agenda-buffer-name)))
     (dolist (record records)
       (dolist (month (delete-dups (mapcar (lambda (plan) (plist-get plan :month))
-                                        (plist-get record :plans))))
+                                          (plist-get record :plans))))
         (let* ((copy (copy-sequence record))
                (plans (cl-remove-if-not (lambda (plan) (equal (plist-get plan :month) month))
                                         (plist-get record :plans))))
@@ -4839,7 +4833,7 @@ or programmatic use; interactive use never prompts for a period or date."
           (local-set-key (kbd (car binding)) (cdr binding))
           (when (fboundp 'evil-define-key*)
             (evil-define-key* '(motion normal) (current-local-map)
-                              (kbd (car binding)) (cdr binding))))
+              (kbd (car binding)) (cdr binding))))
         (when (fboundp 'evil-normalize-keymaps)
           (evil-normalize-keymaps))
         (outline-minor-mode 1)
@@ -5458,15 +5452,17 @@ has no effect."
             (agenda "")
             (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header "Habits")))
             (alltodo "" ((org-agenda-overriding-header "Task Pool (m to mark, , v d/w/m to plan):")
-                         (org-agenda-files (list +org-capture-file-gtd))))))))
-  (evil-set-initial-state 'org-agenda-mode 'motion)
+                         (org-agenda-files (list +org-capture-file-gtd))))))
+          ("n" "本周所有事项"
+           agenda ""
+           ((org-agenda-span 'week)
+            (org-agenda-start-on-weekday 1)))
+          ))
+  ;; (evil-set-initial-state 'org-agenda-mode 'motion)
   (setq-default
    org-agenda-inhibit-startup t
    org-agenda-skip-unavailable-files t)
   (with-eval-after-load 'general
-    (general-define-key :states '(motion)
-                        :keymaps 'org-agenda-mode-map
-                        "m" 'org-agenda-bulk-mark)
     (local-leader-def
       :keymaps 'org-agenda-mode-map
       "v" '(:wk "plan")
@@ -5623,7 +5619,7 @@ has no effect."
   (cfw:org-calendar-default-view 'two-weeks)
   (cfw:display-style 'modern)
   (cfw:macos-helper-directory
-     (expand-file-name "var/calfw-macos/" user-emacs-directory))
+   (expand-file-name "var/calfw-macos/" user-emacs-directory))
   ;; (cfw:org-calendar-default-view 'month)
   :config
   (require 'calfw-org)
@@ -5770,53 +5766,6 @@ kill the current timer, this may be a break or a running pomodoro."
                                (setq emmet-indent-after-insert t))))
 ;; -EmmetPac
 
-
-;;;; Debug
-(use-package dape
-  :ensure (:host github :repo "svaante/dape")
-  :hook (dape-active-mode . dape-breakpoint-global-mode)
-  :config
-
-  (transient-define-prefix dape-transient ()
-    "Transient for dape."
-    [["Stepping"
-      ("n" "Next" dape-next :transient t)
-      ("i" "Step in" dape-step-in :transient t)
-      ("o" "Step out" dape-step-out :transient t)
-      ("c" "Continue" dape-continue :transient t)
-      ("r" "restart" dape-restart :transient t)]
-     ["Breakpoints"
-      ("bb" "Toggle" dape-breakpoint-toggle :transient t)
-      ("bd" "Remove all" dape-breakpoint-remove-all :transient t)
-      ("bl" "Add log breakpoing" dape-breakpoint-log :transient t)
-      ("be" "Add expression breakpoint" dape-breakpoint-expression :transient t)
-      ]
-     ["Switch"
-      ("i" "Info" dape-info)
-      ("R" "Repl" dape-repl)
-      ("m" "Memory" dape-read-memory)
-      ("t" "Thread" dape-select-thread)
-      ("w" "Watch" dape-watch-dwim)
-      ("S" "Stack" dape-select-stack)]
-     ["Quit"
-      ("qq" "Quit" dape-quit :transient nil)
-      ("qk" "Kill" dape-kill :transient nil)]])
-
-  (add-to-list 'dape-configs
-               `(debugpy-remote-attach
-                 modes (python-mode python-ts-mode)
-                 host (lambda () (read-string "Host: " "localhost"))
-                 port (lambda () (read-number "Port: "))
-                 :request "attach"
-                 :type "python"
-                 :pathMappings [(:localRoot (lambda ()
-                                              (read-directory-name "Local source directory: "
-                                                                   (funcall dape-cwd-fn)))
-                                            :remoteRoot (lambda ()
-                                                          (read-string "Remote source directory: ")))]
-                 :justMyCode nil
-                 :showReturnValue t))
-  )
 
 ;;; Edit
 (use-package ediff

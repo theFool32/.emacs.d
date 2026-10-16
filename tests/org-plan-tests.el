@@ -321,7 +321,7 @@
         (should-not (org-map-entries #'point (+my/org-plan-match (car spec) time)))))))
 
 (ert-deftest org-plan-unified-configuration-retires-old-goal-workflows ()
-  (should (equal (mapcar #'car org-agenda-custom-commands) '("p")))
+  (should (equal (mapcar #'car org-agenda-custom-commands) '("p" "n")))
   (dolist (key '("g" "m" "W"))
     (should-not (assoc key org-capture-templates))))
 
