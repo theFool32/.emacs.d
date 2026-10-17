@@ -393,7 +393,16 @@ Keep dependency ordering, conditions, bindings, and mode hooks intact."
   (require 'org-reverse-datetree)
   (save-restriction
     (widen)
-    (org-reverse-datetree-goto-date-in-file (or time (current-time)))
+    ;; Reuse dates in the old Sunday-based tree without moving historical entries.
+    (let* ((time (or time (current-time)))
+           (level (length (org-reverse-datetree--get-level-formats)))
+           (date-regexp (concat "^" (regexp-quote (make-string level ?*)) " +"
+                                (format-time-string "%F" time)
+                                "\\(?:[ \t]\\|$\\)")))
+      (goto-char (point-min))
+      (if (re-search-forward date-regexp nil t)
+          (beginning-of-line)
+        (org-reverse-datetree-goto-date-in-file time)))
     (let* ((level (1+ (org-current-level)))
            (stars (make-string level ?*)))
       (org-narrow-to-subtree)
@@ -5842,6 +5851,11 @@ has no effect."
 
   )
 
+(use-package calendar
+  :ensure nil
+  :custom
+  (calendar-week-start-day 1))
+
 (use-package org-habit
   :ensure nil
   :custom
@@ -5930,16 +5944,28 @@ kill the current timer, this may be a break or a running pomodoro."
   :ensure (:host github :repo "theFool32/org-reverse-datetree")
   :after org
   :init
+  (defun +my/org-datetree-week-start (time)
+    "Return Monday at midnight for TIME's week, using calendar-day arithmetic."
+    (let* ((date (decode-time time))
+           (offset (mod (1- (decoded-time-weekday date)) 7)))
+      (encode-time 0 0 0 (- (decoded-time-day date) offset)
+                   (decoded-time-month date) (decoded-time-year date))))
 
+  ;; Keep a whole week under its Monday's year and month, including year changes.
   (setq-default org-reverse-datetree-level-formats
-                '("%Y"                    ; year
-                  (lambda (time) (format-time-string "%Y-%m %B" (org-reverse-datetree-sunday time))) ; month
+                '((lambda (time)
+                    (format-time-string "%Y" (+my/org-datetree-week-start time)))
                   (lambda (time)
-                    (format "W%s (%s - %s)"
-                            (format-time-string "%U" time)
-                            (format-time-string "%Y-%m-%d" (org-reverse-datetree-sunday time))
-                            (format-time-string "%Y-%m-%d" (org-reverse-datetree-last-dow 13 time))
-                            )) ; month
+                    (format-time-string "%Y-%m %B" (+my/org-datetree-week-start time)))
+                  (lambda (time)
+                    (let* ((start (+my/org-datetree-week-start time))
+                           (date (decode-time start))
+                           (end (encode-time 0 0 0 (+ (decoded-time-day date) 6)
+                                             (decoded-time-month date) (decoded-time-year date))))
+                      (format "W%s (%s - %s)"
+                              (format-time-string "%V" start)
+                              (format-time-string "%F" start)
+                              (format-time-string "%F" end))))
                   "%Y-%m-%d %A"))
   )
 
