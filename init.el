@@ -5848,14 +5848,6 @@ has no effect."
   (org-habit-graph-column 1)
   (org-habit-show-all-today nil))
 
-(use-package org-heatmap
-  :ensure (:host github :repo "Elilif/org-heatmap")
-  :after (org)
-  :custom
-  (org-heatmap-db-location "~/.emacs.d/.cache/org-heatmap.db")
-  :config
-  (org-heatmap-mode))
-
 (use-package calfw
   :commands (cfw:open-org-calendar cfw:open-org-week-calendar)
   :ensure (calfw :includes (calfw-org calfw-cal) :host github :repo "theFool32/emacs-calfw" :branch "codex/macos-calendar-modern-ui" :files ("*.el" "calfw-macos.swift"))
