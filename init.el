@@ -5707,7 +5707,6 @@ has no effect."
            ((org-agenda-span 'week)
             (org-agenda-start-on-weekday 1)))
           ))
-  ;; (evil-set-initial-state 'org-agenda-mode 'motion)
   (setq-default
    org-agenda-inhibit-startup t
    org-agenda-skip-unavailable-files t)
