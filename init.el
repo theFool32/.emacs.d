@@ -2354,7 +2354,8 @@ kill all magit buffers for this repo."
 (use-package ebib
   :after (evil-collection org)
   :commands ebib
-  :ensure (ebib :includes (org-ebib) :host github :repo "theFool32/ebib")
+  :ensure (ebib :includes (org-ebib) :host github :repo "theFool32/ebib"
+                :branch "codex/firefox-paper-workflow")
   :hook (ebib-index-mode . hl-line-mode)
   :custom
   (ebib-file-associations '(("pdf" . "open")))
