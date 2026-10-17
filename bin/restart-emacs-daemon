@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Detach a daemon restart, then reopen the client after the installer succeeds."""
+from pathlib import Path
+import fcntl
+import json
+import os
+import subprocess
+import sys
+
+REPOSITORY = Path(__file__).resolve().parent.parent
+
+
+def report_failure(log):
+    """Show the real error in a surviving Emacs, or open the log if it exited."""
+    detail = f"Emacs 重启失败。日志：{log}\n\n{log.read_text()[-8000:]}"
+    try:
+        settings = REPOSITORY / "var/emacs-desktop.json"
+        config = json.loads(settings.read_text()) if settings.exists() else {}
+        app = Path(os.environ.get("EMACS_APP", config.get("app", "/Applications/Emacs.app")))
+        result = subprocess.run(
+            [str(app / "Contents/MacOS/bin/emacsclient"), "--alternate-editor=false", "--eval",
+             "(display-warning 'emacs-desktop " + json.dumps(detail, ensure_ascii=False) + ")"],
+            capture_output=True, timeout=10)
+        if result.returncode == 0:
+            return
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass
+    subprocess.run(["/usr/bin/open", "-a", "TextEdit", str(log)], check=False, timeout=10)
+
+
+def restart(log):
+    """The installer waits for a different, ready PID before opening the client."""
+    try:
+        for script, arguments in (("install-emacs-daemon", ["--restart"]),
+                                  ("emacs-client", [])):
+            print(f"Running {script} {' '.join(arguments)}", flush=True)
+            subprocess.run([sys.executable, str(REPOSITORY / "bin" / script), *arguments],
+                           cwd=Path.home(), check=True)
+    except (OSError, subprocess.SubprocessError) as error:
+        print(f"Emacs restart: {error}", file=sys.stderr, flush=True)
+        report_failure(log)
+        return 1
+    print("Daemon restarted and client opened.", flush=True)
+    return 0
+
+
+def main():
+    log = REPOSITORY / "var/desktop-restart.log"
+    if len(sys.argv) == 3 and sys.argv[1] == "--worker":
+        # Keep the inherited lock until restart and client startup both finish.
+        with os.fdopen(int(sys.argv[2]), "a"):
+            return restart(log)
+    if len(sys.argv) != 1:
+        raise RuntimeError("This launcher takes no arguments")
+    log.parent.mkdir(parents=True, exist_ok=True)
+    with (log.parent / "desktop-restart.lock").open("a") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise RuntimeError("已有 Emacs 重启任务在运行；日志：" + str(log)) from None
+        with log.open("w") as output:
+            subprocess.Popen([sys.executable, str(Path(__file__).resolve()),
+                              "--worker", str(lock.fileno())],
+                             cwd=Path.home(), stdin=subprocess.DEVNULL,
+                             stdout=output, stderr=subprocess.STDOUT,
+                             start_new_session=True, pass_fds=(lock.fileno(),))
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
+        print(f"Emacs restart: {error}", file=sys.stderr)
+        sys.exit(1)

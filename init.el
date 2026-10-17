@@ -13,6 +13,10 @@
             "Recover GC values after startup."
             (setq gc-cons-percentage 0.1)))
 
+;; Some packages do not declare a binding dialect; keep their sources intact.
+(require 'warnings)
+(add-to-list 'warning-suppress-log-types '(files missing-lexbind-cookie))
+
 ;; Load init-custom.el if it exists
 (load (expand-file-name "init-custom.el" user-emacs-directory) nil 'nomessage)
 
@@ -23,7 +27,8 @@
     (run-hooks '+my/first-input-hook)
     (setq +my/first-input-hook nil))
   (remove-hook 'pre-command-hook '+my/first-input-hook-fun))
-(add-hook 'pre-command-hook '+my/first-input-hook-fun)
+(unless (daemonp)
+  (add-hook 'pre-command-hook '+my/first-input-hook-fun))
 
 (defvar default-file-name-handler-alist file-name-handler-alist)
 (setq file-name-handler-alist nil)
@@ -144,6 +149,27 @@ or triggered (if it is a hook variable)."
 
 ;; 定义规范化逻辑 (确保参数总是列表)
 (defalias 'use-package-normalize/:after-call #'use-package-normalize-symlist)
+
+;;;; Load packages eagerly in a daemon
+(defun +my/use-package-eager-in-daemon (normalize name args)
+  "Normalize package NAME with ARGS, ignoring lazy loading in a daemon.
+NORMALIZE is the original `use-package-normalize-keywords' function.
+Keep dependency ordering, conditions, bindings, and mode hooks intact."
+  (when (daemonp)
+    (setq args
+          (append '(:demand t)
+                  (apply #'append
+                         (seq-remove
+                          (lambda (group)
+                            (memq (car group) '(:defer :demand :after-call)))
+                          (use-package-split-when #'keywordp args))))))
+  (funcall normalize name args))
+
+(advice-add 'use-package-normalize-keywords :around
+            #'+my/use-package-eager-in-daemon)
+(when (daemonp)
+  (setq use-package-always-defer nil
+        use-package-always-demand t))
 
 ;;;; elpaca
 
@@ -632,6 +658,231 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
                         "C-k" 'evil-window-up
                         "C-l" 'evil-window-right))
   )
+
+;; Org's eager configuration requires Dash before the remaining queues run.
+(use-package dash
+  :demand t)
+
+;; Leader def
+(use-package general
+  :after evil
+  :demand t
+  :config
+  (general-create-definer tab-def
+    :states '(normal visual emacs motion)
+    :keymaps 'override
+    :prefix "C-s"
+    )
+
+  (tab-def
+    "" nil
+    "c" '(tab-new :wk "New")
+    "r" '(tab-bar-rename-tab :wk "Rename")
+    "d" '(tab-bar-close-tab :wk "Close")
+    "s" '(tab-bar-select-tab-by-name :wk "Select")
+    "1" '((lambda () (interactive) (tab-bar-select-tab 1)) :wk "Select 1")
+    "2" '((lambda () (interactive) (tab-bar-select-tab 2)) :wk "Select 2")
+    "3" '((lambda () (interactive) (tab-bar-select-tab 3)) :wk "Select 3")
+    "4" '((lambda () (interactive) (tab-bar-select-tab 4)) :wk "Select 4")
+    "5" '((lambda () (interactive) (tab-bar-select-tab 5)) :wk "Select 5")
+    )
+
+  (general-create-definer leader-def
+    :states '(normal visual emacs motion)
+    :keymaps 'override
+    :prefix "SPC"
+    )
+  (general-create-definer local-leader-def
+    :states '(normal visual emacs motion)
+    :keymaps 'override
+    :prefix ",")
+
+  (local-leader-def
+    "w" 'evil-avy-goto-word-1
+    "/" 'evilnc-comment-or-uncomment-lines)
+
+  (general-evil-define-key 'normal
+      '(python-mode-map python-ts-mode-map LaTeX-mode-map emacs-lisp-mode-map yaml-ts-mode-map)
+    "<tab>" 'my/smart-fold-toggle)
+
+  ;; evil mode
+  (general-def 'normal
+    "/" '+my/consult-line
+    "?" '+my/consult-line-symbol-at-point
+    "gd" 'xref-find-definitions
+    "gr" 'xref-find-references
+    "gD" 'xref-find-definitions-other-window)
+
+  ;; Navigation
+  (general-def 'insert
+    "C-a" 'beginning-of-line
+    "C-e" 'end-of-line)
+
+  ;; (general-def 'insert
+  ;;   "C-o" 'evil-normal-state)
+
+  (general-def "<escape>" 'keyboard-quit)
+  (general-def "C-<tab>" 'tab-next)
+
+  (leader-def
+    "" nil
+    ;; "<SPC>" '(execute-extended-command :wk "M-x")
+    "<SPC>" '(switch-to-buffer :wk "Switch buffer") ;; maybe `switch-to-buffer' is used more frequently
+    "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
+    "?" '(+consult-ripgrep-at-point :wk "Search symbol here")
+    "." '(find-file :wk "Find file")
+    ":" '(pp-eval-expression :wk "Evil expression")
+    ";" '(+my/open-org-agenda :wk "Agenda")
+    "x" '(org-capture :wk "Org capture")
+    "r" '(er/expand-region :wk "expand-region")
+    "k" '(+my/replace :wk "Replace")
+    "y" '(consult-yank-from-kill-ring :wk "Kill ring")
+
+    "b" '(:wk "Buffer")
+    "b[" '(previous-buffer :wk "Previous buffer")
+    "b]" '(next-buffer :wk "Next buffer")
+    "bb" '(switch-to-buffer :wk "Switch buffer")
+    "bk" '(kill-current-buffer :wk "Kill buffer")
+    "bd" '((lambda () (interactive) (kill-current-buffer) (evil-quit)) :wk "Kill and close")
+    "bq" '(evil-quit :wk "evil-quit")
+    "bK" '(+my/kill-other-buffers :wk "Kill other buffers")
+    "bs" '(basic-save-buffer :wk "Save buffer")
+    "bS" '(evil-write-all :wk "Save all buffer")
+
+    "f" '(:wk "Files")
+    "ff" '(find-file :wk "Find file")
+    "fr" '(+my/open-recent :wk "Recent file")
+    "fs" '(+my/save-file :wk "Save file")
+    "fd" '(dired-jump :wk "Current directory")
+    "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :wk "init.el")
+    "fo" '((lambda() (interactive) (find-file (format "%s/%s.org" +self/org-base-dir (completing-read "Open org files:" (mapcar (lambda (f) (file-name-base f)) +org-files))))) :wk "Org files")
+    "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
+    "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
+
+    "z" '(consult-dir :wk "z.lua")
+
+    "fE" '(:wk "File Encoding")
+    "fEr" '(revert-buffer-with-coding-system :wk "Revert encoding")
+    "fEs" '(set-buffer-file-coding-system :wk "Set encoding")
+
+    "j" '(:wk "Jump")
+    "jj" '(evil-avy-goto-char :wk "Jump to character")
+    "jl" '(evil-avy-goto-line :wk "Jump to line")
+    "je" '(+vertico/jump-list :wk "Jump-list")
+
+    "s" '(:wk "Search")
+    "sb" '(+my/consult-line-symbol-at-point :wk "Search buffer")
+    "si" '(+my/imenu :wk "Jump to symbol")
+    "sp" '(consult-ripgrep :wk "Search project")
+    "sT" '(load-theme :wk "Load theme")
+    "sh" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
+    "sd" '(devdocs-lookup-at-point :wk "Search devdocs")
+    "sD" '(devdocs-search-at-point :wk "Search devdocs")
+    "sg" '(+my/google-it :wk "Google")
+
+    "c" '(:wk "Code")
+    "cf" '(format-all-buffer :wk "Format buffer")
+    "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
+    "cm" '(symbol-overlay-put :wk "Mark")
+
+    "e" '(:wk "Error")
+    "es" '(flymake-start :wk "Check current buffer")
+    "el" '(consult-flymake :wk "List errors")
+    "eP" '(flymake-show-project-diagnostics :wk "Show project errors")
+    "eb" '(flymake-show-buffer-diagnostics :wk "Show buffer errors")
+    "en" '(flymake-goto-next-error :wk "Next error")
+    "ep" '(flymake-goto-prev-error :wk "Previous error")
+
+
+    "g" '(:wk "Git")
+    "gs" '(magit-status :wk "status")
+    "ga" '(magit-stage-file :wk "stage file")
+    "gp" '(magit-push :wk "push")
+    "gc" '(magit-commit :wk "commit")
+    ;; "gu" '((lambda() (interactive)(progn (call-interactively 'magit-stage-file) (call-interactively 'magit-commit))) :wk "stage and commit")
+    "gu" '(aborn/simple-git-commit-push :wk "stage and commit")
+    "gb" '(magit-branch-checkout :wk "checkout")
+    "gB" '(magit-blame :wk "blame")
+    "gf" '(magit-fetch :wk "fetch")
+    "gF" '(magit-pull :wk "pull")
+    "gl" '(magit-log :wk "log")
+    "go" '(magit-open-repo :wk "open repo")
+    "gm" '(my-conventional-commit-picker :wk "git message")
+
+    "w" '(:wk "Window")
+    ;; :sp
+    "-" '(evil-window-split :wk "Split window vertically")
+    ;; :vsp
+    "\\" '(evil-window-vsplit :wk "Split window horizontally")
+    "wj" '(evil-window-down :wk "Focus window down")
+    "wk" '(evil-window-up :wk "Focus window up")
+    "wh" '(evil-window-left :wk "Focus window left")
+    "wl" '(evil-window-right :wk "Focus window right")
+    "w=" '(balance-windows :wk "balance windows")
+    "wu" '(winner-undo :wk "Undo window")
+    "wr" '(winner-redo :wk "Redo window")
+    "ws" '(ace-window :wk "Select window")
+    "wo" '(delete-other-windows :wk "Maximize window")
+    "wR" '(desktop-read :wk "Restore session")
+    "wS" '(desktop-save-in-desktop-dir :wk "Save session")
+
+    "t" '(:wk "Toggle")
+    "tl" '(toggle-truncate-lines :wk "Line wrap")
+    "td" '(toggle-debug-on-error :wk "Debug on error")
+    "te" '(popterm-window-toggle :wk "popterm bottom")
+    "tf" '(+popterm-toggle-dwim :wk "popterm float")
+    "tt" '(dirvish :wk "Dirvish")
+    "ts" '(dirvish-side :wk "Dirvish side")
+    "tc" '(olivetti-mode :wk "Center")
+    "ti" '(toggle-indent :wk "Indent")
+    "tp" '(+my/profiler-toggle :wk "Profiler")
+    "tb" '(blamer-mode :wk "Blame")
+
+    "o" '(:wk "Open")
+    "om" '((lambda () (interactive) (mu4e)) :wk "Mail")
+    "oy" '(gt-translate :wk "Translate at point")
+    "oY" '(gt-do-translate-prompt :wk "Translate")
+    ;; "oY" '((lambda () (interactive) (maple-translate+ (read-from-minibuffer "Translate word: "))):wk "Translate")
+    "oe" '(ghostel :wk "Shell")
+    "ot" '(org-todo-list :wk "Org Todo")
+    "ox" '(org-agenda :wk "Org agenda")
+    "ob" '(ebib :wk "Ebib")
+    "oc" '(cfw:open-org-calendar :wk "Calendar")
+    "od" '(consult-mark-done :wk "Mark done")
+    "oi" '(consult-clock-in :wk "Clock in")
+    "oo" '((lambda () (interactive)(org-clock-out) (org-save-all-org-buffers)) :wk "Clock out")
+    "op" '(org-pomodoro :wk "Pomodoro")
+    "ou" '(browse-url :wk "Url")
+    "og" '(gptel :wk "GPT")
+
+    "a" '(:wk "AI")
+    "aa" '(gptel-add :wk "Add")
+    "as" '(gptel-send :wk "Send")
+    "ar" '(gptel-rewrite :wk "Rewrite")
+    "ao" '(opencode :wk "OpenCode")
+    "ag" '(agent-shell :wk "Agent Shell")
+
+    "p" '(:wk "Project")
+    "pp" '(project-switch-project :wk "Switch project")
+    "pf" '(project-find-file :wk "Find file in project")
+    "pt" '(consult-todo-project :wk "List project tasks")
+    "pk" '(project-kill-buffers :wk "Kill project buffers")
+
+    "q" '(:wk "Quit")
+    ;; "qq" '(kill-emacs :wk "Quit")
+    "qq" '(save-buffers-kill-terminal :wk "Quit")
+    "qr" '(+my/desktop-restart :wk "Restart")
+
+    "u" '((lambda() (interactive)
+            (call-process-shell-command "rc" nil 0)
+            ;; (call-process-shell-command "rs" nil 0)
+            ;; (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
+            ) :wk "Sync code")
+    )
+  )
+
+;; Built-in package configs below use these definers immediately in a daemon.
+(when (daemonp) (elpaca-wait))
 
 ;;;; Evil related packages
 
@@ -1751,27 +2002,8 @@ It handles the case of remote files as well."
 
 (use-package dirvish  ;; `(' for details.
   :ensure (dirvish :type git :host github :repo "alexluigit/dirvish")
-  :hook ((+my/first-input . dirvish-override-dired-mode)
-         (evil-collection-setup . (lambda (&rest a)
-                                    (evil-define-key '(normal) dired-mode-map
-                                      (kbd "C-c f") 'dirvish-fd
-                                      "i" 'wdired-change-to-wdired-mode
-                                      "q" 'dirvish-quit
-                                      "." 'dired-omit-mode
-                                      "c" 'dirvish-yank-menu
-                                      "?" 'dirvish-dispatch
-                                      "s" 'dirvish-narrow ;;use `revert-buffer' (gr) to restore
-                                      (kbd "TAB") 'dirvish-subtree-toggle
-                                      (kbd "M-m") 'dirvish-setup-menu
-                                      (kbd "M-t") 'dirvish-layout-toggle
-                                      "*"   'dirvish-mark-menu
-                                      "f"   'dirvish-file-info-menu
-                                      [remap dired-sort-toggle-or-edit] 'dirvish-quicksort
-                                      [remap dired-do-redisplay] 'dirvish-ls-switches-menu
-                                      [remap dired-summary] 'dirvish-dispatch
-                                      ;; [remap dired-do-copy] 'dirvish-yank-menu
-                                      [remap mode-line-other-buffer] 'dirvish-history-last))))
   :after dired
+  :demand t
 
   :custom
   (dirvish-mode-line-format ; it's ok to place string inside
@@ -1781,6 +2013,27 @@ It handles the case of remote files as well."
   (dirvish-side-follow-buffer-file t)
   ;; (dirvish-enabled-features-on-remote '(extras vc))
   :config
+  ;; Dired may load after the one-shot first-input hook has already run.
+  (dirvish-override-dired-mode 1)
+  ;; Keep Dirvish menus separate from Evil Collection's Dired prefix maps.
+  (with-eval-after-load 'evil
+    (evil-define-key 'normal dirvish-mode-map
+      (kbd "C-c f") 'dirvish-fd
+      "i" 'wdired-change-to-wdired-mode
+      "q" 'dirvish-quit
+      "." 'dired-omit-mode
+      "c" 'dirvish-yank-menu
+      "?" 'dirvish-dispatch
+      "s" 'dirvish-narrow ;; use `revert-buffer' (gr) to restore
+      (kbd "TAB") 'dirvish-subtree-toggle
+      (kbd "M-m") 'dirvish-setup-menu
+      (kbd "M-t") 'dirvish-layout-toggle
+      "*" 'dirvish-mark-menu
+      "f" 'dirvish-file-info-menu
+      [remap dired-sort-toggle-or-edit] 'dirvish-quicksort
+      [remap dired-do-redisplay] 'dirvish-ls-switches-menu
+      [remap dired-summary] 'dirvish-dispatch
+      [remap mode-line-other-buffer] 'dirvish-history-last))
   (setq dirvish-open-with-programs
         '((("doc" "docx" "odt" "ods" "xls" "rtf" "xlsx" "odp" "ppt" "pptx" "pdf") . ("open" "%f"))))
   (setq dired-recursive-deletes 'always)
@@ -2718,9 +2971,12 @@ focus-guard which reclaims focus back to the posframe."
         (set-frame-parameter frame '+my/desktop-initialized t)))))
 
 (defun +my/desktop-setup-modeline ()
-  "Load the modeline on a graphical frame, after its fonts and theme are ready."
-  ;; Its default height uses `window-font-height' when the package is loaded.
+  "Enable the modeline on a graphical frame after fonts and theme are ready."
   (unless (bound-and-true-p doom-modeline-mode)
+    ;; Eager daemon loading calculates the initial height on a terminal frame.
+    (when (and (daemonp) (boundp 'doom-modeline-height))
+      (setq doom-modeline-height
+            (max doom-modeline-height (+ (window-font-height nil 'mode-line) 4))))
     (doom-modeline-mode 1))
   (when (fboundp 'doom-modeline--reset-font-height-cache)
     (doom-modeline--reset-font-height-cache))
@@ -3547,7 +3803,7 @@ Use Evil's delete registers and support repeating with `.'."
 ;;;; LSP
 (use-package eglot
   :ensure nil
-  :commands (eglot-booster)
+  :commands (eglot eglot-ensure)
   :hook ((eglot-managed-mode . (lambda ()
                                  (leader-def :keymaps 'override
                                    "ca" '(eglot-code-actions :wk "Code Actions")
@@ -3580,7 +3836,6 @@ Use Evil's delete registers and support repeating with `.'."
   (setq eglot-ignored-server-capabilities '(:documentHighlightProvider :foldingRangeProvider :colorProvider :codeLensProvider :documentOnTypeFormattingProvider :executeCommandProvider))
   (add-to-list 'eglot-server-programs '((latex-mode Tex-latex-mode texmode context-mode texinfo-mode bibtex-mode) "texlab"))
 
-  (eglot-booster-mode +1)
   )
 
 (use-package consult-eglot
@@ -3592,7 +3847,7 @@ Use Evil's delete registers and support repeating with `.'."
   :commands (eglot-booster-mode)
   :after eglot
   :config
-  (eglot-booster-mode))
+  (eglot-booster-mode 1))
 
 ;;;; Utils
 (use-package devdocs
@@ -5834,225 +6089,17 @@ kill the current timer, this may be a break or a running pomodoro."
   (which-key-separator " ")
   (which-key-prefix-prefix "+"))
 
-;; Leader def
-(use-package general
-  :after evil
-  :demand t
-  :config
-  (general-create-definer tab-def
-    :states '(normal visual emacs motion)
-    :keymaps 'override
-    :prefix "C-s"
-    )
-
-  (tab-def
-    "" nil
-    "c" '(tab-new :wk "New")
-    "r" '(tab-bar-rename-tab :wk "Rename")
-    "d" '(tab-bar-close-tab :wk "Close")
-    "s" '(tab-bar-select-tab-by-name :wk "Select")
-    "1" '((lambda () (interactive) (tab-bar-select-tab 1)) :wk "Select 1")
-    "2" '((lambda () (interactive) (tab-bar-select-tab 2)) :wk "Select 2")
-    "3" '((lambda () (interactive) (tab-bar-select-tab 3)) :wk "Select 3")
-    "4" '((lambda () (interactive) (tab-bar-select-tab 4)) :wk "Select 4")
-    "5" '((lambda () (interactive) (tab-bar-select-tab 5)) :wk "Select 5")
-    )
-
-  (general-create-definer leader-def
-    :states '(normal visual emacs motion)
-    :keymaps 'override
-    :prefix "SPC"
-    )
-  (general-create-definer local-leader-def
-    :states '(normal visual emacs motion)
-    :keymaps 'override
-    :prefix ",")
-
-  (local-leader-def
-    "w" 'evil-avy-goto-word-1
-    "/" 'evilnc-comment-or-uncomment-lines)
-
-  (general-evil-define-key 'normal
-      '(python-mode-map python-ts-mode-map LaTeX-mode-map emacs-lisp-mode-map yaml-ts-mode-map)
-    "<tab>" 'my/smart-fold-toggle)
-
-  ;; evil mode
-  (general-def 'normal
-    "/" '+my/consult-line
-    "?" '+my/consult-line-symbol-at-point
-    "gd" 'xref-find-definitions
-    "gr" 'xref-find-references
-    "gD" 'xref-find-definitions-other-window)
-
-  ;; Navigation
-  (general-def 'insert
-    "C-a" 'beginning-of-line
-    "C-e" 'end-of-line)
-
-  ;; (general-def 'insert
-  ;;   "C-o" 'evil-normal-state)
-
-  (general-def "<escape>" 'keyboard-quit)
-  (general-def "C-<tab>" 'tab-next)
-
-  (leader-def
-    "" nil
-    ;; "<SPC>" '(execute-extended-command :wk "M-x")
-    "<SPC>" '(switch-to-buffer :wk "Switch buffer") ;; maybe `switch-to-buffer' is used more frequently
-    "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
-    "?" '(+consult-ripgrep-at-point :wk "Search symbol here")
-    "." '(find-file :wk "Find file")
-    ":" '(pp-eval-expression :wk "Evil expression")
-    ";" '(+my/open-org-agenda :wk "Agenda")
-    "x" '(org-capture :wk "Org capture")
-    "r" '(er/expand-region :wk "expand-region")
-    "k" '(+my/replace :wk "Replace")
-    "y" '(consult-yank-from-kill-ring :wk "Kill ring")
-
-    "b" '(:wk "Buffer")
-    "b[" '(previous-buffer :wk "Previous buffer")
-    "b]" '(next-buffer :wk "Next buffer")
-    "bb" '(switch-to-buffer :wk "Switch buffer")
-    "bk" '(kill-current-buffer :wk "Kill buffer")
-    "bd" '((lambda () (interactive) (kill-current-buffer) (evil-quit)) :wk "Kill and close")
-    "bq" '(evil-quit :wk "evil-quit")
-    "bK" '(+my/kill-other-buffers :wk "Kill other buffers")
-    "bs" '(basic-save-buffer :wk "Save buffer")
-    "bS" '(evil-write-all :wk "Save all buffer")
-
-    "f" '(:wk "Files")
-    "ff" '(find-file :wk "Find file")
-    "fr" '(+my/open-recent :wk "Recent file")
-    "fs" '(+my/save-file :wk "Save file")
-    "fd" '(dired-jump :wk "Current directory")
-    "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :wk "init.el")
-    "fo" '((lambda() (interactive) (find-file (format "%s/%s.org" +self/org-base-dir (completing-read "Open org files:" (mapcar (lambda (f) (file-name-base f)) +org-files))))) :wk "Org files")
-    "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
-    "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
-
-    "z" '(consult-dir :wk "z.lua")
-
-    "fE" '(:wk "File Encoding")
-    "fEr" '(revert-buffer-with-coding-system :wk "Revert encoding")
-    "fEs" '(set-buffer-file-coding-system :wk "Set encoding")
-
-    "j" '(:wk "Jump")
-    "jj" '(evil-avy-goto-char :wk "Jump to character")
-    "jl" '(evil-avy-goto-line :wk "Jump to line")
-    "je" '(+vertico/jump-list :wk "Jump-list")
-
-    "s" '(:wk "Search")
-    "sb" '(+my/consult-line-symbol-at-point :wk "Search buffer")
-    "si" '(+my/imenu :wk "Jump to symbol")
-    "sp" '(consult-ripgrep :wk "Search project")
-    "sT" '(load-theme :wk "Load theme")
-    "sh" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
-    "sd" '(devdocs-lookup-at-point :wk "Search devdocs")
-    "sD" '(devdocs-search-at-point :wk "Search devdocs")
-    "sg" '(+my/google-it :wk "Google")
-
-    "c" '(:wk "Code")
-    "cf" '(format-all-buffer :wk "Format buffer")
-    "cw" '(delete-trailing-whitespace :wk "Delete trailing whitespace")
-    "cm" '(symbol-overlay-put :wk "Mark")
-
-    "e" '(:wk "Error")
-    "es" '(flymake-start :wk "Check current buffer")
-    "el" '(consult-flymake :wk "List errors")
-    "eP" '(flymake-show-project-diagnostics :wk "Show project errors")
-    "eb" '(flymake-show-buffer-diagnostics :wk "Show buffer errors")
-    "en" '(flymake-goto-next-error :wk "Next error")
-    "ep" '(flymake-goto-prev-error :wk "Previous error")
-
-
-    "g" '(:wk "Git")
-    "gs" '(magit-status :wk "status")
-    "ga" '(magit-stage-file :wk "stage file")
-    "gp" '(magit-push :wk "push")
-    "gc" '(magit-commit :wk "commit")
-    ;; "gu" '((lambda() (interactive)(progn (call-interactively 'magit-stage-file) (call-interactively 'magit-commit))) :wk "stage and commit")
-    "gu" '(aborn/simple-git-commit-push :wk "stage and commit")
-    "gb" '(magit-branch-checkout :wk "checkout")
-    "gB" '(magit-blame :wk "blame")
-    "gf" '(magit-fetch :wk "fetch")
-    "gF" '(magit-pull :wk "pull")
-    "gl" '(magit-log :wk "log")
-    "go" '(magit-open-repo :wk "open repo")
-    "gm" '(my-conventional-commit-picker :wk "git message")
-
-    "w" '(:wk "Window")
-    ;; :sp
-    "-" '(evil-window-split :wk "Split window vertically")
-    ;; :vsp
-    "\\" '(evil-window-vsplit :wk "Split window horizontally")
-    "wj" '(evil-window-down :wk "Focus window down")
-    "wk" '(evil-window-up :wk "Focus window up")
-    "wh" '(evil-window-left :wk "Focus window left")
-    "wl" '(evil-window-right :wk "Focus window right")
-    "w=" '(balance-windows :wk "balance windows")
-    "wu" '(winner-undo :wk "Undo window")
-    "wr" '(winner-redo :wk "Redo window")
-    "ws" '(ace-window :wk "Select window")
-    "wo" '(delete-other-windows :wk "Maximize window")
-    "wR" '(desktop-read :wk "Restore session")
-    "wS" '(desktop-save-in-desktop-dir :wk "Save session")
-
-    "t" '(:wk "Toggle")
-    "tl" '(toggle-truncate-lines :wk "Line wrap")
-    "td" '(toggle-debug-on-error :wk "Debug on error")
-    "te" '(popterm-window-toggle :wk "popterm bottom")
-    "tf" '(+popterm-toggle-dwim :wk "popterm float")
-    "tt" '(dirvish :wk "Dirvish")
-    "ts" '(dirvish-side :wk "Dirvish side")
-    "tc" '(olivetti-mode :wk "Center")
-    "ti" '(toggle-indent :wk "Indent")
-    "tp" '(+my/profiler-toggle :wk "Profiler")
-    "tb" '(blamer-mode :wk "Blame")
-
-    "o" '(:wk "Open")
-    "om" '((lambda () (interactive) (mu4e)) :wk "Mail")
-    "oy" '(gt-translate :wk "Translate at point")
-    "oY" '(gt-do-translate-prompt :wk "Translate")
-    ;; "oY" '((lambda () (interactive) (maple-translate+ (read-from-minibuffer "Translate word: "))):wk "Translate")
-    "oe" '(ghostel :wk "Shell")
-    "ot" '(org-todo-list :wk "Org Todo")
-    "ox" '(org-agenda :wk "Org agenda")
-    "ob" '(ebib :wk "Ebib")
-    "oc" '(cfw:open-org-calendar :wk "Calendar")
-    "od" '(consult-mark-done :wk "Mark done")
-    "oi" '(consult-clock-in :wk "Clock in")
-    "oo" '((lambda () (interactive)(org-clock-out) (org-save-all-org-buffers)) :wk "Clock out")
-    "op" '(org-pomodoro :wk "Pomodoro")
-    "ou" '(browse-url :wk "Url")
-    "og" '(gptel :wk "GPT")
-
-    "a" '(:wk "AI")
-    "aa" '(gptel-add :wk "Add")
-    "as" '(gptel-send :wk "Send")
-    "ar" '(gptel-rewrite :wk "Rewrite")
-    "ao" '(opencode :wk "OpenCode")
-    "ag" '(agent-shell :wk "Agent Shell")
-
-    "p" '(:wk "Project")
-    "pp" '(project-switch-project :wk "Switch project")
-    "pf" '(project-find-file :wk "Find file in project")
-    "pt" '(consult-todo-project :wk "List project tasks")
-    "pk" '(project-kill-buffers :wk "Kill project buffers")
-
-    "q" '(:wk "Quit")
-    ;; "qq" '(kill-emacs :wk "Quit")
-    "qq" '(save-buffers-kill-terminal :wk "Quit")
-    "qr" '(+my/desktop-restart :wk "Restart")
-
-    "u" '((lambda() (interactive)
-            (call-process-shell-command "rc" nil 0)
-            ;; (call-process-shell-command "rs" nil 0)
-            ;; (call-process-shell-command (concat "rs " (buffer-file-name)) nil 0)
-            ) :wk "Sync code")
-    )
-  )
 
 ;;; End
+
+(defun +my/desktop-finalize-rime ()
+  "Release Rime before process teardown destroys its native dependencies."
+  (when (and (bound-and-true-p rime--lib-loaded)
+             (fboundp 'rime-lib-finalize))
+    (rime-lib-finalize)
+    (setq rime--lib-loaded nil)))
+
+(add-hook 'kill-emacs-hook #'+my/desktop-finalize-rime t)
 
 (defun +my/desktop-preload-rime ()
   "Warm Rime's native engine in a daemon without activating an input method."
@@ -6079,7 +6126,10 @@ kill the current timer, this may be a break or a running pomodoro."
   (message "Start in %s s with %d gc"
            (float-time (time-subtract (current-time) +my/start-time)) gcs-done))
 
-(add-hook 'elpaca-after-init-hook #'+my/desktop-startup-finished)
+;; Daemons enable the former first-input modes as soon as packages are ready.
+(when (daemonp)
+  (add-hook 'elpaca-after-init-hook #'+my/first-input-hook-fun t))
+(add-hook 'elpaca-after-init-hook #'+my/desktop-startup-finished t)
 
 (provide 'init)
 
