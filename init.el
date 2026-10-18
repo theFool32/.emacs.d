@@ -5030,8 +5030,6 @@ date."
                         (propertize "过去一年" 'face '(:inherit font-lock-keyword-face :weight bold))
                         (format-time-string "%F" year-start) (format-time-string "%F" now)
                         (+my/org-plan-review-summary records))
-                "仅统计已选 Goals：FOCUS/PLAN；按计划周期归月，读取当前记录状态。\n"
-                "总览按任务去重；展开后分列月/周/日进度，周目标按 ISO 周归月。\n"
                 "TAB / RET 展开月份或状态组；任务上 RET 跳转；r 刷新。\n\n")
         (while (not (string-lessp (format-time-string "%F" cursor) first-month))
           (let ((month (format-time-string "%Y-%m" cursor)))
