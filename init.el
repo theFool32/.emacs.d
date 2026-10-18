@@ -4687,19 +4687,19 @@ Without TIME, use the current date each time the agenda is refreshed."
 
 (defun +my/org-plan-current-files ()
   "Use daily agenda files and their archives for current plans.
-Read the legacy done.org file only when viewing a historical plan."
-  (let ((legacy-file (file-truename
-                      (expand-file-name
-                       "done.org"
-                       (file-name-directory (expand-file-name +org-capture-file-gtd))))))
+Read the done.org history file only when viewing a past period."
+  (let ((history-file (file-truename
+                       (expand-file-name
+                        "done.org"
+                        (file-name-directory (expand-file-name +org-capture-file-gtd))))))
     (cl-remove-if
      (lambda (file)
        (or (not (file-exists-p file))
-           (equal (file-truename file) legacy-file)))
+           (equal (file-truename file) history-file)))
      (delete-dups (org-agenda-files t t)))))
 
 (defun +my/org-plan-history-files ()
-  "Include agenda files, their archives, and the existing done.org history."
+  "Include agenda files, their archives, and the done.org history file."
   (cl-remove-if-not
    #'file-exists-p
    (delete-dups
@@ -4731,7 +4731,7 @@ Read the legacy done.org file only when viewing a historical plan."
                   (file-truename +org-capture-file-gtd)))))
 
 (defun +my/org-plan-entries (period &optional time)
-  "Read PERIOD's tasks, including legacy history only when TIME is supplied."
+  "Read PERIOD's tasks, including history only when TIME is supplied."
   (let ((org-agenda-files (if time (+my/org-plan-history-files)
                             (+my/org-plan-current-files)))
         (org-use-property-inheritance nil)
@@ -4822,7 +4822,7 @@ Read the legacy done.org file only when viewing a historical plan."
     (encode-time 0 0 0 (min day (calendar-last-day-of-month month year)) month year)))
 
 (defun +my/org-plan-review-date (period value)
-  "Read a plan PERIOD's VALUE; legacy weeks may use their starting date."
+  "Read a plan PERIOD's VALUE, an ISO week or an ISO date string."
   (condition-case nil
       (if (and (eq period 'week)
                (string-match "\\`\\([0-9]\\{4\\}\\)-W\\([0-9]\\{2\\}\\)\\'" value))
@@ -4843,41 +4843,10 @@ Read the legacy done.org file only when viewing a historical plan."
                                 (if (eq period 'month) "%Y-%m" "%F") time)) time))))
     (error nil)))
 
-(defun +my/org-plan-review-legacy-selection ()
-  "Read this goal's period from its old Goals parent and date-tree context.
-Only direct goal items or explicitly ACT-tagged items qualify; subtasks and
-ordinary Archived items do not become goals by inheritance."
-  (let* ((level (org-current-level))
-         (tags (org-get-tags nil t))
-         (period (cond ((member "ACT_TODAY" tags) 'day)
-                       ((member "ACT_WEEK" tags) 'week)
-                       ((member "ACT_MONTH" tags) 'month)))
-         value)
-    (save-excursion
-      (when (org-up-heading-safe)
-        (when (= (org-current-level) (1- level))
-          (setq period
-                (or period
-                    (cdr (assoc (org-get-heading t t t t)
-                                '(("Daily Goals" . day) ("Weekly Goals" . week)
-                                  ("Weakly Goals" . week) ("Weeakly Goals" . week)
-                                  ("Monthly Goals" . month)))))))
-        (when period
-          (while (and (not value)
-                      (let* ((heading (org-get-heading t t t t))
-                             (regexp (pcase period
-                                       ('day "\\`\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\(?: \\|$\\)")
-                                       ('week "\\`W[0-9]+ (\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)")
-                                       ('month "\\`\\([0-9]\\{4\\}-[0-9]\\{2\\}\\)\\(?: \\|$\\)"))))
-                        (when (string-match regexp heading)
-                          (setq value (match-string 1 heading)))
-                        (org-up-heading-safe)))))))
-    (when value (cons period value))))
-
 (defun +my/org-plan-review-records (start end)
   "Read Goals selected for periods overlapping START..END, without writing.
-Merge FOCUS/PLAN properties with dated legacy goal items.  A shared ID or
-the same source entry counts once; ordinary closed tasks are excluded."
+A shared ID or the same source entry counts once; ordinary closed tasks are
+excluded."
   (let ((org-use-property-inheritance nil)
         (seen (make-hash-table :test #'equal))
         (first-month (format-time-string "%Y-%m" start))
@@ -4885,12 +4854,11 @@ the same source entry counts once; ordinary closed tasks are excluded."
     (org-map-entries
      (lambda ()
        (when-let* ((state (org-get-todo-state)))
-         (let ((legacy (+my/org-plan-review-legacy-selection))
-               selections plans)
+         (let (selections plans)
            (dolist (period '(day week month))
              (dolist (value (+my/org-plan-selections period))
                (push (cons period value) selections)))
-           (dolist (selection (delete-dups (append selections (when legacy (list legacy)))))
+           (dolist (selection (delete-dups selections))
              (let* ((period (car selection))
                     (value (cdr selection))
                     (time (+my/org-plan-review-date period value)))
@@ -4906,14 +4874,10 @@ the same source entry counts once; ordinary closed tasks are excluded."
                      (push (list :period period :value value :time time :month month) plans))))))
            (when plans
              (let* ((key (or (org-entry-get nil "ID") (list (current-buffer) (point))))
-                    (record (gethash key seen))
-                    (origins (append (when selections '("FOCUS/PLAN"))
-                                     (when legacy '("旧 Goals")))))
+                    (record (gethash key seen)))
                (if record
-                   (progn
-                     (plist-put record :plans (delete-dups (append (plist-get record :plans) plans)))
-                     (plist-put record :origins (delete-dups (append (plist-get record :origins) origins))))
-                 (setq record (list :state state :plans plans :origins origins
+                   (plist-put record :plans (delete-dups (append (plist-get record :plans) plans)))
+                 (setq record (list :state state :plans plans
                                     :title (org-link-display-format (org-get-heading t t t t))
                                     :marker (point-marker)))
                  (puthash key record seen)
@@ -4983,8 +4947,7 @@ the same source entry counts once; ordinary closed tasks are excluded."
                                                   '(month week day)) "/"))
                               'face 'shadow)
                              (propertize (plist-get record :title) 'face (cadr group))
-                             (propertize (format "  · %s\n" (mapconcat #'identity (plist-get record :origins) "/"))
-                                         'face 'shadow))
+                             "\n")
                      'org-marker marker 'org-hd-marker marker
                      'todo-state (plist-get record :state) 'type "tags"
                      'mouse-face 'highlight 'help-echo "RET 跳转原任务"))))))))
@@ -5008,9 +4971,10 @@ the same source entry counts once; ordinary closed tasks are excluded."
     (+my/org-plan-review-toggle)))
 
 (defun +my/org-plan-history (&optional now)
-  "Review Goals by their planned periods, supporting legacy and FOCUS/PLAN.
-Read legacy archives only on demand.  NOW is the reference date for tests
-or programmatic use; interactive use never prompts for a period or date."
+  "Review Goals by their planned periods.
+Read the done.org history archive only on demand.  NOW is the reference date
+for tests or programmatic use; interactive use never prompts for a period or
+date."
   (interactive)
   (require 'org-agenda)
   (require 'outline)
@@ -5066,8 +5030,8 @@ or programmatic use; interactive use never prompts for a period or date."
                         (propertize "过去一年" 'face '(:inherit font-lock-keyword-face :weight bold))
                         (format-time-string "%F" year-start) (format-time-string "%F" now)
                         (+my/org-plan-review-summary records))
-                "仅统计已选 Goals：旧日期树 + FOCUS/PLAN；按计划周期归月，读取当前记录状态。\n"
-                "总览按任务去重；展开后分列月/周/日进度，周目标按周起始日归月。\n"
+                "仅统计已选 Goals：FOCUS/PLAN；按计划周期归月，读取当前记录状态。\n"
+                "总览按任务去重；展开后分列月/周/日进度，周目标按 ISO 周归月。\n"
                 "TAB / RET 展开月份或状态组；任务上 RET 跳转；r 刷新。\n\n")
         (while (not (string-lessp (format-time-string "%F" cursor) first-month))
           (let ((month (format-time-string "%Y-%m" cursor)))

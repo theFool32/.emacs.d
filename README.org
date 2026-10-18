@@ -130,8 +130,8 @@ to the original task. Changes made in the agenda update its state and refresh
 progress counts.
 Only =DONE= counts as completed; =UNDONE= and =CANCELED= are shown separately.
 Current plans and their progress counts use the daily agenda files and their
-archives. The legacy =done.org= file is read only when explicitly viewing a
-historical plan, so opening the startup agenda does not scan old records.
+archives. The =done.org= history file is read only when explicitly viewing a
+past period, so opening the startup agenda does not scan old records.
 
 In an Org task or agenda, use these local-leader shortcuts:
 
@@ -167,19 +167,17 @@ Groups sort by the latest selected plan date, newest first, then by title.
 Each task is listed once per month, and
 =r= refreshes the review. No additional package or saved report is needed.
 
-Only Goals qualify: modern tasks with =FOCUS_DAY/WEEK/MONTH= or retained
-=PLAN_DAYS/WEEKS/MONTHS= selections, and legacy goal items directly under
-=Daily/Weekly/Monthly Goals= in dated trees. Legacy weekly spelling variants
-and explicitly =ACT_*= tagged items with date-tree context are supported.
-Ordinary archived tasks, inherited subtasks, and a lone =plan= tag do not
-qualify. =CLOSED= is neither required nor used to choose a Goal's month.
+Only Goals qualify: tasks with =FOCUS_DAY/WEEK/MONTH= or retained
+=PLAN_DAYS/WEEKS/MONTHS= selections. Ordinary archived tasks, inherited
+subtasks, and a lone =plan= tag do not qualify. =CLOSED= is neither required
+nor used to choose a Goal's month.
 
-Plans determine membership: daily dates, month identifiers, and week starts
-(ISO Monday for modern plans, recorded start dates for legacy weeks).
-A late completion remains in its planned month. Same-ID copies are merged,
-and day/week/month selections count once in the combined monthly total;
-their separate progress can overlap. The yearly total counts unique Goals,
-so it need not equal the sum of monthly totals for multi-month Goals.
+Plans determine membership: daily dates, month identifiers, and ISO week
+starts (Monday). A late completion remains in its planned month. Same-ID
+copies are merged, and day/week/month selections count once in the combined
+monthly total; their separate progress can overlap. The yearly total counts
+unique Goals, so it need not equal the sum of monthly totals for multi-month
+Goals.
 
 Reviewing reads archives and =done.org= on demand and does not modify source
 files. Refreshing recalculates the ranges and Goal totals.
