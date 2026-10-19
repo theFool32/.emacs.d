@@ -869,7 +869,6 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
     "as" '(gptel-send :wk "Send")
     "ar" '(gptel-rewrite :wk "Rewrite")
     "ao" '(opencode :wk "OpenCode")
-    "ag" '(agent-shell :wk "Agent Shell")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
@@ -2888,22 +2887,6 @@ focus-guard which reclaims focus back to the posframe."
 (use-package gptel
   :ensure t
   :commands (gptel gptel-send))
-
-(use-package agent-shell
-  :hook (agent-shell-mode . (lambda () (add-to-list 'completion-at-point-functions #'cape-dabbrev)))
-  :commands (agent-shell agent-shell-toggle)
-  :bind (:map agent-shell-mode-map
-              ("C-c m" . agent-shell-help-menu))
-  :custom
-  (agent-shell-session-strategy 'prompt)
-  (agent-shell-file-completion-enabled t)
-  (agent-shell-display-action '((display-buffer-in-side-window)
-                                (side . right)
-                                (slot . 0)
-                                (window-width . 0.38)
-                                (dedicated . t)
-                                (window-parameters . ((no-delete-other-windows . t)))))
-  )
 
 ;;; UI
 ;;;; UI-config
