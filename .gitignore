@@ -73,3 +73,5 @@ elpaca
 .aider*
 .agent-shell
 AGENTS.md
+*.eld
+agent/

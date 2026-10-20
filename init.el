@@ -5214,7 +5214,7 @@ otherwise add them all.  Task states and scheduling stay independent."
   (add-hook 'org-capture-mode-hook #'evil-insert-state)
 
   (custom-set-faces
-   '(org-agenda-done ((t (:strike-through nil))))
+   '(org-agenda-done ((t (:strike-through t :foreground "#857f8f"))))
    '(org-done ((t (:strike-through t :foreground "gray"))))
    '(org-headline-done ((t (:strike-through t :foreground "gray")))))
 
