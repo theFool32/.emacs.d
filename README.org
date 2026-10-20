@@ -101,6 +101,11 @@ frame. Avoid ='activate-front=: in Cocoa builds its implementation falls
 through to hiding Emacs, despite the function's docstring.
 =Cmd-Q= and =C-x C-c= close the client frame while the daemon keeps running.
 
+The daemon checks its local socket every 15 seconds. If temporary-directory
+cleanup removes the socket, it recreates the listener while retaining existing
+clients and buffers. To apply this recovery to an already running daemon,
+evaluate =(load "~/.emacs.d/macos/emacs-server-recovery.el")= once with =M-:=.
+
 Direct GUI startup and client frames use the same ef-owl theme, 14pt Latin
 font and CJK font scaled by 1.1. Font setup runs after GUI frame parameters
 are applied. Doom Modeline loads on the first graphical frame, after fonts
