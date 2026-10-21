@@ -5462,28 +5462,35 @@ otherwise add them all.  Task states and scheduling stay independent."
     )
 
   (require 'dash)
-  (defun todo-to-int (todo)
-    (cl-first (-non-nil
-               (mapcar (lambda (keywords)
-                         (let ((todo-seq
-                                (-map (lambda (x) (cl-first (split-string  x "(")))
-                                      (cl-rest keywords))))
-                           (cl-position-if (lambda (x) (string= x todo)) todo-seq)))
-                       org-todo-keywords))))
-
-
-  (defun my/org-sort-key ()
-    (let* ((todo-max (apply #'max (mapcar #'length org-todo-keywords)))
-           (todo (org-entry-get (point) "TODO"))
-           (todo-int (if todo (todo-to-int todo) todo-max))
-           (priority (org-entry-get (point) "PRIORITY"))
-           (priority-int (if priority (string-to-char priority) org-default-priority))
-           (timestamp (or (org-entry-get (point) "SCHEDULED") (org-entry-get (point) "DEADLINE") "<2100-12-31>")))
-      (format "%03d %03d %s" priority-int todo-int timestamp)))
 
   (defun my/org-sort-entries ()
     (interactive)
-    (org-sort-entries nil ?f #'my/org-sort-key))
+    (org-sort-entries
+     nil ?f
+     (lambda ()
+       (let* ((todo (org-entry-get (point) "TODO"))
+              (done-p (if (member todo org-done-keywords) 1 0))
+              (todo-int
+               (or (cl-loop for seq in org-todo-keywords
+                            thereis
+                            (cl-position
+                             todo
+                             (mapcar (lambda (x)
+                                       (car (split-string x "(")))
+                                     (cdr seq))
+                             :test #'equal))
+                   (apply #'max (mapcar #'length org-todo-keywords))))
+              (priority (org-entry-get (point) "PRIORITY"))
+              (priority-int (if priority
+                                (string-to-char priority)
+                              org-default-priority))
+              (timestamp (or (org-entry-get (point) "SCHEDULED")
+                             (org-entry-get (point) "DEADLINE")
+                             "<2100-12-31>")))
+         (format "%d %03d %03d %s"
+                 done-p priority-int todo-int timestamp)))))
+
+
 
 
   ;; functions
