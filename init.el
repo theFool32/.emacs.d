@@ -5490,6 +5490,31 @@ otherwise add them all.  Task states and scheduling stay independent."
          (format "%d %03d %03d %s"
                  done-p priority-int todo-int timestamp)))))
 
+    (defvar-local my/org-auto-sort nil)
+    (put 'my/org-auto-sort 'safe-local-variable #'booleanp)
+
+    (defvar-local my/org--visible-p nil)
+
+    (defun my/org-sort-on-appear (_frame)
+    (dolist (buf (buffer-list))
+        (with-current-buffer buf
+        (when my/org-auto-sort
+            (let* ((visible-p (and (get-buffer-window buf 'visible) t))
+                (appeared (and visible-p (not my/org--visible-p))))
+            (setq my/org--visible-p visible-p)
+            (when appeared
+                (save-excursion
+                (save-restriction
+                    (widen)
+                    (goto-char (point-min))
+                    (org-align-tags t)
+                    (my/org-sort-entries)
+                    (org-overview)))
+                (when (buffer-modified-p)
+                (save-buffer))))))))
+
+    (add-hook 'window-buffer-change-functions #'my/org-sort-on-appear)
+
 
 
 
