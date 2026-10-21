@@ -602,6 +602,9 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
   :defer 5
   :commands (server-running-p)
   :config
+  (when (eq system-type 'darwin)
+    (load (expand-file-name "macos/emacs-server-recovery.el" user-emacs-directory)
+          nil 'nomessage))
   ;; Daemon startup starts its own server after loading the init file.
   (unless (daemonp)
     (or (server-running-p) (server-start))))
