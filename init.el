@@ -1632,6 +1632,8 @@ TYPES is the mode-specific types configuration."
         ("S-TAB" . corfu-previous)
         ("C-p" . corfu-previous)
         ([?\r] . newline)
+        ("RET" . nil)
+        ("<return>" . nil)
         ([backtab] . corfu-previous))
   :config
   (advice-add #'keyboard-quit :before #'corfu-quit)
