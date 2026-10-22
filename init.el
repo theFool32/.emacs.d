@@ -5490,33 +5490,48 @@ otherwise add them all.  Task states and scheduling stay independent."
          (format "%d %03d %03d %s"
                  done-p priority-int todo-int timestamp)))))
 
-    (defvar-local my/org-auto-sort nil)
-    (put 'my/org-auto-sort 'safe-local-variable #'booleanp)
+  (defvar-local my/org-auto-sort nil)
+  (put 'my/org-auto-sort 'safe-local-variable #'booleanp)
 
-    (defvar-local my/org--visible-p nil)
+  (defvar-local my/org--was-visible nil)
+  (defvar-local my/org--pending-sort nil)
 
-    (defun my/org-sort-on-appear (_frame)
+  (defun my/org--sort-when-idle (buf)
+    (when (buffer-live-p buf)
+      (with-current-buffer buf
+        (setq my/org--pending-sort nil)
+        (when (and my/org-auto-sort
+                   (get-buffer-window buf 'visible)
+                   (not (cl-some
+                         (lambda (b)
+                           (with-current-buffer b
+                             (bound-and-true-p org-capture-mode)))
+                         (buffer-list))))
+          (save-excursion
+            (save-restriction
+              (widen)
+              (goto-char (point-min))
+              (org-align-tags t)
+              (my/org-sort-entries)
+              (org-overview)))
+          (when (buffer-modified-p)
+            (save-buffer))))))
+
+  (defun my/org--track-visibility (_frame)
     (dolist (buf (buffer-list))
-        (with-current-buffer buf
-        (when my/org-auto-sort
-            (let* ((visible-p (and (get-buffer-window buf 'visible) t))
-                (appeared (and visible-p (not my/org--visible-p))))
-            (setq my/org--visible-p visible-p)
-            (when appeared
-                (save-excursion
-                (save-restriction
-                    (widen)
-                    (goto-char (point-min))
-                    (org-align-tags t)
-                    (my/org-sort-entries)
-                    (org-overview)))
-                (when (buffer-modified-p)
-                (save-buffer))))))))
+      (with-current-buffer buf
+        (when (and my/org-auto-sort
+                   (not (buffer-base-buffer buf)))
+          (let ((visible (and (get-buffer-window buf 'visible) t)))
+            (when (and visible
+                       (not my/org--was-visible)
+                       (not my/org--pending-sort))
+              (setq my/org--pending-sort
+                    (run-with-idle-timer
+                     0 nil #'my/org--sort-when-idle buf)))
+            (setq my/org--was-visible visible))))))
 
-    (add-hook 'window-buffer-change-functions #'my/org-sort-on-appear)
-
-
-
+  (add-hook 'window-buffer-change-functions #'my/org--track-visibility)
 
   ;; functions
 ;;;###autoload
