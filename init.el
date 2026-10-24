@@ -3475,9 +3475,14 @@ Otherwise it builds `prettify-code-symbols-alist' according to
 ;; Pulse current line
 (use-package pulse
   :ensure nil
+  :custom
+  (pulse-delay 0.05)
+  (pulse-iterations 12)
   :custom-face
-  (pulse-highlight-start-face ((t (:inherit region))))
-  (pulse-highlight-face ((t (:inherit region))))
+  ;; A direct background is required: `pulse-reset-face' reads it with
+  ;; INHERIT nil, so `(:inherit region)' alone yields no visible pulse.
+  (pulse-highlight-start-face ((t (:background "darkcyan"))))
+  (pulse-highlight-face ((t (:background "darkcyan"))))
   :hook (((dumb-jump-after-jump
            imenu-after-jump) . my-recenter-and-pulse)
          ((bookmark-after-jump
