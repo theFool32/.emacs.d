@@ -3469,45 +3469,6 @@ Otherwise it builds `prettify-code-symbols-alist' according to
     (add-hook 'magit-pre-refresh-hook #'diff-hl-magit-pre-refresh)
     (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh)))
 
-;; Pulse current line
-(use-package pulse
-  :ensure nil
-  :custom
-  (pulse-delay 0.05)
-  (pulse-iterations 12)
-  :custom-face
-  ;; A direct background is required: `pulse-reset-face' reads it with
-  ;; INHERIT nil, so `(:inherit region)' alone yields no visible pulse.
-  (pulse-highlight-start-face ((t (:background "darkcyan"))))
-  (pulse-highlight-face ((t (:background "darkcyan"))))
-  :hook (((dumb-jump-after-jump
-           imenu-after-jump) . my-recenter-and-pulse)
-         ((bookmark-after-jump
-           magit-diff-visit-file
-           next-error) . my-recenter-and-pulse))
-  :init
-  (defun my-pulse-momentary (&rest _)
-    "Pulse the region or the current line."
-    (if (fboundp 'xref-pulse-momentarily)
-        (xref-pulse-momentarily)
-      (pulse-momentary-highlight-one-line (point))))
-
-  (defun my-recenter-and-pulse (&rest _)
-    "Recenter and pulse the region or the current line."
-    (recenter)
-    (my-pulse-momentary))
-
-  (dolist (cmd '(recenter-top-bottom
-                 other-window windmove-do-window-select
-                 ace-window aw--select-window
-                 symbol-overlay-basic-jump))
-    (advice-add cmd :after #'my-pulse-momentary))
-
-  (dolist (cmd '(pop-to-mark-command
-                 pop-global-mark
-                 goto-last-change))
-    (advice-add cmd :after #'my-recenter-and-pulse)))
-
 ;;; Program
 ;;;; Paren
 (use-package paren
