@@ -79,21 +79,9 @@
   (or (display-graphic-p) (daemonp))
   "Are we running on a GUI Emacs?")
 
-(defconst *sys/win32*
-  (eq system-type 'windows-nt)
-  "Are we running on a WinTel system?")
-
-(defconst *sys/linux*
-  (eq system-type 'gnu/linux)
-  "Are we running on a GNU/Linux system?")
-
 (defconst *sys/mac*
   (eq system-type 'darwin)
   "Are we running on a Mac system?")
-
-(defconst *rg*
-  (executable-find "rg")
-  "Do we have ripgrep?")
 
 (defconst *git*
   (executable-find "git")
@@ -4200,28 +4188,6 @@ re-align the table if necessary. (Necessary because org-mode has a
     (when (org-looking-at-p " ")
       (forward-char))))
 
-;;
-;; Hooks
-
-;;;###autoload
-(defun +org-realign-table-maybe-h ()
-  "Auto-align table under cursor."
-  (when (and (org-at-table-p) org-table-may-need-update)
-    (let ((pt (point))
-          (inhibit-message t))
-      ;; (org-table-recalculate)
-      (if org-table-may-need-update (org-table-align))
-      (goto-char pt))))
-
-;;
-;; Advice
-
-;;;###autoload
-(defun +org-realign-table-maybe-a (&rest _)
-  "Auto-align table under cursor and re-calculate formulas."
-  (when (eq major-mode 'org-mode)
-    (+org-realign-table-maybe-h)))
-
 ;;;###autoload
 (defun +org--refresh-inline-images-in-subtree ()
   "Refresh image previews in the current heading/tree."
@@ -4547,16 +4513,6 @@ If prefix ARG, copy instead of move."
          (lambda (_p _coll _pred _rm _ii _h default &rest _)
            default)))
     (org-refile)))
-
-;;;###autoload
-(defun +org/archive-done-tasks ()
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward
-            (concat "\\* " (regexp-opt org-done-keywords) " ") nil t)
-      (goto-char (line-beginning-position))
-      (org-archive-subtree))))
 
 (with-eval-after-load 'consult
   (defun +my/retrieve-todo-entries ()
