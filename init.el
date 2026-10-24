@@ -334,23 +334,22 @@ Keep dependency ordering, conditions, bindings, and mode hooks intact."
     (setq +my/profiler--started t)))
 
 
+(defun +my/region-or-symbol ()
+  "Return the active region, or the symbol at point."
+  (if (use-region-p)
+      (buffer-substring-no-properties (region-beginning) (region-end))
+    (thing-at-point 'symbol)))
+
 ;;;###autoload
 (defun +my/google-it (&optional word)
   "Google WORD."
-  (interactive (list
-                (if (use-region-p)
-                    (buffer-substring-no-properties (region-beginning)
-                                                    (region-end))
-                  (thing-at-point 'symbol))))
+  (interactive (list (+my/region-or-symbol)))
   (browse-url (concat "https://www.google.com/search?q=" word)))
 
 ;;;###autoload
 (defun +my/replace (&optional word)
   "Make it eary to use `:%s' to replace WORD."
-  (interactive (list
-                (if (use-region-p)
-                    (buffer-substring-no-properties (region-beginning) (region-end))
-                  (thing-at-point 'symbol))))
+  (interactive (list (+my/region-or-symbol)))
   (let* ((word (replace-regexp-in-string "\\\\" "\\\\\\\\" word))
          (word (replace-regexp-in-string "/" "\\\\/" word)))
     (evil-ex (concat "%s/" word "/" word))))
@@ -704,7 +703,7 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
   ;; evil mode
   (general-def 'normal
     "/" '+my/consult-line
-    "?" '+my/consult-line-symbol-at-point
+    "?" (lambda () (interactive) (+my/consult-line t))
     "gd" 'xref-find-definitions
     "gr" 'xref-find-references
     "gD" 'xref-find-definitions-other-window)
@@ -767,7 +766,7 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
     "je" '(+vertico/jump-list :wk "Jump-list")
 
     "s" '(:wk "Search")
-    "sb" '(+my/consult-line-symbol-at-point :wk "Search buffer")
+    "sb" '((lambda () (interactive) (+my/consult-line t)) :wk "Search buffer")
     "si" '(+my/imenu :wk "Jump to symbol")
     "sp" '(consult-ripgrep :wk "Search project")
     "sT" '(load-theme :wk "Load theme")
@@ -1090,7 +1089,7 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
    (lambda (fn)
      (advice-add fn :around #'doom-set-jump-a))
    (list #'kill-current-buffer #'+my/imenu #'+my/consult-line
-         #'find-file #'+my/consult-line-symbol-at-point #'consult-fd #'consult-ripgrep
+         #'find-file #'consult-fd #'consult-ripgrep
          #'+consult-ripgrep-at-point))
   )
 
@@ -1372,16 +1371,12 @@ targets."
       (setq evil-ex-search-direction 'forward)
       (anzu-mode t)))
 
-  (defun +my/consult-line-symbol-at-point ()
-    (interactive)
+  (defun +my/consult-line (&optional symbol)
+    "Search the buffer with `consult-line'.
+With SYMBOL, search for the symbol at point."
+    (interactive "P")
     (evil-without-repeat ;; I use evil always
-      (consult-line (thing-at-point 'symbol))
-      (+my/consult-set-evil-search-pattern)))
-
-  (defun +my/consult-line ()
-    (interactive)
-    (evil-without-repeat ;; I use evil always
-      (consult-line)
+      (consult-line (when symbol (thing-at-point 'symbol)))
       (+my/consult-set-evil-search-pattern)))
 
   (setq consult-ripgrep-args
@@ -1701,8 +1696,9 @@ Quit if no candidate is selected."
   :after (corfu tempel)
   :bind (("C-x C-f" . cape-file)
          ("C-x C-l" . cape-line))
-  :hook (((org-mode emacs-lisp-mode) . my/set-basic-capf)
-         (eglot-managed-mode . my/set-lsp-capf))
+  :hook (((org-mode emacs-lisp-mode)
+          . (lambda () (my/set-capf (car (last completion-at-point-functions 2)))))
+         (eglot-managed-mode . (lambda () (my/set-capf 'lsp-capf))))
   :config
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
@@ -1713,14 +1709,10 @@ Quit if no candidate is selected."
      #'tmux-capf
      ))
 
-  (defun my/set-basic-capf ()
-    (let ((f (car (last completion-at-point-functions 2))))
-      (when (functionp f)
-        (setq-local completion-at-point-functions (my/convert-super-capf f)))))
-
-  (defun my/set-lsp-capf ()
-    (setq-local completion-at-point-functions (my/convert-super-capf
-                                               'lsp-capf)))
+  (defun my/set-capf (capf)
+    "Set up cape and tmux completion on top of CAPF."
+    (when (functionp capf)
+      (setq-local completion-at-point-functions (my/convert-super-capf capf))))
 
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
@@ -2518,11 +2510,6 @@ instance name and DEFAULT-DIRECTORY is the directory to cd into."
     :type '(alist :key-type string :value-type directory)
     :group 'popterm)
 
-  (defun +popterm--instance-name (buf)
-    "Extract the instance name from popterm buffer BUF.
-Returns the buffer-local `popterm--buffer-instance-name' or nil."
-    (buffer-local-value 'popterm--buffer-instance-name buf))
-
   (defun +popterm--build-candidates ()
     "Build completing-read candidates.
 Returns alist of (DISPLAY . (:name NAME :dir DIR-OR-NIL :open BOOL)).
@@ -2533,7 +2520,7 @@ Open buffers that are also shortcuts show their registered directory."
           result)
       ;; Collect open buffers
       (dolist (buf open-bufs)
-        (let* ((inst (+popterm--instance-name buf))
+        (let* ((inst (buffer-local-value 'popterm--buffer-instance-name buf))
                (key (or inst (buffer-name buf)))
                (shortcut (assoc key +popterm-shortcuts))
                (dir (cdr shortcut))
@@ -2948,12 +2935,10 @@ focus-guard which reclaims focus back to the posframe."
     (doom-modeline-set-main-modeline))
   (force-mode-line-update t))
 
-(defun +my/desktop-setup-current-frame ()
-  "Finalize the first GUI frame after startup has applied frame parameters."
-  (+my/desktop-setup-frame (selected-frame)))
-
 (add-hook 'after-make-frame-functions #'+my/desktop-setup-frame)
-(add-hook 'window-setup-hook #'+my/desktop-setup-current-frame t)
+;; Finalize the first GUI frame after startup has applied frame parameters.
+(add-hook 'window-setup-hook
+          (lambda () (+my/desktop-setup-frame (selected-frame))) t)
 
 (defun +my/desktop-activate-frame (frame)
   "Bring regular graphical FRAME and its application to the foreground."
@@ -2968,11 +2953,9 @@ focus-guard which reclaims focus back to the posframe."
     (select-frame-set-input-focus frame)
     t))
 
-(defun +my/desktop-client-frame-ready ()
-  "Activate a client after its initial buffer and GUI frame are ready."
-  (+my/desktop-activate-frame (selected-frame)))
-
-(add-hook 'server-after-make-frame-hook #'+my/desktop-client-frame-ready t)
+;; Activate a client after its initial buffer and GUI frame are ready.
+(add-hook 'server-after-make-frame-hook
+          (lambda () (+my/desktop-activate-frame (selected-frame))) t)
 
 (defun +my/desktop-focus-frame ()
   "Focus an existing graphical frame, returning nil when a client is needed."
@@ -3492,33 +3475,24 @@ Otherwise it builds `prettify-code-symbols-alist' according to
            imenu-after-jump) . my-recenter-and-pulse)
          ((bookmark-after-jump
            magit-diff-visit-file
-           next-error) . my-recenter-and-pulse-line))
+           next-error) . my-recenter-and-pulse))
   :init
-  (defun my-pulse-momentary-line (&rest _)
-    "Pulse the current line."
-    (pulse-momentary-highlight-one-line (point)))
-
   (defun my-pulse-momentary (&rest _)
     "Pulse the region or the current line."
     (if (fboundp 'xref-pulse-momentarily)
         (xref-pulse-momentarily)
-      (my-pulse-momentary-line)))
+      (pulse-momentary-highlight-one-line (point))))
 
-  (defun my-recenter-and-pulse(&rest _)
+  (defun my-recenter-and-pulse (&rest _)
     "Recenter and pulse the region or the current line."
     (recenter)
     (my-pulse-momentary))
-
-  (defun my-recenter-and-pulse-line (&rest _)
-    "Recenter and pulse the current line."
-    (recenter)
-    (my-pulse-momentary-line))
 
   (dolist (cmd '(recenter-top-bottom
                  other-window windmove-do-window-select
                  ace-window aw--select-window
                  symbol-overlay-basic-jump))
-    (advice-add cmd :after #'my-pulse-momentary-line))
+    (advice-add cmd :after #'my-pulse-momentary))
 
   (dolist (cmd '(pop-to-mark-command
                  pop-global-mark
@@ -4534,6 +4508,10 @@ If prefix ARG, copy instead of move."
 (defvar +org-capture-file-routine (concat +self/org-base-dir "routine.org"))
 (defvar +org-capture-file-proj (concat +self/org-base-dir "proj.org"))
 
+(defconst +org-capture-file-done
+  (expand-file-name "done.org"
+                    (file-name-directory (expand-file-name +org-capture-file-gtd))))
+
 (defvar +org-files (list +org-capture-file-gtd
                          +org-capture-file-someday
                          +org-capture-file-note
@@ -4547,31 +4525,29 @@ If prefix ARG, copy instead of move."
   "TODO keywords restored after Org rebuilds the agenda keyword list.")
 
 ;; Select plans on the original task instead of copying TODO entries.
+(defconst +my/org-plan-specs
+  '((day   "%F"     "FOCUS_DAY"   "PLAN_DAYS")
+    (week  "%G-W%V" "FOCUS_WEEK"  "PLAN_WEEKS")
+    (month "%Y-%m"  "FOCUS_MONTH" "PLAN_MONTHS"))
+  "Time format, focus property and history property of each plan period.")
+
+(defun +my/org-plan-spec (period)
+  "Return the plan specification for PERIOD."
+  (or (assq period +my/org-plan-specs)
+      (user-error "Unknown plan period: %s" period)))
+
 (defun +my/org-plan-period (period &optional time)
   "Return the current PERIOD identifier for TIME, using ISO weeks."
-  (format-time-string
-   (pcase period
-     ('day "%F")
-     ('week "%G-W%V")
-     ('month "%Y-%m")
-     (_ (user-error "Unknown plan period: %s" period)))
-   (or time (current-time))))
+  (format-time-string (nth 1 (+my/org-plan-spec period))
+                      (or time (current-time))))
 
 (defun +my/org-plan-property (period)
   "Return the property used to select a task for PERIOD."
-  (pcase period
-    ('day "FOCUS_DAY")
-    ('week "FOCUS_WEEK")
-    ('month "FOCUS_MONTH")
-    (_ (user-error "Unknown plan period: %s" period))))
+  (nth 2 (+my/org-plan-spec period)))
 
 (defun +my/org-plan-history-property (period)
   "Return the property retaining selected PERIOD identifiers."
-  (pcase period
-    ('day "PLAN_DAYS")
-    ('week "PLAN_WEEKS")
-    ('month "PLAN_MONTHS")
-    (_ (user-error "Unknown plan period: %s" period))))
+  (nth 3 (+my/org-plan-spec period)))
 
 (defun +my/org-plan-selections (period)
   "Read retained PERIOD selections and the current task's FOCUS value."
@@ -4603,10 +4579,7 @@ Without TIME, use the current date each time the agenda is refreshed."
 (defun +my/org-plan-current-files ()
   "Use daily agenda files and their archives for current plans.
 Read the done.org history file only when viewing a past period."
-  (let ((history-file (file-truename
-                       (expand-file-name
-                        "done.org"
-                        (file-name-directory (expand-file-name +org-capture-file-gtd))))))
+  (let ((history-file (file-truename +org-capture-file-done)))
     (cl-remove-if
      (lambda (file)
        (or (not (file-exists-p file))
@@ -4619,24 +4592,14 @@ Read the done.org history file only when viewing a past period."
    #'file-exists-p
    (delete-dups
     (append (+my/org-plan-current-files)
-            (list (expand-file-name
-                   "done.org"
-                   (file-name-directory (expand-file-name +org-capture-file-gtd))))))))
+            (list +org-capture-file-done)))))
 
 (defun +my/org-plan-protected-file-p (file)
   "Return non-nil when FILE is the existing diary.org or done.org."
   (and file
        (member (file-truename file)
                (mapcar #'file-truename
-                       (delq nil
-                             (list (and (boundp '+org-capture-file-diary)
-                                        +org-capture-file-diary)
-                                   (and (boundp '+org-capture-file-gtd)
-                                        +org-capture-file-gtd
-                                        (expand-file-name
-                                         "done.org"
-                                         (file-name-directory
-                                          (expand-file-name +org-capture-file-gtd))))))))))
+                       (list +org-capture-file-diary +org-capture-file-done)))))
 
 (defun +my/org-plan-writable-task-p ()
   "Allow plan changes only on gtd.org tasks, preserving historical files."
@@ -5044,20 +5007,12 @@ otherwise add them all.  Task states and scheduling stay independent."
              (if remove "Removed" "Added") (length markers)
              (if remove "from" "to") value)))
 
-(defun +my/org-plan-today ()
-  "Toggle selected tasks in today's plan."
-  (interactive)
-  (+my/org-plan-toggle 'day))
-
-(defun +my/org-plan-this-week ()
-  "Toggle selected tasks in this ISO week's plan."
-  (interactive)
-  (+my/org-plan-toggle 'week))
-
-(defun +my/org-plan-this-month ()
-  "Toggle selected tasks in this month's plan."
-  (interactive)
-  (+my/org-plan-toggle 'month))
+(defun +my/org-plan-toggle-period (period)
+  "Toggle selected tasks in PERIOD's plan.
+Interactively, prompt for the period."
+  (interactive
+   (list (intern (completing-read "Plan period: " '("day" "week" "month") nil t))))
+  (+my/org-plan-toggle period))
 
 (use-package org
   :ensure nil
@@ -5316,9 +5271,9 @@ otherwise add them all.  Task states and scheduling stay independent."
       "D" '(+my-org/mark-done :wk "Archive to diary")
 
       "v" '(:wk "plan")
-      "vd" '(+my/org-plan-today :wk "Today (toggle)")
-      "vw" '(+my/org-plan-this-week :wk "This week (toggle)")
-      "vm" '(+my/org-plan-this-month :wk "This month (toggle)")
+      "vd" '((lambda () (interactive) (+my/org-plan-toggle 'day)) :wk "Today (toggle)")
+      "vw" '((lambda () (interactive) (+my/org-plan-toggle 'week)) :wk "This week (toggle)")
+      "vm" '((lambda () (interactive) (+my/org-plan-toggle 'month)) :wk "This month (toggle)")
       "vh" '(+my/org-plan-history :wk "Review month/year")
 
       "g" '(:wk "goto")
@@ -5642,9 +5597,9 @@ has no effect."
     (local-leader-def
       :keymaps 'org-agenda-mode-map
       "v" '(:wk "plan")
-      "vd" '(+my/org-plan-today :wk "Today (toggle)")
-      "vw" '(+my/org-plan-this-week :wk "This week (toggle)")
-      "vm" '(+my/org-plan-this-month :wk "This month (toggle)")
+      "vd" '((lambda () (interactive) (+my/org-plan-toggle 'day)) :wk "Today (toggle)")
+      "vw" '((lambda () (interactive) (+my/org-plan-toggle 'week)) :wk "This week (toggle)")
+      "vm" '((lambda () (interactive) (+my/org-plan-toggle 'month)) :wk "This month (toggle)")
       "vh" '(+my/org-plan-history :wk "Review month/year")
       "d" '(:wk "date/deadline")
       "dd" 'org-agenda-deadline
@@ -5702,20 +5657,16 @@ has no effect."
                       (appt-activate 1) ;; activate appointment notification
 
                       ;; brew install terminal-notifier
-                      (defun ct/send-notification (title msg)
-                        (let ((notifier-path (executable-find "terminal-notifier")))
-                          (start-process
-                           "Appointment Alert"
-                           nil
-                           notifier-path
-                           "-message" msg
-                           "-title" title
-                           "-sender" "org.gnu.Emacs"
-                           "-activate" "org.gnu.Emacs")))
-                      (defun ct/appt-display-native (min-to-app new-time msg)
-                        (ct/send-notification
-                         (format "Appointment in %s minutes" min-to-app) ; Title
-                         (format "%s" msg))) ; Message/detail text
+                      (defun ct/appt-display-native (min-to-app _new-time msg)
+                        "Notify about an appointment in MIN-TO-APP minutes with MSG."
+                        (start-process
+                         "Appointment Alert"
+                         nil
+                         (executable-find "terminal-notifier")
+                         "-message" (format "%s" msg)
+                         "-title" (format "Appointment in %s minutes" min-to-app)
+                         "-sender" "org.gnu.Emacs"
+                         "-activate" "org.gnu.Emacs"))
                       ;; Agenda-to-appointent hooks
                       (run-at-time nil 900
                                    (lambda ()
@@ -5816,46 +5767,18 @@ has no effect."
   :config
   (setq alert-default-style 'notifier)
 
-  (defun org-pomodoro (&optional arg)
-    "Start a new pomodoro or stop the current one.
-When no timer is running for `org-pomodoro` a new pomodoro is started and
-the current task is clocked in.  Otherwise EMACS will ask whether we´d like to
-kill the current timer, this may be a break or a running pomodoro."
-    (interactive "P")
-
-    (when (and org-pomodoro-last-clock-in
-               org-pomodoro-expiry-time
-               (org-pomodoro-expires-p)
-               (y-or-n-p "Reset pomodoro count? "))
-      (setq org-pomodoro-count 0))
-    (setq org-pomodoro-last-clock-in (current-time))
-
-    (cond
-     ;; possibly break from overtime
-     ((and (org-pomodoro-active-p) (eq org-pomodoro-state :overtime))
-      (org-pomodoro-finished))
-     ;; Maybe kill running pomodoro
-     ((org-pomodoro-active-p)
-      (if (or (not org-pomodoro-ask-upon-killing)
-              (y-or-n-p "There is already a running timer.  Would you like to stop it? "))
-          (org-pomodoro-kill)
-        (message "Alright, keep up the good work!")))
-     ;; or start and clock in pomodoro
-     (t
-      (cond
-       ((equal arg '(4))
-        (let ((current-prefix-arg '(4)))
-          (call-interactively 'org-clock-in)))
-       ((equal arg '(16))
-        (call-interactively 'org-clock-in-last))
-       ((memq major-mode (list 'org-mode 'org-journal-mode))
-        (call-interactively 'org-clock-in))
-       ((eq major-mode 'org-agenda-mode)
-        (org-with-point-at (org-get-at-bol 'org-hd-marker)
-          (call-interactively 'org-clock-in)))
-       (t (let ((current-prefix-arg '(4)))
-            (call-interactively 'consult-clock-in))))
-      (org-pomodoro-start :pomodoro))))
+  (defun +my/org-pomodoro-clock-in (orig &rest args)
+    "Clock in with `consult-clock-in' when `org-pomodoro' runs outside Org."
+    (if (and (null current-prefix-arg)
+             (null (car args))
+             (not (derived-mode-p 'org-mode 'org-agenda-mode 'org-journal-mode)))
+        (cl-letf (((symbol-function 'org-clock-in)
+                   (lambda (&rest _)
+                     (interactive)
+                     (call-interactively #'consult-clock-in))))
+          (apply orig args))
+      (apply orig args)))
+  (advice-add #'org-pomodoro :around #'+my/org-pomodoro-clock-in)
   )
 
 (use-package org-reverse-datetree
