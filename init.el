@@ -284,10 +284,7 @@ Keep dependency ordering, conditions, bindings, and mode hooks intact."
   (interactive)
   (unless recentf-mode (recentf-mode 1))
   (let* ((candidates (if (derived-mode-p 'dired-mode)
-                         (delete-dups
-                          (append (mapcar 'file-name-directory recentf-list))
-                          ;; (append (mapcar (lambda (fname) (string-join (butlast (string-split fname "/")) "/")) recentf-list))
-                          )
+                         (delete-dups (mapcar #'file-name-directory recentf-list))
                        (mapcar #'abbreviate-file-name
                                ;; (-filter (lambda (filename) (not (file-directory-p filename)))
                                (-filter (lambda (filename) (not (string= "/" (substring filename -1))))
@@ -446,11 +443,11 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
   '("/opt/homebrew/"))
 
 (defun my-project--ignored-p (path)
-  (when path
-    (catch 'found
-      (dolist (ignore project--ignore-list)
-        (when (string-prefix-p (file-truename ignore) (file-truename path))
-          (throw 'found t))))))
+  "Return non-nil when PATH is under an ignored project root."
+  (and path
+       (cl-some (lambda (ignore)
+                  (string-prefix-p (file-truename ignore) (file-truename path)))
+                project--ignore-list)))
 
 ;;; Global Configuration
 ;; UTF8Coding
@@ -1362,10 +1359,9 @@ targets."
                                                           (?v "Variables" font-lock-variable-name-face))))))
 
   (defun +my/consult-set-evil-search-pattern (&optional condition)
-    (let ((re
-           (cond
-            ((eq condition 'rg) (substring (car consult--grep-history) 1)) ;; HACK: assume the history begins with `#'
-            ((or t (eq condition 'line)) (car consult--line-history)))))
+    (let ((re (if (eq condition 'rg)
+                  (substring (car consult--grep-history) 1) ;; HACK: assume the history begins with `#'
+                (car consult--line-history))))
       (add-to-history 'evil-ex-search-history re)
       (setq evil-ex-search-pattern (list re t t))
       (setq evil-ex-search-direction 'forward)
@@ -2174,13 +2170,12 @@ kill all magit buffers for this repo."
     "open remote repo URL"
     (interactive)
     (let ((url (magit-get "remote" "origin" "url")))
-      (progn
-        (browse-url (if (string-match "^http" url)
-                        url
-                      (replace-regexp-in-string "\\(.*\\)@\\(.*\\):\\(.*\\)\\(\\.git?\\)"
-                                                "https://\\2/\\3"
-                                                url)))
-        (message "opening repo %s" url))))
+      (browse-url (if (string-match "^http" url)
+                      url
+                    (replace-regexp-in-string "\\(.*\\)@\\(.*\\):\\(.*\\)\\(\\.git?\\)"
+                                              "https://\\2/\\3"
+                                              url)))
+      (message "opening repo %s" url)))
 
   (defun aborn/simple-git-commit-push ()
     "Simple commit current git project and push to its upstream."
@@ -2375,7 +2370,8 @@ kill all magit buffers for this repo."
   :init
   (defun ebib-swiper ()
     (interactive)
-    (progn (consult-line) (ebib--update-entry-buffer)))
+    (consult-line)
+    (ebib--update-entry-buffer))
 
   (defun +my/search-ebib-notes ()
     (interactive)
@@ -2391,7 +2387,7 @@ kill all magit buffers for this repo."
           (with-temp-buffer
             (ebib--format-entry key ebib--cur-db nil nil '("author" "booktitle" "year" "title" "journal"))
             (kill-new (buffer-substring-no-properties (point-min) (point-max))))
-          (message (format "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key))))
+          (message "Entry `%s' copied to kill ring.  Use `y' to yank (or `C-y' outside Ebib)." key)))
        (default
         (beep))))
     (yank))
@@ -3246,6 +3242,7 @@ Pretty symbols can be unset for emacs-lisp-mode with:
     :checkedbox    "☑"
     :list_property "∷"
     :ellipses      "…"
+    :em_dash       "—"
     :arrow_right   "→"
     :arrow_left    "←"
     :title         "❤"
@@ -3279,7 +3276,7 @@ This should not contain any symbols from the Unicode Private Area! There is no
 universal way of getting the correct symbol as that area varies from font to
 font.")
 
-(defvar +pretty-code-enabled-modes '(org-mode)
+(defvar +pretty-code-enabled-modes '(org-mode emacs-lisp-mode)
   "List of major modes in which `prettify-symbols-mode' should be enabled.
 If t, enable it everywhere. If the first element is 'not, enable it in any mode
 besides what is listed.")
@@ -3357,7 +3354,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   ;; :checkedbox    "[X]"
   :list_property "::"
   :em_dash       "---"
-  :ellipsis      "..."
+  :ellipses      "..."
   :arrow_right   "->"
   :arrow_left    "<-"
   :title         "#+title:"
@@ -3370,7 +3367,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :latex_header  "#+latex_header:"
   :beamer_header "#+beamer_header:"
   :attr_latex    "#+attr_latex:"
-  :attr_html     "#+attr_latex:"
+  :attr_html     "#+attr_html:"
   :begin_quote   "#+begin_quote"
   :end_quote     "#+end_quote"
   :caption       "#+caption:"
