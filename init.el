@@ -1640,6 +1640,13 @@ TYPES is the mode-specific types configuration."
     :ensure nil
     :hook (corfu-mode . corfu-history-mode))
 
+  (use-package corfu-echo
+    :ensure nil
+    :custom
+    (corfu-echo-delay 0.3)
+    :config
+    (corfu-echo-mode 1))
+
   ;; allow evil-repeat
   ;; https://github.com/minad/corfu/pull/225
   (defun corfu--unread-this-command-keys ()
