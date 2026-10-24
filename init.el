@@ -604,9 +604,6 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
 (fset 'yes-or-no-p 'y-or-n-p)
 ;; -YorN
 
-;; Open new file in original frame
-(setq ns-pop-up-frames nil)
-
 ;;; Evil
 ;;;; Evil configuration
 (use-package evil
@@ -627,7 +624,6 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
         evil-normal-state-cursor 'box
         evil-insert-state-cursor 'bar
         evil-visual-state-cursor 'hollow
-        evil-want-keybinding 'nil
         ;; Only do highlighting in selected window so that Emacs has less work
         ;; to do highlighting them all.
         evil-ex-interactive-search-highlight 'selected-window
@@ -949,8 +945,6 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
 (use-package evil-collection
   :defer nil
   :after evil
-  :init
-  (setq evil-want-keybinding nil)
   :config
   (evil-collection-init)
   )
@@ -1073,8 +1067,6 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
   :ensure nil
   :init
   (setq xref-search-program 'ripgrep)
-  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
   :hook ((xref-after-return xref-after-jump) . recenter))
 
 (use-package better-jumper
@@ -1280,13 +1272,11 @@ targets."
   (use-package vertico-quick
     :after vertico
     :ensure nil
-    :ensure nil
     :bind (:map vertico-map
                 ("M-q" . vertico-quick-insert)
                 ("C-q" . vertico-quick-exit)))
   (use-package vertico-repeat
     :after vertico
-    :ensure nil
     :ensure nil
     :bind ("C-c r" . vertico-repeat)
     :hook (minibuffer-setup . vertico-repeat-save)
@@ -1295,7 +1285,6 @@ targets."
     :ensure nil
     :after vertico
     :after-call +my/first-input-hook-fun
-    :ensure nil
     ;; More convenient directory navigation commands
     :bind (:map vertico-map
                 ;; ("RET" . vertico-directory-enter)
@@ -1730,13 +1719,11 @@ Quit if no candidate is selected."
      ))
 
   (defun my/set-basic-capf ()
-    (setq completion-category-defaults nil)
     (let ((f (car (last completion-at-point-functions 2))))
       (when (functionp f)
         (setq-local completion-at-point-functions (my/convert-super-capf f)))))
 
   (defun my/set-lsp-capf ()
-    (setq completion-category-defaults nil)
     (setq-local completion-at-point-functions (my/convert-super-capf
                                                'lsp-capf)))
 
@@ -1887,8 +1874,6 @@ It handles the case of remote files as well."
 (use-package super-save
   :ensure (:host github :repo "theFool32/super-save")
   :hook (window-setup . super-save-mode)
-  :init
-  (setq auto-save-default nil)
   :config
   ;; (add-to-list 'super-save-triggers 'switch-window)
   (add-to-list 'super-save-triggers 'switch-to-buffer)
@@ -1913,7 +1898,6 @@ It handles the case of remote files as well."
   :commands ztree-diff)
 
 (use-package winner
-  :ensure nil
   :ensure nil
   :commands (winner-undo winner-redo)
   :hook (elpaca-after-init . winner-mode)
@@ -2037,9 +2021,6 @@ It handles the case of remote files as well."
       [remap mode-line-other-buffer] 'dirvish-history-last))
   (setq dirvish-open-with-programs
         '((("doc" "docx" "odt" "ods" "xls" "rtf" "xlsx" "odp" "ppt" "pptx" "pdf") . ("open" "%f"))))
-  (setq dired-recursive-deletes 'always)
-  (setq delete-by-moving-to-trash t)
-  (setq dired-dwim-target t)
   (setq dired-listing-switches
         "-l --almost-all --human-readable --time-style=long-iso --group-directories-first --no-group")
   )
@@ -3440,7 +3421,6 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :functions (turn-off-symbol-overlay turn-on-symbol-overlay)
   :custom-face
   (symbol-overlay-default-face ((t (:inherit (region bold)))))
-  (symbol-overlay-default-face ((t (:inherit (region bold)))))
   (symbol-overlay-face-1 ((t (:inherit nerd-icons-blue :background unspecified :foreground unspecified :inverse-video t))))
   (symbol-overlay-face-2 ((t (:inherit nerd-icons-pink :background unspecified :foreground unspecified :inverse-video t))))
   (symbol-overlay-face-3 ((t (:inherit nerd-icons-yellow :background unspecified :foreground unspecified :inverse-video t))))
@@ -4575,6 +4555,10 @@ If prefix ARG, copy instead of move."
                          +org-capture-file-routine
                          +org-capture-file-proj))
 
+(defconst +org-todo-keywords-for-agenda
+  '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE")
+  "TODO keywords restored after Org rebuilds the agenda keyword list.")
+
 ;; Select plans on the original task instead of copying TODO entries.
 (defun +my/org-plan-period (period &optional time)
   "Return the current PERIOD identifier for TIME, using ISO weeks."
@@ -5101,14 +5085,12 @@ otherwise add them all.  Task states and scheduling stay independent."
   (setq
    org-id-link-to-org-use-id t
    org-src-window-setup 'current-window
-   org-element--cache-self-verify nil
    org-element-use-cache t
    org-src-preserve-indentation nil
    org-edit-src-content-indentation 0
    org-capture-bookmark nil
    org-log-done 'time
    org-hide-emphasis-markers t
-   org-deadline-warning-days 90
    org-export-backends (quote (html icalendar latex md))
    org-use-speed-commands t
    org-confirm-babel-evaluate 'nil
@@ -5190,7 +5172,6 @@ otherwise add them all.  Task states and scheduling stay independent."
 
   ;; log
   (setq org-log-into-drawer "LOGBOOK")
-  (setq org-log-into-drawer t)
 
   ;; misc
   (setq org-refile-use-outline-path 'file)
@@ -5417,8 +5398,6 @@ otherwise add them all.  Task states and scheduling stay independent."
 
     )
 
-  (require 'dash)
-
   (defun my/org-sort-entries ()
     (interactive)
     (org-sort-entries
@@ -5496,7 +5475,7 @@ otherwise add them all.  Task states and scheduling stay independent."
     (interactive)
     (org-agenda nil "p")
     ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
-    (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE")))
+    (setq org-todo-keywords-for-agenda +org-todo-keywords-for-agenda))
 
   ;; inherit schedule time from parent
   (defun my-org-insert-sub-task ()
@@ -5812,7 +5791,6 @@ has no effect."
 (use-package org-habit
   :ensure nil
   :custom
-  (org-habit-graph-column 1)
   (org-habit-show-all-today nil))
 
 (use-package calfw
@@ -5834,10 +5812,10 @@ has no effect."
   ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
   (advice-add #'cfw:open-org-calendar :before
               (lambda (&optional _)
-                (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE"))))
+                (setq org-todo-keywords-for-agenda +org-todo-keywords-for-agenda)))
   (advice-add #'cfw:refresh-calendar-buffer :before
               (lambda (&optional _)
-                (setq org-todo-keywords-for-agenda '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE"))))
+                (setq org-todo-keywords-for-agenda +org-todo-keywords-for-agenda)))
   (custom-set-faces
    '(cfw:face-today ((((class color) (background light))
                       :background "#C3DEEF") ;;  HACK: background conflicts with face of `TODO' keyword
