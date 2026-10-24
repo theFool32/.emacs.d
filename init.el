@@ -904,10 +904,9 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
 (use-package evil-escape
   :after evil
   :hook (+my/first-input . evil-escape-mode)
-  :commands (evil-escape-pre-command-hook)
   :init
   (setq evil-escape-excluded-states '(normal visual multiedit emacs motion)
-        evil-escape-excluded-major-modes '(vterm-mode)
+        evil-escape-excluded-major-modes '(ghostel-mode)
         evil-escape-key-sequence "jk"
         evil-escape-delay 0.15)
   (evil-define-key* '(insert replace visual operator) 'global "\C-g" #'evil-escape)
@@ -1071,7 +1070,6 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
 
 (use-package better-jumper
   :hook (+my/first-input . better-jumper-mode)
-  :commands doom-set-jump-a
   :preface
   ;; REVIEW Suppress byte-compiler warning spawning a *Compile-Log* buffer at
   ;; startup. This can be removed once gilbertw1/better-jumper#2 is merged.
@@ -1588,12 +1586,10 @@ TYPES is the mode-specific types configuration."
   :ensure (corfu :includes (corfu-indexed corfu-quick corfu-popupinfo corfu-history) :files (:defaults "extensions/corfu-*.el"))
   ;; :hook (+my/first-input . global-corfu-mode)
   :custom
-  (global-corfu-modes '((not dape-repl-mode) t))
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
   (corfu-auto-prefix 1)
   (corfu-auto-delay 0.01)
-  (corfu-echo-documentation 0.3)
   (corfu-quit-no-match 'separator)        ;; Automatically quit if there is no match
   (corfu-on-exact-match 'quit)
   (corfu-preselect 'prompt) ;; Always preselect the prompt
@@ -1626,9 +1622,8 @@ TYPES is the mode-specific types configuration."
   (evil-make-overriding-map corfu-map)
 
   (defun corfu-enable-always-in-minibuffer ()
-    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-    (unless (or (bound-and-true-p mct--active)
-                (bound-and-true-p vertico--input))
+    "Enable Corfu in the minibuffer if Vertico is not active."
+    (unless (bound-and-true-p vertico--input)
       ;; (setq-local corfu-auto nil) Enable/disable auto completion
       (corfu-mode 1)))
   (add-hook 'minibuffer-setup-hook #'corfu-enable-always-in-minibuffer 1)
@@ -1707,7 +1702,7 @@ Quit if no candidate is selected."
   :bind (("C-x C-f" . cape-file)
          ("C-x C-l" . cape-line))
   :hook (((org-mode emacs-lisp-mode) . my/set-basic-capf)
-         ((lsp-completion-mode eglot-managed-mode lsp-bridge-mode lspce-mode). my/set-lsp-capf))
+         (eglot-managed-mode . my/set-lsp-capf))
   :config
   (setq dabbrev-upcase-means-case-search t)
   (setq case-fold-search nil)
@@ -2488,8 +2483,7 @@ kill all magit buffers for this repo."
   :ensure (:host github :repo "dakra/ghostel")
   :commands (ghostel ghostel-project)
   :bind
-  (("C-0" . #'ghostel-project)
-   ("C-9" . #'ghostel))
+  (("C-0" . #'ghostel-project))
   :custom
   (ghostel-enable-title-tracking nil))
 
@@ -3094,9 +3088,7 @@ focus-guard which reclaims focus back to the posframe."
 
           devdocs-mode
           ;; occur-mode
-          ivy-occur-mode ivy-occur-grep-mode
           process-menu-mode list-environment-mode
-          youdao-dictionary-mode multi-translate-mode maple-translate-mode
 
           "\\*ELP Profiling Restuls\\*" profiler-report-mode
           "\\*[Wo]*Man.*\\*$"
@@ -3413,7 +3405,7 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :ensure nil
   :custom-face (hl-line ((t (:extend t))))
   :hook ((elpaca-after-init . global-hl-line-mode)
-         ((term-mode ghostel-mode vterm-mode) . hl-line-unload-function)))
+         ((term-mode ghostel-mode) . hl-line-unload-function)))
 
 ;; Highlight symbols
 (use-package symbol-overlay
@@ -3525,8 +3517,6 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   (dolist (cmd '(recenter-top-bottom
                  other-window windmove-do-window-select
                  ace-window aw--select-window
-                 pager-page-down pager-page-up
-                 treemacs-select-window
                  symbol-overlay-basic-jump))
     (advice-add cmd :after #'my-pulse-momentary-line))
 
@@ -3793,9 +3783,6 @@ Use Evil's delete registers and support repeating with `.'."
         eglot-autoshutdown t
         eglot-send-changes-idle-time 0.5
         eglot-events-buffer-config '(:size 0 :format full)
-        ;; NOTE We disable eglot-auto-display-help-buffer because :select t in
-        ;;      its popup rule causes eglot to steal focus too often.
-        eglot-auto-display-help-buffer nil
         eglot-watch-files-outside-project-root nil
         )
   (setq eldoc-echo-area-use-multiline-p nil)
