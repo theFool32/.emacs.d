@@ -190,7 +190,10 @@ No separate review file is created.
 
 To archive a closed task, open its original Org entry and press =, D=.
 The entire subtree is moved into =diary.org= under the =CLOSED= date's
-=Archived= heading, keeping IDs and plan properties. The source and diary
+=Archived= heading, keeping IDs and plan properties. A done task that has
+no =CLOSED= stamp, such as one canceled in OrgFlow, is dated from its latest
+clock, then its first inactive timestamp (for example =CREATED=), and finally
+the current date. The source and diary
 are saved. This explicit command is the only plan-related operation that
 writes to the diary; no existing diary or done entries are migrated.
 

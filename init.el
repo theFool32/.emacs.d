@@ -401,9 +401,30 @@ Keep dependency ordering, conditions, bindings, and mode hooks intact."
         (forward-line -1))
       (line-beginning-position))))
 
+(defun +my-org--archive-time ()
+  "Return the time to file the entry at point under in the diary.
+Prefer CLOSED; otherwise fall back to the latest clock, then the first
+inactive timestamp (for example CREATED), and finally the current time.
+This mirrors `org-reverse-datetree-entry-time' so a done task without a
+CLOSED stamp lands under the same date the datetree package would pick."
+  (or (when-let* ((closed (org-entry-get nil "CLOSED")))
+        (org-time-string-to-time closed))
+      (progn
+        (require 'org-reverse-datetree)
+        (when-let* ((clocks (org-reverse-datetree--clocks)))
+          (cl-reduce (lambda (a b) (if (time-less-p a b) b a)) clocks)))
+      (save-excursion
+        (org-back-to-heading t)
+        (when (re-search-forward org-ts-regexp-inactive
+                                 (org-entry-end-position) t)
+          (org-time-string-to-time (match-string 1))))
+      (current-time)))
+
 (defun +my-org/mark-done ()
   "Move the closed task at point into diary.org under its CLOSED date.
-Preserve the subtree, IDs, and plan properties; save the source and diary."
+When the task has no CLOSED stamp, derive the date from its other
+timestamps instead.  Preserve the subtree, IDs, and plan properties;
+save the source and diary."
   (interactive)
   (unless (derived-mode-p 'org-mode)
     (user-error "Archive a closed task from its Org buffer"))
@@ -411,14 +432,14 @@ Preserve the subtree, IDs, and plan properties; save the source and diary."
   (require 'org-id)
   (org-back-to-heading t)
   (barf-if-buffer-read-only)
-  (unless (and (org-entry-is-done-p) (org-entry-get nil "CLOSED"))
-    (user-error "Mark the task as completed before archiving (CLOSED is required)"))
+  (unless (org-entry-is-done-p)
+    (user-error "Mark the task as completed before archiving"))
   (when (and buffer-file-name
              (equal (file-truename buffer-file-name)
                     (file-truename +org-capture-file-diary)))
     (user-error "The task is already in diary.org"))
   (let* ((source (current-buffer))
-         (closed (org-time-string-to-time (org-entry-get nil "CLOSED")))
+         (closed (+my-org--archive-time))
          (ids (save-restriction
                 (org-narrow-to-subtree)
                 (delq nil (org-map-entries
@@ -2054,8 +2075,6 @@ It handles the case of remote files as well."
   :commands (magit magit-open-repo aborn/simple-git-commit-push)
   :if *git*
   :config
-  ;; (global-auto-revert-mode -1)
-  ;; (magit-auto-revert-mode -1)
   (defvar +magit-open-windows-in-direction 'right
     "What direction to open new windows from the status buffer.
 For example, diffs and log buffers. Accepts `left', `right', `up', and `down'.")
