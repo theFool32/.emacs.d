@@ -5362,6 +5362,61 @@ Interactively, prompt for the period."
   (defvar-local my/org--was-visible nil)
   (defvar-local my/org--pending-sort nil)
 
+  ;; `org-sort-entries' reorders text with `sort-subr', which invalidates
+  ;; every position and marker pointing into the sorted region -- point
+  ;; included.  So the position an agenda jump (or a bookmark, or the mark
+  ;; ring) recorded no longer designates the same entry once the sort has
+  ;; run.  Remember the entry at point by identity and jump back to it
+  ;; after sorting.
+  (defun my/org--entry-at-point ()
+    "Return an identity for the entry containing point, or nil.
+The identity is the entry's ID when it has one, else its outline path,
+else the plain text of its subtree (which is what locates headings that
+are not unique in the file)."
+    (save-excursion
+      (when (ignore-errors (org-back-to-heading t))
+        (list (org-entry-get nil "ID")
+              (org-get-outline-path t)
+              (buffer-substring-no-properties (point) (org-end-of-subtree t))))))
+
+  (defun my/org--goto-entry (entry)
+    "Move point back to ENTRY, an identity from `my/org--entry-at-point'.
+Reveal the entry and return non-nil if it could be located."
+    (save-restriction
+      (widen)
+      (let ((pos (or (and (car entry) (org-find-entry-with-id (car entry)))
+                     ;; Errors out when the heading is missing or not unique.
+                     (and (cadr entry)
+                          (ignore-errors (org-find-olp (cadr entry) t)))
+                     (and (caddr entry)
+                          (save-excursion
+                            (goto-char (point-min))
+                            (when (search-forward (caddr entry) nil t)
+                              (- (point) (length (caddr entry)))))))))
+        (when pos
+          (goto-char pos)
+          (org-fold-show-context 'agenda)
+          t))))
+
+  (defun my/org--sort-buffer ()
+    "Sort the whole buffer, leaving point on the entry it is on."
+    ;; Align first so that the entry identity below matches the text as it
+    ;; will be after sorting.
+    (save-excursion
+      (save-restriction
+        (widen)
+        (goto-char (point-min))
+        (org-align-tags t)))
+    (let ((entry (my/org--entry-at-point)))
+      (save-excursion
+        (save-restriction
+          (widen)
+          (goto-char (point-min))
+          (my/org-sort-entries)
+          (org-overview)))
+      (when entry
+        (my/org--goto-entry entry))))
+
   (defun my/org--sort-when-idle (buf)
     (when (buffer-live-p buf)
       (with-current-buffer buf
@@ -5373,13 +5428,7 @@ Interactively, prompt for the period."
                            (with-current-buffer b
                              (bound-and-true-p org-capture-mode)))
                          (buffer-list))))
-          (save-excursion
-            (save-restriction
-              (widen)
-              (goto-char (point-min))
-              (org-align-tags t)
-              (my/org-sort-entries)
-              (org-overview)))
+          (my/org--sort-buffer)
           (when (buffer-modified-p)
             (save-buffer))))))
 
