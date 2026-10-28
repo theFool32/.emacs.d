@@ -5661,6 +5661,18 @@ has no effect."
       "t" 'org-agenda-todo)
     )
 
+  ;; evil-collection binds `r' to refiling in normal state; refiling stays
+  ;; available as `,r' in the leader map above, so use `r' for refreshing.
+  (defun my/org-agenda-bind-refresh (&rest _)
+    (when (and (fboundp 'evil-define-key*)
+               (keymapp org-agenda-mode-map))
+      (evil-define-key* 'normal org-agenda-mode-map "r" #'org-agenda-redo)))
+  (with-eval-after-load 'org-agenda
+    ;; Apply now, in case evil-collection already set up the mode, and again
+    ;; whenever it sets up a mode later.
+    (my/org-agenda-bind-refresh)
+    (add-hook 'evil-collection-setup-hook #'my/org-agenda-bind-refresh))
+
   (defun my/org-save-after-command (&rest _)
     "Save Org changes, preserving the old diary and done files, then refresh."
     (dolist (buffer (org-buffer-list))
