@@ -6,8 +6,7 @@
 ;;; StartUp
 (defvar +my/start-time (current-time))
 
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.5)
+;; early-init.el raises the GC threshold; gcmh takes over after startup.
 (add-hook 'emacs-startup-hook
           (lambda ()
             "Recover GC values after startup."
@@ -29,13 +28,6 @@
   (remove-hook 'pre-command-hook '+my/first-input-hook-fun))
 (unless (daemonp)
   (add-hook 'pre-command-hook '+my/first-input-hook-fun))
-
-(defvar default-file-name-handler-alist file-name-handler-alist)
-(setq file-name-handler-alist nil)
-
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (setq file-name-handler-alist default-file-name-handler-alist)))
 
 
 ;;; Const
@@ -301,15 +293,6 @@ Keep dependency ordering, conditions, bindings, and mode hooks intact."
       ))))
 
 ;;;###autoload
-(defun +my/project-root (&optional dir)
-  "Return the project root of DIR."
-  (when-let* ((default-directory (or dir default-directory))
-              (project (project-current)))
-    (expand-file-name (if (fboundp 'project-root)
-                          (project-root project)
-                        (cdr project)))))
-
-;;;###autoload
 (defun +my/save-file ()
   "Save files including org agenda."
   (interactive)
@@ -515,6 +498,9 @@ save the source and diary."
 (setq make-backup-files nil)
 (setq auto-save-default nil)
 
+;; Move files to trash when deleting
+(setq delete-by-moving-to-trash t)
+
 ;; Better Compilation
 (setq-default compilation-always-kill t) ; kill compilation process before starting another
 
@@ -618,7 +604,7 @@ save the source and diary."
   :hook (prog-mode . ws-butler-mode))
 
 ;; YorN
-(fset 'yes-or-no-p 'y-or-n-p)
+(setq use-short-answers t)
 ;; -YorN
 
 ;;; Evil
@@ -693,11 +679,12 @@ save the source and diary."
     "r" '(tab-bar-rename-tab :wk "Rename")
     "d" '(tab-bar-close-tab :wk "Close")
     "s" '(tab-bar-select-tab-by-name :wk "Select")
-    "1" '((lambda () (interactive) (tab-bar-select-tab 1)) :wk "Select 1")
-    "2" '((lambda () (interactive) (tab-bar-select-tab 2)) :wk "Select 2")
-    "3" '((lambda () (interactive) (tab-bar-select-tab 3)) :wk "Select 3")
-    "4" '((lambda () (interactive) (tab-bar-select-tab 4)) :wk "Select 4")
-    "5" '((lambda () (interactive) (tab-bar-select-tab 5)) :wk "Select 5")
+    ;; Without an argument, the command selects the tab named by its digit key.
+    "1" '(tab-bar-select-tab :wk "Select 1")
+    "2" '(tab-bar-select-tab :wk "Select 2")
+    "3" '(tab-bar-select-tab :wk "Select 3")
+    "4" '(tab-bar-select-tab :wk "Select 4")
+    "5" '(tab-bar-select-tab :wk "Select 5")
     )
 
   (general-create-definer leader-def
@@ -767,7 +754,7 @@ save the source and diary."
     "fr" '(+my/open-recent :wk "Recent file")
     "fs" '(+my/save-file :wk "Save file")
     "fd" '(dired-jump :wk "Current directory")
-    "fe" '((lambda() (interactive)(find-file "~/.emacs.d/init.el")) :wk "init.el")
+    "fe" '((lambda() (interactive)(find-file user-init-file)) :wk "init.el")
     "fo" '((lambda() (interactive) (find-file (format "%s/%s.org" +self/org-base-dir (completing-read "Open org files:" (mapcar (lambda (f) (file-name-base f)) +org-files))))) :wk "Org files")
     "fh" '((lambda() (interactive)(consult-fd default-directory)) :wk "Find file here")
     "fH" '((lambda() (interactive)(find-file (read-file-name "Remote: " "/scp:"))) :wk "Remote")
@@ -852,7 +839,7 @@ save the source and diary."
     "tb" '(blamer-mode :wk "Blame")
 
     "o" '(:wk "Open")
-    "om" '((lambda () (interactive) (mu4e)) :wk "Mail")
+    "om" '(mu4e :wk "Mail")
     "oy" '(gt-translate :wk "Translate at point")
     "oY" '(gt-do-translate-prompt :wk "Translate")
     ;; "oY" '((lambda () (interactive) (maple-translate+ (read-from-minibuffer "Translate word: "))):wk "Translate")
@@ -1103,20 +1090,16 @@ save the source and diary."
           (better-jumper--jumping t))
       (apply fn args)))
 
-  (mapcar
-   (lambda (fn)
-     (advice-add fn :around #'doom-set-jump-a))
-   (list #'kill-current-buffer #'+my/imenu #'+my/consult-line
-         #'find-file #'consult-fd #'consult-ripgrep
-         #'+consult-ripgrep-at-point))
+  (dolist (fn (list #'kill-current-buffer #'+my/imenu #'+my/consult-line
+                    #'find-file #'consult-fd #'consult-ripgrep
+                    #'+consult-ripgrep-at-point
+                    ;; Use `better-jumper' instead of xref's marker stack
+                    #'xref-push-marker-stack))
+    (advice-add fn :around #'doom-set-jump-a))
   )
 
 (with-eval-after-load 'xref
-  (remove-hook 'xref-backend-functions #'etags--xref-backend)
-  ;; This integration is already built into evil
-  ;; Use `better-jumper' instead of xref's marker stack
-  (advice-add #'xref-push-marker-stack :around #'doom-set-jump-a)
-  )
+  (remove-hook 'xref-backend-functions #'etags--xref-backend))
 
 (use-package avy
   :commands (avy-goto-char avy-goto-line))
@@ -1313,11 +1296,11 @@ targets."
   :ensure nil
   :init
   ;; (global-auto-revert-mode -1)
-  ;; Add prompt indicator to `completing-read-multiple'.
-  ;; Alternatively try `consult-completing-read-multiple'.
-  (defun crm-indicator (args)
-    (cons (concat "[CRM] " (car args)) (cdr args)))
-  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+  ;; Add prompt indicator to `completing-read-multiple'; built in since Emacs 31.
+  (when (< emacs-major-version 31)
+    (defun crm-indicator (args)
+      (cons (concat "[CRM] " (car args)) (cdr args)))
+    (advice-add #'completing-read-multiple :filter-args #'crm-indicator))
 
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
@@ -1512,7 +1495,7 @@ TYPES is the mode-specific types configuration."
                        (funcall imenu-create-index-function)))))
            (config (cdr (seq-find (lambda (x) (derived-mode-p (car x))) consult-imenu-config))))
       ;; Fix toplevel items, e.g., emacs-lisp-mode toplevel items are functions
-      (when-let (toplevel (plist-get config :toplevel))
+      (when-let* ((toplevel (plist-get config :toplevel)))
         (let ((tops (seq-remove (lambda (x) (listp (cdr x))) items))
               (rest (seq-filter (lambda (x) (listp (cdr x))) items)))
           (setq items (nconc rest (and tops (list (cons toplevel tops)))))))
@@ -1578,8 +1561,7 @@ TYPES is the mode-specific types configuration."
 (use-package marginalia
   :hook (+my/first-input . marginalia-mode)
   :config
-  (add-to-list 'marginalia-prompt-categories '("Open org files:" . project-file))
-  (setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light)))
+  (add-to-list 'marginalia-prompt-categories '("Open org files:" . project-file)))
 
 (use-package vertico-posframe
   :hook (vertico-mode . vertico-posframe-mode)
@@ -1721,11 +1703,11 @@ Quit if no candidate is selected."
   :bind (("C-x C-f" . cape-file)
          ("C-x C-l" . cape-line))
   :hook (((org-mode emacs-lisp-mode)
-          . (lambda () (my/set-capf (car (last completion-at-point-functions 2)))))
+          . (lambda () (my/set-capf (seq-find #'functionp completion-at-point-functions))))
          (eglot-managed-mode . (lambda () (my/set-capf 'lsp-capf))))
   :config
+  ;; Search case-insensitively unless the typed prefix has an uppercase letter.
   (setq dabbrev-upcase-means-case-search t)
-  (setq case-fold-search nil)
   (defun my/convert-super-capf (arg-capf)
     (list
      #'cape-file
@@ -1738,8 +1720,9 @@ Quit if no candidate is selected."
     (when (functionp capf)
       (setq-local completion-at-point-functions (my/convert-super-capf capf))))
 
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
+  ;; Without LOCAL, `add-hook' changes the default for every buffer.
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
   )
 
 (use-package corfu-english-helper
@@ -1768,7 +1751,7 @@ Quit if no candidate is selected."
   :custom
   ;; (recentf-auto-cleanup "05:00am")
   (recentf-max-saved-items 2000)
-  (recentf-exclude `(,(expand-file-name package-user-dir)
+  (recentf-exclude `(,(expand-file-name elpaca-directory)
                      ,+self/org-base-dir
                      ,(expand-file-name "~\/.mail\/*")
                      ;; "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:"
@@ -1956,20 +1939,11 @@ It handles the case of remote files as well."
   ;; Always delete and copy recursively
   (dired-recursive-deletes 'always)
   (dired-recursive-copies 'always)
-  ;; Auto refresh Dired, but be quiet about it
-  (global-auto-revert-non-file-buffers t)
-  (auto-revert-verbose nil)
   ;; Quickly copy/move file in Dired
   (dired-dwim-target t)
-  ;; Move files to trash when deleting
-  (delete-by-moving-to-trash t)
-  ;; Load the newest version of a file
-  (load-prefer-newer t)
-  ;; Detect external file changes and auto refresh file
-  (auto-revert-use-notify nil)
   :config
+  ;; Dirvish sets `dired-listing-switches'.
   (setq insert-directory-program "gls" dired-use-ls-dired t)
-  (setq dired-listing-switches "-al --group-directories-first")
   ;; Reuse same dired buffer, to prevent numerous buffers while navigating in dired
   (put 'dired-find-alternate-file 'disabled nil)
 
@@ -2485,11 +2459,7 @@ kill all magit buffers for this repo."
                                          (not (rime-predicate-in-code-string-p))
                                          (not (derived-mode-p 'web-mode)) ;;  HACK: not for html-mode
                                          ))
-                                  (lambda ()
-                                    (and (> (point) (save-excursion (back-to-indentation) (point)))
-                                         (let ((string (buffer-substring (point) (max (line-beginning-position) (- (point) 80)))))
-                                           (string-match-p "[a-zA-Z0-9\./\\<>;:\[\]{}\|!@#\$&\*\(\)\-=\+_,\?\^]$" string))))
-                                  ))
+                                  rime-predicate-after-ascii-char-p))
   )
 
 ;;;; Shell
@@ -2724,7 +2694,6 @@ focus-guard which reclaims focus back to the posframe."
    send-mail-function 'smtpmail-send-it
    message-send-mail-function 'smtpmail-send-it
    smtpmail-smtp-service 587
-   smtpmail-starttls-credentials (expand-file-name "~/.authinfo.gpg")
    smtpmail-stream-type  'starttls
    ;; mu4e-get-mail-command "offlineimap"
    mu4e-get-mail-command "true"
@@ -2850,8 +2819,9 @@ focus-guard which reclaims focus back to the posframe."
 
 ;;;; PDF-Tools
 (use-package pdf-tools
-  :mode (("\\.pdf\\'" . pdf-view-mode))
-  :hook (dired-mode . pdf-tools-install)
+  :init
+  ;; Register PDF modes now; build and enable pdf-tools on the first PDF.
+  (pdf-loader-install)
   :config
   ;; (pdf-tools-install)
   (setq-default pdf-view-display-size 'fit-page)
@@ -3095,7 +3065,7 @@ focus-guard which reclaims focus back to the posframe."
           ;; occur-mode
           process-menu-mode list-environment-mode
 
-          "\\*ELP Profiling Restuls\\*" profiler-report-mode
+          "\\*ELP Profiling Results\\*" profiler-report-mode
           "\\*[Wo]*Man.*\\*$"
           "\\*gud-debug\\*$"
           "\\*lsp-help\\*$" "\\*lsp session\\*$"
@@ -3213,7 +3183,7 @@ Pretty symbols can be unset for emacs-lisp-mode with:
       (while plist
         (let ((key (pop plist)))
           (if (eq key :alist)
-              (prependq! results (pop plist))
+              (setq results (append (pop plist) results))
             (when-let* ((char (plist-get +pretty-code-symbols key)))
               (push (cons (pop plist) char) results)))))
       (dolist (mode (doom-enlist modes))
@@ -3411,7 +3381,9 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   :ensure nil
   :custom-face (hl-line ((t (:extend t))))
   :hook ((elpaca-after-init . global-hl-line-mode)
-         ((term-mode ghostel-mode) . hl-line-unload-function)))
+         ;; Opt these buffers out locally; `hl-line-unload-function' would
+         ;; turn the highlight off in every buffer.
+         ((term-mode ghostel-mode) . (lambda () (setq-local global-hl-line-mode nil)))))
 
 ;; Highlight symbols
 (use-package symbol-overlay
@@ -3436,13 +3408,16 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   (defun turn-off-symbol-overlay (&rest _)
     "Turn off symbol highlighting."
     (interactive)
-    (symbol-overlay-mode -1))
+    (when (bound-and-true-p symbol-overlay-mode)
+      (symbol-overlay-mode -1)))
   (advice-add #'set-mark :after #'turn-off-symbol-overlay)
 
   (defun turn-on-symbol-overlay (&rest _)
     "Turn on symbol highlighting."
     (interactive)
-    (when (derived-mode-p 'prog-mode)
+    ;; `deactivate-mark' runs constantly; skip the mode hooks when already on.
+    (when (and (derived-mode-p 'prog-mode)
+               (not (bound-and-true-p symbol-overlay-mode)))
       (symbol-overlay-mode 1)))
   (advice-add #'deactivate-mark :after #'turn-on-symbol-overlay))
 
@@ -3475,12 +3450,14 @@ Otherwise it builds `prettify-code-symbols-alist' according to
   ;; Set fringe style
   (setq-default fringes-outside-margins t)
 
+  ;; Define the bitmap once; diff-hl calls this function for every hunk.
+  (define-fringe-bitmap 'my-diff-hl-bmp
+    (vector (if *sys/mac* #b11100000 #b11111100))
+    1 8
+    '(center t))
   (defun my-diff-hl-fringe-bmp-function (_type _pos)
     "Fringe bitmap function for use as `diff-hl-fringe-bmp-function'."
-    (define-fringe-bitmap 'my-diff-hl-bmp
-      (vector (if *sys/mac* #b11100000 #b11111100))
-      1 8
-      '(center t)))
+    'my-diff-hl-bmp)
   (setq diff-hl-fringe-bmp-function #'my-diff-hl-fringe-bmp-function)
 
   ;; Integration with magit
@@ -3683,62 +3660,36 @@ Use Evil's delete registers and support repeating with `.'."
   ;; You can also bind multiple items and we will match the first one we can find
   (define-key evil-outer-text-objects-map "a" (evil-textobj-tree-sitter-get-textobj ("conditional.outer" "loop.outer")))
 
-  ;; function
-  ;; Goto start of next function
-  (define-key evil-normal-state-map (kbd "]f") (lambda ()
-                                                 (interactive)
-                                                 (evil-textobj-tree-sitter-goto-textobj "function.outer")))
-  ;; Goto start of previous function
-  (define-key evil-normal-state-map (kbd "[f") (lambda ()
-                                                 (interactive)
-                                                 (evil-textobj-tree-sitter-goto-textobj "function.outer" t)))
-  ;; Goto end of next function
-  (define-key evil-normal-state-map (kbd "]F") (lambda ()
-                                                 (interactive)
-                                                 (evil-textobj-tree-sitter-goto-textobj "function.outer" nil t)))
-  ;; Goto end of previous function
-  (define-key evil-normal-state-map (kbd "[F") (lambda ()
-                                                 (interactive)
-                                                 (evil-textobj-tree-sitter-goto-textobj "function.outer" t t)))
-  ;; class
-  ;; Goto start of next class
-  (define-key evil-normal-state-map (kbd "]c") (lambda ()
-                                                 (interactive)
-                                                 (evil-textobj-tree-sitter-goto-textobj "class.outer")))
-  ;; Goto start of previous class
-  (define-key evil-normal-state-map (kbd "[c") (lambda ()
-                                                 (interactive)
-                                                 (evil-textobj-tree-sitter-goto-textobj "class.outer" t)))
-  ;; Goto end of next class
-  (define-key evil-normal-state-map (kbd "]C") (lambda ()
-                                                 (interactive)
-                                                 (evil-textobj-tree-sitter-goto-textobj "class.outer" nil t)))
-  ;; Goto end of previous class
-  (define-key evil-normal-state-map (kbd "[C") (lambda ()
-                                                 (interactive)
-                                                 (evil-textobj-tree-sitter-goto-textobj "class.outer" t t)))
+  ;; ]f/[f: start of next/previous function, ]F/[F: end; likewise c/C for classes.
+  (pcase-dolist (`(,key ,group ,previous ,end)
+                 '(("]f" "function.outer" nil nil) ("[f" "function.outer" t nil)
+                   ("]F" "function.outer" nil t) ("[F" "function.outer" t t)
+                   ("]c" "class.outer" nil nil) ("[c" "class.outer" t nil)
+                   ("]C" "class.outer" nil t) ("[C" "class.outer" t t)))
+    (define-key evil-normal-state-map (kbd key)
+                (lambda ()
+                  (interactive)
+                  (evil-textobj-tree-sitter-goto-textobj group previous end))))
   )
 
 ;;;; LSP
 (use-package eglot
   :ensure nil
   :commands (eglot eglot-ensure)
-  :hook ((eglot-managed-mode . (lambda ()
-                                 (leader-def :keymaps 'override
-                                   "ca" '(eglot-code-actions :wk "Code Actions")
-                                   "cr" '(eglot-rename :wk "Rename symbol")
-                                   "cI" '(eglot-code-action-organize-imports :wk "Organize import")
-                                   "cJ" '(consult-eglot-symbols :wk "Symbols in project")
-                                   "cd" '(eglot-find-declaration :wk "Jump to definition")
-                                   "cF" '(eglot-find-implementation :wk "Find implementation")
-                                   "cD" '(eglot-find-typeDefinition :wk "Find type definition"))
-                                 ;; (eglot-inlay-hints-mode -1)
-                                 ))
-         ((python-mode python-ts-mode c-mode c++-mode) .
+  :hook (((python-mode python-ts-mode c-mode c++-mode) .
           (lambda ()
             (unless (my-project--ignored-p (buffer-file-name (current-buffer)))
               (eglot-ensure)))))
   :config
+  ;; Bind once for Eglot's minor mode so these keys exist only in managed buffers.
+  (leader-def :definer 'minor-mode :keymaps 'eglot--managed-mode
+    "ca" '(eglot-code-actions :wk "Code Actions")
+    "cr" '(eglot-rename :wk "Rename symbol")
+    "cI" '(eglot-code-action-organize-imports :wk "Organize import")
+    "cJ" '(consult-eglot-symbols :wk "Symbols in project")
+    "cd" '(eglot-find-declaration :wk "Jump to definition")
+    "cF" '(eglot-find-implementation :wk "Find implementation")
+    "cD" '(eglot-find-typeDefinition :wk "Find type definition"))
   (fset 'lsp-capf 'eglot-completion-at-point)
   (setq eglot-stay-out-of '(flymake))
   (setq eglot-sync-connect 0
@@ -3750,7 +3701,7 @@ Use Evil's delete registers and support repeating with `.'."
         )
   (setq eldoc-echo-area-use-multiline-p nil)
   (setq eglot-ignored-server-capabilities '(:documentHighlightProvider :foldingRangeProvider :colorProvider :codeLensProvider :documentOnTypeFormattingProvider :executeCommandProvider))
-  (add-to-list 'eglot-server-programs '((latex-mode Tex-latex-mode texmode context-mode texinfo-mode bibtex-mode) "texlab"))
+  (add-to-list 'eglot-server-programs '((LaTeX-mode latex-mode tex-mode context-mode texinfo-mode bibtex-mode) "texlab"))
 
   )
 
@@ -3787,7 +3738,7 @@ Use Evil's delete registers and support repeating with `.'."
     "Use `fd' to list files in DIR."
     (let* ((default-directory dir)
            (localdir (file-local-name (expand-file-name dir)))
-           (command (format "fd -H -t f -0 . %s" localdir)))
+           (command (format "fd -H -t f -0 . %s" (shell-quote-argument localdir))))
       (project--remote-file-names
        (sort (split-string (shell-command-to-string command) "\0" t)
              #'string<))))
@@ -3812,13 +3763,14 @@ Use Evil's delete registers and support repeating with `.'."
   (setq project-find-functions '(project-try-vc my/project-try-local))
 
   ;;  auto remember project
-  (add-hook 'change-major-mode-hook (lambda ()
-                                      (when (and (buffer-file-name)
-                                                 (not (string-match-p "^/\\(?:ssh\\|scp\\|su\\|sudo\\)?:" (buffer-file-name)))
-                                                 (not (string-match-p "straight/repos" (buffer-file-name)))
-                                                 (fboundp 'project-current))
-                                        (when-let* ((root (+my/project-root)))
-                                          (project-remember-project (project-current)))))))
+  (defun my/project-remember-current ()
+    "Remember the project of the visited local file."
+    (when-let* ((file (buffer-file-name))
+                ((not (file-remote-p file)))
+                ((not (file-in-directory-p file elpaca-directory)))
+                (project (project-current)))
+      (project-remember-project project)))
+  (add-hook 'find-file-hook #'my/project-remember-current))
 
 
 (use-package format-all
@@ -3826,10 +3778,18 @@ Use Evil's delete registers and support repeating with `.'."
   :hook ((prog-mode . format-all-ensure-formatter)
          (prog-mode . format-all-mode))
   :config
+  ;; Ruff's isort rules (I) sort imports, then `ruff format' formats.
+  ;; super-save strips format-all's save hook, so only manual saves run this.
+  (define-format-all-formatter ruff-isort
+    (:executable "ruff")
+    (:install "pip install ruff")
+    (:languages "Python")
+    (:features)
+    (:format (format-all--buffer-easy
+              executable "check" "--select" "I" "--fix" "--exit-zero" "--silent"
+              "--stdin-filename" (or (buffer-file-name) (buffer-name)) "-")))
   (setq-default format-all-formatters
-                '(("Python" ruff)))
-
-  )
+                '(("Python" ruff-isort ruff))))
 
 ;;;; Language
 ;;;;; Python
@@ -3838,8 +3798,8 @@ Use Evil's delete registers and support repeating with `.'."
   :defer t
   :mode ("\\.py\\'" . python-ts-mode)
   :hook (inferior-python-mode . (lambda ()
-                                  (process-query-on-exit-flag
-                                   (get-process "Python"))))
+                                  (when-let* ((process (get-buffer-process (current-buffer))))
+                                    (set-process-query-on-exit-flag process nil))))
   :init
   ;; Disable readline based native completion
   (setq python-shell-completion-native-enable nil)
@@ -3850,19 +3810,9 @@ Use Evil's delete registers and support repeating with `.'."
                                    (setq-local tab-width 4)))
 
   (setq python-indent-offset 4
-        python-shell-interpreter "python3"
-        importmagic-python-interpreter "python")
+        python-shell-interpreter "python3")
 
   )
-
-(use-package py-isort
-  :after python
-  :hook (python-ts-mode . (lambda ()
-                            (add-hook 'before-save-hook
-                                      (lambda ()
-                                        (when (evil-normal-state-p)
-                                          (call-interactively #'py-isort-buffer)))
-                                      nil t))))
 
 
 ;;;;; Latex
@@ -4253,20 +4203,13 @@ If on a:
               (message "Updating table of contents"))
              ((string= "ARCHIVE" (car-safe (org-get-tags)))
               (org-force-cycle-archived))
-             ;; ==========================================
-             ;; [新增逻辑]: 如果当前 Headline 包含链接，优先执行跳转
-             ;; ==========================================
+             ;; Follow the first link in the headline before toggling it.
              ((save-excursion
                 (beginning-of-line)
-                ;; 在当前行搜索任意 Org 链接
-                (re-search-forward org-link-any-re (line-end-position) t))
-              (save-excursion
-                (beginning-of-line)
-                (re-search-forward org-link-any-re (line-end-position) t)
-                ;; 匹配成功后，将光标移回链接头部，调用原生打开命令
-                (goto-char (match-beginning 0))
-                (org-open-at-point)))
-             ;; ==========================================
+                (when (re-search-forward org-link-any-re (line-end-position) t)
+                  (goto-char (match-beginning 0))
+                  (org-open-at-point)
+                  t)))
              ((or (org-element-property :todo-type context)
                   (org-element-property :scheduled context))
               (org-todo
@@ -4314,7 +4257,7 @@ If on a:
       (`statistics-cookie
        (save-excursion (org-update-statistics-cookies nil)))
 
-      ((or `src-block `inline-src-block)
+      (`inline-src-block
        (org-babel-execute-src-block))
 
       ((or `latex-fragment `latex-environment)
@@ -5003,6 +4946,21 @@ Interactively, prompt for the period."
    (list (intern (completing-read "Plan period: " '("day" "week" "month") nil t))))
   (+my/org-plan-toggle period))
 
+(defun +my/org-plan-toggle-day ()
+  "Toggle selected tasks in today's plan."
+  (interactive)
+  (+my/org-plan-toggle 'day))
+
+(defun +my/org-plan-toggle-week ()
+  "Toggle selected tasks in this week's plan."
+  (interactive)
+  (+my/org-plan-toggle 'week))
+
+(defun +my/org-plan-toggle-month ()
+  "Toggle selected tasks in this month's plan."
+  (interactive)
+  (+my/org-plan-toggle 'month))
+
 (use-package org
   :ensure nil
   :commands (+my/open-org-agenda)
@@ -5028,7 +4986,6 @@ Interactively, prompt for the period."
    org-directory (expand-file-name +self/org-base-dir)
    org-ellipsis " ▼ "
    org-babel-python-command "python3"
-   org-bullets-bullet-list '("#")
 
    org-indirect-buffer-display 'current-window
    ;; org-eldoc-breadcrumb-separator " → "
@@ -5260,9 +5217,9 @@ Interactively, prompt for the period."
       "D" '(+my-org/mark-done :wk "Archive to diary")
 
       "v" '(:wk "plan")
-      "vd" '((lambda () (interactive) (+my/org-plan-toggle 'day)) :wk "Today (toggle)")
-      "vw" '((lambda () (interactive) (+my/org-plan-toggle 'week)) :wk "This week (toggle)")
-      "vm" '((lambda () (interactive) (+my/org-plan-toggle 'month)) :wk "This month (toggle)")
+      "vd" '(+my/org-plan-toggle-day :wk "Today (toggle)")
+      "vw" '(+my/org-plan-toggle-week :wk "This week (toggle)")
+      "vm" '(+my/org-plan-toggle-month :wk "This month (toggle)")
       "vh" '(+my/org-plan-history :wk "Review month/year")
 
       "g" '(:wk "goto")
@@ -5603,22 +5560,15 @@ has no effect."
 
   (plist-put org-agenda-clockreport-parameter-plist :maxlevel 3)
   (setq org-agenda-custom-commands
-        '(("p" "Plans"
-           ((tags (+my/org-plan-match 'day)
-                  ((org-agenda-files (+my/org-plan-current-files))
-                   (org-agenda-overriding-header (+my/org-plan-header 'day))
-                   (org-use-property-inheritance nil)
-                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
-            (tags (+my/org-plan-match 'week)
-                  ((org-agenda-files (+my/org-plan-current-files))
-                   (org-agenda-overriding-header (+my/org-plan-header 'week))
-                   (org-use-property-inheritance nil)
-                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
-            (tags (+my/org-plan-match 'month)
-                  ((org-agenda-files (+my/org-plan-current-files))
-                   (org-agenda-overriding-header (+my/org-plan-header 'month))
-                   (org-use-property-inheritance nil)
-                   (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*")))))
+        `(("p" "Plans"
+           (,@(mapcar
+               (lambda (period)
+                 `(tags (+my/org-plan-match ',period)
+                        ((org-agenda-files (+my/org-plan-current-files))
+                         (org-agenda-overriding-header (+my/org-plan-header ',period))
+                         (org-use-property-inheritance nil)
+                         (org-agenda-skip-function '(org-agenda-skip-entry-if 'nottodo '("*"))))))
+               '(day week month))
             (agenda "")
             (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header "Habits")))
             (alltodo "" ((org-agenda-overriding-header "Task Pool (m to mark, , v d/w/m to plan):")
@@ -5635,9 +5585,9 @@ has no effect."
     (local-leader-def
       :keymaps 'org-agenda-mode-map
       "v" '(:wk "plan")
-      "vd" '((lambda () (interactive) (+my/org-plan-toggle 'day)) :wk "Today (toggle)")
-      "vw" '((lambda () (interactive) (+my/org-plan-toggle 'week)) :wk "This week (toggle)")
-      "vm" '((lambda () (interactive) (+my/org-plan-toggle 'month)) :wk "This month (toggle)")
+      "vd" '(+my/org-plan-toggle-day :wk "Today (toggle)")
+      "vw" '(+my/org-plan-toggle-week :wk "This week (toggle)")
+      "vm" '(+my/org-plan-toggle-month :wk "This month (toggle)")
       "vh" '(+my/org-plan-history :wk "Review month/year")
       "d" '(:wk "date/deadline")
       "dd" 'org-agenda-deadline
@@ -5667,11 +5617,10 @@ has no effect."
     (when (and (fboundp 'evil-define-key*)
                (keymapp org-agenda-mode-map))
       (evil-define-key* 'normal org-agenda-mode-map "r" #'org-agenda-redo)))
-  (with-eval-after-load 'org-agenda
-    ;; Apply now, in case evil-collection already set up the mode, and again
-    ;; whenever it sets up a mode later.
-    (my/org-agenda-bind-refresh)
-    (add-hook 'evil-collection-setup-hook #'my/org-agenda-bind-refresh))
+  ;; This runs once org-agenda is loaded: apply now, in case evil-collection
+  ;; already set up the mode, and again whenever it sets up a mode later.
+  (my/org-agenda-bind-refresh)
+  (add-hook 'evil-collection-setup-hook #'my/org-agenda-bind-refresh)
 
   (defun my/org-save-after-command (&rest _)
     "Save Org changes, preserving the old diary and done files, then refresh."
@@ -5685,12 +5634,9 @@ has no effect."
     (when (derived-mode-p 'org-agenda-mode)
       (org-agenda-redo t)))
 
-  (advice-add 'org-agenda-todo :after #'my/org-save-after-command)
-  (advice-add 'org-agenda-clock-in :after #'my/org-save-after-command)
-  (advice-add 'org-agenda-clock-out :after #'my/org-save-after-command)
-  (advice-add 'org-agenda-clock-cancel :after #'my/org-save-after-command)
-  (advice-add 'org-agenda-schedule :after #'my/org-save-after-command)
-  (advice-add 'org-agenda-deadline :after #'my/org-save-after-command)
+  (dolist (command '(org-agenda-todo org-agenda-clock-in org-agenda-clock-out
+                     org-agenda-clock-cancel org-agenda-schedule org-agenda-deadline))
+    (advice-add command :after #'my/org-save-after-command))
 
   (run-with-timer 3 nil
                   (lambda ()
@@ -5722,7 +5668,7 @@ has no effect."
                                    (lambda ()
                                      (setq appt-time-msg-list nil)
                                      (org-agenda-to-appt)))
-                      (add-hook 'org-finalize-agenda-hook 'org-agenda-to-appt) ;; update appt list on agenda view
+                      (add-hook 'org-agenda-finalize-hook 'org-agenda-to-appt) ;; update appt list on agenda view
                       )))
   )
 (use-package org-download
@@ -5754,7 +5700,8 @@ has no effect."
             (with-temp-buffer
               (insert-file-contents org-file)
               (goto-char (point-min))
-              (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]\\]" nil t)
+              ;; Match described links too: [[file:img/a.png][caption]]
+              (while (re-search-forward "\\[\\[file:\\([^]]+\\)\\]" nil t)
                 (let ((path (expand-file-name (match-string 1) current-dir)))
                   (puthash path t referenced-images)))))
 
@@ -5909,9 +5856,7 @@ has no effect."
 
 (use-package css-mode
   :ensure nil
-  :mode ("\\.css\\'" "\\.wxss\\'")
-  :init
-  (add-hook 'css-mode-hook #'rainbow-mode))
+  :mode ("\\.css\\'" "\\.wxss\\'"))
 
 ;; EmmetPac
 (use-package emmet-mode

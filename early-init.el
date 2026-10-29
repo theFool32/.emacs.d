@@ -1,5 +1,14 @@
 ;;; early-init.el --- -*- lexical-binding: t -*-
 
+;; Skip handler lookups while loading, then restore TRAMP, compressed and
+;; encrypted file support.  Keep handlers registered during startup.
+(defvar +my/file-name-handler-alist file-name-handler-alist)
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq file-name-handler-alist
+                  (delete-dups (append file-name-handler-alist
+                                       +my/file-name-handler-alist)))))
+
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.5
       package-enable-at-startup nil
@@ -34,7 +43,8 @@
       frame-inhibit-implied-resize t
       frame-resize-pixelwise t
 
-      load-prefer-newer nil
+      ;; Elpaca builds link to editable sources; never load a stale .elc.
+      load-prefer-newer t
       auto-mode-case-fold nil
 
       bidi-display-reordering 'left-to-right
@@ -56,7 +66,10 @@
 
 ;; Automatically reread from disk if the underlying file changes
 (setq auto-revert-interval 3
-      auto-revert-check-vc-info t)
+      auto-revert-check-vc-info t
+      auto-revert-verbose nil
+      auto-revert-use-notify nil
+      global-auto-revert-non-file-buffers t)
 (global-auto-revert-mode)
 
 (savehist-mode)
