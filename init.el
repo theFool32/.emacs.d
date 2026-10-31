@@ -2869,6 +2869,9 @@ focus-guard which reclaims focus back to the posframe."
              claude-code-ide-clear-selection claude-code-ide-switch-to-buffer)
   :custom
   (claude-code-ide-terminal-backend 'ghostel)
+  ;; Regular windows: they can be split, and two sessions can sit side by
+  ;; side with their own prompt under each.
+  (claude-code-ide-use-side-window nil)
   ;; ESC stays with evil so insert state can be left as usual.  Interrupt
   ;; is `C-c C-c' (ghostel's direct SIGINT), Claude's own ESC equivalent.
   (claude-code-ide-ghostel-evil-escape 'evil)
@@ -2988,7 +2991,7 @@ The profile goes to the CLI as `--settings', overriding
 		   (kbd "C-c C-o") #'+my/claude-compose-focus-terminal))
 
 (defun +my/claude-compose-quit ()
-  "Bury the compose window and clear its buffer."
+  "Hide this prompt's window; it comes back with the session."
   (interactive)
   (erase-buffer)
   (quit-window))
@@ -3032,6 +3035,21 @@ With prefix KEEP, leave the text in the buffer for another edit."
       (claude-code-ide--terminal-send-return))
     (unless keep (erase-buffer))))
 
+(defun +my/claude-compose-buffer-name (session)
+  "Return the compose buffer name belonging to SESSION."
+  (let* ((base (or (claude-code-ide-mcp-session-instance-name session)
+                   (file-name-nondirectory
+                    (directory-file-name
+                     (claude-code-ide-mcp-session-project-dir session)))))
+         (name (format "*claude-prompt[%s]*" base))
+         (existing (get-buffer name)))
+    (if (and existing
+             (not (eq (buffer-local-value '+my/claude-compose-session existing)
+                      session)))
+        (format "*claude-prompt[%s-%s]*" base
+                (substring (claude-code-ide-mcp-session-session-id session) 0 8))
+      name)))
+
 (defun +my/claude-compose (&optional session)
   "Compose a prompt for this project's Claude session in a buffer.
 
@@ -3039,24 +3057,27 @@ Opens automatically when a session starts; call it to get the input
 buffer back after closing it."
   (interactive)
   (let* ((session (or session
+                      (bound-and-true-p +my/claude-compose-session)
                       (claude-code-ide--resolve-session
                        'auto "Compose to Claude instance: ")))
 	 (cwd (claude-code-ide-mcp-session-project-dir session))
-	 (buffer (get-buffer-create "*claude-prompt*")))
-    ;; Claude lives in a side window, which cannot be split.  Stack this
-    ;; buffer in the next slot on the same side so it sits by Claude
-    ;; whatever the rest of the frame looks like.
-    (select-window
-     (display-buffer
-      buffer
-      (if claude-code-ide-use-side-window
-          `((display-buffer-in-side-window)
-            (side . ,claude-code-ide-window-side)
-            (slot . ,(1+ (or (claude-code-ide-mcp-session-window-slot session) 0)))
-            (window-height . 10)
-            (window-width . ,claude-code-ide-window-width)
-            (window-parameters . ((no-delete-other-windows . t))))
-	'((display-buffer-below-selected) (window-height . 10)))))
+	 (shell (claude-code-ide-mcp-session-buffer session))
+	 (buffer (get-buffer-create (+my/claude-compose-buffer-name session)))
+	 (shell-window (and (buffer-live-p shell) (get-buffer-window shell)))
+	 (visible (get-buffer-window buffer))
+	 (+my/claude-compose--busy t))
+    ;; Split the session's own window so the prompt always sits right
+    ;; under the Claude instance it belongs to.
+    (cond (visible (select-window visible))
+          ((and shell-window (>= (window-height shell-window) 8))
+           ;; SIZE names the remaining height of the split window, so the
+           ;; prompt gets the last lines: ten at most, four when cramped.
+           (let* ((height (window-height shell-window))
+                  (size (max 4 (min 10 (/ height 3)))))
+             (select-window (split-window shell-window (- height size) 'below))
+             (switch-to-buffer buffer)))
+          (t (pop-to-buffer buffer '((display-buffer-below-selected)
+                                     (window-height . 10)))))
     (setq default-directory cwd)
     (erase-buffer)
     (+my/claude-compose-mode 1)
@@ -3099,6 +3120,37 @@ buffer back after closing it."
 
 (advice-add 'claude-code-ide--apply-ghostel-evil-escape :around
             #'+my/claude-compose-on-start)
+
+(defvar +my/claude-compose--busy nil
+  "Non-nil while the compose window is being set up.
+
+Selecting a window runs the package's window-selection bookkeeping,
+which can display the Claude buffer and re-enter this advice.")
+
+(defun +my/claude-compose-on-switch (orig buffer &rest args)
+  "Bring an existing compose window back when BUFFER is shown again."
+  (prog1 (apply orig buffer args)
+    (when-let* (((not +my/claude-compose--busy))
+                (session (claude-code-ide--buffer-session buffer))
+                (compose (get-buffer (+my/claude-compose-buffer-name session)))
+                ((not (eq (get-buffer-window compose) (selected-window)))))
+      (let ((+my/claude-compose--busy t))
+        (+my/claude-compose session)))))
+
+(advice-add 'claude-code-ide--display-buffer-in-side-window :around
+            #'+my/claude-compose-on-switch)
+
+(defun +my/claude-compose-cleanup (orig session &rest args)
+  "Drop SESSION's compose buffer when the session is cleaned up."
+  (let ((name (ignore-errors (+my/claude-compose-buffer-name session))))
+    (prog1 (apply orig session args)
+      (when-let* ((buffer (and name (get-buffer name))))
+        (when-let* ((window (get-buffer-window buffer)))
+          (quit-window nil window))
+        (kill-buffer buffer)))))
+
+(advice-add 'claude-code-ide--cleanup-session :around
+            #'+my/claude-compose-cleanup)
 
 ;;; UI
 ;;;; UI-config
