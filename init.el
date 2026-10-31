@@ -2480,6 +2480,12 @@ kill all magit buffers for this repo."
   (ghostel-enable-title-tracking nil)
   ;; Shrinking fallback glyphs to fit a cell makes CJK tiny and squished.
   (ghostel-glyph-scale-floor 1.0)
+  ;; Emacs has been crashing inside GC's interval marking while Claude's TUI
+  ;; streamed output through the process filter.  Keep every redraw on the
+  ;; coalescing timer instead of doing it inside the filter, and halve the
+  ;; scrollback each terminal materializes (fewer property intervals to mark).
+  (ghostel-immediate-redraw-interval 0.0)
+  (ghostel-max-scrollback (* 2 1024 1024))
   :config
   (setq-default ghostel-glyph-scale-floor 1.0)
   ;; `corfu--on' skips read-only buffers and the major-mode switch happens
