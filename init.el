@@ -3615,7 +3615,12 @@ Use Evil's delete registers and support repeating with `.'."
           (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
           (json "https://github.com/tree-sitter/tree-sitter-json")
           (make "https://github.com/alemuller/tree-sitter-make")
-          (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+          (markdown "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+                    :commit "413285231ce8fa8b11e7074bbe265b48aa7277f9"
+                    :source-dir "tree-sitter-markdown/src")
+          (markdown-inline "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
+                           :commit "413285231ce8fa8b11e7074bbe265b48aa7277f9"
+                           :source-dir "tree-sitter-markdown-inline/src")
           (python "https://github.com/tree-sitter/tree-sitter-python")
           (toml "https://github.com/tree-sitter/tree-sitter-toml")
           (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
@@ -5810,16 +5815,111 @@ has no effect."
   )
 
 ;;;;; Markdown
-(use-package markdown-mode
-  :defer t
-  :mode ("\\.md\\'" . markdown-mode)
-  :init
-  (setq markdown-fontify-code-blocks-natively t)
+;; `markdown-mode' is intentionally not installed: its autoloads prepend a
+;; `\\.md\\'' entry to `auto-mode-alist' after init runs, shadowing this one.
+(use-package markdown-ts-mode
+  :ensure nil
+  :mode ("\\.\\(?:md\\|markdown\\|mkd\\|mdown\\|mkdn\\|mdwn\\|mdx\\)\\'"))
+
+;; Some packages still `require' `markdown-mode', whose autoloads prepend a
+;; shadowing `\\.md\\'' entry when Elpaca activates them.  Runs after Elpaca's
+;; own `after-init-hook' entry, so this association always wins.
+(add-hook 'after-init-hook
+          (lambda ()
+            ;; `alist-get' with `equal': same key, so overwrite in place.
+            (setf (alist-get "\\.\\(?:md\\|markdown\\|mkd\\|mdown\\|mkdn\\|mdwn\\|mdx\\)\\'"
+                             auto-mode-alist nil nil #'equal)
+                  'markdown-ts-mode)))
+
+(use-package markdown-ts-appear
+  :ensure (:repo "https://github.com/Thysrael/markdown-ts-appear")
+  :hook (markdown-ts-mode . markdown-ts-appear-mode)
   :config
-  (add-to-list 'markdown-code-lang-modes '("python" . python-ts-mode))
-  )
+  ;; Emacs 32 merged `markdown-ts-mode' per-node fontifiers
+  ;; (`fontify-atx-heading', `fontify-setext-heading',
+  ;; `fontify-unordered-list-marker') into `fontify-heading' and
+  ;; `fontify-delimiter', so retarget the package's advice (it still
+  ;; expects the Emacs 31 names).
+  (setq markdown-ts-appear--visible-fontifiers
+        '(markdown-ts--fontify-heading
+          markdown-ts--fontify-link-ref-label
+          markdown-ts--fontify-link-ref-destination
+          markdown-ts--fontify-checkbox
+          markdown-ts--fontify-autolink
+          markdown-ts--fontify-backslash-escape
+          markdown-ts--fontify-entity
+          markdown-ts--fontify-hard-line-break
+          markdown-ts--fontify-thematic-break))
+  (setq markdown-ts-appear--advice-bindings
+        (append
+         '((markdown-ts--fontify-delimiter . markdown-ts-appear--fontify-delimiter)
+           (markdown-ts--fontify-link-destination . markdown-ts-appear--fontify-link-destination)
+           (markdown-ts--fontify-link-node . markdown-ts-appear--fontify-link)
+           (markdown-ts--fontify-image . markdown-ts-appear-image--fontify)
+           (markdown-ts--fontify-latex-block . markdown-ts-appear--fontify-node)
+           (line-move . markdown-ts-appear-table--line-move))
+         (mapcar (lambda (function)
+                   (cons function 'markdown-ts-appear--fontify-visible-markup))
+                 markdown-ts-appear--visible-fontifiers)))
+  (add-to-list 'markdown-ts-code-block-modes '(python . python-ts-mode))
+  ;; U+2500 is ambiguous-width and renders double-width in CJK fonts, so the
+  ;; full-width rule built by `markdown-ts--fontify-thematic-break' overflows
+  ;; the window.  Use ASCII hyphens, which are always width 1.
+  (setq markdown-ts-thematic-break-character '(?- . ?-)))
 
+(defun +my/left-decoration-width (window)
+  "Return the display width in columns of WINDOW's left decorations.
+That is line numbers and margins: what `window-body-width' counts but
+the rule must not draw over.  Measured against a visible line, because
+`posn-at-point' on a blank line reports the preceding newline and on a
+display string reports the start of the string (which is fine here:
+its column minus the buffer column is exactly the decoration width)."
+  (save-excursion
+    (goto-char (window-start window))
+    (while (and (< (point) (window-end window t)) (eolp))
+      (forward-line 1))
+    (unless (< (point) (window-end window t))
+      (goto-char (window-start window))
+      (while (and (> (point) (point-min)) (eolp))
+        (forward-line -1)))
+    (let* ((pos (min (1+ (line-beginning-position)) (point-max)))
+           (measured
+            (and (not (eolp))
+                 (when-let* ((posn (posn-at-point pos window)))
+                   (- (car (posn-col-row posn))
+                      (save-excursion (goto-char pos) (current-column)))))))
+      (max 0 (if (and measured (< 0 measured) (< measured (window-body-width)))
+                 measured
+               (line-number-display-width))))))
 
+(defun +my/markdown-ts-rule-fit (function node &rest args)
+  "Keep the rule drawn by `markdown-ts--fontify-thematic-break' on one line.
+It emits `window-body-width' characters plus a newline, ignoring the
+column where the rule starts and putting the newline one past the edge,
+so the rule always wraps.  Rebuild the display to end at the edge."
+  (prog1 (apply function node args)
+    (when-let* ((start (treesit-node-start node))
+                (display (get-text-property start 'display))
+                ((stringp display))
+                ((> (length display) 1))
+                ((equal (substring display -1) "\n")))
+      (let* ((char (aref display 0))
+             (indent (save-excursion (goto-char start) (current-column)))
+             (col (+ indent (+my/left-decoration-width (selected-window))))
+             (width (- (window-body-width) col 1)))
+        (when (> width 0)
+          (put-text-property start (treesit-node-end node) 'display
+                             (concat (make-string width char) "\n")))))))
+
+(advice-add 'markdown-ts--fontify-thematic-break :around
+            #'+my/markdown-ts-rule-fit)
+
+;; Rules are sized from the gutter at fontification time; re-render them when
+;; line numbers are toggled.
+(add-hook 'display-line-numbers-mode-hook
+          (lambda ()
+            (when (derived-mode-p 'markdown-ts-mode)
+              (font-lock-flush))))
 
 ;;;;; Web
 (use-package web-mode
