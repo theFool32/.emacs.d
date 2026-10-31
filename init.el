@@ -203,37 +203,11 @@ Keep dependency ordering, conditions, bindings, and mode hooks intact."
 
 (mapc
  (lambda (p) (add-to-list 'elpaca-ignored-dependencies p))
- '(xref tramp eglot use-package project org xref recentf winner
+ '(xref tramp eglot use-package project org recentf winner
         tramp-sh flymake simple diff-mode smerge-mode python css-mode custom
         server help elec-pair paren tab-bar hl-line pulse prog-mode
         lisp-mode treesit imenu eldoc))
 
-;;  HACK: currently `elpaca' will check the version of dependency while some packages do not provide. skip it with a larger default version
-(defun elpaca--check-version (e)
-  "Ensure E's dependency versions are met."
-  (cl-loop
-   initially (elpaca--signal e "Checking dependency versions")
-   with queued = (elpaca--queued)
-   with version-regexp-alist = ;; Handle -dev, -DEV, etc. Why isn't this default?
-   (append version-regexp-alist '(("\\(?:-[[:alpha:]]+\\)" . -1)))
-   for (id need) in (elpaca--dependencies e)
-   for min = (version-to-list need)
-   for datep = (> (car min) elpaca--date-version-schema-min) ;; YYYYMMDD version.
-   for dep = (elpaca-alist-get id queued)
-   for core = (unless dep (elpaca-alist-get id package--builtin-versions))
-   for version = (cond (core (if datep elpaca-core-date core))
-                       ((memq id elpaca-ignored-dependencies) 'skip)
-                       ((null dep) (cl-return (elpaca--fail e (format "Missing dependency %s" id))))
-                       (datep (version-to-list (elpaca--commit-date dep)))
-                       (t (version-to-list (or (elpaca--declared-version dep) "999"))))
-   unless (eq version 'skip)
-   when (or (and core (version-list-< version min))
-            (and (version-list-< version min)
-                 (let ((tag (elpaca-latest-tag dep)))
-                   (or (null tag) (version-list-< (version-to-list tag) min)))))
-   do (cl-return (elpaca--fail e (format "%s installed version %s lower than min required %s"
-                                         id version need))))
-  (elpaca--continue-build e))
 ;; Block until current queue processed.
 (elpaca-wait)
 
@@ -724,7 +698,7 @@ save the source and diary."
     "" nil
     ;; "<SPC>" '(execute-extended-command :wk "M-x")
     "<SPC>" '(switch-to-buffer :wk "Switch buffer") ;; maybe `switch-to-buffer' is used more frequently
-    "/" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
+    "/" '((lambda() (interactive) (+my/consult-ripgrep default-directory)) :wk "Search here")
     "?" '(+consult-ripgrep-at-point :wk "Search symbol here")
     "." '(find-file :wk "Find file")
     ":" '(pp-eval-expression :wk "Evil expression")
@@ -769,9 +743,9 @@ save the source and diary."
     "s" '(:wk "Search")
     "sb" '((lambda () (interactive) (+my/consult-line t)) :wk "Search buffer")
     "si" '(+my/imenu :wk "Jump to symbol")
-    "sp" '(consult-ripgrep :wk "Search project")
+    "sp" '(+my/consult-ripgrep :wk "Search project")
     "sT" '(load-theme :wk "Load theme")
-    "sh" '((lambda() (interactive) (consult-ripgrep default-directory)) :wk "Search here")
+    "sh" '((lambda() (interactive) (+my/consult-ripgrep default-directory)) :wk "Search here")
     "sd" '(devdocs-lookup-at-point :wk "Search devdocs")
     "sD" '(devdocs-search-at-point :wk "Search devdocs")
     "sg" '(+my/google-it :wk "Google")
@@ -1093,7 +1067,7 @@ save the source and diary."
 
   (dolist (fn (list #'kill-current-buffer #'+my/imenu #'+my/consult-line
                     #'find-file #'consult-fd #'consult-ripgrep
-                    #'+consult-ripgrep-at-point
+                    #'+my/consult-ripgrep #'+consult-ripgrep-at-point
                     ;; Use `better-jumper' instead of xref's marker stack
                     #'xref-push-marker-stack))
     (advice-add fn :around #'doom-set-jump-a))
@@ -1149,7 +1123,6 @@ save the source and diary."
   :init
   (setq prefix-help-command #'embark-prefix-help-command)
   :config
-  ;;  HACK: bind will be override by evil
   (general-define-key :states '(normal insert visual emacs)
                       "C-." 'embark-act
                       "M-." 'embark-dwim
@@ -1363,14 +1336,29 @@ targets."
                                                           (?h "Headings"  font-lock-doc-face)
                                                           (?v "Variables" font-lock-variable-name-face))))))
 
+  (defun +my/consult-history-regexp (history)
+    "Return the searchable part of the newest entry of HISTORY.
+Grep history entries are prefixed with `#' and may carry a second
+`#' before a filter; only the part handed to grep is a regexp."
+    (let ((input (car-safe history)))
+      (when (stringp input)
+        (setq input (string-trim
+                     (if (string-prefix-p "#" input) (substring input 1) input)))
+        (if-let* ((end (string-match "#" input)))
+            (string-trim (substring input 0 end))
+          input))))
+
   (defun +my/consult-set-evil-search-pattern (&optional condition)
+    "Repeat the last search with `n' and `N'.
+Use the grep history when CONDITION is `rg', the line history otherwise."
     (let ((re (if (eq condition 'rg)
-                  (substring (car consult--grep-history) 1) ;; HACK: assume the history begins with `#'
-                (car consult--line-history))))
-      (add-to-history 'evil-ex-search-history re)
-      (setq evil-ex-search-pattern (list re t t))
-      (setq evil-ex-search-direction 'forward)
-      (anzu-mode t)))
+                  (+my/consult-history-regexp consult--grep-history)
+                (car-safe consult--line-history))))
+      (when (and (stringp re) (not (string-empty-p re)))
+        (add-to-history 'evil-ex-search-history re)
+        (setq evil-ex-search-pattern (list re t t))
+        (setq evil-ex-search-direction 'forward)
+        (anzu-mode t))))
 
   (defun +my/consult-line (&optional symbol)
     "Search the buffer with `consult-line'.
@@ -1383,17 +1371,25 @@ With SYMBOL, search for the symbol at point."
   (setq consult-ripgrep-args
         "rga --null --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --with-filename --line-number --search-zip")
 
+  (defun +my/consult-ripgrep (&optional dir initial)
+    "Search DIR with ripgrep, then repeat it with `n' and `N'."
+    (interactive "P")
+    (consult-ripgrep dir initial)
+    (+my/consult-set-evil-search-pattern 'rg))
+
   (defun +consult-ripgrep-at-point (&optional dir initial)
     (interactive (list prefix-arg (when-let* ((s (symbol-at-point)))
                                     (symbol-name s))))
-    (consult-ripgrep dir initial))
+    (consult-ripgrep dir initial)
+    (+my/consult-set-evil-search-pattern 'rg))
 
-  ;; HACK add `ignore' according to upstream, wihout meaning
-  (defun consult--orderless-regexp-compiler (input type &rest _config)
+  ;; HACK: consult has no orderless integration; compile the query with
+  ;; orderless and hand the result to consult's highlighter.
+  (defun consult--orderless-regexp-compiler (input type ignore-case &rest _config)
     (setq input (cdr (orderless-compile input)))
     (cons
      (mapcar (lambda (r) (consult--convert-regexp r type)) input)
-     (lambda (str) (orderless--highlight input t str))))
+     (lambda (str) (orderless--highlight input ignore-case str))))
   (defun consult--with-orderless (&rest args)
     (minibuffer-with-setup-hook
         (lambda ()
@@ -2461,7 +2457,12 @@ kill all magit buffers for this repo."
                                   ;; strings and comments.
                                   (lambda ()
                                     (and (rime-predicate-prog-in-code-p)
-                                         (not (derived-mode-p 'web-mode)))) ;;  HACK: not for html-mode
+                                         ;; `syntax-ppss' cannot tell markup
+                                         ;; from code in web-mode; only keep
+                                         ;; ascii in its script/style parts.
+                                         (not (and (derived-mode-p 'web-mode)
+                                                   (equal (web-mode-language-at-pos)
+                                                          web-mode-content-type)))))
                                   ;; Space-separated mixed text: English
                                   ;; after a Chinese char plus space, and
                                   ;; Chinese again after an English word's
@@ -3482,19 +3483,33 @@ buffer back after closing it."
   ;; Write in Chinese by default (Rime when enabled).  Evil turns the
   ;; input method off in normal state and back on in insert state.
   (when default-input-method
-    (activate-input-method default-input-method)
-    ;; Emacs leaves this nil for methods with an activation function,
-    ;; such as Rime's, and `eval' state tracking relies on it.
-    (when (fboundp 'rime-input-method)
-      (setq-local current-input-method default-input-method)
-      ;; A candidate posframe costs several ms per key here (child frame,
-      ;; font, placement); the echo-area overlay is an order of magnitude
-      ;; cheaper and the prompt is short.
-      (setq-local rime-show-candidate 'minibuffer))
-    (when (boundp 'rime-disable-predicates)
-      (setq-local rime-disable-predicates
-                  (cons #'+my/claude-rime-command-key-p
-                        rime-disable-predicates))))
+    ;; Rime is autoloaded on `toggle-input-method', but the activation
+    ;; below does not load it: on a fresh session the method is not
+    ;; registered yet and the first keystrokes stay ascii.  Load the
+    ;; package and its module now, without letting a broken Rime take the
+    ;; compose buffer down with it.
+    (condition-case err
+        (progn
+          (when (string= default-input-method "rime")
+            (require 'rime nil t)
+            (when (fboundp 'rime--load-dynamic-module)
+              (unless (bound-and-true-p rime--lib-loaded)
+                (rime--load-dynamic-module))))
+          (activate-input-method default-input-method)
+          ;; Emacs leaves this nil for methods with an activation
+          ;; function, such as Rime's, and `eval' state tracking relies
+          ;; on it.
+          (when (fboundp 'rime-input-method)
+            (setq-local current-input-method default-input-method)
+            ;; A candidate posframe costs several ms per key here (child
+            ;; frame, font, placement); the echo-area overlay is an order
+            ;; of magnitude cheaper and the prompt is short.
+            (setq-local rime-show-candidate 'minibuffer))
+          (when (boundp 'rime-disable-predicates)
+            (setq-local rime-disable-predicates
+                        (cons #'+my/claude-rime-command-key-p
+                              rime-disable-predicates))))
+      (error (message "Rime unavailable: %s" err))))
   ;; Keep the keys on screen; the lighters alone are easy to forget.
   (setq-local header-line-format '(:eval (+my/claude-compose--header))))
 
@@ -4796,8 +4811,6 @@ Use Evil's delete registers and support repeating with `.'."
                    :build (:not elpaca--compile-info) ;; Make will take care of this step
                    :files ("*.el" "doc/*.info*" "etc" "images" "latex" "style")
                    :version (lambda (_) (require 'tex-site) AUCTeX-version))
-  ;;  FIXME: not work
-  :mode ("\\.tex\\'" . LaTeX-mode)
   :hook (LaTeX-mode . outline-minor-mode)
   :custom
   (TeX-insert-braces nil)
@@ -5168,7 +5181,6 @@ If on a:
   "Update counts in headlines (aka \"cookies\")."
   (when (and buffer-file-name (file-exists-p buffer-file-name))
     (let (org-hierarchical-todo-statistics)
-      ;; (org-update-parent-todo-statistics) ;; HACK: it does not work to update statistics while the below one works
       (call-interactively 'org-update-statistics-cookies))))
 
 ;;;###autoload
@@ -5327,7 +5339,21 @@ If prefix ARG, copy instead of move."
 
 (defconst +org-todo-keywords-for-agenda
   '("CANCELED" "DONE" "WAITING" "WIP" "PROJ" "TODO" "UNDONE")
-  "TODO keywords restored after Org rebuilds the agenda keyword list.")
+  "TODO keywords in the order the agenda should offer them.
+
+`org-agenda' rebuilds `org-todo-keywords-for-agenda' from the agenda
+files, possibly in another order, and calfw only filters entries when
+it is non-nil.  Seed it once so both start from the same list.")
+
+(setq org-todo-keywords-for-agenda +org-todo-keywords-for-agenda)
+
+;; The list also orders `C-u N org-todo-list'; put the preferred order back
+;; after every rebuild, including `r' refreshes.
+(defun +my/org-restore-agenda-todo-keywords (&rest _)
+  "Restore the agenda keyword list after `org-agenda' rebuilt it."
+  (setq org-todo-keywords-for-agenda +org-todo-keywords-for-agenda))
+
+(advice-add 'org-agenda :after #'+my/org-restore-agenda-todo-keywords)
 
 ;; Select plans on the original task instead of copying TODO entries.
 (defconst +my/org-plan-specs
@@ -5812,13 +5838,6 @@ otherwise add them all.  Task states and scheduling stay independent."
              (if remove "Removed" "Added") (length markers)
              (if remove "from" "to") value)))
 
-(defun +my/org-plan-toggle-period (period)
-  "Toggle selected tasks in PERIOD's plan.
-Interactively, prompt for the period."
-  (interactive
-   (list (intern (completing-read "Plan period: " '("day" "week" "month") nil t))))
-  (+my/org-plan-toggle period))
-
 (defun +my/org-plan-toggle-day ()
   "Toggle selected tasks in today's plan."
   (interactive)
@@ -6283,9 +6302,7 @@ Reveal the entry and return non-nil if it could be located."
   (defun +my/open-org-agenda ()
     "open org agenda in left window"
     (interactive)
-    (org-agenda nil "p")
-    ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
-    (setq org-todo-keywords-for-agenda +org-todo-keywords-for-agenda))
+    (org-agenda nil "p"))
 
   ;; inherit schedule time from parent
   (defun my-org-insert-sub-task ()
@@ -6617,16 +6634,12 @@ has no effect."
   :config
   (require 'calfw-org)
 
-  ;;  HACK: open `org-agenda' will clean `org-todo-keywords-for-agenda'
-  (advice-add #'cfw:open-org-calendar :before
-              (lambda (&optional _)
-                (setq org-todo-keywords-for-agenda +org-todo-keywords-for-agenda)))
-  (advice-add #'cfw:refresh-calendar-buffer :before
-              (lambda (&optional _)
-                (setq org-todo-keywords-for-agenda +org-todo-keywords-for-agenda)))
+  ;; `cfw:face-today' is only used by the classic style; the default
+  ;; `modern' style marks the header with `cfw:modern-today' instead.  A
+  ;; background here would mask the TODO keyword backgrounds underneath.
   (custom-set-faces
    '(cfw:face-today ((((class color) (background light))
-                      :background "#C3DEEF") ;;  HACK: background conflicts with face of `TODO' keyword
+                      :foreground "#a84c1b" :weight bold)
                      (((class color) (background dark))
                       :foreground "Cyan" :weight bold))))
   )
