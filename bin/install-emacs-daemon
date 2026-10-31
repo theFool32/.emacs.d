@@ -90,7 +90,8 @@ def daemon_pid(client, ready=False):
 
 
 def restart_blockers(client):
-    # Scratch and generated views are disposable; real files and ordinary
+    # Scratch and generated views are disposable, and Claude Code terminals are
+    # closed by `stop_claude_sessions' before exit; real files and ordinary
     # untitled user buffers remain protected. Report what actually blocked exit.
     reply = evaluate(client, r'''(let (blockers)
       (when (bound-and-true-p org-clock-current-task)
@@ -103,7 +104,8 @@ def restart_blockers(client):
                               (not (derived-mode-p 'special-mode))
                               (not (string-match-p "\\`[ *]" (buffer-name))))))
             (push (concat "Unsaved buffer: " (buffer-name)) blockers))
-          (when (and (get-buffer-process buffer)
+          (when (and (not (string-match-p "\\`\\*claude-code\\[" (buffer-name)))
+                     (get-buffer-process buffer)
                      (process-live-p (get-buffer-process buffer))
                      (derived-mode-p 'term-mode 'vterm-mode 'shell-mode 'eshell-mode 'ghostel-mode))
             (push (concat "Active terminal: " (buffer-name)) blockers))))
@@ -118,6 +120,44 @@ def restart_blockers(client):
     if not isinstance(blockers, list) or not all(isinstance(item, str) for item in blockers):
         raise RuntimeError("Invalid restart safety check; no restart was attempted")
     return blockers
+
+
+def stop_claude_sessions(client):
+    """Close Claude Code terminals and wait for their processes to exit.
+
+    The TUIs are disposable, and leaving them live makes `kill-emacs' ask
+    \"Ghostel buffers with running processes ... exit anyway?\" in a
+    minibuffer the captured client cannot answer. Returns how many were
+    stopped."""
+    reply = evaluate(client, r'''(let ((buffers (cl-remove-if-not
+             (lambda (buffer)
+               (and (with-current-buffer buffer (derived-mode-p 'ghostel-mode))
+                    (string-match-p "\\`\\*claude-code\\[" (buffer-name buffer))))
+             (buffer-list))))
+      (when buffers
+        ;; Both the kill-buffer and the kill-emacs confirmation prompts are
+        ;; answered here, not by a person at a minibuffer.
+        (let ((inhibit-message t))
+          (cl-letf (((symbol-function 'yes-or-no-p) #'always)
+                    ((symbol-function 'y-or-n-p) #'always))
+            (dolist (buffer buffers)
+              (when (buffer-live-p buffer)
+                (kill-buffer buffer))))
+          (let ((deadline (+ (float-time) 5)))
+            (while (and (< (float-time) deadline)
+                        (seq-some (lambda (buffer)
+                                    (let ((process (and (buffer-live-p buffer)
+                                                        (get-buffer-process buffer))))
+                                      (and process (process-live-p process))))
+                                  buffers))
+              (accept-process-output nil 0.1)))))
+      (json-encode (length buffers))))''')
+    if reply is None:
+        raise RuntimeError("Cannot close Claude Code terminals; no restart was attempted")
+    try:
+        return int(json.loads(reply))
+    except (TypeError, ValueError) as error:
+        raise RuntimeError(f"Unexpected session shutdown response: {reply!r}") from error
 
 
 def wait_for_exit(pid):
@@ -287,6 +327,9 @@ def main():
         if blockers:
             raise RuntimeError("Restart cancelled; save modified buffers and finish active sessions:\n  "
                                + "\n  ".join(blockers))
+        stopped = stop_claude_sessions(client)
+        if stopped:
+            print(f"Closed {stopped} Claude Code terminal{'' if stopped == 1 else 's'}.", flush=True)
 
     backup_root = config_root / "var/desktop-backups"
     backup_root.mkdir(parents=True, exist_ok=True)
@@ -313,7 +356,12 @@ def main():
     if args.restart:
         if state == "1":
             print(f"Restarting Emacs PID {previous_pid}; *scratch* is disposable.", flush=True)
-            evaluate(client, "(kill-emacs)")
+            # A ghostel buffer can still appear between the safety check and
+            # here; its prompt would stall the captured client.
+            evaluate(client, """(let ((kill-emacs-query-functions
+                                   (delq 'ghostel--kill-emacs-query
+                                         kill-emacs-query-functions)))
+                               (kill-emacs))""")
             wait_for_exit(previous_pid)
         if registered:
             remove_service(service)

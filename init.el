@@ -10,7 +10,10 @@
 (add-hook 'emacs-startup-hook
           (lambda ()
             "Recover GC values after startup."
-            (setq gc-cons-percentage 0.1)))
+            ;; gcmh collects whenever Emacs goes idle; while typing, this
+            ;; base keeps collections (and their pauses) rare.
+            (setq gc-cons-threshold (* 4 1024 1024)
+                  gc-cons-percentage 0.1)))
 
 ;; Some packages do not declare a binding dialect; keep their sources intact.
 (require 'warnings)
@@ -855,6 +858,9 @@ save the source and diary."
     "ac" '(+my/claude-ide :wk "Claude")
     "aC" '(claude-code-ide-menu :wk "Claude menu")
     "aR" '(+my/claude-ide-resume :wk "Claude resume")
+    "ae" '(+my/claude-compose :wk "Claude prompt")
+    "ai" '(+my/claude-compose-add-ref :wk "Claude mention")
+    "at" '(claude-code-ide-toggle :wk "Claude toggle")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
@@ -1578,7 +1584,9 @@ TYPES is the mode-specific types configuration."
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-auto t)                 ;; Enable auto completion
   (corfu-auto-prefix 1)
-  (corfu-auto-delay 0.01)
+  ;; Fires between almost every keystroke at 0.01; 0.15 only runs the CAPF
+  ;; chain once typing pauses.
+  (corfu-auto-delay 0.15)
   (corfu-quit-no-match 'separator)        ;; Automatically quit if there is no match
   (corfu-on-exact-match 'quit)
   (corfu-preselect 'prompt) ;; Always preselect the prompt
@@ -2449,12 +2457,16 @@ kill all magit buffers for this repo."
   (define-key rime-mode-map (kbd "M-k") 'rime-inline-ascii)
 
   (setq rime-disable-predicates '(rime-predicate-evil-mode-p
+                                  ;; `prog-in-code-p' already excludes
+                                  ;; strings and comments.
                                   (lambda ()
                                     (and (rime-predicate-prog-in-code-p)
-                                         (not (rime-predicate-in-code-string-p))
-                                         (not (derived-mode-p 'web-mode)) ;;  HACK: not for html-mode
-                                         ))
-                                  rime-predicate-after-ascii-char-p))
+                                         (not (derived-mode-p 'web-mode)))) ;;  HACK: not for html-mode
+                                  ;; Space-separated mixed text: English
+                                  ;; after a Chinese char plus space, and
+                                  ;; Chinese again after an English word's
+                                  ;; space.  A bare space flips the language.
+                                  rime-predicate-auto-english-p))
   )
 
 ;;;; Shell
@@ -2872,14 +2884,117 @@ focus-guard which reclaims focus back to the posframe."
   ;; Regular windows: they can be split, and two sessions can sit side by
   ;; side with their own prompt under each.
   (claude-code-ide-use-side-window nil)
-  ;; The TUI must not strobe while a turn runs.
-  (claude-code-ide-no-flicker t)
+  ;; Inline renderer: the whole transcript stays in the buffer, so evil
+  ;; motions and search reach past the current screen.  The fullscreen
+  ;; renderer only works around vterm/eat flicker; under ghostel the
+  ;; jitter came from uneven row heights (see `+my/claude-terminal-setup').
+  (claude-code-ide-no-flicker nil)
   ;; ESC stays with evil so insert state can be left as usual.  Interrupt
   ;; is `C-c C-c' (ghostel's direct SIGINT), Claude's own ESC equivalent.
   (claude-code-ide-ghostel-evil-escape 'evil)
   :bind (("C-c C-'" . claude-code-ide-menu))
   :config
   (claude-code-ide-emacs-tools-setup))
+
+(defun +my/claude-terminal-p ()
+  "Return non-nil in a Claude Code terminal buffer."
+  (string-prefix-p "*claude-code[" (buffer-name)))
+
+;; Rows only stay put when every glyph has the same height.  With the
+;; Latin and CJK fonts mixed, `✻'/`⏺'/CJK rows are taller than `✽'/`·'
+;; rows, so the spinner alone resizes its row each frame and ghostel
+;; re-anchors the whole screen up and down.  One font covering both keeps
+;; every row equal; whatever it lacks may shrink into the cell.
+(defun +my/claude-terminal-setup ()
+  "Set up a Claude terminal: one font, and follow output unless reading."
+  (when (+my/claude-terminal-p)
+    (face-remap-add-relative 'default :family "Sarasa Term SC")
+    (setq-local ghostel-glyph-scale-floor 0.0)
+    (add-hook 'post-command-hook #'+my/claude-terminal--track-reading nil t)))
+
+(add-hook 'ghostel-mode-hook #'+my/claude-terminal-setup)
+
+;; Typing goes to the prompt buffer; the terminal is for reading, so open
+;; it in normal state instead of ghostel's usual insert state.  The
+;; prompt is the other way round.
+(with-eval-after-load 'evil
+  (add-to-list 'evil-buffer-regexps '("\\`\\*claude-code\\[" . normal))
+  (add-to-list 'evil-buffer-regexps '("\\`\\*claude-prompt\\[" . insert)))
+
+;; In normal state evil-ghostel stops the window from following output
+;; as soon as point is off the live cursor, which is at once since point
+;; does not move with the output there.  Follow unless the user is
+;; actually reading above the live output.  Ghostel only re-anchors
+;; windows that are still at the bottom, so returning to the output
+;; scrolls back explicitly.
+(defvar-local +my/claude-terminal--reading nil
+  "Non-nil while the user reads the scrollback of a Claude terminal.")
+
+(defun +my/claude-terminal-follow ()
+  "Scroll this Claude terminal back to its live output and keep following."
+  (setq +my/claude-terminal--reading nil)
+  (dolist (window (get-buffer-window-list (current-buffer) nil t))
+    (ghostel--anchor-window window t)))
+
+(defun +my/claude-terminal--track-reading ()
+  "Read while point is above the live cursor's row; follow otherwise."
+  (when-let* (((not (eq this-command 'mwheel-scroll)))
+              (cursor (bound-and-true-p ghostel--cursor-char-pos))
+              (row (save-excursion
+                     (goto-char (min cursor (point-max)))
+                     (line-beginning-position))))
+    (cond ((< (point) row)
+           (setq +my/claude-terminal--reading t))
+          (+my/claude-terminal--reading
+           (+my/claude-terminal-follow)))))
+
+(defun +my/claude-terminal--after-wheel (event &rest _)
+  "Read while EVENT's wheeling leaves a Claude terminal off the bottom."
+  (let ((window (posn-window (event-start event))))
+    (when (window-live-p window)
+      (with-current-buffer (window-buffer window)
+        (when (+my/claude-terminal-p)
+          (if (ghostel--window-anchored-p window)
+              (when +my/claude-terminal--reading
+                (+my/claude-terminal-follow))
+            (setq +my/claude-terminal--reading t)))))))
+
+(advice-add 'mwheel-scroll :after #'+my/claude-terminal--after-wheel)
+
+(defun +my/claude-terminal--anchor-inhibit (orig window force)
+  "Let a Claude terminal follow its output unless the user is reading.
+ORIG is evil-ghostel's veto, called with WINDOW and FORCE elsewhere."
+  (if (+my/claude-terminal-p)
+      (and (not force) +my/claude-terminal--reading)
+    (funcall orig window force)))
+
+(advice-add 'evil-ghostel--anchor-inhibit :around
+            #'+my/claude-terminal--anchor-inhibit)
+
+(defun +my/claude-terminal--anchored-p (orig window &optional body-pixel-height)
+  "Count a Claude terminal window showing its tail as anchored.
+ORIG is `ghostel--window-anchored-p', which estimates the window's
+capacity with `default-line-height'.  The terminal's remapped font
+draws shorter rows, so the last lines fit while that estimate says
+they do not: the window is declared off the bottom, never re-anchors,
+and following stalls.  A window whose `window-end' reaches
+`point-max' shows the live output by definition."
+  (or (funcall orig window body-pixel-height)
+      (with-current-buffer (window-buffer window)
+        (and (+my/claude-terminal-p)
+             (eql (window-end window t) (point-max))))))
+
+(advice-add 'ghostel--window-anchored-p :around
+            #'+my/claude-terminal--anchored-p)
+
+(defun +my/claude--screen-tail (&optional chars)
+  "Return the last CHARS (default 8000) characters of this terminal.
+The inline renderer keeps the whole transcript, so only the tail
+reflects what is on screen now."
+  (let ((text (or (and (bound-and-true-p ghostel--term)
+                       (ghostel--copy-all-text ghostel--term))
+                  "")))
+    (substring text (max 0 (- (length text) (or chars 8000))))))
 
 ;;;; Claude profiles and prompts
 (defun +my/claude-profiles ()
@@ -2906,6 +3021,9 @@ last."
    (append (sort (directory-files "~/.claude" t "\\`settings-.*\\.json\\'") #'string<)
            (list (expand-file-name "~/.claude/settings.json")))))
 
+(defvar +my/claude-profile-history nil
+  "Profiles picked by `+my/claude-ide'; the last one is the default.")
+
 (defun +my/claude-ide (&optional resume)
   "Start Claude Code for a chosen provider profile.
 
@@ -2916,18 +3034,11 @@ The profile goes to the CLI as `--settings', overriding
   (let* ((profiles (+my/claude-profiles))
          (settings (cdr (assoc (completing-read "Claude profile: "
                                                 (mapcar #'car profiles)
-                                                nil t)
+                                                nil t nil
+                                                '+my/claude-profile-history
+                                                (car +my/claude-profile-history))
                                profiles)))
-         ;; When Emacs itself was started from inside Claude Code, these
-         ;; leak in and make the new CLI a child of that session: it then
-         ;; appends to the parent transcript instead of its own project.
-         (process-environment
-          (seq-remove
-           (lambda (var)
-             (string-match-p
-              "\\`\\(?:CLAUDECODE\\|CLAUDE_CODE_SESSION_ID\\|CLAUDE_CODE_CHILD_SESSION\\|CLAUDE_CODE_ENTRYPOINT\\)="
-              var))
-           process-environment))
+         (process-environment (+my/claude--environment))
          (claude-code-ide-cli-extra-flags
           (concat (or claude-code-ide-cli-extra-flags "") " --settings "
                   (shell-quote-argument settings))))
@@ -2950,37 +3061,241 @@ The profile goes to the CLI as `--settings', overriding
 ;; TUI keeps its rendering; only the composing moves into Emacs.
 (defvar-local +my/claude-compose-session nil)
 
-(defun +my/claude-at-file-capf ()
-  "Complete the file name after an `@' mention."
-  (when (looking-back "@\\([^[:space:]]+\\)" (max (point-min) (- (point) 200)))
-    (list (match-beginning 1) (match-end 1)
-          #'completion-file-name-table :exclusive 'no)))
+(defvar +my/claude-compose--skip nil
+  "Non-nil while a start should leave focus to the agent's own prompt.")
 
-(defvar +my/claude-slash-commands
-  '("agents" "autocompact" "background" "batch" "code-review" "compact"
-    "config" "context" "copy" "cost" "diff" "doctor" "effort" "exit" "export"
-    "fast" "fewer-permission-prompts" "fork" "goal" "heapdump" "hooks"
-    "init" "insights" "list-agents" "loop" "mcp" "memory" "model" "plan"
-    "recap" "reload-plugins" "reload-skills" "rename" "resume" "run"
-    "security-review" "simplify" "status" "tasks" "team-onboarding" "usage"
-    "verify")
-  "Slash commands offered for completion in the compose buffer.")
+(defvar +my/claude-compose--busy nil
+  "Non-nil while the compose window is being set up.
+
+Selecting a window runs the package's window-selection bookkeeping,
+which can display the Claude buffer and re-enter this advice.")
+
+(defun +my/claude-compose--terminal ()
+  "Return the live terminal buffer of this compose buffer's session."
+  (let ((buffer (and +my/claude-compose-session
+                     (claude-code-ide-mcp-session-buffer
+                      +my/claude-compose-session))))
+    (if (buffer-live-p buffer)
+        buffer
+      (user-error "Claude session is gone"))))
+
+;;;;; Completion
+(defvar-local +my/claude-compose--files nil
+  "Cached project files for `@' completion; dropped after each send.")
+
+(defun +my/claude-project-files ()
+  "Return the current project's files relative to its root."
+  (when-let* ((project (project-current nil default-directory)))
+    (let ((root (project-root project)))
+      (mapcar (lambda (file) (file-relative-name file root))
+              (project-files project)))))
+
+(defun +my/claude-at-file-capf ()
+  "Complete the file after an `@' mention, fuzzily over the project.
+Paths starting with `/', `~' or `.' complete as plain file names."
+  (when (looking-back "\\(?:^\\|[[:space:]]\\)@\\([^[:space:]]*\\)"
+                      (max (point-min) (- (point) 200)))
+    (let ((path (match-string 1)))
+      (list (match-beginning 1) (match-end 1)
+            (or (and (not (string-match-p "\\`[/~.]" path))
+                     (or +my/claude-compose--files
+                         (setq +my/claude-compose--files
+                               (+my/claude-project-files))))
+                #'completion-file-name-table)
+            :exclusive 'no))))
+
+(defvar +my/claude-builtin-commands
+  '("add-dir" "advisor" "autocompact" "autofix-pr" "background" "branch"
+    "brief" "btw" "cd" "chrome" "color" "copy" "daemon" "design"
+    "design-login" "desktop" "diff" "doctor" "effort" "exit" "export" "fast"
+    "feedback" "focus" "fork" "help" "hooks" "ide" "install"
+    "install-github-app" "install-slack-app" "keybindings" "login" "logout"
+    "mcp" "memory" "mobile" "model" "passes" "permissions" "plan" "plugin"
+    "powerup" "privacy-settings" "radio" "reload-plugins" "remote-control"
+    "remote-env" "rename" "resume" "rewind" "scroll-speed" "session"
+    "setup-bedrock" "setup-vertex" "skill-doctor" "skills" "status"
+    "stickers" "stop" "tasks" "teleport" "terminal-setup" "theme" "tui"
+    "ultraplan" "ultrareview" "upgrade" "usage-credits" "voice" "web-setup"
+    "workflows")
+  "Slash commands only the interactive TUI offers (Claude Code 2.1.202).
+The CLI reports every other command, skills included, on request; see
+`+my/claude-fetch-commands'.")
+
+(defvar +my/claude--commands (make-hash-table :test 'equal)
+  "Project directory -> ((NAME . DESCRIPTION) ...) reported by the CLI.")
+
+(defun +my/claude--environment ()
+  "Return `process-environment' without the variables of an outer Claude.
+When Emacs itself was started from inside Claude Code, these leak in
+and make a new CLI a child of that session: it then appends to the
+parent transcript instead of its own project."
+  (seq-remove
+   (lambda (var)
+     (string-match-p
+      "\\`\\(?:CLAUDECODE\\|CLAUDE_CODE_SESSION_ID\\|CLAUDE_CODE_CHILD_SESSION\\|CLAUDE_CODE_ENTRYPOINT\\)="
+      var))
+   process-environment))
+
+(defun +my/claude-fetch-commands (dir)
+  "Ask the Claude CLI in the background which commands DIR offers.
+The SDK's `initialize' request lists commands, skills and their
+descriptions without starting a turn, so no model is called."
+  (let* ((default-directory dir)
+         (process-environment (+my/claude--environment))
+         (process
+          (make-process
+           :name "claude-commands"
+           :buffer (generate-new-buffer " *claude-commands*")
+           :command (list claude-code-ide-cli-path "-p" "--verbose"
+                          "--input-format" "stream-json"
+                          "--output-format" "stream-json"
+                          "--no-session-persistence")
+           :connection-type 'pipe
+           :noquery t
+           :sentinel
+           (lambda (process _event)
+             (unless (process-live-p process)
+               (with-current-buffer (process-buffer process)
+                 (goto-char (point-min))
+                 (while (not (eobp))
+                   (when-let* ((message (ignore-errors
+                                          (json-parse-buffer :object-type 'alist)))
+                               (commands (alist-get
+                                          'commands
+                                          (alist-get 'response
+                                                     (alist-get 'response message)))))
+                     (puthash dir
+                              (seq-keep
+                               (lambda (command)
+                                 (let ((name (alist-get 'name command)))
+                                   (unless (string-prefix-p "_" name)
+                                     (cons name (alist-get 'description command)))))
+                               commands)
+                              +my/claude--commands))
+                   (forward-line 1)))
+               (kill-buffer (process-buffer process)))))))
+    (process-send-string
+     process
+     "{\"type\":\"control_request\",\"request_id\":\"commands\",\"request\":{\"subtype\":\"initialize\"}}\n")
+    (process-send-eof process)))
 
 (defun +my/claude-slash-capf ()
-  "Complete a leading `/command' word."
-  (when (looking-back "\\(?:^\\|[[:space:]]\\)/\\([a-z0-9-]*\\)"
+  "Complete a leading `/command' word, annotated with its description."
+  (when (looking-back "\\(?:^\\|[[:space:]]\\)/\\([a-z0-9:_-]*\\)"
                       (line-beginning-position))
-    (list (match-beginning 0) (match-end 1)
-          (mapcar (lambda (name) (concat "/" name))
-                  +my/claude-slash-commands)
-          :exclusive 'no)))
+    (let ((reported (gethash default-directory +my/claude--commands)))
+      (list (1- (match-beginning 1)) (match-end 1)
+            (mapcar (lambda (name) (concat "/" name))
+                    (delete-dups (append (mapcar #'car reported)
+                                         +my/claude-builtin-commands)))
+            :annotation-function
+            (lambda (candidate)
+              (when-let* ((description (cdr (assoc (substring candidate 1)
+                                                   reported))))
+                (concat "  " (truncate-string-to-width
+                              description 60 nil nil "…"))))
+            :exclusive 'no))))
 
+;;;;; History
+;; Read from the CLI's own `~/.claude/history.jsonl', so prompts typed in
+;; a plain terminal and in Emacs share one history per project.
+(defun +my/claude-history (project)
+  "Return the prompts sent in PROJECT, newest first, without duplicates."
+  (let ((file (expand-file-name "~/.claude/history.jsonl"))
+        (project (directory-file-name (expand-file-name project)))
+        prompts)
+    (when (file-readable-p file)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (goto-char (point-min))
+        (while (not (eobp))
+          (when-let* ((entry (ignore-errors
+                               (json-parse-buffer :object-type 'alist
+                                                  :null-object nil)))
+                      ((equal (alist-get 'project entry) project))
+                      (display (alist-get 'display entry)))
+            (let ((pasted (alist-get 'pastedContents entry)))
+              ;; Long pastes are stored as placeholders; put the text back.
+              ;; Very long ones live in the paste cache, keyed by hash.
+              (push (replace-regexp-in-string
+                     "\\[Pasted text #\\([0-9]+\\)[^]]*\\]"
+                     (lambda (match)
+                       ;; The caller's `replace-match' needs the match data.
+                       (save-match-data
+                         (let* ((paste (alist-get (intern (match-string 1 match))
+                                                  pasted))
+                                (hash (alist-get 'contentHash paste))
+                                (cache (and hash
+                                            (expand-file-name
+                                             (concat hash ".txt")
+                                             "~/.claude/paste-cache"))))
+                           (or (alist-get 'content paste)
+                               (and cache (file-readable-p cache)
+                                    (with-temp-buffer
+                                      (insert-file-contents cache)
+                                      (buffer-string)))
+                               match))))
+                     display t t)
+                    prompts)))
+          (forward-line 1))))
+    (delete-dups (seq-remove #'string-blank-p prompts))))
+
+(defvar-local +my/claude-compose--history nil)
+(defvar-local +my/claude-compose--history-index -1)
+(defvar-local +my/claude-compose--draft nil
+  "The unsent text from before history browsing started.")
+
+(defun +my/claude-compose-history-prev (n)
+  "Replace the prompt with the Nth older prompt of this project."
+  (interactive "p")
+  (unless (memq last-command '(+my/claude-compose-history-prev
+                               +my/claude-compose-history-next))
+    (setq +my/claude-compose--history (+my/claude-history default-directory)
+          +my/claude-compose--history-index -1
+          +my/claude-compose--draft (buffer-string)))
+  (let ((index (+ +my/claude-compose--history-index n)))
+    (cond ((>= index (length +my/claude-compose--history))
+           (user-error "No older prompt"))
+          ((< index -1)
+           (user-error "No newer prompt")))
+    (setq +my/claude-compose--history-index index)
+    (erase-buffer)
+    (insert (if (< index 0)
+                +my/claude-compose--draft
+              (nth index +my/claude-compose--history)))))
+
+(defun +my/claude-compose-history-next (n)
+  "Replace the prompt with the Nth newer prompt, back to the draft."
+  (interactive "p")
+  (+my/claude-compose-history-prev (- n)))
+
+(defun +my/claude-compose-history-search ()
+  "Pick a prompt of this project from the history."
+  (interactive)
+  (let* ((candidates (mapcar (lambda (prompt)
+                               (cons (replace-regexp-in-string "\n" " ⏎ " prompt)
+                                     prompt))
+                             (+my/claude-history default-directory)))
+         (choice (completing-read
+                  "Claude history: "
+                  (lambda (string pred action)
+                    (if (eq action 'metadata)
+                        '(metadata (display-sort-function . identity)
+                                   (cycle-sort-function . identity))
+                      (complete-with-action action candidates string pred)))
+                  nil t)))
+    (erase-buffer)
+    (insert (cdr (assoc choice candidates)))))
+
+;;;;; Mode and commands
 (defvar +my/claude-compose-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") #'+my/claude-compose-send)
     (define-key map (kbd "<return>") #'+my/claude-compose-send)
     (define-key map (kbd "C-j") #'newline)
-    (define-key map (kbd "C-c C-o") #'+my/claude-compose-focus-terminal)
+    (define-key map (kbd "M-p") #'+my/claude-compose-history-prev)
+    (define-key map (kbd "M-n") #'+my/claude-compose-history-next)
+    (define-key map (kbd "<backtab>") #'+my/claude-compose-cycle-mode)
     map))
 
 (define-minor-mode +my/claude-compose-mode
@@ -2991,45 +3306,86 @@ The profile goes to the CLI as `--settings', overriding
 ;; Evil's state maps outrank minor-mode maps, and `C-c' is a prefix there.
 (with-eval-after-load 'evil
   (evil-define-key '(insert normal emacs) +my/claude-compose-mode-map
-		   (kbd "C-c C-o") #'+my/claude-compose-focus-terminal))
+    (kbd "C-c C-o") #'+my/claude-compose-focus-terminal
+    (kbd "C-c C-r") #'+my/claude-compose-history-search
+    (kbd "C-c C-c") #'+my/claude-compose-interrupt
+    (kbd "C-c C-q") #'+my/claude-compose-send-key
+    (kbd "C-c RET") #'+my/claude-compose-send-return
+    (kbd "C-c <return>") #'+my/claude-compose-send-return
+    (kbd "C-c ?") #'+my/claude-compose-help))
 
 (defun +my/claude-compose-focus-terminal ()
   "Move focus to the Claude terminal without closing the compose window."
   (interactive)
-  (let ((buffer (and +my/claude-compose-session
-                     (claude-code-ide-mcp-session-buffer
-                      +my/claude-compose-session))))
-    (if (and buffer (buffer-live-p buffer))
-	(pop-to-buffer buffer)
-      (user-error "Claude session is gone"))))
+  (pop-to-buffer (+my/claude-compose--terminal)))
+
+(defun +my/claude-compose-interrupt ()
+  "Interrupt Claude's current turn, like ESC in the terminal."
+  (interactive)
+  (with-current-buffer (+my/claude-compose--terminal)
+    (claude-code-ide--terminal-send-escape)))
+
+(defun +my/claude-compose-send-return ()
+  "Send a bare return to Claude, e.g. to confirm a dialog's choice."
+  (interactive)
+  (with-current-buffer (+my/claude-compose--terminal)
+    (claude-code-ide--terminal-send-return)))
+
+(defun +my/claude-compose-cycle-mode ()
+  "Cycle Claude's permission mode (default, auto-accept, plan)."
+  (interactive)
+  (with-current-buffer (+my/claude-compose--terminal)
+    (ghostel-send-key "tab" "shift")))
+
+(defun +my/claude-compose-send-key ()
+  "Send the next key to Claude as typed, e.g. a dialog's 1, 2 or 3."
+  (interactive)
+  (with-current-buffer (+my/claude-compose--terminal)
+    (ghostel-send-next-key)))
+
+(defun +my/claude--count (needle haystack)
+  "Return how often NEEDLE occurs in HAYSTACK."
+  (let ((count 0) (start 0))
+    (while (setq start (string-search needle haystack start))
+      (setq count (1+ count)
+            start (+ start (length needle))))
+    count))
 
 (defun +my/claude-compose-send (&optional keep)
   "Send the compose buffer to the Claude TUI.
 
 With prefix KEEP, leave the text in the buffer for another edit."
   (interactive "P")
-  (let* ((text (string-trim (buffer-string)))
-	 (buffer (and +my/claude-compose-session
-                      (claude-code-ide-mcp-session-buffer
-                       +my/claude-compose-session))))
+  (let ((text (string-trim (buffer-string)))
+        (buffer (+my/claude-compose--terminal)))
     (when (string-empty-p text)
       (user-error "Empty prompt"))
-    (unless (and buffer (buffer-live-p buffer))
-      (user-error "Claude session is gone"))
     (with-current-buffer buffer
-      (ghostel-paste-string text)
       ;; The return can overtake the paste on a busy (or still starting)
-      ;; TUI and submit an empty prompt.  Wait until the paste echoes.
-      (let ((needle (regexp-quote (substring text (max 0 (- (length text) 20)))))
-            (tries 0))
-	(while (and (< tries 60)
-                    (not (string-match-p
-                          needle (or (and ghostel--term
-                                          (ghostel--copy-all-text ghostel--term))
-                                     ""))))
-          (sit-for 0.05)
-          (setq tries (1+ tries))))
-      (claude-code-ide--terminal-send-return))
+      ;; TUI and submit an empty prompt.  Wait until the paste shows up:
+      ;; one more copy of its tail (ignoring the TUI's wrapping), or one
+      ;; more placeholder for a long paste.
+      (let* ((squash (lambda (s) (replace-regexp-in-string "[[:space:]]+" "" s)))
+             (screen (lambda () (funcall squash (+my/claude--screen-tail))))
+             (tail (funcall squash text))
+             (needle (substring tail (max 0 (- (length tail) 12))))
+             (placeholder "[Pastedtext#")
+             (before (funcall screen))
+             (needles (+my/claude--count needle before))
+             (placeholders (+my/claude--count placeholder before))
+             (deadline (+ (float-time) 3)))
+        (ghostel-paste-string text)
+        (while (and (< (float-time) deadline)
+                    (let ((now (funcall screen)))
+                      (not (or (> (+my/claude--count needle now) needles)
+                               (> (+my/claude--count placeholder now)
+                                  placeholders)))))
+          ;; Unlike `sit-for', this keeps waiting while input is pending.
+          (accept-process-output nil 0.05)))
+      (claude-code-ide--terminal-send-return)
+      ;; Whatever was being read, the answer is what matters now.
+      (+my/claude-terminal-follow))
+    (setq +my/claude-compose--files nil)
     (unless keep (erase-buffer))))
 
 (defun +my/claude-compose-buffer-name (session)
@@ -3053,10 +3409,12 @@ With prefix KEEP, leave the text in the buffer for another edit."
 Opens automatically when a session starts; call it to get the input
 buffer back after closing it."
   (interactive)
+  (require 'claude-code-ide)
   (let* ((session (or session
                       (bound-and-true-p +my/claude-compose-session)
                       (claude-code-ide--resolve-session
-                       'auto "Compose to Claude instance: ")))
+                       'auto "Compose to Claude instance: ")
+                      (user-error "No Claude Code session for this project")))
 	 (cwd (claude-code-ide-mcp-session-project-dir session))
 	 (shell (claude-code-ide-mcp-session-buffer session))
 	 (buffer (get-buffer-create (+my/claude-compose-buffer-name session)))
@@ -3087,39 +3445,128 @@ buffer back after closing it."
                 (>= (window-height (selected-window)) 8))
            (switch-to-buffer buffer))
           ((and shell-window (>= (window-height shell-window) 8))
-           ;; SIZE names the remaining height of the split window, so the
-           ;; prompt gets the last lines: ten at most, four when cramped.
+           ;; The prompt is a sliver: it gets the last lines, six at most,
+           ;; three when cramped.  The terminal above keeps the rest.
            (let* ((height (window-height shell-window))
-                  (size (max 4 (min 10 (/ height 3)))))
+                  (size (max 3 (min 6 (/ height 4)))))
              (select-window (split-window shell-window (- height size) 'below))
              (switch-to-buffer buffer)))
           (t (pop-to-buffer buffer '((display-buffer-below-selected)
-                                     (window-height . 10)))))
+                                     (window-height . 6)))))
     ;; Keep the prompt pinned: switching buffers from it opens elsewhere
     ;; instead of turning it into another buffer.
     (set-window-dedicated-p (selected-window) t)
-    (setq default-directory cwd)
-    (erase-buffer)
-    (+my/claude-compose-mode 1)
-    (setq-local +my/claude-compose-session session)
-    (setq-local completion-at-point-functions
-		(list #'+my/claude-slash-capf #'+my/claude-at-file-capf
-                      #'cape-file #'cape-dabbrev))
-    (setq-local corfu-auto t)
-    (corfu-mode 1)
-    ;; Prompts are prose, not code: never reindent on newline or paste.
-    (electric-indent-local-mode -1)
-    (setq-local indent-line-function #'ignore)
-    ;; Keep the keys on screen; the lighters alone are easy to forget.
-    (setq-local header-line-format
-		(list " "
-                      (propertize "RET" 'face 'bold) " 发送   "
-                      (propertize "C-j" 'face 'bold) " 换行   "
-                      (propertize "C-c C-o" 'face 'bold) " 去终端   "
-                      (propertize "C-u RET" 'face 'bold) " 发送并留稿"))
-    ;; This buffer exists to type, so start ready to type.
-    (when (fboundp 'evil-insert-state)
-      (evil-insert-state))))
+    ;; Set up once: this runs again whenever the window is brought back,
+    ;; and that must not throw away an unsent draft.
+    (unless +my/claude-compose-mode
+      (+my/claude-compose--setup session cwd)
+      ;; First open only: ready to type.  Coming back later keeps the
+      ;; state the user left, e.g. normal after ESC.
+      (when (fboundp 'evil-insert-state)
+        (evil-insert-state)))))
+
+(defun +my/claude-compose--setup (session cwd)
+  "Prepare the current buffer as SESSION's compose buffer in CWD."
+  (setq default-directory cwd)
+  (+my/claude-compose-mode 1)
+  (setq-local +my/claude-compose-session session)
+  (setq-local completion-at-point-functions
+              (list #'+my/claude-slash-capf #'+my/claude-at-file-capf
+                    #'cape-file))
+  (+my/claude-fetch-commands cwd)
+  (setq-local corfu-auto t)
+  (corfu-mode 1)
+  ;; Prompts are prose, not code: never reindent on newline or paste.
+  (electric-indent-local-mode -1)
+  (setq-local indent-line-function #'ignore)
+  ;; Write in Chinese by default (Rime when enabled).  Evil turns the
+  ;; input method off in normal state and back on in insert state.
+  (when default-input-method
+    (activate-input-method default-input-method)
+    ;; Emacs leaves this nil for methods with an activation function,
+    ;; such as Rime's, and `eval' state tracking relies on it.
+    (when (fboundp 'rime-input-method)
+      (setq-local current-input-method default-input-method)
+      ;; A candidate posframe costs several ms per key here (child frame,
+      ;; font, placement); the echo-area overlay is an order of magnitude
+      ;; cheaper and the prompt is short.
+      (setq-local rime-show-candidate 'minibuffer))
+    (when (boundp 'rime-disable-predicates)
+      (setq-local rime-disable-predicates
+                  (cons #'+my/claude-rime-command-key-p
+                        rime-disable-predicates))))
+  ;; Keep the keys on screen; the lighters alone are easy to forget.
+  (setq-local header-line-format '(:eval (+my/claude-compose--header))))
+
+(defun +my/claude-rime-command-key-p ()
+  "Let a `/' or `@' starting a word through Rime.
+Rime holds a leading `/' as the start of a symbol code, so the slash
+command never reaches the buffer and completion never starts."
+  (and (memq (bound-and-true-p rime--current-input-key) '(?/ ?@))
+       (or (bolp) (memq (char-before) '(?\s ?\t)))))
+
+(defun +my/claude-rime-pass-c-s (orig key)
+  "Hand `C-s' straight to the keymap in a compose buffer.
+ORIG is `rime-input-method'.  Rime takes C-s as a schema hotkey and
+eats it while a composition is open, so `isearch' would never start.
+Advising survives evil switching the input method off and on again."
+  (if (and (eq key ?\C-s)
+           (string-prefix-p "*claude-prompt[" (buffer-name)))
+      (progn (when (fboundp 'rime--clear-state)
+               (rime--clear-state))
+             (list key))
+    (funcall orig key)))
+
+(advice-add 'rime-input-method :around #'+my/claude-rime-pass-c-s)
+
+(defun +my/claude-reactivate-rime (&rest _)
+  "Re-arm Rime in compose buffers after a deploy restarted the module.
+`rime-deploy' finalizes the module and starts it again without
+selecting a schema; without this the prompt silently stays in ascii."
+  (when (fboundp 'rime-activate)
+    (dolist (buffer (buffer-list))
+      (when (string-prefix-p "*claude-prompt[" (buffer-name buffer))
+        (with-current-buffer buffer
+          (when default-input-method
+            (rime-activate default-input-method)
+            ;; The activation function leaves this nil in current Emacs.
+            (setq-local current-input-method default-input-method)
+            ;; A fresh session starts without a schema: take the first
+            ;; listed one, i.e. the configured default.
+            (when-let* ((schema (car (rime-lib-get-schema-list))))
+              (rime-lib-select-schema (car schema)))))))))
+
+(advice-add 'rime-deploy :after #'+my/claude-reactivate-rime)
+
+(defconst +my/claude-compose-keys
+  '(("RET" . "发送") ("C-j" . "换行") ("M-p/M-n" . "历史")
+    ("C-c C-c" . "中断") ("C-c RET" . "确认") ("C-c C-q" . "转发键")
+    ("S-TAB" . "模式") ("C-c C-r" . "搜历史") ("C-u RET" . "留稿")
+    ("C-c C-o" . "去终端"))
+  "Compose buffer keys, most useful first: the header shows what fits.")
+
+(defun +my/claude-compose--key-label (key)
+  "Format KEY, a (KEYS . DESCRIPTION) pair, for display."
+  (concat (propertize (car key) 'face 'bold) " " (cdr key)))
+
+(defun +my/claude-compose--header ()
+  "Return as many compose keys as fit the window, then the help key."
+  (let* ((help (concat " " (+my/claude-compose--key-label '("C-c ?" . "全部"))))
+         (room (- (window-max-chars-per-line) (string-width help)))
+         (line ""))
+    (catch 'full
+      (dolist (key +my/claude-compose-keys)
+        (let ((item (concat " " (+my/claude-compose--key-label key))))
+          (when (> (+ (string-width line) (string-width item)) room)
+            (throw 'full nil))
+          (setq line (concat line item)))))
+    (concat line help)))
+
+(defun +my/claude-compose-help ()
+  "Show every compose buffer key."
+  (interactive)
+  (message "%s" (mapconcat #'+my/claude-compose--key-label
+                           +my/claude-compose-keys "   ")))
 
 (defun +my/claude-compose-ensure (buffer &optional attempts)
   "Open the compose buffer for BUFFER once its session is ready.
@@ -3131,11 +3578,9 @@ away before taking focus."
                      (claude-code-ide--buffer-session)))
           (picking (and +my/claude-compose--skip
                         (with-current-buffer buffer
-                          (and (bound-and-true-p ghostel--term)
-                               (ignore-errors
-                                 (string-match-p
-                                  "Resume session"
-                                  (ghostel--copy-all-text ghostel--term))))))))
+                          (ignore-errors
+                            (string-match-p "Resume session"
+                                            (+my/claude--screen-tail 3000)))))))
       (cond ((and session (not picking))
              (+my/claude-compose session))
             ((< (or attempts 0) 120)
@@ -3150,15 +3595,6 @@ away before taking focus."
 
 (advice-add 'claude-code-ide--apply-ghostel-evil-escape :around
             #'+my/claude-compose-on-start)
-
-(defvar +my/claude-compose--skip nil
-  "Non-nil while a start should leave focus to the agent's own prompt.")
-
-(defvar +my/claude-compose--busy nil
-  "Non-nil while the compose window is being set up.
-
-Selecting a window runs the package's window-selection bookkeeping,
-which can display the Claude buffer and re-enter this advice.")
 
 (defun +my/claude-compose-on-switch (orig buffer &rest args)
   "Bring an existing compose window back when BUFFER is shown again."
@@ -3216,6 +3652,56 @@ path, so watch window buffer changes.  The hook passes the FRAME."
 
 (advice-add 'claude-code-ide--cleanup-session :around
             #'+my/claude-compose-cleanup)
+
+(defun +my/claude-compose-on-hide (orig session &rest args)
+  "Hide SESSION's prompt together with its terminal.
+The prompt window is dedicated, so it would otherwise stay behind as
+an empty input box; showing the terminal again brings it back."
+  (let* ((terminal (claude-code-ide-mcp-session-buffer session))
+         (hiding (and terminal (get-buffer-window terminal)))
+         (compose (and hiding
+                       (get-buffer-window
+                        (ignore-errors (+my/claude-compose-buffer-name session))))))
+    (prog1 (apply orig session args)
+      (when (and (window-live-p compose)
+                 (not (one-window-p nil (window-frame compose))))
+        (delete-window compose)))))
+
+(advice-add 'claude-code-ide--toggle-existing-window :around
+            #'+my/claude-compose-on-hide)
+
+(defun +my/claude-compose-add-ref ()
+  "Mention the current file, or the region's lines, in the Claude prompt."
+  (interactive)
+  (require 'claude-code-ide)
+  (let* ((file (or (buffer-file-name)
+                   (user-error "Buffer is not visiting a file")))
+         (session (or (claude-code-ide--resolve-session
+                       'auto "Mention in Claude instance: ")
+                      (user-error "No Claude Code session for this project")))
+         (root (claude-code-ide-mcp-session-project-dir session))
+         (lines (when (use-region-p)
+                  (let ((beg (line-number-at-pos (region-beginning)))
+                        ;; A line-wise region ends at the next line's start.
+                        (end (save-excursion
+                               (goto-char (region-end))
+                               (if (and (bolp) (> (point) (region-beginning)))
+                                   (1- (line-number-at-pos))
+                                 (line-number-at-pos)))))
+                    (if (= beg end)
+                        (format "#L%d" beg)
+                      (format "#L%d-%d" beg end)))))
+         (ref (concat "@" (if (file-in-directory-p file root)
+                              (file-relative-name file root)
+                            (abbreviate-file-name file))
+                      lines)))
+    (deactivate-mark)
+    (when (bound-and-true-p evil-local-mode)
+      (evil-normal-state))
+    (+my/claude-compose session)
+    (unless (or (bolp) (memq (char-before) '(?\s ?\t)))
+      (insert " "))
+    (insert ref " ")))
 
 ;;; UI
 ;;;; UI-config

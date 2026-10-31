@@ -75,3 +75,4 @@ elpaca
 AGENTS.md
 *.eld
 agent/
+__pycache__
