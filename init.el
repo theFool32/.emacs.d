@@ -2994,7 +2994,10 @@ The profile goes to the CLI as `--settings', overriding
   "Hide this prompt's window; it comes back with the session."
   (interactive)
   (erase-buffer)
-  (quit-window))
+  ;; Deleting (rather than burying) gives the space back to the terminal,
+  ;; so repeated hide/switch cycles don't leave slivers behind.
+  (when-let* ((window (get-buffer-window (current-buffer))))
+    (delete-window window)))
 
 (defun +my/claude-compose-focus-terminal ()
   "Move focus to the Claude terminal without closing the compose window."
@@ -3063,12 +3066,31 @@ buffer back after closing it."
 	 (cwd (claude-code-ide-mcp-session-project-dir session))
 	 (shell (claude-code-ide-mcp-session-buffer session))
 	 (buffer (get-buffer-create (+my/claude-compose-buffer-name session)))
-	 (shell-window (and (buffer-live-p shell) (get-buffer-window shell)))
+	 ;; Prefer the tallest window: after a restore the session may be
+	 ;; shown in a leftover short window as well.
+	 (shell-window (and (buffer-live-p shell)
+			    (seq-reduce
+			     (lambda (best win)
+			       (if (> (window-height win) (window-height best))
+				   win best))
+			     (get-buffer-window-list shell nil t)
+			     (car (get-buffer-window-list shell nil t)))))
 	 (visible (get-buffer-window buffer))
+	 ;; The window the user switched to Claude in, if any.
+	 (selected-shell (and (buffer-live-p shell)
+			      (eq (window-buffer (selected-window)) shell)))
+	 (other-shell (and selected-shell
+			   (delq (selected-window)
+				 (get-buffer-window-list shell nil t))))
 	 (+my/claude-compose--busy t))
     ;; Split the session's own window so the prompt always sits right
     ;; under the Claude instance it belongs to.
     (cond (visible (select-window visible))
+          ;; Switched into an existing terminal window: take that window
+          ;; over for the prompt instead of splitting yet another one.
+          ((and selected-shell other-shell
+                (>= (window-height (selected-window)) 8))
+           (switch-to-buffer buffer))
           ((and shell-window (>= (window-height shell-window) 8))
            ;; SIZE names the remaining height of the split window, so the
            ;; prompt gets the last lines: ten at most, four when cramped.
@@ -3139,6 +3161,38 @@ which can display the Claude buffer and re-enter this advice.")
 
 (advice-add 'claude-code-ide--display-buffer-in-side-window :around
             #'+my/claude-compose-on-switch)
+
+(defun +my/claude-compose-restore (buffer &optional attempts)
+  "Reopen BUFFER's hidden compose window, retrying while it settles."
+  (when (and (buffer-live-p buffer)
+             (not +my/claude-compose--busy)
+             (eq (window-buffer (selected-window)) buffer))
+    (let ((compose (ignore-errors
+                     (get-buffer (+my/claude-compose-buffer-name
+                                  (claude-code-ide--buffer-session buffer))))))
+      (cond ((and compose (not (get-buffer-window compose)))
+             (let ((+my/claude-compose--busy t))
+               (+my/claude-compose (claude-code-ide--buffer-session buffer))))
+            ((and (not compose) (< (or attempts 0) 3))
+             (run-at-time 0.2 nil #'+my/claude-compose-restore
+                          buffer (1+ (or attempts 0))))))))
+
+(defvar +my/claude-compose--timer nil
+  "Pending restore timer; window switches fire the hook repeatedly.")
+
+(defun +my/claude-compose-on-buffer-change (frame)
+  "Restore the prompt when the selected window starts showing Claude.
+Plain `switch-to-buffer' does not go through the package's display
+path, so watch window buffer changes.  The hook passes the FRAME."
+  (let ((buffer (window-buffer (selected-window))))
+    (when (and (eq (window-frame (selected-window)) frame)
+               (claude-code-ide--buffer-session buffer))
+      (when (timerp +my/claude-compose--timer)
+        (cancel-timer +my/claude-compose--timer))
+      (setq +my/claude-compose--timer
+            (run-at-time 0.05 nil #'+my/claude-compose-restore buffer)))))
+
+(add-hook 'window-buffer-change-functions #'+my/claude-compose-on-buffer-change)
 
 (defun +my/claude-compose-cleanup (orig session &rest args)
   "Drop SESSION's compose buffer when the session is cleaned up."
