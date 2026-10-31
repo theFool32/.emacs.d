@@ -3074,6 +3074,22 @@ The profile goes to the CLI as `--settings', overriding
 (defvar +my/claude-compose--skip nil
   "Non-nil while a start should leave focus to the agent's own prompt.")
 
+(defvar-local +my/claude-compose--picker-seen nil
+  "Non-nil once the resume picker showed in this terminal buffer.")
+
+(defun +my/claude-compose--picking-p (buffer)
+  "Non-nil while BUFFER shows the CLI's resume picker.
+The picker needs the focus and its own up/down keys, so the compose
+window stays out of the way until it is gone.  Also records that the
+picker appeared, so a slow first draw cannot let the prompt open
+early."
+  (and +my/claude-compose--skip
+       (buffer-live-p buffer)
+       (with-current-buffer buffer
+         (when (ignore-errors
+                 (string-match-p "Resume session" (+my/claude--screen-tail 3000)))
+           (setq +my/claude-compose--picker-seen t)))))
+
 (defvar +my/claude-compose--busy nil
   "Non-nil while the compose window is being set up.
 
@@ -3473,7 +3489,11 @@ buffer back after closing it."
       ;; First open only: ready to type.  Coming back later keeps the
       ;; state the user left, e.g. normal after ESC.
       (when (fboundp 'evil-insert-state)
-        (evil-insert-state)))))
+        (evil-insert-state))
+      ;; Activate after entering insert: activating in normal state makes
+      ;; evil deactivate it again, and a stale `current-input-method'
+      ;; then suppresses the real activation on insert entry.
+      (+my/claude-compose--rime))))
 
 (defun +my/claude-compose--setup (session cwd)
   "Prepare the current buffer as SESSION's compose buffer in CWD."
@@ -3489,38 +3509,36 @@ buffer back after closing it."
   ;; Prompts are prose, not code: never reindent on newline or paste.
   (electric-indent-local-mode -1)
   (setq-local indent-line-function #'ignore)
-  ;; Write in Chinese by default (Rime when enabled).  Evil turns the
-  ;; input method off in normal state and back on in insert state.
+  ;; Write in Chinese by default (Rime when enabled); activation happens
+  ;; in `+my/claude-compose--rime' once the buffer is in insert state.
+  ;; Rime holds a leading `/' as the start of a symbol code, so the slash
+  ;; command never reaches the buffer and completion would not start.
+  (when (boundp 'rime-disable-predicates)
+    (setq-local rime-disable-predicates
+                (cons #'+my/claude-rime-command-key-p rime-disable-predicates)))
+  ;; Keep the keys on screen; the lighters alone are easy to forget.
+  (setq-local header-line-format '(:eval (+my/claude-compose--header))))
+
+(defun +my/claude-compose--rime ()
+  "Turn on `default-input-method' in the current compose buffer.
+Loads Rime first: `activate-input-method' does not autoload it, so a
+fresh session used to keep the first keystrokes ascii.  A failure only
+warns; the prompt still works without an input method."
   (when default-input-method
-    ;; Rime is autoloaded on `toggle-input-method', but the activation
-    ;; below does not load it: on a fresh session the method is not
-    ;; registered yet and the first keystrokes stay ascii.  Load the
-    ;; package and its module now, without letting a broken Rime take the
-    ;; compose buffer down with it.
     (condition-case err
         (progn
           (when (string= default-input-method "rime")
             (require 'rime nil t)
             (when (fboundp 'rime--load-dynamic-module)
               (unless (bound-and-true-p rime--lib-loaded)
-                (rime--load-dynamic-module))))
-          (activate-input-method default-input-method)
-          ;; Emacs leaves this nil for methods with an activation
-          ;; function, such as Rime's, and `eval' state tracking relies
-          ;; on it.
-          (when (fboundp 'rime-input-method)
-            (setq-local current-input-method default-input-method)
+                (rime--load-dynamic-module)))
             ;; A candidate posframe costs several ms per key here (child
             ;; frame, font, placement); the echo-area overlay is an order
             ;; of magnitude cheaper and the prompt is short.
             (setq-local rime-show-candidate 'minibuffer))
-          (when (boundp 'rime-disable-predicates)
-            (setq-local rime-disable-predicates
-                        (cons #'+my/claude-rime-command-key-p
-                              rime-disable-predicates))))
-      (error (message "Rime unavailable: %s" err))))
-  ;; Keep the keys on screen; the lighters alone are easy to forget.
-  (setq-local header-line-format '(:eval (+my/claude-compose--header))))
+          (unless (equal current-input-method default-input-method)
+            (activate-input-method default-input-method)))
+      (error (message "Rime unavailable: %s" err)))))
 
 (defun +my/claude-rime-command-key-p ()
   "Let a `/' or `@' starting a word through Rime.
@@ -3599,15 +3617,14 @@ On resume the CLI's own session picker runs first; wait for it to go
 away before taking focus."
   (when (buffer-live-p buffer)
     (let ((session (with-current-buffer buffer
-                     (claude-code-ide--buffer-session)))
-          (picking (and +my/claude-compose--skip
-                        (with-current-buffer buffer
-                          (ignore-errors
-                            (string-match-p "Resume session"
-                                            (+my/claude--screen-tail 3000)))))))
-      (cond ((and session (not picking))
+                     (claude-code-ide--buffer-session))))
+      (cond ((and session
+                  ;; Do not race the picker's first draw.
+                  (or (not +my/claude-compose--skip)
+                      (buffer-local-value '+my/claude-compose--picker-seen buffer))
+                  (not (+my/claude-compose--picking-p buffer)))
              (+my/claude-compose session))
-            ((< (or attempts 0) 120)
+            ((< (or attempts 0) 240)
              (run-at-time 0.5 nil #'+my/claude-compose-ensure
                           buffer (1+ (or attempts 0))))))))
 
@@ -3615,6 +3632,7 @@ away before taking focus."
   "Open the compose buffer as soon as a Claude session starts."
   (prog1 (apply orig args)
     (when (derived-mode-p 'ghostel-mode)
+      (setq-local +my/claude-compose--picker-seen nil)
       (run-at-time 0.5 nil #'+my/claude-compose-ensure (current-buffer)))))
 
 (advice-add 'claude-code-ide--apply-ghostel-evil-escape :around
@@ -3624,6 +3642,7 @@ away before taking focus."
   "Bring an existing compose window back when BUFFER is shown again."
   (prog1 (apply orig buffer args)
     (when-let* (((not +my/claude-compose--busy))
+                ((not +my/claude-compose--skip))
                 (session (claude-code-ide--buffer-session buffer))
                 (compose (get-buffer (+my/claude-compose-buffer-name session)))
                 ((not (eq (get-buffer-window compose) (selected-window)))))
@@ -3637,6 +3656,7 @@ away before taking focus."
   "Reopen BUFFER's hidden compose window, retrying while it settles."
   (when (and (buffer-live-p buffer)
              (not +my/claude-compose--busy)
+             (not +my/claude-compose--skip)
              (eq (window-buffer (selected-window)) buffer))
     (let ((compose (ignore-errors
                      (get-buffer (+my/claude-compose-buffer-name
@@ -4939,8 +4959,6 @@ Use Evil's delete registers and support repeating with `.'."
 
 
 ;;;;; Org
-;;  TODO: remove unused codes
-
 ;; Row/Column traversal
 
 ;;;###autoload
