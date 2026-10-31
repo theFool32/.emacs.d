@@ -2872,6 +2872,8 @@ focus-guard which reclaims focus back to the posframe."
   ;; Regular windows: they can be split, and two sessions can sit side by
   ;; side with their own prompt under each.
   (claude-code-ide-use-side-window nil)
+  ;; The TUI must not strobe while a turn runs.
+  (claude-code-ide-no-flicker t)
   ;; ESC stays with evil so insert state can be left as usual.  Interrupt
   ;; is `C-c C-c' (ghostel's direct SIGINT), Claude's own ESC equivalent.
   (claude-code-ide-ghostel-evil-escape 'evil)
@@ -2929,6 +2931,9 @@ The profile goes to the CLI as `--settings', overriding
          (claude-code-ide-cli-extra-flags
           (concat (or claude-code-ide-cli-extra-flags "") " --settings "
                   (shell-quote-argument settings))))
+    ;; On resume the CLI shows its own session picker; don't steal focus
+    ;; from it.  The flag clears when a prompt window is opened.
+    (setq +my/claude-compose--skip resume)
     (if resume (claude-code-ide-resume) (claude-code-ide))))
 
 (defun +my/claude-ide-resume ()
@@ -3083,6 +3088,7 @@ buffer back after closing it."
 			   (delq (selected-window)
 				 (get-buffer-window-list shell nil t))))
 	 (+my/claude-compose--busy t))
+    (setq +my/claude-compose--skip nil)
     ;; Split the session's own window so the prompt always sits right
     ;; under the Claude instance it belongs to.
     (cond (visible (select-window visible))
@@ -3100,6 +3106,9 @@ buffer back after closing it."
              (switch-to-buffer buffer)))
           (t (pop-to-buffer buffer '((display-buffer-below-selected)
                                      (window-height . 10)))))
+    ;; Keep the prompt pinned: switching buffers from it opens elsewhere
+    ;; instead of turning it into another buffer.
+    (set-window-dedicated-p (selected-window) t)
     (setq default-directory cwd)
     (erase-buffer)
     (+my/claude-compose-mode 1)
@@ -3125,13 +3134,24 @@ buffer back after closing it."
       (evil-insert-state))))
 
 (defun +my/claude-compose-ensure (buffer &optional attempts)
-  "Open the compose buffer for BUFFER's session once it is registered."
+  "Open the compose buffer for BUFFER once its session is ready.
+
+On resume the CLI's own session picker runs first; wait for it to go
+away before taking focus."
   (when (buffer-live-p buffer)
     (let ((session (with-current-buffer buffer
-                     (claude-code-ide--buffer-session))))
-      (cond (session (+my/claude-compose session))
-            ((< (or attempts 0) 20)
-             (run-at-time 0.3 nil #'+my/claude-compose-ensure
+                     (claude-code-ide--buffer-session)))
+          (picking (and +my/claude-compose--skip
+                        (with-current-buffer buffer
+                          (and (bound-and-true-p ghostel--term)
+                               (ignore-errors
+                                 (string-match-p
+                                  "Resume session"
+                                  (ghostel--copy-all-text ghostel--term))))))))
+      (cond ((and session (not picking))
+             (+my/claude-compose session))
+            ((< (or attempts 0) 120)
+             (run-at-time 0.5 nil #'+my/claude-compose-ensure
                           buffer (1+ (or attempts 0))))))))
 
 (defun +my/claude-compose-on-start (orig &rest args)
@@ -3142,6 +3162,9 @@ buffer back after closing it."
 
 (advice-add 'claude-code-ide--apply-ghostel-evil-escape :around
             #'+my/claude-compose-on-start)
+
+(defvar +my/claude-compose--skip nil
+  "Non-nil while a start should leave focus to the agent's own prompt.")
 
 (defvar +my/claude-compose--busy nil
   "Non-nil while the compose window is being set up.
