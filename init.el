@@ -3547,11 +3547,10 @@ warns; the prompt still works without an input method."
       (error (message "Rime unavailable: %s" err)))))
 
 (defun +my/claude-rime-command-key-p ()
-  "Let a `/' or `@' starting a word through Rime.
+  "Let `/' and `@' through Rime in compose buffers.
 Rime holds a leading `/' as the start of a symbol code, so the slash
-command never reaches the buffer and completion never starts."
-  (and (memq (bound-and-true-p rime--current-input-key) '(?/ ?@))
-       (or (bolp) (memq (char-before) '(?\s ?\t)))))
+command never reached the buffer and completion never started."
+  (memq (bound-and-true-p rime--current-input-key) '(?/ ?@)))
 
 (defun +my/claude-rime-pass-c-s (orig key)
   "Hand `C-s' straight to the keymap in a compose buffer.
