@@ -852,9 +852,9 @@ save the source and diary."
     "aa" '(gptel-add :wk "Add")
     "as" '(gptel-send :wk "Send")
     "ar" '(gptel-rewrite :wk "Rewrite")
-    "ac" '(claude-code-ide :wk "Claude")
+    "ac" '(+my/claude-ide :wk "Claude")
     "aC" '(claude-code-ide-menu :wk "Claude menu")
-    "aR" '(claude-code-ide-resume :wk "Claude resume")
+    "aR" '(+my/claude-ide-resume :wk "Claude resume")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
@@ -2498,7 +2498,9 @@ kill all magit buffers for this repo."
   :hook (ghostel-mode . evil-ghostel-mode)
   :bind (:map evil-ghostel-mode-map
               ;; Alt-screen TUIs never pass the gate; go straight to editing.
-              ("C-c l" . +my/ghostel-force-line-mode)))
+              ("C-c l" . +my/ghostel-force-line-mode)
+              ;; Compose the Claude prompt in a real Emacs buffer.
+              ("C-c C-e" . +my/claude-compose)))
 
 (use-package popterm
   :commands (+popterm-toggle-dwim +popterm-register-shortcut)
@@ -2873,6 +2875,230 @@ focus-guard which reclaims focus back to the posframe."
   :bind (("C-c C-'" . claude-code-ide-menu))
   :config
   (claude-code-ide-emacs-tools-setup))
+
+;;;; Claude profiles and prompts
+(defun +my/claude-profiles ()
+  "Return alist of (LABEL . SETTINGS-FILE) for Claude provider profiles.
+
+Profiles are `settings-*.json' files next to `~/.claude/settings.json',
+the same files the CLI's `--settings' takes.  The active file comes
+last."
+  (require 'json)
+  (mapcar
+   (lambda (path)
+     (let* ((name (file-name-nondirectory path))
+            (label (if (string= name "settings.json")
+                       "active"
+                     (replace-regexp-in-string
+                      "\\`settings-\\(.*\\)\\.json\\'" "\\1" name)))
+            (env (ignore-errors
+                   (let ((json-object-type 'alist))
+                     (alist-get 'env (json-read-file path)))))
+            (host (and env (alist-get 'ANTHROPIC_BASE_URL env)))
+            (model (and env (alist-get 'ANTHROPIC_MODEL env))))
+       (cons (format "%-24s %s  %s" label (or host "official") (or model ""))
+             path)))
+   (append (sort (directory-files "~/.claude" t "\\`settings-.*\\.json\\'") #'string<)
+           (list (expand-file-name "~/.claude/settings.json")))))
+
+(defun +my/claude-ide (&optional resume)
+  "Start Claude Code for a chosen provider profile.
+
+The profile goes to the CLI as `--settings', overriding
+`~/.claude/settings.json'.  With prefix RESUME, resume a session."
+  (interactive "P")
+  (require 'claude-code-ide)
+  (let* ((profiles (+my/claude-profiles))
+         (settings (cdr (assoc (completing-read "Claude profile: "
+                                                (mapcar #'car profiles)
+                                                nil t)
+                               profiles)))
+         ;; When Emacs itself was started from inside Claude Code, these
+         ;; leak in and make the new CLI a child of that session: it then
+         ;; appends to the parent transcript instead of its own project.
+         (process-environment
+          (seq-remove
+           (lambda (var)
+             (string-match-p
+              "\\`\\(?:CLAUDECODE\\|CLAUDE_CODE_SESSION_ID\\|CLAUDE_CODE_CHILD_SESSION\\|CLAUDE_CODE_ENTRYPOINT\\)="
+              var))
+           process-environment))
+         (claude-code-ide-cli-extra-flags
+          (concat (or claude-code-ide-cli-extra-flags "") " --settings "
+                  (shell-quote-argument settings))))
+    (if resume (claude-code-ide-resume) (claude-code-ide))))
+
+(defun +my/claude-ide-resume ()
+  "Resume a Claude Code session for a chosen provider profile."
+  (interactive)
+  (+my/claude-ide t))
+
+;; Raw terminal is the default interaction; line mode (and its Corfu
+;; completion) is opt-in via `C-c l' in the session buffer.
+
+;;;; Claude prompt compose buffer
+;; Write the prompt in a real Emacs buffer (Corfu, cape-file, kill ring),
+;; then paste it into the TUI with bracketed paste and send a return.  The
+;; TUI keeps its rendering; only the composing moves into Emacs.
+(defvar-local +my/claude-compose-session nil)
+
+(defun +my/claude-at-file-capf ()
+  "Complete the file name after an `@' mention."
+  (when (looking-back "@\\([^[:space:]]+\\)" (max (point-min) (- (point) 200)))
+    (list (match-beginning 1) (match-end 1)
+          #'completion-file-name-table :exclusive 'no)))
+
+(defvar +my/claude-slash-commands
+  '("agents" "autocompact" "background" "batch" "code-review" "compact"
+    "config" "context" "copy" "cost" "diff" "doctor" "effort" "exit" "export"
+    "fast" "fewer-permission-prompts" "fork" "goal" "heapdump" "hooks"
+    "init" "insights" "list-agents" "loop" "mcp" "memory" "model" "plan"
+    "recap" "reload-plugins" "reload-skills" "rename" "resume" "run"
+    "security-review" "simplify" "status" "tasks" "team-onboarding" "usage"
+    "verify")
+  "Slash commands offered for completion in the compose buffer.")
+
+(defun +my/claude-slash-capf ()
+  "Complete a leading `/command' word."
+  (when (looking-back "\\(?:^\\|[[:space:]]\\)/\\([a-z0-9-]*\\)"
+                      (line-beginning-position))
+    (list (match-beginning 0) (match-end 1)
+          (mapcar (lambda (name) (concat "/" name))
+                  +my/claude-slash-commands)
+          :exclusive 'no)))
+
+(defvar +my/claude-compose-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") #'+my/claude-compose-send)
+    (define-key map (kbd "<return>") #'+my/claude-compose-send)
+    (define-key map (kbd "C-j") #'newline)
+    (define-key map (kbd "C-c C-k") #'+my/claude-compose-quit)
+    (define-key map (kbd "C-c C-o") #'+my/claude-compose-focus-terminal)
+    map))
+
+(define-minor-mode +my/claude-compose-mode
+  "Minor mode for composing Claude prompts outside the terminal."
+  :lighter " Claude⤓"
+  :keymap +my/claude-compose-mode-map)
+
+;; Evil's state maps outrank minor-mode maps, and `C-c' is a prefix there.
+(with-eval-after-load 'evil
+  (evil-define-key '(insert normal emacs) +my/claude-compose-mode-map
+		   (kbd "C-c C-k") #'+my/claude-compose-quit
+		   (kbd "C-c C-o") #'+my/claude-compose-focus-terminal))
+
+(defun +my/claude-compose-quit ()
+  "Bury the compose window and clear its buffer."
+  (interactive)
+  (erase-buffer)
+  (quit-window))
+
+(defun +my/claude-compose-focus-terminal ()
+  "Move focus to the Claude terminal without closing the compose window."
+  (interactive)
+  (let ((buffer (and +my/claude-compose-session
+                     (claude-code-ide-mcp-session-buffer
+                      +my/claude-compose-session))))
+    (if (and buffer (buffer-live-p buffer))
+	(pop-to-buffer buffer)
+      (user-error "Claude session is gone"))))
+
+(defun +my/claude-compose-send (&optional keep)
+  "Send the compose buffer to the Claude TUI.
+
+With prefix KEEP, leave the text in the buffer for another edit."
+  (interactive "P")
+  (let* ((text (string-trim (buffer-string)))
+	 (buffer (and +my/claude-compose-session
+                      (claude-code-ide-mcp-session-buffer
+                       +my/claude-compose-session))))
+    (when (string-empty-p text)
+      (user-error "Empty prompt"))
+    (unless (and buffer (buffer-live-p buffer))
+      (user-error "Claude session is gone"))
+    (with-current-buffer buffer
+      (ghostel-paste-string text)
+      ;; The return can overtake the paste on a busy (or still starting)
+      ;; TUI and submit an empty prompt.  Wait until the paste echoes.
+      (let ((needle (regexp-quote (substring text (max 0 (- (length text) 20)))))
+            (tries 0))
+	(while (and (< tries 60)
+                    (not (string-match-p
+                          needle (or (and ghostel--term
+                                          (ghostel--copy-all-text ghostel--term))
+                                     ""))))
+          (sit-for 0.05)
+          (setq tries (1+ tries))))
+      (claude-code-ide--terminal-send-return))
+    (unless keep (erase-buffer))))
+
+(defun +my/claude-compose (&optional session)
+  "Compose a prompt for this project's Claude session in a buffer.
+
+Opens automatically when a session starts; call it to get the input
+buffer back after closing it."
+  (interactive)
+  (let* ((session (or session
+                      (claude-code-ide--resolve-session
+                       'auto "Compose to Claude instance: ")))
+	 (cwd (claude-code-ide-mcp-session-project-dir session))
+	 (buffer (get-buffer-create "*claude-prompt*")))
+    ;; Claude lives in a side window, which cannot be split.  Stack this
+    ;; buffer in the next slot on the same side so it sits by Claude
+    ;; whatever the rest of the frame looks like.
+    (select-window
+     (display-buffer
+      buffer
+      (if claude-code-ide-use-side-window
+          `((display-buffer-in-side-window)
+            (side . ,claude-code-ide-window-side)
+            (slot . ,(1+ (or (claude-code-ide-mcp-session-window-slot session) 0)))
+            (window-height . 10)
+            (window-width . ,claude-code-ide-window-width)
+            (window-parameters . ((no-delete-other-windows . t))))
+	'((display-buffer-below-selected) (window-height . 10)))))
+    (setq default-directory cwd)
+    (erase-buffer)
+    (+my/claude-compose-mode 1)
+    (setq-local +my/claude-compose-session session)
+    (setq-local completion-at-point-functions
+		(list #'+my/claude-slash-capf #'+my/claude-at-file-capf
+                      #'cape-file #'cape-dabbrev))
+    (setq-local corfu-auto t)
+    (corfu-mode 1)
+    ;; Prompts are prose, not code: never reindent on newline or paste.
+    (electric-indent-local-mode -1)
+    (setq-local indent-line-function #'ignore)
+    ;; Keep the keys on screen; the lighters alone are easy to forget.
+    (setq-local header-line-format
+		(list " "
+                      (propertize "RET" 'face 'bold) " 发送   "
+                      (propertize "C-j" 'face 'bold) " 换行   "
+                      (propertize "C-c C-o" 'face 'bold) " 去终端   "
+                      (propertize "C-c C-k" 'face 'bold) " 关闭   "
+                      (propertize "C-u RET" 'face 'bold) " 发送并留稿"))
+    ;; This buffer exists to type, so start ready to type.
+    (when (fboundp 'evil-insert-state)
+      (evil-insert-state))))
+
+(defun +my/claude-compose-ensure (buffer &optional attempts)
+  "Open the compose buffer for BUFFER's session once it is registered."
+  (when (buffer-live-p buffer)
+    (let ((session (with-current-buffer buffer
+                     (claude-code-ide--buffer-session))))
+      (cond (session (+my/claude-compose session))
+            ((< (or attempts 0) 20)
+             (run-at-time 0.3 nil #'+my/claude-compose-ensure
+                          buffer (1+ (or attempts 0))))))))
+
+(defun +my/claude-compose-on-start (orig &rest args)
+  "Open the compose buffer as soon as a Claude session starts."
+  (prog1 (apply orig args)
+    (when (derived-mode-p 'ghostel-mode)
+      (run-at-time 0.5 nil #'+my/claude-compose-ensure (current-buffer)))))
+
+(advice-add 'claude-code-ide--apply-ghostel-evil-escape :around
+            #'+my/claude-compose-on-start)
 
 ;;; UI
 ;;;; UI-config
