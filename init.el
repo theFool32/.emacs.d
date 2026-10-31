@@ -2480,6 +2480,9 @@ kill all magit buffers for this repo."
   (ghostel-enable-title-tracking nil)
   ;; Shrinking fallback glyphs to fit a cell makes CJK tiny and squished.
   (ghostel-glyph-scale-floor 1.0)
+  ;; Keep the native module out of the package tree: an update rebuilds the
+  ;; build directory and deletes the module under a running Emacs.
+  (ghostel-module-directory (expand-file-name "var/ghostel/" user-emacs-directory))
   ;; Emacs has been crashing inside GC's interval marking while Claude's TUI
   ;; streamed output through the process filter.  Keep every redraw on the
   ;; coalescing timer instead of doing it inside the filter, and halve the
