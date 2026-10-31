@@ -3128,7 +3128,10 @@ Paths starting with `/', `~' or `.' complete as plain file names."
                          (setq +my/claude-compose--files
                                (+my/claude-project-files))))
                 #'completion-file-name-table)
-            :exclusive 'no))))
+            :exclusive 'no
+            ;; The mention is one character wide; without this Corfu's
+            ;; auto mode waits for `corfu-auto-prefix' letters.
+            :company-prefix-length t))))
 
 (defvar +my/claude-builtin-commands
   '("add-dir" "advisor" "autocompact" "autofix-pr" "background" "branch"
@@ -3220,7 +3223,10 @@ descriptions without starting a turn, so no model is called."
                                                    reported))))
                 (concat "  " (truncate-string-to-width
                               description 60 nil nil "…"))))
-            :exclusive 'no))))
+            :exclusive 'no
+            ;; The slash is one character wide; without this Corfu's auto
+            ;; mode waits for `corfu-auto-prefix' letters.
+            :company-prefix-length t))))
 
 ;;;;; History
 ;; Read from the CLI's own `~/.claude/history.jsonl', so prompts typed in
