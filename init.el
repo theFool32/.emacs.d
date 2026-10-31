@@ -2980,7 +2980,6 @@ The profile goes to the CLI as `--settings', overriding
     (define-key map (kbd "RET") #'+my/claude-compose-send)
     (define-key map (kbd "<return>") #'+my/claude-compose-send)
     (define-key map (kbd "C-j") #'newline)
-    (define-key map (kbd "C-c C-k") #'+my/claude-compose-quit)
     (define-key map (kbd "C-c C-o") #'+my/claude-compose-focus-terminal)
     map))
 
@@ -2992,17 +2991,7 @@ The profile goes to the CLI as `--settings', overriding
 ;; Evil's state maps outrank minor-mode maps, and `C-c' is a prefix there.
 (with-eval-after-load 'evil
   (evil-define-key '(insert normal emacs) +my/claude-compose-mode-map
-		   (kbd "C-c C-k") #'+my/claude-compose-quit
 		   (kbd "C-c C-o") #'+my/claude-compose-focus-terminal))
-
-(defun +my/claude-compose-quit ()
-  "Hide this prompt's window; it comes back with the session."
-  (interactive)
-  (erase-buffer)
-  ;; Deleting (rather than burying) gives the space back to the terminal,
-  ;; so repeated hide/switch cycles don't leave slivers behind.
-  (when-let* ((window (get-buffer-window (current-buffer))))
-    (delete-window window)))
 
 (defun +my/claude-compose-focus-terminal ()
   "Move focus to the Claude terminal without closing the compose window."
@@ -3127,7 +3116,6 @@ buffer back after closing it."
                       (propertize "RET" 'face 'bold) " 发送   "
                       (propertize "C-j" 'face 'bold) " 换行   "
                       (propertize "C-c C-o" 'face 'bold) " 去终端   "
-                      (propertize "C-c C-k" 'face 'bold) " 关闭   "
                       (propertize "C-u RET" 'face 'bold) " 发送并留稿"))
     ;; This buffer exists to type, so start ready to type.
     (when (fboundp 'evil-insert-state)
