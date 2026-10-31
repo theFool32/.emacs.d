@@ -852,7 +852,9 @@ save the source and diary."
     "aa" '(gptel-add :wk "Add")
     "as" '(gptel-send :wk "Send")
     "ar" '(gptel-rewrite :wk "Rewrite")
-    "ao" '(opencode :wk "OpenCode")
+    "ac" '(claude-code-ide :wk "Claude")
+    "aC" '(claude-code-ide-menu :wk "Claude menu")
+    "aR" '(claude-code-ide-resume :wk "Claude resume")
 
     "p" '(:wk "Project")
     "pp" '(project-switch-project :wk "Switch project")
@@ -2462,7 +2464,30 @@ kill all magit buffers for this repo."
   :bind
   (("C-0" . #'ghostel-project))
   :custom
-  (ghostel-enable-title-tracking nil))
+  (ghostel-enable-title-tracking nil)
+  ;; Shrinking fallback glyphs to fit a cell makes CJK tiny and squished.
+  (ghostel-glyph-scale-floor 1.0)
+  :config
+  (setq-default ghostel-glyph-scale-floor 1.0)
+  ;; `corfu--on' skips read-only buffers and the major-mode switch happens
+  ;; while these are read-only, while line mode (the only mode with real
+  ;; buffer text) is not a minor mode and has no hook.  Follow the input
+  ;; mode instead.
+  (advice-add 'ghostel-line-mode :after
+              (lambda (&rest _)
+                ;; Auto-popup on typed text: line mode's self-insert is not
+                ;; in `corfu-auto-commands'.
+                (setq-local corfu-auto t)
+                (add-to-list (make-local-variable 'corfu-auto-commands)
+                             'ghostel-line-mode-self-insert)
+                (corfu-mode 1)))
+  (dolist (fn '(ghostel-semi-char-mode ghostel-char-mode ghostel-copy-mode))
+    (advice-add fn :after (lambda (&rest _) (corfu-mode -1)))))
+
+(defun +my/ghostel-force-line-mode ()
+  "Enter ghostel line mode at once, bypassing the alt-screen gate."
+  (interactive)
+  (ghostel-line-mode t))
 
 (use-package evil-ghostel
   ;; The extension shares Ghostel's repository, but has its own build files.
@@ -2470,7 +2495,10 @@ kill all magit buffers for this repo."
                  :files ("extensions/evil-ghostel/evil-ghostel.el"))
   :after (ghostel evil)
   :demand t
-  :hook (ghostel-mode . evil-ghostel-mode))
+  :hook (ghostel-mode . evil-ghostel-mode)
+  :bind (:map evil-ghostel-mode-map
+              ;; Alt-screen TUIs never pass the gate; go straight to editing.
+              ("C-c l" . +my/ghostel-force-line-mode)))
 
 (use-package popterm
   :commands (+popterm-toggle-dwim +popterm-register-shortcut)
@@ -2827,6 +2855,24 @@ focus-guard which reclaims focus back to the posframe."
 (use-package gptel
   :ensure t
   :commands (gptel gptel-send))
+
+;;;; Claude Code
+;; Full Claude Code TUI in a ghostel buffer, with an MCP bridge so Claude
+;; can read the current file, region, and diagnostics, and review edits in
+;; ediff.
+(use-package claude-code-ide
+  :ensure (:host github :repo "manzaltu/claude-code-ide.el")
+  :commands (claude-code-ide claude-code-ide-menu claude-code-ide-resume
+             claude-code-ide-continue claude-code-ide-send-prompt
+             claude-code-ide-clear-selection claude-code-ide-switch-to-buffer)
+  :custom
+  (claude-code-ide-terminal-backend 'ghostel)
+  ;; ESC stays with evil so insert state can be left as usual.  Interrupt
+  ;; is `C-c C-c' (ghostel's direct SIGINT), Claude's own ESC equivalent.
+  (claude-code-ide-ghostel-evil-escape 'evil)
+  :bind (("C-c C-'" . claude-code-ide-menu))
+  :config
+  (claude-code-ide-emacs-tools-setup))
 
 ;;; UI
 ;;;; UI-config
