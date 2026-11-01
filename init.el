@@ -3577,9 +3577,12 @@ warns; the prompt still works without an input method."
           ;; `current-input-method' can still name rime after
           ;; `rime-deactivate' took the method itself down, and
           ;; `activate-input-method' then skips activation because the
-          ;; name already matches.  Only a live `rime-mode' counts.
+          ;; name already matches.  Only a live method counts: `rime-mode'
+          ;; plus the local `input-method-function' it sets (the global
+          ;; default `list' passes every key through unconverted).
           (unless (and (equal current-input-method default-input-method)
-                       (bound-and-true-p rime-mode))
+                       (bound-and-true-p rime-mode)
+                       (local-variable-p 'input-method-function))
             (when current-input-method
               (deactivate-input-method))
             (setq-local current-input-method nil)
@@ -3599,7 +3602,8 @@ falls back to the identity `list' function."
              (memq rime-active-mode-map overriding-terminal-local-map))
     (internal-pop-keymap rime-active-mode-map 'overriding-terminal-local-map))
   (when (and (string= (or current-input-method "") "rime")
-             (not (bound-and-true-p rime-mode)))
+             (or (not (bound-and-true-p rime-mode))
+                 (not (local-variable-p 'input-method-function))))
     (+my/claude-compose--rime)))
 
 (defun +my/claude-rime-command-key-p ()
