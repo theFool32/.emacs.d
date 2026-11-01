@@ -832,6 +832,7 @@ save the source and diary."
     "ac" '(+my/claude-ide :wk "Claude")
     "aC" '(claude-code-ide-menu :wk "Claude menu")
     "aR" '(+my/claude-ide-resume :wk "Claude resume")
+    "aT" '(+my/claude-tmux-attach :wk "Claude attach")
     "ae" '(+my/claude-compose :wk "Claude prompt")
     "ai" '(+my/claude-compose-add-ref :wk "Claude mention")
     "at" '(claude-code-ide-toggle :wk "Claude toggle")
@@ -3061,6 +3062,107 @@ The profile goes to the CLI as `--settings', overriding
   "Resume a Claude Code session for a chosen provider profile."
   (interactive)
   (+my/claude-ide t))
+
+;;;; Claude sessions survive Emacs
+;; The CLI runs inside tmux, so closing Emacs (or the daemon restarting)
+;; only detaches the ghostel client and the agent keeps working.  Killing
+;; the buffer is the one deliberate way to end a session, and it kills the
+;; tmux session with it.  `+my/claude-keep-tmux-sessions' protects the
+;; sessions that a restart tears down on purpose.
+(defvar +my/claude-keep-tmux-sessions nil
+  "Non-nil while buffer kills must leave their tmux sessions running.")
+
+(defvar +my/claude--tmux-name nil
+  "Tmux session name being started by `claude-code-ide--create-terminal-session'.")
+
+(defvar-local +my/claude--tmux-session nil
+  "Tmux session this terminal buffer drives, when it has one.")
+
+(defun +my/claude--tmux-session-name (session-id)
+  "Return a tmux-safe session name for SESSION-ID."
+  (concat "claude-ide-" (replace-regexp-in-string "[^A-Za-z0-9_-]" "-" session-id)))
+
+(defun +my/claude--tmux-kill-session ()
+  "Kill this buffer's tmux session when the buffer is closed by hand.
+
+A live client process means someone closed the buffer.  A dead one means
+the session outlived it: either Emacs is exiting (the client was killed,
+or the restart script closed the buffer) or the agent itself exited, and
+in both cases the session is left alone."
+  (when (and +my/claude--tmux-session
+             (not +my/claude-keep-tmux-sessions)
+             (process-live-p (get-buffer-process (current-buffer))))
+    (ignore-errors
+      (call-process "tmux" nil nil nil "kill-session" "-t" +my/claude--tmux-session))))
+
+(defun +my/claude--tmux-exec (orig buffer program &rest args)
+  "Run the Claude PROGRAM of BUFFER in a tmux session through ghostel.
+ORIG is `ghostel-exec'.  The tmux server owns the process, so the PTY
+Emacs holds is only a client and closing Emacs detaches instead of
+killing the agent.  The environment travels with the command: the
+server keeps its own environment from whenever it started."
+  (if (not +my/claude--tmux-name)
+      (apply orig buffer program args)
+    (let ((variables (seq-filter
+                      (lambda (entry)
+                        (string-match-p
+                         "\\`\\(CLAUDE_CODE_SSE_PORT\\|CLAUDE_CODE_NO_FLICKER\\|TERM_PROGRAM\\|FORCE_CODE_TERMINAL\\)="
+                         entry))
+                      process-environment)))
+      ;; Detach, configure, then attach: the status bar is noise (Emacs
+      ;; draws the mode line) and setting it after attaching races the
+      ;; session's creation.
+      (let* ((tmux (shell-quote-argument (or (executable-find "tmux") "tmux")))
+             (name (shell-quote-argument +my/claude--tmux-name))
+             (command (mapconcat #'shell-quote-argument (cons program (car args)) " "))
+             (script (concat tmux " new-session -d -s " name " -- /usr/bin/env "
+                             (mapconcat #'shell-quote-argument variables " ") " "
+                             command " ; " tmux " set-option -t " name " status off ; "
+                             "exec " tmux " attach -t " name)))
+        (apply orig buffer "/bin/sh" (list "-c" script) (cdr args))))))
+
+(advice-add 'ghostel-exec :around #'+my/claude--tmux-exec)
+
+(defun +my/claude--tmux-start (orig buffer-name working-dir port continue resume session-id)
+  "Give the terminal ORIG creates a tmux session named after SESSION-ID."
+  (let ((+my/claude--tmux-name (and (executable-find "tmux")
+                                    (+my/claude--tmux-session-name session-id))))
+    (let ((result (funcall orig buffer-name working-dir port continue resume session-id)))
+      (when (and +my/claude--tmux-name (buffer-live-p (car result)))
+        (with-current-buffer (car result)
+          (setq-local +my/claude--tmux-session +my/claude--tmux-name)
+          (add-hook 'kill-buffer-hook #'+my/claude--tmux-kill-session nil t))
+        ;; Emacs already draws a mode line; the tmux status bar is noise.
+        (ignore-errors
+          (call-process "tmux" nil nil nil "set-option" "-t" +my/claude--tmux-name
+                        "status" "off")))
+      result)))
+
+(advice-add 'claude-code-ide--create-terminal-session :around #'+my/claude--tmux-start)
+
+(defun +my/claude-tmux-attach ()
+  "Attach to a Claude Code session still running in tmux."
+  (interactive)
+  (require 'claude-code-ide)
+  (let* ((names (ignore-errors
+                  (seq-filter (lambda (name) (string-prefix-p "claude-ide-" name))
+                              (process-lines "tmux" "list-sessions" "-F"
+                                             "#{session_name}"))))
+         (_ (unless names (user-error "No Claude Code session is running in tmux")))
+         (name (completing-read "Attach to: " names nil t))
+         (buffer-name (format "*claude-code[tmux %s]*"
+                              (substring name (length "claude-ide-"))))
+         (buffer (get-buffer-create buffer-name)))
+    (with-current-buffer buffer
+      (setq default-directory (or (ignore-errors
+                                    (string-trim
+                                     (process-lines "tmux" "display-message" "-p" "-t" name
+                                                    "#{pane_current_path}")))
+                                  default-directory))
+      (ghostel-exec buffer (or (executable-find "tmux") "tmux") (list "attach" "-t" name))
+      (setq-local +my/claude--tmux-session name)
+      (add-hook 'kill-buffer-hook #'+my/claude--tmux-kill-session nil t))
+    (pop-to-buffer buffer)))
 
 ;; Raw terminal is the default interaction; line mode (and its Corfu
 ;; completion) is opt-in via `C-c l' in the session buffer.

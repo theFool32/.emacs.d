@@ -134,6 +134,10 @@ def stop_claude_sessions(client):
                (and (with-current-buffer buffer (derived-mode-p 'ghostel-mode))
                     (string-match-p "\\`\\*claude-code\\[" (buffer-name buffer))))
              (buffer-list))))
+      ;; Claude sessions run in tmux; the buffer kill must only detach
+      ;; them, so they are still there after the restart.
+      (when (boundp '+my/claude-keep-tmux-sessions)
+        (setq +my/claude-keep-tmux-sessions t))
       (when buffers
         ;; Both the kill-buffer and the kill-emacs confirmation prompts are
         ;; answered here, not by a person at a minibuffer.
@@ -329,7 +333,8 @@ def main():
                                + "\n  ".join(blockers))
         stopped = stop_claude_sessions(client)
         if stopped:
-            print(f"Closed {stopped} Claude Code terminal{'' if stopped == 1 else 's'}.", flush=True)
+            print(f"Detached {stopped} Claude Code session{'' if stopped == 1 else 's'}; "
+                  "tmux keeps them running.", flush=True)
 
     backup_root = config_root / "var/desktop-backups"
     backup_root.mkdir(parents=True, exist_ok=True)
