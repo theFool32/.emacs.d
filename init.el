@@ -3527,7 +3527,10 @@ buffer back after closing it."
       ;; Activate after entering insert: activating in normal state makes
       ;; evil deactivate it again, and a stale `current-input-method'
       ;; then suppresses the real activation on insert entry.
-      (+my/claude-compose--rime))))
+      (+my/claude-compose--rime))
+    ;; A buffer brought back was hidden, and may have lost its input
+    ;; method meanwhile; re-arm rime here rather than on the first key.
+    (+my/claude-compose--rime-heal)))
 
 (defun +my/claude-compose--setup (session cwd)
   "Prepare the current buffer as SESSION's compose buffer in CWD."
@@ -3550,6 +3553,7 @@ buffer back after closing it."
   (when (boundp 'rime-disable-predicates)
     (setq-local rime-disable-predicates
                 (cons #'+my/claude-rime-command-key-p rime-disable-predicates)))
+  (add-hook 'post-command-hook #'+my/claude-compose--rime-heal nil t)
   ;; Keep the keys on screen; the lighters alone are easy to forget.
   (setq-local header-line-format '(:eval (+my/claude-compose--header))))
 
@@ -3570,9 +3574,33 @@ warns; the prompt still works without an input method."
             ;; frame, font, placement); the echo-area overlay is an order
             ;; of magnitude cheaper and the prompt is short.
             (setq-local rime-show-candidate 'minibuffer))
-          (unless (equal current-input-method default-input-method)
-            (activate-input-method default-input-method)))
+          ;; `current-input-method' can still name rime after
+          ;; `rime-deactivate' took the method itself down, and
+          ;; `activate-input-method' then skips activation because the
+          ;; name already matches.  Only a live `rime-mode' counts.
+          (unless (and (equal current-input-method default-input-method)
+                       (bound-and-true-p rime-mode))
+            (when current-input-method
+              (deactivate-input-method))
+            (setq-local current-input-method nil)
+            (activate-input-method default-input-method))
+          (+my/claude-compose--rime-heal))
       (error (message "Rime unavailable: %s" err)))))
+
+(defun +my/claude-compose--rime-heal ()
+  "Recover rime from the states that silently pass every key as ASCII.
+One is a composition map left installed after `rime-active-mode' went
+off; `rime-input-method' then takes the keys as unrelated and returns
+them unconverted.  The other is `current-input-method' still naming
+rime after `rime-deactivate' removed the method, where
+`activate-input-method' skips activation on the name alone and typing
+falls back to the identity `list' function."
+  (when (and (not (bound-and-true-p rime-active-mode))
+             (memq rime-active-mode-map overriding-terminal-local-map))
+    (internal-pop-keymap rime-active-mode-map 'overriding-terminal-local-map))
+  (when (and (string= (or current-input-method "") "rime")
+             (not (bound-and-true-p rime-mode)))
+    (+my/claude-compose--rime)))
 
 (defun +my/claude-rime-command-key-p ()
   "Let `/' and `@' through Rime in compose buffers.
