@@ -3077,6 +3077,31 @@ The profile goes to the CLI as `--settings', overriding
 (defvar-local +my/claude-compose--picker-seen nil
   "Non-nil once the resume picker showed in this terminal buffer.")
 
+(defvar-local +my/claude-compose--picker-focused nil
+  "Non-nil while this terminal holds the keyboard for a resume picker.")
+
+(defun +my/claude-compose--picker-focus (buffer)
+  "Give BUFFER the keyboard while its resume picker runs.
+The picker is navigated by typing and arrows, so its terminal has to be
+in insert state and ESC has to reach the CLI (to cancel) rather than
+evil.  Claude terminals normally open in normal state for reading."
+  (when-let* ((window (car (get-buffer-window-list buffer nil t))))
+    (select-frame-set-input-focus (window-frame window))
+    (select-window window))
+  (with-current-buffer buffer
+    (setq +my/claude-compose--picker-focused t)
+    (setq-local evil-ghostel--escape-mode 'terminal)
+    (when (eq evil-state 'normal)
+      (evil-insert-state))))
+
+(defun +my/claude-compose--picker-done (buffer)
+  "Hand BUFFER's ESC back to evil after its resume picker is answered."
+  (when (buffer-local-value '+my/claude-compose--picker-focused buffer)
+    (with-current-buffer buffer
+      (setq +my/claude-compose--picker-focused nil)
+      (setq-local evil-ghostel--escape-mode
+                  claude-code-ide-ghostel-evil-escape))))
+
 (defun +my/claude-compose--picking-p (buffer)
   "Non-nil while BUFFER shows the CLI's resume picker.
 The picker needs the focus and its own up/down keys, so the compose
@@ -3088,7 +3113,10 @@ early."
        (with-current-buffer buffer
          (when (ignore-errors
                  (string-match-p "Resume session" (+my/claude--screen-tail 3000)))
-           (setq +my/claude-compose--picker-seen t)))))
+           (setq +my/claude-compose--picker-seen t)
+           (unless +my/claude-compose--picker-focused
+             (+my/claude-compose--picker-focus buffer))
+           t))))
 
 (defvar +my/claude-compose--busy nil
   "Non-nil while the compose window is being set up.
@@ -3628,8 +3656,12 @@ away before taking focus."
                   (or (not +my/claude-compose--skip)
                       (buffer-local-value '+my/claude-compose--picker-seen buffer))
                   (not (+my/claude-compose--picking-p buffer)))
+             (+my/claude-compose--picker-done buffer)
              (+my/claude-compose session))
-            ((< (or attempts 0) 240)
+            ;; A picker can stay up for as long as the reader needs, so the
+            ;; retry budget only applies once it is gone.
+            ((or (+my/claude-compose--picking-p buffer)
+                 (< (or attempts 0) 240))
              (run-at-time 0.5 nil #'+my/claude-compose-ensure
                           buffer (1+ (or attempts 0))))))))
 
@@ -3638,6 +3670,7 @@ away before taking focus."
   (prog1 (apply orig args)
     (when (derived-mode-p 'ghostel-mode)
       (setq-local +my/claude-compose--picker-seen nil)
+      (setq-local +my/claude-compose--picker-focused nil)
       (run-at-time 0.5 nil #'+my/claude-compose-ensure (current-buffer)))))
 
 (advice-add 'claude-code-ide--apply-ghostel-evil-escape :around
