@@ -30,8 +30,21 @@ def main():
 
     expression = "(and (daemonp) (bound-and-true-p +my/desktop-ready))"
     if evaluate(expression) != "t":
-        subprocess.run(["/bin/launchctl", "kickstart",
-                        f"gui/{os.getuid()}/local.emacs.daemon"], check=True)
+        service = f"gui/{os.getuid()}/local.emacs.daemon"
+        result = subprocess.run(["/bin/launchctl", "kickstart", service],
+                                capture_output=True, text=True, timeout=15)
+        if result.returncode != 0:
+            # macOS does not always load the agent at login (Login Items ›
+            # Allow in the Background), leaving no job for kickstart to start.
+            agent = Path.home() / "Library/LaunchAgents/local.emacs.daemon.plist"
+            if not agent.is_file():
+                raise RuntimeError(f"Missing {agent}; run bin/install-emacs-daemon")
+            result = subprocess.run(["/bin/launchctl", "bootstrap",
+                                     f"gui/{os.getuid()}", str(agent)],
+                                    capture_output=True, text=True, timeout=15)
+            if result.returncode != 0 and "already" not in result.stderr.lower():
+                raise RuntimeError("Cannot start the Emacs daemon: "
+                                   + (result.stderr or result.stdout).strip())
         deadline = time.monotonic() + 45
         while evaluate(expression) != "t":
             if time.monotonic() >= deadline:
