@@ -2879,7 +2879,13 @@ focus-guard which reclaims focus back to the posframe."
 ;;;; GPT
 (use-package gptel
   :ensure t
-  :commands (gptel gptel-send))
+  :commands (gptel gptel-send)
+  :custom
+  ;; Chat buffers are Markdown: render them with the tree-sitter mode, so
+  ;; `markdown-ts-appear-mode' applies as in any `.md' file.
+  (gptel-default-mode 'markdown-ts-mode)
+  :config
+  (add-to-list 'gptel-prompt-prefix-alist '(markdown-ts-mode . "### ")))
 
 ;;;; Claude Code
 ;; Full Claude Code TUI in a ghostel buffer, with an MCP bridge so Claude
