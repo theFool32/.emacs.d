@@ -6948,7 +6948,31 @@ has no effect."
          (mapcar (lambda (function)
                    (cons function 'markdown-ts-appear--fontify-visible-markup))
                  markdown-ts-appear--visible-fontifiers)))
-  (add-to-list 'markdown-ts-code-block-modes '(python . python-ts-mode))
+  ;; `markdown-ts--code-block-language-mode' does `(car (alist-get ...))', so
+  ;; entries must be 2-element lists; a dotted cons makes it `(car 'python-ts-mode)'
+  ;; and every python fence errors during redisplay.
+  (add-to-list 'markdown-ts-code-block-modes '(python python-ts-mode))
+  ;; `markdown-ts-appear-table--tables' memoizes a lazily compiled query for the
+  ;; whole session.  Once the grammar has been unloaded and reloaded (last
+  ;; Markdown buffer killed, elpaca rebuild) the cached query keeps pointing at
+  ;; the dead language and silently captures only a subset of tables, so the
+  ;; next render pass wipes every table overlay and recreates nothing.
+  ;; Recompile eagerly for each Markdown buffer, and render again if a buffer
+  ;; ends up with no overlays while its tables are still visible.
+  (defun +my/markdown-ts-table-query ()
+    (setq markdown-ts-appear-table--query
+          (treesit-query-compile 'markdown '((pipe_table) @table) t)))
+  (add-hook 'markdown-ts-mode-hook #'+my/markdown-ts-table-query -50)
+  (defun +my/markdown-ts-table-rescue ()
+    (when (and (eq markdown-ts-appear-table-style 'wrapped)
+               (markdown-ts-appear--active-p)
+               (null markdown-ts-appear-table--overlays)
+               (seq-some (lambda (table)
+                           (not (outline-invisible-p (treesit-node-start table))))
+                         (markdown-ts-appear-table--tables)))
+      (markdown-ts-appear-table--render)))
+  (advice-add 'markdown-ts-appear-table--post-command :after
+              #'+my/markdown-ts-table-rescue)
   ;; U+2500 is ambiguous-width and renders double-width in CJK fonts, so the
   ;; full-width rule built by `markdown-ts--fontify-thematic-break' overflows
   ;; the window.  Use ASCII hyphens, which are always width 1.
