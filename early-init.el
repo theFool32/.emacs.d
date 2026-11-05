@@ -66,7 +66,10 @@
 
 ;; Automatically reread from disk if the underlying file changes
 (setq auto-revert-interval 3
-      auto-revert-check-vc-info t
+      ;; Refreshing VC state for every buffer every 3s costs ~0.8s per
+      ;; tick on files inside this git repo; the mode line still updates
+      ;; when a file actually changes.
+      auto-revert-check-vc-info nil
       auto-revert-verbose nil
       auto-revert-use-notify nil
       global-auto-revert-non-file-buffers t)
