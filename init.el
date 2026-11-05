@@ -7203,14 +7203,16 @@ so the rule always wraps.  Rebuild the display to end at the edge."
 
 (defun +my/desktop-startup-finished ()
   "Finish startup without opening an agenda on the daemon's terminal frame."
-  (+my/desktop-preload-rime)
   (setq +my/desktop-ready t)
   (mapc #'+my/desktop-setup-frame (frame-list))
   (when (and (not (daemonp)) (display-graphic-p)
              (not (buffer-file-name)))
     (+my/open-org-agenda))
   (message "Start in %s s with %d gc"
-           (float-time (time-subtract (current-time) +my/start-time)) gcs-done))
+           (float-time (time-subtract (current-time) +my/start-time)) gcs-done)
+  ;; Starting Rime's engine takes several seconds; do it on the first idle
+  ;; moment instead of holding up the client's frame.
+  (run-with-idle-timer 0.5 nil #'+my/desktop-preload-rime))
 
 ;; Daemons enable the former first-input modes as soon as packages are ready.
 (when (daemonp)
