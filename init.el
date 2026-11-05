@@ -3854,7 +3854,10 @@ away before taking focus."
 Plain `switch-to-buffer' does not go through the package's display
 path, so watch window buffer changes.  The hook passes the FRAME."
   (let ((buffer (window-buffer (selected-window))))
-    (when (and (eq (window-frame (selected-window)) frame)
+    ;; `claude-code-ide' is deferred outside daemon mode, so this global
+    ;; hook runs before the package defines its internal accessor.
+    (when (and (fboundp 'claude-code-ide--buffer-session)
+               (eq (window-frame (selected-window)) frame)
                (claude-code-ide--buffer-session buffer))
       (when (timerp +my/claude-compose--timer)
         (cancel-timer +my/claude-compose--timer))
