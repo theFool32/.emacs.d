@@ -134,25 +134,37 @@ or triggered (if it is a hook variable)."
 (defalias 'use-package-normalize/:after-call #'use-package-normalize-symlist)
 
 ;;;; Load packages eagerly in a daemon
+(defconst +my/use-package-lazy-keywords
+  (append '(:hook :bind :magic :magic-fallback)
+          use-package-deferring-keywords)
+  "Keywords which give a package a lazy load trigger of its own.
+A daemon loads everything eagerly by default; packages carrying one of
+these keywords keep their trigger instead, so only the packages without
+any are demanded at startup.")
+
 (defun +my/use-package-eager-in-daemon (normalize name args)
-  "Normalize package NAME with ARGS, ignoring lazy loading in a daemon.
+  "Normalize package NAME with ARGS, honoring lazy loading in a daemon.
 NORMALIZE is the original `use-package-normalize-keywords' function.
 Keep dependency ordering, conditions, bindings, and mode hooks intact."
   (when (daemonp)
-    (setq args
-          (append '(:demand t)
-                  (apply #'append
-                         (seq-remove
-                          (lambda (group)
-                            (memq (car group) '(:defer :demand :after-call)))
-                          (use-package-split-when #'keywordp args))))))
+    (let* ((groups (use-package-split-when #'keywordp args))
+           (demanded (assq :demand groups)))
+      ;; Drop the form's own :defer/:demand so the decision below is final.
+      (setq args (apply #'append
+                        (seq-remove (lambda (group) (memq (car group) '(:defer :demand)))
+                                    groups)))
+      (cond (demanded (setq args (append demanded args)))
+            ((seq-some (lambda (group) (memq (car group) +my/use-package-lazy-keywords))
+                       groups))
+            (t (setq args (append '(:demand t) args))))))
   (funcall normalize name args))
 
 (advice-add 'use-package-normalize-keywords :around
             #'+my/use-package-eager-in-daemon)
 (when (daemonp)
+  ;; `+my/use-package-eager-in-daemon' decides demand per form.
   (setq use-package-always-defer nil
-        use-package-always-demand t))
+        use-package-always-demand nil))
 
 ;;;; elpaca
 
@@ -193,6 +205,9 @@ Keep dependency ordering, conditions, bindings, and mode hooks intact."
     (require 'elpaca)
     (elpaca-generate-autoloads "elpaca" repo)
     (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+;; A byte-compiled init expands `elpaca' to a direct call of this function;
+;; the autoload file alone does not define it.
+(require 'elpaca)
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
 
@@ -1705,9 +1720,9 @@ Quit if no candidate is selected."
   :hook (((org-mode emacs-lisp-mode)
           . (lambda () (my/set-capf (seq-find #'functionp completion-at-point-functions))))
          (eglot-managed-mode . (lambda () (my/set-capf 'lsp-capf))))
-  :config
-  ;; Search case-insensitively unless the typed prefix has an uppercase letter.
-  (setq dabbrev-upcase-means-case-search t)
+  :init
+  ;; Defined here, not in `:config': the mode hooks below run as soon as a
+  ;; buffer opens, which can precede this package's (deferred) load.
   (defun my/convert-super-capf (arg-capf)
     (list
      #'cape-file
@@ -1719,6 +1734,10 @@ Quit if no candidate is selected."
     "Set up cape and tmux completion on top of CAPF."
     (when (functionp capf)
       (setq-local completion-at-point-functions (my/convert-super-capf capf))))
+
+  :config
+  ;; Search case-insensitively unless the typed prefix has an uppercase letter.
+  (setq dabbrev-upcase-means-case-search t)
 
   ;; Without LOCAL, `add-hook' changes the default for every buffer.
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
@@ -7197,6 +7216,12 @@ so the rule always wraps.  Rebuild the display to end at the edge."
 (when (daemonp)
   (add-hook 'elpaca-after-init-hook #'+my/first-input-hook-fun t))
 (add-hook 'elpaca-after-init-hook #'+my/desktop-startup-finished t)
+
+;; Packages declared since the last `elpaca-wait' are still queued, and their
+;; forms (the lazy triggers above all) only run when the queue is finalized.
+;; Drain it here: while `after-init-time' is nil the hook below cannot fire
+;; early, so every trigger is registered before startup finishes.
+(when (daemonp) (elpaca-wait))
 
 (provide 'init)
 
