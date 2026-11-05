@@ -22,6 +22,26 @@
 ;; Load init-custom.el if it exists
 (load (expand-file-name "init-custom.el" user-emacs-directory) nil 'nomessage)
 
+;; Start Rime here, before any package is loaded.  Its module dlopens
+;; librime's plugin libraries, and dyld's slow path walks every image mapped
+;; into the process: 0.4s now versus ~5s once the daemon is fully loaded.
+(when (and (daemonp) (bound-and-true-p +self/use-rime))
+  (let* ((builds (expand-file-name "elpaca/builds" user-emacs-directory))
+         (dir (expand-file-name "rime" builds)))
+    (when (and (file-exists-p (expand-file-name "librime-emacs.dylib" dir))
+               (file-directory-p (expand-file-name "Rime/" user-emacs-directory)))
+      (condition-case err
+          (progn
+            ;; rime.el requires `dash'; elpaca will activate both later.
+            (dolist (dep '("rime" "dash"))
+              (when (file-directory-p (expand-file-name dep builds))
+                (add-to-list 'load-path (expand-file-name dep builds))))
+            (setq rime-user-data-dir (expand-file-name "Rime/" user-emacs-directory))
+            (require 'rime)
+            (rime--load-dynamic-module))
+        (error (message "Rime early start failed: %s"
+                        (error-message-string err)))))))
+
 (defvar +my/first-input-hook nil)
 (defun +my/first-input-hook-fun ()
   "A hook run after the first input."
@@ -7210,10 +7230,9 @@ so the rule always wraps.  Rebuild the display to end at the edge."
     (+my/open-org-agenda))
   (message "Start in %s s with %d gc"
            (float-time (time-subtract (current-time) +my/start-time)) gcs-done)
-  ;; Starting the engine freezes Emacs for seconds: dyld's slow-path dlopen
-  ;; walks every loaded image to load librime's plugins, and a fully loaded
-  ;; daemon has hundreds.  Wait for a real idle gap so the freeze does not
-  ;; land on the first keystroke; until then `rime-activate' loads on demand.
+  ;; The engine is normally started at the top of this file, while few
+  ;; libraries are mapped.  Retry here on idle when that failed (e.g. the
+  ;; module was not built yet); `rime-activate' covers the in-between.
   (run-with-idle-timer 15 nil #'+my/desktop-preload-rime))
 
 ;; Daemons enable the former first-input modes as soon as packages are ready.
