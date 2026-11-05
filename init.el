@@ -7210,9 +7210,11 @@ so the rule always wraps.  Rebuild the display to end at the edge."
     (+my/open-org-agenda))
   (message "Start in %s s with %d gc"
            (float-time (time-subtract (current-time) +my/start-time)) gcs-done)
-  ;; Starting Rime's engine takes several seconds; do it on the first idle
-  ;; moment instead of holding up the client's frame.
-  (run-with-idle-timer 0.5 nil #'+my/desktop-preload-rime))
+  ;; Starting the engine freezes Emacs for seconds: dyld's slow-path dlopen
+  ;; walks every loaded image to load librime's plugins, and a fully loaded
+  ;; daemon has hundreds.  Wait for a real idle gap so the freeze does not
+  ;; land on the first keystroke; until then `rime-activate' loads on demand.
+  (run-with-idle-timer 15 nil #'+my/desktop-preload-rime))
 
 ;; Daemons enable the former first-input modes as soon as packages are ready.
 (when (daemonp)
